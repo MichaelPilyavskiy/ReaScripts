@@ -1,13 +1,70 @@
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @provides
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # add support for multiple MIDI editor takes
+--    # quantize to grid forward if supposed output note length is less than ME grid
 
   ----------------------------------------------------------------------
+  function Quantize_selected_MIDI_notes_ends_sub(take,i,itpos,muted,startppqpos, endppqpos,ME_grid,swing)
+    
+    local proj_time = reaper.MIDI_GetProjTimeFromPPQPos( take, endppqpos )
+    local beats, _, _, tpos_beats = reaper.TimeMap2_timeToBeats( proj, proj_time )
+    local out_pos, out_ppq, out_beatpos
+    
+    local ME_grid_s = TimeMap2_beatsToTime( 0, ME_grid)
+    local ME_grid_ppq = MIDI_GetPPQPosFromProjTime( take, ME_grid_s+itpos )
+    
+    if swing == 0 then             
+      if (beats % ME_grid) < (ME_grid/2) then out_beatpos = tpos_beats - (beats % ME_grid) else out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid end
+      out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
+      out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )
+     else
+      local midval = 0.5 + 0.25*swing
+      local checkval = 0.5 * (beats % (ME_grid*2)) / ME_grid
+      if checkval < midval then 
+        -- before swing grid
+        if checkval < 0.5*midval then 
+          out_beatpos = tpos_beats - (beats % ME_grid)  
+         else 
+          if swing < 0 then 
+            out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid*midval*2
+           else
+            out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid*swing/2
+            if checkval % midval < 0.5 then out_beatpos = out_beatpos + ME_grid end
+          end
+        end
+                  
+       else 
+       
+        -- after swing grid
+        if checkval < midval + 0.5*  (1-midval)  then 
+          out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid * 0.5 * swing
+         else 
+          out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid
+        end            
+       
+      end
+      out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
+      out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )     
+    end  
+    
+      
+    if out_ppq and out_pos then
+      
+      if out_ppq - startppqpos < ME_grid_ppq then
+        out_pos = TimeMap2_beatsToTime( 0, out_beatpos+ME_grid)
+        out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )   
+      end
+      
+      if out_ppq - startppqpos > ME_grid_ppq then 
+        MIDI_SetNote( take, i-1, true, muted, startppqpos, out_ppq, chan, pitch, vel, true ) 
+      end
+    end
+  end
+  ----------------------------------------------------------------------  
   function Quantize_selected_MIDI_notes_ends(take) 
     if not take or not TakeIsMIDI(take) then return end
     local ME_grid, swing = reaper.MIDI_GetGrid( take )
@@ -20,46 +77,7 @@
     for i = 1, notecnt do
       local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, i-1 )
       if selected then
-      
-        local proj_time = reaper.MIDI_GetProjTimeFromPPQPos( take, endppqpos )
-        local beats, _, _, tpos_beats = reaper.TimeMap2_timeToBeats( proj, proj_time )
-        local out_pos, out_ppq, out_beatpos
-        
-        if swing == 0 then             
-          if (beats % ME_grid) < (ME_grid/2) then out_beatpos = tpos_beats - (beats % ME_grid) else out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid end
-          out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
-          out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )
-         else
-          local midval = 0.5 + 0.25*swing
-          local checkval = 0.5 * (beats % (ME_grid*2)) / ME_grid
-          if checkval < midval then 
-            -- before swing grid
-            if checkval < 0.5*midval then 
-              out_beatpos = tpos_beats - (beats % ME_grid)  
-             else 
-              if swing < 0 then 
-                out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid*midval*2
-               else
-                out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid*swing/2
-                if checkval % midval < 0.5 then out_beatpos = out_beatpos + ME_grid end
-              end
-            end
-                      
-           else 
-           
-            -- after swing grid
-            if checkval < midval + 0.5*  (1-midval)  then 
-              out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid * 0.5 * swing
-             else 
-              out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid
-            end            
-           
-          end
-          out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
-          out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )          
-        end  
-
-        if out_ppq and out_ppq - startppqpos > 10 then MIDI_SetNote( take, i-1, true, muted, startppqpos, out_ppq, chan, pitch, vel, true ) end
+          Quantize_selected_MIDI_notes_ends_sub(take,i,itpos,muted,startppqpos, endppqpos,ME_grid,swing)
       end
     end 
 
