@@ -1,10 +1,9 @@
 -- @description Chord voicing - select lower note under play cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # on stop handle position as edit cursor
---    # ignore note doubles
+--    # fix order
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -23,13 +22,23 @@
   function modifychords(chords,take, playcurpos)
     for ppq in spairs(chords) do
       has_selectedflag= false
+      
+      local minpitch = 128
+      local chordnoteout
+      for chordnote = 1, #chords[ppq] do 
+        if  chords[ppq][chordnote].pitch < minpitch then
+          chordnoteout = chordnote
+          minpitch = chords[ppq][chordnote].pitch
+        end 
+      end
+      
       for chordnote = 1, #chords[ppq] do if chords[ppq][chordnote].flags&1==1 then has_selectedflag = true break end end
       
       --if has_selectedflag then 
         for chordnote = 1, #chords[ppq] do  
           local timest = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos )
           local timeen = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos+(chords[ppq][chordnote].ppq_len or 0) )
-          if chordnote == 1 and (timest<=playcurpos and timeen >=playcurpos)
+          if chordnote == chordnoteout and (timest<=playcurpos and timeen >=playcurpos)
             then chords[ppq][chordnote].flags = 1 
             
            else 

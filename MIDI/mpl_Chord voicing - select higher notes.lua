@@ -1,9 +1,9 @@
 -- @description Chord voicing - select higher notes
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---  + init
+--  # fix order
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   ----------------------------------------------------------------------  
@@ -23,10 +23,17 @@
       for chordnote = 1, #chords[ppq] do if chords[ppq][chordnote].flags&1==1 then has_selectedflag = true break end end
       
       if has_selectedflag then 
+        local maxpitch = -1
+        local chordnoteout
         for chordnote = 1, #chords[ppq] do 
-          
-          if chordnote == #chords[ppq] then chords[ppq][chordnote].flags = 1 else chords[ppq][chordnote].flags = 0 end
-        end 
+          if  chords[ppq][chordnote].pitch > maxpitch then
+            chordnoteout = chordnote
+            maxpitch = chords[ppq][chordnote].pitch
+          end 
+        end
+        for chordnote = 1, #chords[ppq] do 
+          if chordnote == chordnoteout then chords[ppq][chordnote].flags = 1 else chords[ppq][chordnote].flags = 0 end
+        end
       end
     end
   end

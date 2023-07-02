@@ -1,10 +1,9 @@
 -- @description Chord voicing - select higher note under play cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # on stop handle position as edit cursor
---    # ignore note doubles
+--    # fix order
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -26,12 +25,20 @@
       for chordnote = 1, #chords[ppq] do if chords[ppq][chordnote].flags&1==1 then has_selectedflag = true break end end
       
       --if has_selectedflag then 
+      local maxpitch = -1
+      local chordnoteout
+      for chordnote = 1, #chords[ppq] do 
+        if  chords[ppq][chordnote].pitch > maxpitch then
+          chordnoteout = chordnote
+          maxpitch = chords[ppq][chordnote].pitch
+        end 
+      end
+      
         for chordnote = 1, #chords[ppq] do  
           local timest = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos )
           local timeen = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos+(chords[ppq][chordnote].ppq_len or 0) )
-          if chordnote == #chords[ppq] and (timest<=playcurpos and timeen >=playcurpos)
+          if (timest<=playcurpos and timeen >=playcurpos) and chordnoteout == chordnote
             then chords[ppq][chordnote].flags = 1 
-            
            else 
             chords[ppq][chordnote].flags = 0 
           end
