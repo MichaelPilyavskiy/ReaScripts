@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7ba91cd994a57d1fcde6be9775522724c972a325" name="MPL Scripts">
+<index version="1" commit="60efdc164c60d5c1586d5580f465683abc31ea53" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6350,6 +6350,11 @@
       <version name="1.01" author="MPL" time="2019-04-29T06:19:31Z">
         <changelog><![CDATA[# change header]]></changelog>
         <source main="main" platform="windows">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f8025edb78755b3293d09e15a3e15f93cdeea5c0/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2023-07-31T17:12:55Z">
+        <changelog><![CDATA[# fix error on MacOS
++ Add MacOS support]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60efdc164c60d5c1586d5580f465683abc31ea53/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render filename.lua" type="script" desc="Set render filename">
