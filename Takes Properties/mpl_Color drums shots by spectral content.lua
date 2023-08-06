@@ -1,9 +1,9 @@
--- @description Color drums shots by spectral content
--- @version 1.0
+-- @description Color drums shots by content
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---  + init 
+--  # tweak thresholds a bit
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -57,8 +57,8 @@
       if b5 > b1 and b5>b2 and b5>b3 and b5>b4 and b5>b6 then drumtype = 'tom' end
       if b6 > b1 and b6>b2 and b6>b3 and b6>b4 and b6>b5 then 
         drumtype = 'hat'
-        if math.abs((b2+b3+b4+b5)/4 - b6) < 0.2 then drumtype = 'snare' end  
-        if math.abs(b6 - (b2+b6)/2) < 0.1 then drumtype = 'snare' end
+        --if math.abs((b2+b3+b4+b5)/4 - b6) < 0.3 then drumtype = 'snare' end  
+        --if math.abs(b6 - (b2+b6)/2) < 0.1 then drumtype = 'snare' end
       end -- aht
      
      --[[
@@ -206,7 +206,7 @@
       curratio = i/sz
       if curratio == 0 then mult = 0
        elseif curratio < split1                        then mult = 0.07 -- sub lows // kick
-       elseif curratio >=split1 and curratio < split2    then mult = 0.15 -- lows // kick
+       elseif curratio >=split1 and curratio < split2    then mult = 0.1 -- lows // kick
        elseif curratio >=split2 and curratio < split3    then mult = 0.2 -- sc = 0.1 mult = sc+(1-sc)*(curratio*2)^2  -- lows // snare
        elseif curratio >= split3 and curratio < split4  then mult = 0.4 -- mid //  toms
        elseif curratio >= split4 and curratio < split5  then mult = 0.5 
