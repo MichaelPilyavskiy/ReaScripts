@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ebf17105cdbd7f4ac4e8b6e619c9af16b33175ff" name="MPL Scripts">
+<index version="1" commit="47caed1e43fe57bf0b0f4d3612fb477f0bf81cac" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10922,6 +10922,10 @@
       <version name="2.20" author="MPL" time="2023-03-05T12:13:04Z">
         <changelog><![CDATA[+ Solo: use solo-in-place]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5dcda0aef58eb4ca2e833405691065a81c99e1e6/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.21" author="MPL" time="2023-08-12T03:21:52Z">
+        <changelog><![CDATA[# use full track names]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/47caed1e43fe57bf0b0f4d3612fb477f0bf81cac/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
