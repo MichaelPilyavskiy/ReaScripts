@@ -1,10 +1,10 @@
 -- @description VisualMixer
--- @version 2.20
+-- @version 2.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Solo: use solo-in-place
+--    # use full track names
 
  
   
@@ -18,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.20
+    DATA.extstate.version = 2.21
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -1971,7 +1971,7 @@ track8_pan=0
       local vol_dB = WDL_VAL2DB(vol) 
       --name
       local retval, trname = GetTrackName( tr, '' ) 
-      if trname:match('(.-)%s+') then trname = trname:match('(.-)%s+') end -- exclude space at the end
+      --if trname:match('(.-)%s+') then trname = trname:match('(.-)%s+') end -- exclude space at the end
       local I_FOLDERDEPTH = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
       local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end if icon_fp and not file_exists(icon_fp) then icon_fp = nli end
       local solo = GetMediaTrackInfo_Value( tr, 'I_SOLO')
