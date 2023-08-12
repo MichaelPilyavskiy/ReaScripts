@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.20
+-- @version 3.21
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,8 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # DrumRack: fix broken selection
---    # fix changing pitch for pads selection
+--    # DrumRack: replacing sample obey Settings/On sample add/Rename track
 
 
 
@@ -31,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.20'
+    DATA.extstate.version = '3.21'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -3768,9 +3767,11 @@ rightclick them to hide all but active.
     end
     
     -- handle track name 
+    if DATA.extstate.CONF_onadd_renametrack ==1 then
       filepath_sh = GetShortSmplName(filepath)
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
       GetSetMediaTrackInfo_String( DATA2.notes[note].layers[layer].tr_ptr, 'P_NAME', filepath_sh, true ) 
+    end
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath,section_data)
