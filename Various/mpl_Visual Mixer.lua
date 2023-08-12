@@ -1,10 +1,10 @@
 -- @description VisualMixer
--- @version 2.21
+-- @version 2.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # use full track names
+--    + Ctrl+drag: change volume only
 
  
   
@@ -18,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.21
+    DATA.extstate.version = 2.22
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -1544,17 +1544,23 @@ track8_pan=0
                 DATA.GUI.buttons['trackrect'..GUID].latch_y = DATA.GUI.buttons['trackrect'..GUID].y
               end 
               
-              -- move oblects
-              DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px) 
+              -- move oblects 
+              if not DATA.GUI.Ctrl then
+                DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px) 
+              end
               DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.CONF_tr_rect_px) 
               DATA.GUI.buttons['trackrect'..GUID].refresh = true
               
               -- apply values from objects
-              local pan = DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
               local db_val = DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y) 
+              local pan
+              if not DATA.GUI.Ctrl then
+                pan = DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
+              end
               DATA2:GUI_inittracks_initstuff(DATA,GUID )
               local volform = math.floor(db_val*100000)/100000
-              DATA2.info_txt = DATA2.tracks[GUID].name..'\nVolume '..volform..'dB\nPan '..(math.floor(pan*10000)/100)..'%'
+              DATA2.info_txt = DATA2.tracks[GUID].name..'\nVolume '..volform..'dB'
+              if pan then DATA2.info_txt = DATA2.info_txt..'\nPan '..(math.floor(pan*10000)/100)..'%' end
               
             end 
             
