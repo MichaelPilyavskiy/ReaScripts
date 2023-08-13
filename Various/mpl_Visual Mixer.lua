@@ -1,11 +1,14 @@
 -- @description VisualMixer
--- @version 2.23
+-- @version 2.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Snapshots: support setting color
---    + Snapshots: support setting annotation tooltip
+--    + suppor dual pan
+--    # improve mouse selection
+--    # fix potential issues with ctrl+drag to change only volume
+--    + Add external parameter (no feedback from controls, needs to be enable in settings)
+--    + Allow to control first sent volume with some predefined mapping (needs to be enable in settings) by mousewhell at track rectangle
 
  
   
@@ -19,7 +22,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.23
+    DATA.extstate.version = 2.24
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -60,11 +63,13 @@
                           UI_showtracknames = 1,
                           UI_showtracknames_flags = 1,
                           UI_showicons = 1,
-                          UI_showtopctrl_flags = 1|2|4,
+                          UI_showtopctrl_flags = 1|2|4, 
+                            UI_extcontrol1dest = 0,--1=fisrt send volume
                           UI_extendcenter = 0.3,
                           UI_expandpeaks =1,
                           UI_showscalenumbers =1,
                           UI_showinfotooltip =1,
+                          UI_ignoregrouptracks =0,
                           
                           CONF_quantizevolume = 1,
                           CONF_quantizepan = 5,
@@ -380,11 +385,20 @@ Object in 2D mode
       )      
   end
   --------------------------------------------------------------------- 
+  function DATA2:reset_selection(DATA) 
+    for GUID in pairs(DATA2.tracks) do if DATA.GUI.buttons['trackrect'..GUID] then DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false end end
+  end
+  --------------------------------------------------------------------- 
+  function DATA2:count_selection(DATA) 
+    local cnt = 0
+    for GUID in pairs(DATA2.tracks) do if DATA.GUI.buttons['trackrect'..GUID] and DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then cnt = cnt + 1 end end
+    return cnt
+  end
+  --------------------------------------------------------------------- 
   function DATA2:marque_selection(DATA) 
     L1x,L1y,R1x,R1y = DATA2.marquee.x,DATA2.marquee.y,DATA2.marquee.x+DATA2.marquee.w,DATA2.marquee.y+DATA2.marquee.h
     for GUID in pairs(DATA2.tracks) do
       if DATA.GUI.buttons['trackrect'..GUID] then
-        DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false
         L2x,L2y,R2x,R2y = DATA.GUI.buttons['trackrect'..GUID].x,DATA.GUI.buttons['trackrect'..GUID].y,DATA.GUI.buttons['trackrect'..GUID].x+DATA.GUI.buttons['trackrect'..GUID].w,DATA.GUI.buttons['trackrect'..GUID].y+DATA.GUI.buttons['trackrect'..GUID].h
         DATA.GUI.buttons['trackrect'..GUID].sel_isselected = iscross(L1x,L1y,R1x,R1y,L2x,L2y,R2x,R2y)
       end
@@ -1193,9 +1207,7 @@ track8_pan=0
           outx = DATA.GUI.buttons.scale.x + DATA.GUI.buttons.scale.w/2 + DATA.GUI.custom_extendcenter /2 + pan * ((DATA.GUI.buttons.scale.w-DATA.GUI.custom_extendcenter)/2-DATA.extstate.CONF_tr_rect_px/2)         
          elseif pan <0 then 
           outx = DATA.GUI.buttons.scale.x + (1+pan) * ((DATA.GUI.buttons.scale.w-DATA.GUI.custom_extendcenter)/2-DATA.extstate.CONF_tr_rect_px/2)+DATA.extstate.CONF_tr_rect_px/2
-        end
-        
-        
+        end 
       end
       return outx 
     end
@@ -1210,7 +1222,7 @@ track8_pan=0
   function DATA2:TrackMap_ApplyTrPan(GUID, Xval, panout) 
     local tr = VF_GetTrackByGUID(GUID)
     if not tr then return end
-    
+    if not Xval then panout = DATA2.tracks[GUID].pan end
     local pan,area,wsz
     if not panout then 
       wsz = (DATA.GUI.buttons['trackrect'..GUID].w or DATA.extstate.CONF_tr_rect_px)
@@ -1247,6 +1259,15 @@ track8_pan=0
         pan = pan/m
     end 
     SetTrackUIPan( tr, pan, false, false,1|2)
+    if GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 6 and DATA2.tracks[GUID] and DATA2.tracks[GUID].width then 
+      local width = (1-math.abs(pan)) * DATA2.tracks[GUID].width
+      local panL = VF_lim(pan-width,-1,1)
+      local panR = VF_lim(pan+width,-1,1)
+      SetTrackUIPan( tr, panL, false, false,1|2)
+      SetTrackUIWidth( tr, panR, false, false,1|2)
+      SetMediaTrackInfo_Value( tr, 'D_DUALPANL', panL)
+      SetMediaTrackInfo_Value( tr, 'D_DUALPANR', panR) 
+    end
     return pan
   end
   
@@ -1266,9 +1287,13 @@ track8_pan=0
     local tr = VF_GetTrackByGUID(GUID)
     if not tr then return end 
     local width = ((Wval / DATA.GUI.buttons['trackrect'..GUID].w)-DATA.GUI.custom_minw_ratio)/(1-DATA.GUI.custom_minw_ratio) 
-    
-    SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
-    SetTrackUIWidth( tr, width, false, false,1|2)
+    if GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 6 then
+      SetMediaTrackInfo_Value( tr, 'D_WIDTH',width)
+      DATA2.tracks[GUID].width = width
+      DATA2:TrackMap_ApplyTrPan(GUID)
+     elseif GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 5 then
+      SetTrackUIWidth( tr, width, false, false,1|2)
+    end
     return width
   end
   
@@ -1381,7 +1406,7 @@ track8_pan=0
                             y=ypos+DATA.GUI.CONF_tr_rect_px-DATA.GUI.custom_foldrect,
                             w=DATA.GUI.custom_foldrect,
                             h=DATA.GUI.custom_foldrect,
-                            backgr_fill = 0.9,
+                            backgr_fill = 0.4,
                             backgr_col = '#FFFFFF',
                             frame_a =0,
                             refresh = true,
@@ -1496,6 +1521,28 @@ track8_pan=0
     end
     if DATA.extstate.UI_showtopctrl_flags&4==4 then xoffs = xoffs+DATA.GUI.custom_butside end
     
+    -- ext1 
+    if DATA.extstate.UI_showtopctrl_flags&8==8 then 
+      if not DATA.GUI.buttons['trackrect'..GUID..'ext1'] then
+        local backgr_fill  =DATA.GUI.custom_backgr_fill_disabled
+        DATA.GUI.buttons['trackrect'..GUID..'ext1']={x=xoffs,
+                            y=ypos-DATA.GUI.custom_butside,
+                            w=DATA.GUI.custom_butside-1,
+                            h=DATA.GUI.custom_butside-1,
+                            val = DATA2.tracks[GUID].ext1,
+                            backgr_usevalue = true,
+                            backgr_fill2 = 0.5,
+                            backgr_col2 = '#FFFFFF',
+                            frame_a =0.1,
+                            refresh = true,
+                            } 
+       else 
+        DATA.GUI.buttons['trackrect'..GUID..'ext1'].x=xoffs 
+        DATA.GUI.buttons['trackrect'..GUID..'ext1'].y=ypos-DATA.GUI.custom_butside                       
+      end
+      xoffs = xoffs+DATA.GUI.custom_butside 
+    end
+    
   end
   
   -----------------------------------------------
@@ -1513,7 +1560,7 @@ track8_pan=0
       if not (DATA.GUI.Ctrl==true or DATA.GUI.Alt==true or DATA.GUI.Shift==true) then
         DATA2.latchctrls = GUID
         DATA2.ontrackobj = true
-        for GUID in pairs(DATA2.tracks) do DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false end -- reset selection  
+        --for GUID in pairs(DATA2.tracks) do if DATA.GUI.buttons['trackrect'..GUID] then DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false end end -- reset selection  
         DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true
       end
       
@@ -1526,8 +1573,10 @@ track8_pan=0
 
     -- reset latch
     for GUID in pairs(DATA2.tracks) do
+      if DATA.GUI.buttons['trackrect'..GUID] then
         DATA.GUI.buttons['trackrect'..GUID].latch_x = nil
         DATA.GUI.buttons['trackrect'..GUID].latch_y = nil
+      end
     end
     if DATA.extstate.UI_3dmode == 1 then 
       DATA.GUI.buttons['trackrect'..GUID].latch_AXx = nil
@@ -1597,59 +1646,96 @@ track8_pan=0
         if DATA.GUI.mouse_ismoving then 
           DATA2.ontrackobj = true
           for GUID in pairs(DATA2.tracks) do
-            if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
-            
-              -- add latch if not found
-              if not DATA.GUI.buttons['trackrect'..GUID].latch_x then
-                DATA.GUI.buttons['trackrect'..GUID].latch_x = DATA.GUI.buttons['trackrect'..GUID].x
-                DATA.GUI.buttons['trackrect'..GUID].latch_y = DATA.GUI.buttons['trackrect'..GUID].y
+            if DATA.GUI.buttons['trackrect'..GUID] then
+              if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
+              
+                -- add latch if not found
+                if not DATA.GUI.buttons['trackrect'..GUID].latch_x then
+                  DATA.GUI.buttons['trackrect'..GUID].latch_x = DATA.GUI.buttons['trackrect'..GUID].x
+                  DATA.GUI.buttons['trackrect'..GUID].latch_y = DATA.GUI.buttons['trackrect'..GUID].y
+                end 
+                
+                -- move oblects 
+                if not DATA.GUI.Ctrl then
+                  DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px) 
+                end
+                DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.CONF_tr_rect_px) 
+                DATA.GUI.buttons['trackrect'..GUID].refresh = true
+                
+                -- apply values from objects
+                local db_val = DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y) 
+                local pan
+                if not DATA.GUI.Ctrl  then
+                  pan = DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
+                end
+                DATA2:GUI_inittracks_initstuff(DATA,GUID )
+                local volform = math.floor(db_val*100000)/100000
+                DATA2.info_txt = DATA2.tracks[GUID].name..'\nVolume '..volform..'dB'
+                if pan then DATA2.info_txt = DATA2.info_txt..'\nPan '..(math.floor(pan*10000)/100)..'%' end
+                
               end 
-              
-              -- move oblects 
-              if not DATA.GUI.Ctrl then
-                DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px) 
-              end
-              DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.CONF_tr_rect_px) 
-              DATA.GUI.buttons['trackrect'..GUID].refresh = true
-              
-              -- apply values from objects
-              local db_val = DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y) 
-              local pan
-              if not DATA.GUI.Ctrl then
-                pan = DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
-              end
-              DATA2:GUI_inittracks_initstuff(DATA,GUID )
-              local volform = math.floor(db_val*100000)/100000
-              DATA2.info_txt = DATA2.tracks[GUID].name..'\nVolume '..volform..'dB'
-              if pan then DATA2.info_txt = DATA2.info_txt..'\nPan '..(math.floor(pan*10000)/100)..'%' end
-              
-            end 
-            
+            end
           end
         end
       end
     
   end
   ---------------------------------------------------------------------  
+  function DATA2:GUI_inittracks_onwheeltrig(DATA, GUID,dir)
+    if dir then dir = -1 else dir = 1 end
+    if DATA.GUI.buttons['trackrect'..GUID] then 
+    
+      -- set ext value
+      local ret,val = GetSetMediaTrackInfo_String( DATA2.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_ext1', 0, false )
+      if not ret or (ret and not tonumber(val)) then val = 0 end
+      local out = VF_lim(val+dir*0.025)
+      GetSetMediaTrackInfo_String( DATA2.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_ext1', out, true )
+      DATA.GUI.buttons['trackrect'..GUID].ext1 = out
+      
+      -- apply
+      if DATA.extstate.UI_extcontrol1dest == 1 then
+         SetTrackSendInfo_Value( DATA2.tracks[GUID].ptr, 0, 0, 'D_VOL',  WDL_DB2VAL(SLIDER2DB( (out^0.2)*920 )) )
+      end
+    end
+    
+    Undo_OnStateChangeEx2( 0, 'MPL Visual mixer change', 1, -1 )
+    
+    DATA2:tracks_init(true)
+    DATA2:GUI_inittracks(DATA) 
+    
+    DATA2.latchctrls = nil
+    DATA2.info_txt = nil
+    local ID = DATA.GUI.custom_currentsnapshotID or 1 
+    DATA2:Snapshot_WriteCurrent(ID)
+    DATA2:Snapshot_Write()
+    DATA2.ontrackobj = false 
+    DATA2.preventrefresh = true
+    
+  end
+    --------------------------------------------------------------------- 
   function DATA2:GUI_inittracks_onmouserelease(DATA, GUID)
     DATA2:GUI_inittracks_initstuff(DATA,GUID )
                   
     -- handle alt / shift release
       if (DATA.GUI.Alt==true or DATA.GUI.Shift==true) then
         for GUID in pairs(DATA2.tracks) do 
-          if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
-            if DATA.GUI.Alt == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL',1) end
-            if DATA.GUI.Shift == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_PAN',0) end
-          end 
+          if DATA.GUI.buttons['trackrect'..GUID] then
+            if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
+              if DATA.GUI.Alt == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL',1) end
+              if DATA.GUI.Shift == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_PAN',0) end
+            end 
+          end
         end 
         DATA2:tracks_init(true)
         DATA2:GUI_inittracks(DATA) 
       end
 
     Undo_OnStateChangeEx2( 0, 'MPL Visual mixer change', 1, -1 )
-    if DATA2.ontrackdrag  then
+    --msg( DATA2:count_selection(DATA))
+    if DATA2.ontrackdrag and  DATA2:count_selection(DATA) == 1 and not DATA.GUI.Ctrl then
       DATA2:tracks_init(true)
       DATA2:GUI_inittracks(DATA) 
+      DATA2:reset_selection(DATA) 
       DATA2.ontrackdrag = nil
     end
     
@@ -1735,6 +1821,8 @@ track8_pan=0
   ---------------------------------------------------------------------  
   function DATA2:GUI_inittracks(DATA) 
     for key in pairs(DATA.GUI.buttons) do if key:match('trackrect') then DATA.GUI.buttons[key] = nil end end
+    
+    
     if DATA.GUI.layers_refresh then DATA.GUI.layers_refresh[2] = true end -- clear buttons buffer
     if not (DATA and DATA.GUI.buttons and DATA2.tracks) then return end  
     
@@ -1755,7 +1843,8 @@ track8_pan=0
       local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan,GUID)-wsz/2)
       local ypos = math.floor(GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)-hsz/2)
       
-      DATA.GUI.buttons['trackrect'..GUID]={
+      if not (DATA2.tracks[GUID].I_FOLDERDEPTH == 1 and DATA.extstate.UI_ignoregrouptracks ==1) then
+        DATA.GUI.buttons['trackrect'..GUID]={
                             x=xpos,
                             y=ypos,
                             w=wsz,
@@ -1769,6 +1858,7 @@ track8_pan=0
                             onmouseclick = function() DATA2:GUI_inittracks_onmouseclick(DATA,GUID) end,
                             onmousedrag = function()DATA2:GUI_inittracks_onmousedrag(DATA,GUID) end,
                             onmouserelease =  function()DATA2:GUI_inittracks_onmouserelease(DATA,GUID) end,
+                            onwheeltrig =  function()DATA2:GUI_inittracks_onwheeltrig(DATA,GUID,DATA.GUI.wheel_dir) end,
                             onmousematchcont = function() 
                                 if DATA2.ontrackobj ~= true then
                                   DATA2.info_txt = DATA2.tracks[GUID].name
@@ -1781,8 +1871,9 @@ track8_pan=0
                             end,
                             
                             }
-      if DATA.extstate.UI_showicons == 1 then DATA.GUI.buttons['trackrect'..GUID].png = DATA2.tracks[GUID].icon_fp end
-      DATA2:GUI_inittracks_initstuff(DATA,GUID)
+        if DATA.extstate.UI_showicons == 1 then DATA.GUI.buttons['trackrect'..GUID].png = DATA2.tracks[GUID].icon_fp end
+        DATA2:GUI_inittracks_initstuff(DATA,GUID)
+      end
     end
   end
   --------------------------------------------------- 
@@ -2028,10 +2119,11 @@ track8_pan=0
       local GUID = GetTrackGUID( tr ) 
       -- pan
       local pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
+      local width = GetMediaTrackInfo_Value( tr, 'D_WIDTH')
       if GetMediaTrackInfo_Value( tr, 'I_PANMODE') == 6 then 
          local L= GetMediaTrackInfo_Value( tr, 'D_DUALPANL')
          local R= GetMediaTrackInfo_Value( tr, 'D_DUALPANR')
-         pan = math.max(math.min(L+R, 1), -1)
+         pan = math.max(math.min((R+L)/2, 1), -1)
       end 
       -- vol 
       local vol = GetMediaTrackInfo_Value( tr, 'D_VOL')
@@ -2045,6 +2137,11 @@ track8_pan=0
       local mute = GetMediaTrackInfo_Value( tr, 'B_MUTE')
       local ret, center_area = GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_VISMIX_centerarea', '', false )
       center_area = tonumber(center_area) or 0.5 
+      
+      local ext1 = 0
+      local ret,str = GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_VISMIX_ext1', 0, false )
+      if ret and tonumber(str ) then ext1 = tonumber(str ) end
+      
       DATA2.tracks[GUID] = {  ptr = tr,
                               pan = pan,
                               vol = vol,
@@ -2052,11 +2149,12 @@ track8_pan=0
                               icon_fp=icon_fp,
                               I_FOLDERDEPTH = I_FOLDERDEPTH,
                               name = trname,
-                              width = GetMediaTrackInfo_Value( tr, 'D_WIDTH'),
+                              width = width,
                               col =  GetTrackColor( tr ),
                               solo=solo>0,
                               mute=mute>0,
-                              center_area =center_area
+                              center_area =center_area,
+                              ext1 = ext1,
                              }
     end
   end
@@ -2156,9 +2254,12 @@ track8_pan=0
         {str = 'Top controls: solo',                group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =0, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Top controls: mute',                group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =1, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Top controls: FX',                  group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =2, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Top controls: external_1',          group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =3, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+          {str = 'External_1:first send level',        group = 1, itype = 'check', confkey = 'UI_extcontrol1dest', val_set  =1, level = 2,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Show scale numbers',                  group = 1, itype = 'check', confkey = 'UI_showscalenumbers', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Show info tooltip',                  group = 1, itype = 'check', confkey = 'UI_showinfotooltip', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
-      {str = 'UI behaviour' ,                                 group = 5, itype = 'sep'},         
+        {str = 'Hide group tracks',                  group = 1, itype = 'check', confkey = 'UI_ignoregrouptracks', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+      {str = 'UI behaviour' ,                        group = 5, itype = 'sep'},         
         {str = 'Quantize volume off',               group = 5, itype = 'check', confkey = 'CONF_quantizevolume', isset = 0, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},   
         {str = 'Quantize volume to 0.1dB',          group = 5, itype = 'check', confkey = 'CONF_quantizevolume', isset = 1, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Quantize volume to 0.01dB',         group = 5, itype = 'check', confkey = 'CONF_quantizevolume', isset = 2, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
