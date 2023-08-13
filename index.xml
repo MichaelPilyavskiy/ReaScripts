@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="faa34f9931d3ab18dfe3358f92db82ae49e0fb3b" name="MPL Scripts">
+<index version="1" commit="1d62ee110f9d3d879a4d6f379235b553afe4c06a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10943,6 +10943,10 @@
 + Add external parameter (no feedback from controls, needs to be enable in settings)
 + Allow to control first sent volume with some predefined mapping (needs to be enable in settings) by mousewhell at track rectangle]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/faa34f9931d3ab18dfe3358f92db82ae49e0fb3b/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.25" author="MPL" time="2023-08-13T10:13:56Z">
+        <changelog><![CDATA[# minor internal fix]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1d62ee110f9d3d879a4d6f379235b553afe4c06a/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
