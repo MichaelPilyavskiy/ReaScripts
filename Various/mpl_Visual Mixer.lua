@@ -1,14 +1,10 @@
 -- @description VisualMixer
--- @version 2.24
+-- @version 2.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + suppor dual pan
---    # improve mouse selection
---    # fix potential issues with ctrl+drag to change only volume
---    + Add external parameter (no feedback from controls, needs to be enable in settings)
---    + Allow to control first sent volume with some predefined mapping (needs to be enable in settings) by mousewhell at track rectangle
+--    # minor internal fix
 
  
   
@@ -22,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.24
+    DATA.extstate.version = 2.25
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -1829,50 +1825,52 @@ track8_pan=0
     if DATA.extstate.UI_3dmode == 1 then DATA2:GUI3D_inittracks(DATA)  return end
     
     for GUID in pairs(DATA2.tracks) do
-      local frame_col
-      if DATA2.tracks[GUID].col and DATA2.tracks[GUID].col ~= 0 then
-        local r,g,b = ColorFromNative(DATA2.tracks[GUID].col)
-        frame_col = string.format("#%02x%02x%02x",math.floor(r),math.floor(g),math.floor(b))
-      end
-      local wsz,hsz = DATA.extstate.CONF_tr_rect_px,DATA.GUI.CONF_tr_rect_px
-      
-      if DATA.extstate.UI_3dmode ==1 then 
-        wsz = 100
-        hsz = wsz
-      end
-      local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan,GUID)-wsz/2)
-      local ypos = math.floor(GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)-hsz/2)
-      
-      if not (DATA2.tracks[GUID].I_FOLDERDEPTH == 1 and DATA.extstate.UI_ignoregrouptracks ==1) then
-        DATA.GUI.buttons['trackrect'..GUID]={
-                            x=xpos,
-                            y=ypos,
-                            w=wsz,
-                            h=hsz,
-                            --backgr_fill = 0,
-                            frame_a =0.7,
-                            frame_col = frame_col,
-                            refresh = true,
-                            sel_allow = true,
-                            val_data = {['gridobject']=true},
-                            onmouseclick = function() DATA2:GUI_inittracks_onmouseclick(DATA,GUID) end,
-                            onmousedrag = function()DATA2:GUI_inittracks_onmousedrag(DATA,GUID) end,
-                            onmouserelease =  function()DATA2:GUI_inittracks_onmouserelease(DATA,GUID) end,
-                            onwheeltrig =  function()DATA2:GUI_inittracks_onwheeltrig(DATA,GUID,DATA.GUI.wheel_dir) end,
-                            onmousematchcont = function() 
+      if GUID:match('{') then
+        local frame_col
+        if DATA2.tracks[GUID].col and DATA2.tracks[GUID].col ~= 0 then
+          local r,g,b = ColorFromNative(DATA2.tracks[GUID].col)
+          frame_col = string.format("#%02x%02x%02x",math.floor(r),math.floor(g),math.floor(b))
+        end
+        local wsz,hsz = DATA.extstate.CONF_tr_rect_px,DATA.GUI.CONF_tr_rect_px
+        
+        if DATA.extstate.UI_3dmode ==1 then 
+          wsz = 100
+          hsz = wsz
+        end
+        local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan,GUID)-wsz/2)
+        local ypos = math.floor(GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)-hsz/2)
+        
+        if not (DATA2.tracks[GUID].I_FOLDERDEPTH == 1 and DATA.extstate.UI_ignoregrouptracks ==1) then
+          DATA.GUI.buttons['trackrect'..GUID]={
+                              x=xpos,
+                              y=ypos,
+                              w=wsz,
+                              h=hsz,
+                              --backgr_fill = 0,
+                              frame_a =0.7,
+                              frame_col = frame_col,
+                              refresh = true,
+                              sel_allow = true,
+                              val_data = {['gridobject']=true},
+                              onmouseclick = function() DATA2:GUI_inittracks_onmouseclick(DATA,GUID) end,
+                              onmousedrag = function()DATA2:GUI_inittracks_onmousedrag(DATA,GUID) end,
+                              onmouserelease =  function()DATA2:GUI_inittracks_onmouserelease(DATA,GUID) end,
+                              onwheeltrig =  function()DATA2:GUI_inittracks_onwheeltrig(DATA,GUID,DATA.GUI.wheel_dir) end,
+                              onmousematchcont = function() 
+                                  if DATA2.ontrackobj ~= true then
+                                    DATA2.info_txt = DATA2.tracks[GUID].name
+                                  end
+                                end,
+                              onmouselost = function() 
                                 if DATA2.ontrackobj ~= true then
-                                  DATA2.info_txt = DATA2.tracks[GUID].name
+                                  DATA2.info_txt = nil
                                 end
                               end,
-                            onmouselost = function() 
-                              if DATA2.ontrackobj ~= true then
-                                DATA2.info_txt = nil
-                              end
-                            end,
-                            
-                            }
-        if DATA.extstate.UI_showicons == 1 then DATA.GUI.buttons['trackrect'..GUID].png = DATA2.tracks[GUID].icon_fp end
-        DATA2:GUI_inittracks_initstuff(DATA,GUID)
+                              
+                              }
+          if DATA.extstate.UI_showicons == 1 then DATA.GUI.buttons['trackrect'..GUID].png = DATA2.tracks[GUID].icon_fp end
+          DATA2:GUI_inittracks_initstuff(DATA,GUID)
+        end
       end
     end
   end
