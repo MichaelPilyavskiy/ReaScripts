@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a8fdbc9c3a6a8bb0667f86683b4b6f75f69fc9c5" name="MPL Scripts">
+<index version="1" commit="faa34f9931d3ab18dfe3358f92db82ae49e0fb3b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10935,6 +10935,14 @@
         <changelog><![CDATA[+ Snapshots: support setting color
 + Snapshots: support setting annotation tooltip]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a8fdbc9c3a6a8bb0667f86683b4b6f75f69fc9c5/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.24" author="MPL" time="2023-08-13T10:06:56Z">
+        <changelog><![CDATA[+ suppor dual pan
+# improve mouse selection
+# fix potential issues with ctrl+drag to change only volume
++ Add external parameter (no feedback from controls, needs to be enable in settings)
++ Allow to control first sent volume with some predefined mapping (needs to be enable in settings) by mousewhell at track rectangle]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/faa34f9931d3ab18dfe3358f92db82ae49e0fb3b/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
