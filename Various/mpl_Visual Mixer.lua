@@ -1,10 +1,11 @@
 -- @description VisualMixer
--- @version 2.22
+-- @version 2.23
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Ctrl+drag: change volume only
+--    + Snapshots: support setting color
+--    + Snapshots: support setting annotation tooltip
 
  
   
@@ -18,7 +19,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.22
+    DATA.extstate.version = 2.23
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -290,8 +291,14 @@ Object in 2D mode
         backgr_col = '#FFFFFF' 
       end
       local ex = DATA2.Snapshots[i]
-      local frame_a
-      if ex then frame_a = 0.7 end
+      local frame_a = 0.2
+      if ex then frame_a = 0.5 end
+      if DATA2.Snapshots and DATA2.Snapshots[i] and DATA2.Snapshots[i].col then
+        backgr_col = DATA2.Snapshots[i].col
+        backgr_fill = 0.7
+        
+        if i == DATA.GUI.custom_currentsnapshotID then backgr_fill = 0.9 frame_a = 0.8 end
+      end
       DATA.GUI.buttons['snapshots'..i] = { x=xoffs + snapshw*(i-1), 
                               y=DATA.GUI.custom_offset,--+DATA.GUI.CONF_tr_rect_px/2
                               w=snapshw-1,
@@ -314,7 +321,46 @@ Object in 2D mode
                                                 GUI_initctrls(DATA)
                                               end
                                               
-                                            end
+                                            end,
+                              onmouseclickR = function()
+                                              DATA:GUImenu(
+                                                {
+                                                  { str='Set snapshot color',
+                                                    func=function() 
+                                                      
+                                                      local retval, color = reaper.GR_SelectColor()
+                                                      if not retval then return end
+                                                      local r, g, b = reaper.ColorFromNative( color )
+                                                      local outhex = '#'..string.format("%06X",  ColorToNative( b, g, r ))
+                                                      
+                                                      if not DATA2.Snapshots[i] then DATA2.Snapshots[i] = {txt=''} end
+                                                      DATA2.Snapshots[i].col = outhex
+                                                      DATA2:Snapshot_WriteCurrent(i)
+                                                      DATA2:Snapshot_Write()
+                                                      DATA.GUI.custom_currentsnapshotID = i
+                                                      GUI_initctrls(DATA)
+                                                    end},
+                                                  { str='Set tooltip',
+                                                    func=function() 
+                                                      if not DATA2.Snapshots[i] then DATA2.Snapshots[i] = {txt=''} end
+                                                      local retval, outtxt = reaper.GetUserInputs( 'Set tooltip for snapshot '..i, 1, ',extrawidth=400', DATA2.Snapshots[i].txt or '' ) 
+                                                      if retval then
+                                                        DATA2.Snapshots[i].txt = outtxt
+                                                        DATA2:Snapshot_WriteCurrent(i)
+                                                        DATA2:Snapshot_Write()
+                                                        DATA.GUI.custom_currentsnapshotID = i
+                                                        GUI_initctrls(DATA)
+                                                      end
+                                                    end}
+                                                }                                                
+                                              )
+                                              
+                                            end,
+                            onmousematch = 
+                              function() 
+                                local x, y = reaper.GetMousePosition() 
+                                if DATA2.Snapshots[i] and DATA2.Snapshots[i].txt and DATA2.Snapshots[i].txt ~= '' then reaper.TrackCtl_SetToolTip( 'Snapshot '..i..':\n'..DATA2.Snapshots[i].txt,x+DATA.GUI.default_tooltipxoffs, y+DATA.GUI.default_tooltipyoffs, false ) end
+                              end                                            
                               }  
     end
   end
@@ -1002,7 +1048,10 @@ track8_pan=0
       local retval, s_state = GetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID  )
       if retval and s_state ~= '' then
         DATA2.Snapshots[ID] = {}
-        
+        local retval, s_col = GetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID..'col'  )
+        if retval and s_col ~= '' then DATA2.Snapshots[ID].col = s_col end
+        local retval, txt = GetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID..'txt'  )
+        if retval then DATA2.Snapshots[ID].txt = txt or '' end
         for line in s_state:gmatch('[^\r\n]+') do
           local t = {}
           for val in line:gmatch('[^%s]+') do t [#t+1] = val end
@@ -1041,45 +1090,49 @@ track8_pan=0
     local oldID = DATA2.Recall_oldID
     local Recall_state = DATA2.Recall_state
     for GUID in pairs(DATA2.Snapshots[ID]) do
-      local tr = DATA2.Snapshots[ID][GUID].tr_ptr
-      if not tr then 
-        tr = VF_GetTrackByGUID(GUID)
-        DATA2.Snapshots[ID][GUID].tr_ptr = tr
-      end
-      if tr then
-        SetTrackSelected( tr, true )
-        if DATA2.Snapshots[oldID][GUID] then
-          SetMediaTrackInfo_Value( tr, 'D_PAN', DATA2.Snapshots[oldID][GUID].pan + (DATA2.Snapshots[ID][GUID].pan - DATA2.Snapshots[oldID][GUID].pan)*Recall_state)
-          SetMediaTrackInfo_Value( tr, 'D_VOL', DATA2.Snapshots[oldID][GUID].vol + (DATA2.Snapshots[ID][GUID].vol - DATA2.Snapshots[oldID][GUID].vol)*Recall_state)
-          SetMediaTrackInfo_Value( tr, 'D_WIDTH', DATA2.Snapshots[oldID][GUID].width + (DATA2.Snapshots[ID][GUID].width - DATA2.Snapshots[oldID][GUID].width)*Recall_state)
-          SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
+      if GUID:match('{') then
+        local tr = DATA2.Snapshots[ID][GUID].tr_ptr
+        if not tr then 
+          tr = VF_GetTrackByGUID(GUID)
+          DATA2.Snapshots[ID][GUID].tr_ptr = tr
+        end
+        if tr then
+          SetTrackSelected( tr, true )
+          if DATA2.Snapshots[oldID][GUID] then
+            SetMediaTrackInfo_Value( tr, 'D_PAN', DATA2.Snapshots[oldID][GUID].pan + (DATA2.Snapshots[ID][GUID].pan - DATA2.Snapshots[oldID][GUID].pan)*Recall_state)
+            SetMediaTrackInfo_Value( tr, 'D_VOL', DATA2.Snapshots[oldID][GUID].vol + (DATA2.Snapshots[ID][GUID].vol - DATA2.Snapshots[oldID][GUID].vol)*Recall_state)
+            SetMediaTrackInfo_Value( tr, 'D_WIDTH', DATA2.Snapshots[oldID][GUID].width + (DATA2.Snapshots[ID][GUID].width - DATA2.Snapshots[oldID][GUID].width)*Recall_state)
+            SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
+          end
         end
       end
     end
   end
   ------------------------------------------------------------------------------------------------------
   function DATA2:Snapshot_Recall(ID,oldID)
-    if not (ID and DATA2.Snapshots and DATA2.Snapshots[ID]) then return end 
+    if not (ID and DATA2.Snapshots and DATA2.Snapshots[ID] and DATA2.Snapshots[oldID]) then return end 
     Action(40297) -- unselect all tracks
     
     if oldID and DATA.extstate.CONF_snapshrecalltime > 0 then 
       DATA2.Recall_timer = DATA.extstate.CONF_snapshrecalltime
       DATA2.Recall_newID = ID
       DATA2.Recall_oldID = oldID
-      for GUID in pairs(DATA2.Snapshots[ID]) do DATA2.Snapshots[ID][GUID].tr_ptr = nil end
-      for GUID in pairs(DATA2.Snapshots[oldID]) do DATA2.Snapshots[oldID][GUID].tr_ptr = nil end
+      for GUID in pairs(DATA2.Snapshots[ID]) do     if GUID:match('{') then DATA2.Snapshots[ID][GUID].tr_ptr = nil end end
+      for GUID in pairs(DATA2.Snapshots[oldID]) do  if GUID:match('{') then DATA2.Snapshots[oldID][GUID].tr_ptr = nil end end
       return 
     end
     
     reaper.Undo_BeginBlock2( 0 )
     for GUID in pairs(DATA2.Snapshots[ID]) do
-      local tr = VF_GetTrackByGUID(GUID)
-      if tr then
-        SetTrackSelected( tr, true )
-        SetMediaTrackInfo_Value( tr, 'D_PAN', DATA2.Snapshots[ID][GUID].pan)
-        SetMediaTrackInfo_Value( tr, 'D_VOL', DATA2.Snapshots[ID][GUID].vol)
-        SetMediaTrackInfo_Value( tr, 'D_WIDTH', DATA2.Snapshots[ID][GUID].width)
-        SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
+      if GUID:match('{') then
+        local tr = VF_GetTrackByGUID(GUID)
+        if tr then
+          SetTrackSelected( tr, true )
+          SetMediaTrackInfo_Value( tr, 'D_PAN', DATA2.Snapshots[ID][GUID].pan)
+          SetMediaTrackInfo_Value( tr, 'D_VOL', DATA2.Snapshots[ID][GUID].vol)
+          SetMediaTrackInfo_Value( tr, 'D_WIDTH', DATA2.Snapshots[ID][GUID].width)
+          SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
+        end
       end
     end
     reaper.Undo_EndBlock2( 0, 'Visual mixer shapshot recall', 0xFFFFFFFF )
@@ -1088,15 +1141,19 @@ track8_pan=0
   function DATA2:Snapshot_Write()  
     for ID = 1, DATA.extstate.CONF_snapshcnt do
       if DATA2.Snapshots[ID] then 
+        if DATA2.Snapshots[ID].col then SetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID..'col', DATA2.Snapshots[ID].col  )  end
+        if DATA2.Snapshots[ID].txt then SetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID..'txt', DATA2.Snapshots[ID].txt  )  end
         local str = ''
         for GUID in pairs(DATA2.Snapshots[ID]) do
+          if GUID:match('{') then
           str = str..
                  GUID..' '..
                  DATA2.Snapshots[ID][GUID].vol..' '..
                  DATA2.Snapshots[ID][GUID].pan..' '..
                  DATA2.Snapshots[ID][GUID].width..'\n'
+          end
         end
-        if str then SetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID, str  )  end
+        if str then SetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID, str  )  end 
        else
         SetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID, ''  )
       end
@@ -1104,7 +1161,11 @@ track8_pan=0
   end
   ---------------------------------------------------
   function DATA2:Snapshot_WriteCurrent(ID)
-    DATA2.Snapshots[ID] = {}
+    if not DATA2.Snapshots[ID] then DATA2.Snapshots[ID] = {} end
+    local tremove={}
+    for key in pairs(DATA2.Snapshots[ID]) do if key:match('{') then tremove[#tremove+1] = key end end
+    for i=1,#tremove do DATA2.Snapshots[ID][tremove[i]] = nil end
+    
     for GUID in pairs(DATA2.tracks) do
       if not DATA2.Snapshots[ID][GUID] then DATA2.Snapshots[ID][GUID] = {} end 
       DATA2.Snapshots[ID][GUID].vol = DATA2.tracks[GUID].vol
