@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="47caed1e43fe57bf0b0f4d3612fb477f0bf81cac" name="MPL Scripts">
+<index version="1" commit="a8fdbc9c3a6a8bb0667f86683b4b6f75f69fc9c5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10926,6 +10926,15 @@
       <version name="2.21" author="MPL" time="2023-08-12T03:21:52Z">
         <changelog><![CDATA[# use full track names]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/47caed1e43fe57bf0b0f4d3612fb477f0bf81cac/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.22" author="MPL" time="2023-08-12T03:32:45Z">
+        <changelog><![CDATA[+ Ctrl+drag: change volume only]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e4af0f1ad01c1a8112bbe2d18c5bfbce70fcd3b2/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.23" author="MPL" time="2023-08-13T06:36:13Z">
+        <changelog><![CDATA[+ Snapshots: support setting color
++ Snapshots: support setting annotation tooltip]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a8fdbc9c3a6a8bb0667f86683b4b6f75f69fc9c5/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
