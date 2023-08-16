@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1d62ee110f9d3d879a4d6f379235b553afe4c06a" name="MPL Scripts">
+<index version="1" commit="a62a0f7feaf51b5eb1866df4ce92ab09c2d1f5db" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1494,6 +1494,10 @@
       <version name="1.13" author="MPL" time="2018-08-10T14:29:23Z">
         <changelog><![CDATA[# recoded for using new API (REAPER 5.95+)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f796fb7ee80aec7289d049eabde20aa2ffe11c25/FX/mpl_Delete%20bypassed%20fx%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.14" author="MPL" time="2023-08-16T19:30:38Z">
+        <changelog><![CDATA[# ignore bypass envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a62a0f7feaf51b5eb1866df4ce92ab09c2d1f5db/FX/mpl_Delete%20bypassed%20fx%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete offline fx from selected tracks.lua" type="script" desc="Delete offline fx from selected tracks">
