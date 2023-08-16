@@ -1,5 +1,5 @@
 -- @description Adjust selected notes pitch (mousewheel)
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -11,7 +11,7 @@
 --    [main=midi_editor] . > mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # ReaPack index: fix ME section
+--    # init 0 at 2byte message
 
   function MoveNotesVertically_Scale(pitch, dir, pat)
     local note = (pitch % 12)
@@ -59,7 +59,7 @@
       new_pitch = math.max(0,math.min(new_pitch,127)) -- limi from 0 to 127
       if msg:len() > 1 and ( msg:byte(1)>>4 == 0x9 or msg:byte(1)>>4 == 0x8 ) and flags&1==1 then  out_val = new_pitch end
       t = t + 1
-      tableEvents[t] = string.pack("i4Bi4BBB", offset, flags, 3, msg:byte(1), out_val, msg:byte(3) )
+      tableEvents[t] = string.pack("i4Bi4BBB", offset, flags, 3, msg:byte(1), out_val, msg:byte(3) or 0 )
     end
     
     MIDI_SetAllEvts(take, table.concat(tableEvents) .. MIDIstring:sub(-12))
