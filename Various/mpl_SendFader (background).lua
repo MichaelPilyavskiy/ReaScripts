@@ -1,12 +1,11 @@
 ﻿-- @description SendFader
--- @version 2.09
+-- @version 2.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    + Settings: allow to display regular sends and/or marked sends
---    # Settings: cleanup
+--    # fix solo src button
 
 
 
@@ -21,7 +20,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.09'
+    DATA.extstate.version = '2.10'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -478,6 +477,47 @@
                             end,
                             }
       
+      x_offs = x_offs + DATA.GUI.custom_infobut_w
+      local seltr = GetSelectedTrack(0,0)
+      local solo
+      if seltr then
+        solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
+        if solo > 0 then 
+          backgr_fill = 0.5
+          backgr_col = '#FFFFFF'
+        end
+      end  
+      
+      DATA.GUI.buttons.solosrc = { x=x_offs,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_infobut_w-2,
+                            h=DATA.GUI.custom_infobuth-1,
+                            txt = 'Solo src',
+                            backgr_fill=backgr_fill,
+                            backgr_col=backgr_col,
+                            txt_fontsz = DATA.GUI.custom_txtsz1,
+                            onmouseclick = function()
+                              local backgr_fill=0.5
+                              local backgr_col='#FFFFFF'
+                              local seltr = GetSelectedTrack(0,0)
+                              if not seltr then return end 
+                              local solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
+                              if solo==0 then 
+                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 4 ) 
+                                reaper.SetTrackUISolo( seltr, 4, 2 )
+                               else 
+                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 0 ) 
+                                reaper.SetTrackUISolo( seltr,0, 2 )
+                                backgr_fill = nil
+                                backgr_col = nil
+                              end 
+                              reaper.TrackList_AdjustWindows( false )
+                              DATA.GUI.buttons.solosrc.backgr_fill=backgr_fill
+                              DATA.GUI.buttons.solosrc.backgr_col=backgr_col
+                              DATA.GUI.buttons.solosrc.refresh=true
+                            end,
+                            }
+                            
       x_offs = x_offs + DATA.GUI.custom_infobut_w
       DATA.GUI.buttons.activetrack = { x=x_offs,
                             y=DATA.GUI.custom_offset,
