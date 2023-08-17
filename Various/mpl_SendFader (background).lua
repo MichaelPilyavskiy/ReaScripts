@@ -1,11 +1,12 @@
 ﻿-- @description SendFader
--- @version 2.08
+-- @version 2.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    # fix error with EQ
+--    + Settings: allow to display regular sends and/or marked sends
+--    # Settings: cleanup
 
 
 
@@ -20,7 +21,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.08'
+    DATA.extstate.version = '2.09'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -36,7 +37,10 @@
                           CONF_NAME = 'default',
                           CONF_definebyname = 'aux,send',
                           CONF_definebygroup = 'aux,send',
-                          
+                          CONF_marksendint = 1,
+                          CONF_marksendregular = 1,
+                          CONF_marksendwordsmatch = 1,
+                          CONF_marksendparentwordsmatch = 1,
                           -- UI
                           UI_appatchange = 0, 
                           UI_enableshortcuts = 0,
@@ -178,32 +182,52 @@
   end
   ---------------------------------------------------------------------  
   function DATA2:ReadProject_ReadSends_IsSend(tr,names_group,names_track)
-    local retval, sendname = reaper.GetTrackName( tr )
-    local  retval, issend = reaper.GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', '', false )
-    if retval and  issend and tonumber(issend) and tonumber(issend)  == 1 then issend = true else issend = false end
+    local issend
     
-    
-    local ispath =  GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) 
-    local matchname
-    if ispath~=1 and not sendname:match('Track') then
-      for sendnameID = 1, #names_track do 
-        if sendname:lower():match(names_track[sendnameID]:lower()) then
-          matchname = true break
+    -- regular send
+    if DATA.extstate.CONF_marksendregular ==1 then
+      local partr = GetSelectedTrack(0,0)
+      if partr then
+        for sendidx=1, reaper.GetTrackNumSends( tr, -1 ) do
+          if reaper.GetTrackSendInfo_Value( tr, -1, sendidx-1, 'P_SRCTRACK' ) == partr then issend= true end
         end
       end
     end
     
-    local par_track = GetParentTrack( tr ) 
-    local matchparent
-    if par_track and ispath~=1 then
-      local retval, parname = GetTrackName( par_track )
-      for sendnameID = 1, #names_group do 
-        if parname:lower():match(names_group[sendnameID]:lower()) then
-          matchparent = true break
+    -- extaernal state marked
+      if DATA.extstate.CONF_marksendint == 1 then
+         retval, issend = reaper.GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', '', false )
+        if retval and  issend and tonumber(issend) and tonumber(issend)  == 1 then issend = true else issend = false end
+      end      
+    
+    -- check name 
+      local matchname
+      if DATA.extstate.CONF_marksendwordsmatch == 1 then 
+        local retval, sendname = reaper.GetTrackName( tr )
+        local ispath =  GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) 
+        if ispath~=1 and not sendname:match('Track') then
+          for sendnameID = 1, #names_track do 
+            if sendname:lower():match(names_track[sendnameID]:lower()) then
+              matchname = true break
+            end
+          end
         end
       end
-    end
-    
+      
+    -- check fold name 
+      local matchparent
+      if DATA.extstate.CONF_marksendparentwordsmatch == 1 then 
+        local par_track = GetParentTrack( tr ) 
+        if par_track and ispath~=1 then
+          local retval, parname = GetTrackName( par_track )
+          for sendnameID = 1, #names_group do 
+            if parname:lower():match(names_group[sendnameID]:lower()) then
+              matchparent = true break
+            end
+          end
+        end
+      end
+      
     return issend==true or matchname==true or matchparent==true, name
   end
   ---------------------------------------------------------------------  
@@ -226,12 +250,16 @@
     local id = 0
     for i = 1, CountTracks(0) do
       local tr = GetTrack(0,i-1)
-      local issend,name = DATA2:ReadProject_ReadSends_IsSend(tr,names_group,names_track)
+      local issend,name,isinternal = DATA2:ReadProject_ReadSends_IsSend(tr,names_group,names_track)
       if issend == true then
         local retval, trname = GetTrackName( tr )
         id = id + 1
         local  retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
-        DATA2.sendtracks[id] = {ptr=tr,GUID = GUID,name=trname,sendEQ={},col =  GetTrackColor( tr )} 
+        
+        local  retval, issend = reaper.GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', '', false )
+        if retval and  issend and tonumber(issend) and tonumber(issend)  == 1 then issend = true else issend = false end
+        if issend ==true then trname='['..trname..']' end
+        DATA2.sendtracks[id] = {ptr=tr,GUID = GUID,name=trname,sendEQ={},col =  GetTrackColor( tr ),isinternal=isinternal} 
         DATA2:ReadProject_ReadSends_readEQ(tr, DATA2.sendtracks[id].sendEQ)
       end
     end
@@ -319,6 +347,7 @@
       if ValidatePtr(src_trptr, 'MediaTrack*') then
         local retval, srcGUID = reaper.GetSetMediaTrackInfo_String( src_trptr, 'GUID', '', false )
         local retval, srcname = reaper.GetSetMediaTrackInfo_String( src_trptr, 'P_NAME', '', false )
+        
         receives[srcGUID] = {
               vol=vol, 
               B_MUTE =B_MUTE,
@@ -1452,23 +1481,27 @@
             
             
           end},
-      {str = 'Sends definition' ,                               group = 2, itype = 'sep'},   
-        {str = '[Action] Mark selected tracks as send',         group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
-        {str = '[Action] Unmark selected tracks as send',       group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
-        {str = 'Folder name: '..DATA.extstate.CONF_definebygroup,group = 2, itype = 'button',level = 1, func_onrelease = function() 
-          local retval, retvals_csv = GetUserInputs( 'Folder name', 1, ',separator=|', DATA.extstate.CONF_definebygroup )
-          if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebygroup = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
-        end},
-        {str = 'Send name: '..DATA.extstate.CONF_definebyname, group = 2, itype = 'button',level = 1, func_onrelease = function() 
-          local retval, retvals_csv = GetUserInputs( 'Send name', 1, ',separator=|', DATA.extstate.CONF_definebyname )
-          if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebyname = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
-        end},
+      {str = 'Sends definition' ,                                 group = 2, itype = 'sep'},   
+        {str = 'Show sends that marked as sends in SendFader',    group = 2, itype = 'check', confkey = 'CONF_marksendint', level = 1},
+            {str = '[Action] Mark selected tracks as send',       group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0,func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
+            {str = '[Action] Unmark selected tracks as send',     group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
+        {str = 'Show sends of selected track',                    group = 2, itype = 'check', confkey = 'CONF_marksendregular', level = 1},
+        {str = 'Show sends match following words',                group = 2, itype = 'check', confkey = 'CONF_marksendwordsmatch', level = 1},
+            {str = 'Send name: '..DATA.extstate.CONF_definebyname, group = 2, itype = 'button',level = 2, hide=DATA.extstate.CONF_marksendwordsmatch==0,  func_onrelease = function() 
+              local retval, retvals_csv = GetUserInputs( 'Send name', 1, ',separator=|', DATA.extstate.CONF_definebyname )
+              if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebyname = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
+            end},
+        {str = 'Show sends with parent match following words',    group = 2, itype = 'check', confkey = 'CONF_marksendparentwordsmatch', level = 1},
+          {str = 'Folder name: '..DATA.extstate.CONF_definebygroup,group = 2, itype = 'button',level = 2, hide=DATA.extstate.CONF_marksendparentwordsmatch==0,  func_onrelease = function() 
+            local retval, retvals_csv = GetUserInputs( 'Folder name', 1, ',separator=|', DATA.extstate.CONF_definebygroup )
+            if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebygroup = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
+          end},
       --{str = 'UI',                                              group = 3, itype = 'sep'},
         --{str = 'Show send/receive names vertically',              group = 3, itype = 'check', confkey = 'UI_showsendrecnamevertically', level = 1},  
         
         --[[{str = 'Float RS5k instance',                           group = 1, itype = 'check', confkey = 'CONF_onadd_float', level = 1},
         {str = 'Set obey notes-off',                            group = 1, itype = 'check', confkey = 'CONF_onadd_obeynoteoff', level = 1},
-        {str = 'Rename track',                                  group = 1, itype = 'check', confkey = 'CONF_onadd_renametrack', level = 1},
+        
         {str = 'Copy samples to project path',                  group = 1, itype = 'check', confkey = 'CONF_onadd_copytoprojectpath', level = 1},
         {str = 'Custom track template: '..customtemplate,       group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RTrackTemplate') if retval then DATA.extstate.CONF_onadd_customtemplate=  fp GUI_MODULE_SETTINGS(DATA) end end},
         {str = 'Custom track template [clear]',                  group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
