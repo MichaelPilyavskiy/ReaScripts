@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="31f7234cb3e6a8ff52fbdc8e8c2115cc2b53d160" name="MPL Scripts">
+<index version="1" commit="0d21b0cf399d7fb04552d0b6f28e62392b6dd8dd" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10667,6 +10667,12 @@
         <changelog><![CDATA[# fix error with EQ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/95be9714fd3030ee93cff3b334d57b0a78a2d16e/Various/mpl_SendFader%20(background).lua</source>
         <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/95be9714fd3030ee93cff3b334d57b0a78a2d16e/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
+      </version>
+      <version name="2.09" author="MPL" time="2023-08-17T05:25:26Z">
+        <changelog><![CDATA[+ Settings: allow to display regular sends and/or marked sends
+# Settings: cleanup]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d21b0cf399d7fb04552d0b6f28e62392b6dd8dd/Various/mpl_SendFader%20(background).lua</source>
+        <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d21b0cf399d7fb04552d0b6f28e62392b6dd8dd/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
