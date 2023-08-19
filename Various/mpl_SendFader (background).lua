@@ -1,11 +1,14 @@
-﻿-- @description SendFader
--- @version 2.10
+-- @description SendFader
+-- @version 2.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
---    mpl_SendFader_Mark selected tracks as sends.lua
+--    mpl_SendFader_Mark selected tracks as receives.lua
 -- @changelog
---    # fix solo src button
+--    # fix black peaks at default track color
+--    # fix black fader at default track color
+--    + Control panel: allow to set channels count
+--    + Control panel: right click on solo toggle solo defeat
 
 
 
@@ -20,7 +23,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.10'
+    DATA.extstate.version = '2.11'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -81,6 +84,7 @@
           gfx.a=0.5
           local trcol = DATA2.sendtracks[sendID].col
           if trcol then 
+            if trcol==0 then trcol = 0xFFFFFF end
             local r, g, b = reaper.ColorFromNative( trcol )
             gfx.set(r/255,g/255,b/255)
           end
@@ -104,6 +108,7 @@
           gfx.a=0.5
           local trcol = DATA2.tracks[1].receives[recGUID].trcol
           if trcol then 
+            if trcol==0 then trcol = 0xFFFFFF end
             local r, g, b = reaper.ColorFromNative( trcol )
             gfx.set(r/255,g/255,b/255)
           end
@@ -418,6 +423,115 @@
     DATA.UPD.onprojstatechange = true
   end
   ----------------------------------------------------------------------
+  function GUI_MODULE_ControlPanel(DATA)  
+    local x_offs = DATA.GUI.custom_infobut_w+DATA.GUI.custom_offset
+    
+    -- solo source
+      local seltr = GetSelectedTrack(0,0)
+      local solo
+      local solotxt = 'Solo'
+      if seltr then
+        solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
+        if solo > 0 then 
+          backgr_fill = 0.5
+          backgr_col = '#FFFFFF' 
+        end
+        if reaper.GetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT') ==1 then solotxt = solotxt..' [D]' end
+      end  
+      DATA.GUI.buttons.solosrc = { x=x_offs,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_infobut_w-2,
+                            h=DATA.GUI.custom_infobuth-1,
+                            txt = solotxt,
+                            backgr_fill=backgr_fill,
+                            backgr_col=backgr_col,
+                            txt_fontsz = DATA.GUI.custom_txtsz1,
+                            onmouseclick = function()
+                              local backgr_fill=0.5
+                              local backgr_col='#FFFFFF'
+                              local seltr = GetSelectedTrack(0,0)
+                              if not seltr then return end 
+                              local solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
+                              if solo==0 then 
+                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 4 ) 
+                                reaper.SetTrackUISolo( seltr, 4, 2 )
+                               else 
+                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 0 ) 
+                                reaper.SetTrackUISolo( seltr,0, 2 )
+                                backgr_fill = nil
+                                backgr_col = nil
+                              end 
+                              reaper.TrackList_AdjustWindows( false )
+                              GUI_MODULE_ControlPanel(DATA) 
+                            end,
+                            onmouseclickR = function()
+                              local seltr = GetSelectedTrack(0,0)
+                              if not seltr then return end 
+                              local solod  = reaper.GetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT' ) 
+                              if solod==0 then 
+                                reaper.SetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT', 1 ) 
+                                DATA.GUI.buttons.solosrc.txt=solotxt..' [D]'
+                               else 
+                                reaper.SetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT', 0 )
+                                DATA.GUI.buttons.solosrc.txt=solotxt
+                              end 
+                              reaper.TrackList_AdjustWindows( false )
+                              GUI_MODULE_ControlPanel(DATA) 
+                            end,                            
+                            }
+        x_offs = x_offs + DATA.GUI.custom_infobut_w
+        
+        local seltr = GetSelectedTrack(0,0)
+        local trchan = 'N/A'
+        if seltr then
+          trchan = math.floor(reaper.GetMediaTrackInfo_Value( seltr, 'I_NCHAN' ))
+        end 
+         
+        DATA.GUI.buttons.trackchan = { x=x_offs,
+                              y=DATA.GUI.custom_offset,
+                              w=DATA.GUI.custom_infobut_w-2,
+                              h=DATA.GUI.custom_infobuth-1,
+                              txt = trchan..' chan.',
+                              txt_fontsz = DATA.GUI.custom_txtsz1,
+                              onmouseclick = function()
+                                local chasel_t = {}
+                                for i = 2, 64, 2 do
+                                  chasel_t[#chasel_t+1] = {
+                                                            str=i..' channels', 
+                                                            func = 
+                                                              function() 
+                                                                local seltr = GetSelectedTrack(0,0)
+                                                                if not seltr then return end 
+                                                                reaper.SetMediaTrackInfo_Value( seltr, 'I_NCHAN',i )
+                                                                DATA.UPD.onprojstatechange = true 
+                                                              end
+                                                          }
+                                end
+                                DATA:GUImenu(chasel_t)
+                                  
+                                
+                                
+                                reaper.TrackList_AdjustWindows( false )
+                              end,
+                              }
+          x_offs = x_offs + DATA.GUI.custom_infobut_w
+          
+    -- active track
+      DATA.GUI.buttons.activetrack = { x=x_offs,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_gfx_wreal-x_offs-DATA.GUI.custom_offset*2-1,--DATA.GUI.custom_infobut_w*2-2,
+                            h=DATA.GUI.custom_infobuth-1, 
+                            txt = DATA.GUI.custom_txt_trackinfoinit,
+                            txt_fontsz = DATA.GUI.custom_txtsz1,
+                            --txt_flags = 4,
+                            --frame_a =0,
+                            ignoremouse = true,
+                            onmouseclick = function() end, 
+                            data = {fader_vca=true}
+                            }                           
+   
+  end
+  ---------------------------------------------------------------------------------------------
   function GUI_RESERVED_init(DATA)
     DATA.GUI.buttons = {} 
     -- get globals
@@ -434,7 +548,7 @@
       
     -- init button stuff
       DATA.GUI.custom_infobuth =  math.floor(25*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_infobut_w =  math.floor(100*DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_infobut_w =  math.floor(80*DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_txtsz1 = math.floor(16*DATA.GUI.custom_Yrelation) -- menu
       DATA.GUI.custom_txta = 1
       DATA.GUI.custom_txta_disabled = 0.3
@@ -466,7 +580,7 @@
       local x_offs = DATA.GUI.custom_offset
       DATA.GUI.buttons.settings = { x=x_offs,
                             y=DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_infobut_w-2,
+                            w=DATA.GUI.custom_infobut_w-DATA.GUI.custom_offset,
                             h=DATA.GUI.custom_infobuth-1,
                             txt = '>',
                             txt_fontsz = DATA.GUI.custom_txtsz1,
@@ -476,61 +590,8 @@
                               DATA.UPD.onGUIinit = true
                             end,
                             }
-      
-      x_offs = x_offs + DATA.GUI.custom_infobut_w
-      local seltr = GetSelectedTrack(0,0)
-      local solo
-      if seltr then
-        solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
-        if solo > 0 then 
-          backgr_fill = 0.5
-          backgr_col = '#FFFFFF'
-        end
-      end  
-      
-      DATA.GUI.buttons.solosrc = { x=x_offs,
-                            y=DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_infobut_w-2,
-                            h=DATA.GUI.custom_infobuth-1,
-                            txt = 'Solo src',
-                            backgr_fill=backgr_fill,
-                            backgr_col=backgr_col,
-                            txt_fontsz = DATA.GUI.custom_txtsz1,
-                            onmouseclick = function()
-                              local backgr_fill=0.5
-                              local backgr_col='#FFFFFF'
-                              local seltr = GetSelectedTrack(0,0)
-                              if not seltr then return end 
-                              local solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
-                              if solo==0 then 
-                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 4 ) 
-                                reaper.SetTrackUISolo( seltr, 4, 2 )
-                               else 
-                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 0 ) 
-                                reaper.SetTrackUISolo( seltr,0, 2 )
-                                backgr_fill = nil
-                                backgr_col = nil
-                              end 
-                              reaper.TrackList_AdjustWindows( false )
-                              DATA.GUI.buttons.solosrc.backgr_fill=backgr_fill
-                              DATA.GUI.buttons.solosrc.backgr_col=backgr_col
-                              DATA.GUI.buttons.solosrc.refresh=true
-                            end,
-                            }
-                            
-      x_offs = x_offs + DATA.GUI.custom_infobut_w
-      DATA.GUI.buttons.activetrack = { x=x_offs,
-                            y=DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_gfx_wreal-x_offs-DATA.GUI.custom_offset*2-1,--DATA.GUI.custom_infobut_w*2-2,
-                            h=DATA.GUI.custom_infobuth-1, 
-                            txt = DATA.GUI.custom_txt_trackinfoinit,
-                            txt_fontsz = DATA.GUI.custom_txtsz1,
-                            --txt_flags = 4,
-                            --frame_a =0,
-                            ignoremouse = true,
-                            onmouseclick = function() end, 
-                            data = {fader_vca=true}
-                            }   
+                       
+  
                             
       DATA.GUI.buttons.horizscroll = { x=0,
                             y=DATA.GUI.custom_gfx_hreal-DATA.GUI.custom_scrollH,
@@ -568,6 +629,7 @@
     if DATA.GUI.buttons then
       GUI_MODULE_SETTINGS(DATA)
       GUI_RefreshreadOuts(DATA)
+      GUI_MODULE_ControlPanel(DATA)
       GUI_MODULE_BuildSends(DATA)
       GUI_MODULE_BuildReceives(DATA)
     end
@@ -1411,10 +1473,11 @@
     -- value
       DATA:GUIhex2rgb('#FFFFFF',true)
       if trcol then 
+        if trcol==0 then trcol = 0xFFFFFF end
         local r, g, b = reaper.ColorFromNative( trcol )
         gfx.set(r/255,g/255,b/255)
       end
-      gfx.a = 0.4
+      gfx.a = 0.3
       local hfade = math.floor(h*fader_norm)
       gfx.rect(x,y+1+h-hfade,w,hfade,1)
     
@@ -1523,8 +1586,8 @@
           end},
       {str = 'Sends definition' ,                                 group = 2, itype = 'sep'},   
         {str = 'Show sends that marked as sends in SendFader',    group = 2, itype = 'check', confkey = 'CONF_marksendint', level = 1},
-            {str = '[Action] Mark selected tracks as send',       group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0,func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
-            {str = '[Action] Unmark selected tracks as send',     group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
+            {str = '[Action] Mark selected tracks as receives',       group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0,func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
+            {str = '[Action] Unmark selected tracks as receives',     group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
         {str = 'Show sends of selected track',                    group = 2, itype = 'check', confkey = 'CONF_marksendregular', level = 1},
         {str = 'Show sends match following words',                group = 2, itype = 'check', confkey = 'CONF_marksendwordsmatch', level = 1},
             {str = 'Send name: '..DATA.extstate.CONF_definebyname, group = 2, itype = 'button',level = 2, hide=DATA.extstate.CONF_marksendwordsmatch==0,  func_onrelease = function() 

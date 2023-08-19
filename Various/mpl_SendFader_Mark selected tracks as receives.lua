@@ -1,4 +1,4 @@
--- @description SendFader - Mark selected tracks as sends
+-- @description SendFader - Mark selected tracks as receives
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @noindex
