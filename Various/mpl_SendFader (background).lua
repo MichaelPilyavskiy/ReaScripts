@@ -1,14 +1,11 @@
--- @description SendFader
--- @version 2.11
+﻿-- @description SendFader
+-- @version 2.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as receives.lua
 -- @changelog
---    # fix black peaks at default track color
---    # fix black fader at default track color
---    + Control panel: allow to set channels count
---    + Control panel: right click on solo toggle solo defeat
+--    + Shift+drag fader link all visible faders
 
 
 
@@ -23,7 +20,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.11'
+    DATA.extstate.version = '2.12'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -876,12 +873,36 @@
                             --txt_fontsz = DATA.GUI.custom_txtsz1,
                             --txt_flags = 4,
                             frame_a =0.5,
+                            onmouseclick = function()
+                              DATA2.temp_latch_levels = {}
+                              for receiveGUID_all in pairs(DATA2.tracks[1].receives) do
+                                DATA2.temp_latch_levels[receiveGUID_all] = DATA.GUI.buttons['fader_rec'..receiveGUID_all].val
+                              end
+                            end,
                             onmousedrag = function() 
+                              
                               local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
                               local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_rec'..receiveGUID].val)
                               SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_VOL', outvol)
                               SetTrackSendUIVol( srctr, sendIDx, outvol, 0)
                               DATA.GUI.buttons['fader_rec'..receiveGUID].refresh = true
+                              
+                              if DATA.GUI.Shift == true then
+                                local val_diff_linear = DATA.GUI.buttons['fader_rec'..receiveGUID].latchval - DATA.GUI.buttons['fader_rec'..receiveGUID].val
+                                if DATA2.temp_latch_levels then
+                                  for receiveGUID_all in pairs(DATA2.temp_latch_levels) do
+                                    if receiveGUID_all ~= receiveGUID then
+                                      local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID_all)
+                                      local outval = DATA2.temp_latch_levels[receiveGUID_all]-val_diff_linear
+                                      DATA.GUI.buttons['fader_rec'..receiveGUID_all].val=outval
+                                      local outvol = DATA2:Convert_Fader2Val(outval)
+                                      SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_VOL', outvol)
+                                      SetTrackSendUIVol( srctr, sendIDx, outvol, 0) 
+                                      DATA.GUI.buttons['fader_rec'..receiveGUID_all].refresh = true
+                                    end
+                                  end
+                                end
+                              end
                             end,
                             onmouserelease = function() 
                               local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
@@ -890,6 +911,7 @@
                               SetTrackSendInfo_Value(srctr, 0, sendIDx, 'D_VOL', outvol)
                               SetTrackSendUIVol( srctr, sendIDx, outvol, 1)
                               DATA.UPD.onprojstatechange = true
+                              DATA2.temp_latch_levels = nil -- clear latch
                             end,
                             onmouseclickR = function()
                               local cur_dB = math.floor(  WDL_VAL2DB(DATA2.tracks[1].receives[receiveGUID].vol) *100)/100
@@ -951,13 +973,44 @@
                             --txt_flags = 4,
                             frame_a =0.5,
                             --frame_col = col,
+                            onmouseclick = function()
+                              DATA2.temp_latch_levels = {}
+                              for sendID = 1, cntsends do
+                                DATA2.temp_latch_levels[sendID] = {val = DATA.GUI.buttons['fader_send'..sendID].val, GUID = DATA2.sendtracks[sendID].GUID}
+                              end
+                            end,
+                            
+                            
                             onmousedrag = function() 
                               local sendIDx = DATA2:GetSendIdx(destGUID,true)
                               local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_send'..sendID].val)
                               SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
                               SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 0)
                               DATA.GUI.buttons['fader_send'..sendID].refresh = true
+                              
+                              if DATA.GUI.Shift == true then
+                                local val_diff_linear = DATA.GUI.buttons['fader_send'..sendID].latchval - DATA.GUI.buttons['fader_send'..sendID].val
+                                
+                                if DATA2.temp_latch_levels then
+                                  local destGUID = DATA2.sendtracks[sendID].GUID
+                                  for sendID0=1, #DATA2.temp_latch_levels do
+                                    if sendID ~= sendID0 then
+                                    
+                                      local sendIDx = DATA2:GetSendIdx(DATA2.temp_latch_levels[sendID0].GUID,true)
+                                      local outval = DATA2.temp_latch_levels[sendID0].val-val_diff_linear
+                                      DATA.GUI.buttons['fader_send'..sendID0].val=outval
+                                      local outvol = DATA2:Convert_Fader2Val(outval)
+                                      SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
+                                      SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 0)
+                                      DATA.GUI.buttons['fader_send'..sendID0].refresh = true
+                                      
+                                    end
+                                  end
+                                end
+                              end
                             end,
+                            
+                            
                             onmouserelease = function() 
                               local sendIDx = DATA2:GetSendIdx(destGUID,true)
                               local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_send'..sendID].val)
@@ -965,6 +1018,7 @@
                               SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
                               SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1)
                               DATA.UPD.onprojstatechange = true
+                              DATA2.temp_latch_levels = nil -- clear latch
                             end,
                             onmouseclickR = function()
                               local cur_dB = math.floor(  WDL_VAL2DB(DATA2.tracks[1].sends[destGUID].vol) *100)/100
