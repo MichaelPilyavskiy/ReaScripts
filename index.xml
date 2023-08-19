@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af150e21e70ba9de015527a987d7747031ddb697" name="MPL Scripts">
+<index version="1" commit="6916cb79068ce18c5fa31e4c1dfaf0ea6e358dab" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10678,6 +10678,14 @@
         <changelog><![CDATA[# fix solo src button]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/af150e21e70ba9de015527a987d7747031ddb697/Various/mpl_SendFader%20(background).lua</source>
         <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/af150e21e70ba9de015527a987d7747031ddb697/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
+      </version>
+      <version name="2.11" author="MPL" time="2023-08-19T05:47:16Z">
+        <changelog><![CDATA[# fix black peaks at default track color
+# fix black fader at default track color
++ Control panel: allow to set channels count
++ Control panel: right click on solo toggle solo defeat]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6916cb79068ce18c5fa31e4c1dfaf0ea6e358dab/Various/mpl_SendFader%20(background).lua</source>
+        <source file="mpl_SendFader_Mark selected tracks as receives.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6916cb79068ce18c5fa31e4c1dfaf0ea6e358dab/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20receives.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
