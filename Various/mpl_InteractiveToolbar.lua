@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.30
+-- @version 2.31
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # add temporary setting for wheel override
+--    + Add support for sepearate action to close IT
 
-    local vrs = '2.30'
+    local vrs = '2.31'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -231,7 +231,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lastt
     -- perform shortcuts
       GUI_shortcuts(gfx.getchar())
     -- defer cycle   
-      if gfx.getchar() >= 0 and not force_exit then defer(Run) else atexit(gfx.quit) end  
+      force_exit = force_exit or reaper.gmem_read(1000) == 1
+      if gfx.getchar() >= 0 and not force_exit then reaper.gmem_write(1000,0) defer(Run) else atexit(gfx.quit) end  
   end
 
 
