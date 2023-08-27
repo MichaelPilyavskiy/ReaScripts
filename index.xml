@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5ff3e079683ee622b2a3c70f308086e5c0531850" name="MPL Scripts">
+<index version="1" commit="5148aec36ea66e7ede7f39ed874ea91a3e2e398c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1272,6 +1272,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba956ac967db6d528a77a51c6c72b7d022307c46/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba956ac967db6d528a77a51c6c72b7d022307c46/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba956ac967db6d528a77a51c6c72b7d022307c46/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.62" author="MPL" time="2023-08-27T18:54:43Z">
+        <changelog><![CDATA[# extend VF_GetFXByGUID]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -5289,6 +5298,11 @@
       <version name="1.2" author="MPL" time="2019-06-30T08:11:40Z">
         <changelog><![CDATA[# fixed handling limits]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c24a9dc9284dd4944fb92d9ac97fd3cf2dddd45/JSFX/MappingPanel_slave.jsfx</source>
+      </version>
+      <version name="2.0" author="MPL" time="2023-08-27T18:54:43Z">
+        <changelog><![CDATA[+ add support for 256 sliders / 64 links per track
++ add support for per-slave mode]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/JSFX/MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
   </category>
@@ -10263,6 +10277,35 @@
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2023-08-27T18:57:40Z">
+        <changelog><![CDATA[+ New UI using VariousFunctions v3
++ Allow for using with multiple project tabs (Note: gmem entries are GLOBAL, i.e. tweaking macro knobs affects slave in ALL opened project tabs)
++ Macro-per-track mode
++ Reaper 6.71+ support for direct API access for reading/writing parameter links, huge performance boost
++ Reaper 6.74+ support for 64 links per track, thanks to Justin for increasing sliders per JSFX
++ Add support for monitoring FX / Input FX
++ UI: bigger knobs / knobs tweak areas
++ UI: when height is less than certain amount, hide links, leave knobs only. When height is high enough, show links list
++ UI: display destination value as knob
++ MacroKnob: allow to rename macro (stored into master track state)
++ MacroKnob: allow to color macro (stored into master track state)
++ MacroKnob: show linked slaves (may not correctly shown if mapping was created with 2x versions)
++ MacroKnob: add action to clear all links
++ MacroKnob: support excluding from randomization
++ Master JSFX: script adds it to master track, but for backward compatibility it can be moved to some regular track, but not recommended
++ Links/FX name: click on FX toggle float FX
++ Links/FX name/ContextMenu: action to remove all links from this FX
++ Links/FX parameter/ContextMenu: action to link same prameter across selected tracks
++ Links: when add link check whether it is connected to audio or LFO
++ Settings/Add link: add option to rename macro from parameter name, optionally only when it is default name
++ Settings/Add link: allow to set master knob to pre-linked slave value, enabled by default
++ Settings/Actions: reset all macros
++ Random: add random button to randomize all macro knobs
++ Random: allow to set random strength
++ Random: allow to prevent limits from randomize
++ Variation list: allow to set 8 macro variations]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5148aec36ea66e7ede7f39ed874ea91a3e2e398c/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
