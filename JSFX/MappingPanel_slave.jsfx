@@ -1,9 +1,10 @@
 desc:MappingPanel_slave
-version: 1.2
+version: 2.0
 author: MPL
 website: http://forum.cockos.com/showthread.php?t=188335
 changelog:
-  # fixed handling limits
+  + add support for 256 sliders / 64 links per track
+  + add support for per-slave mode
 about:
   JSFX for controlling parameters across tracks
 
@@ -34,22 +35,22 @@ slider14:0<0, 1, 0.001>-Macro 14
 slider15:0<0, 1, 0.001>-Macro 15
 slider16:0<0, 1, 0.001>-Macro 16
 
-slider17:1<1, 16, 1>-Macro 1 master link
-slider18:1<1, 16, 1>-Macro 2 master link
-slider19:1<1, 16, 1>-Macro 3 master link
-slider20:1<1, 16, 1>-Macro 4 master link
-slider21:1<1, 16, 1>-Macro 5 master link
-slider22:1<1, 16, 1>-Macro 6 master link
-slider23:1<1, 16, 1>-Macro 7 master link
-slider24:1<1, 16, 1>-Macro 8 master link
-slider25:1<1, 16, 1>-Macro 9 master link
-slider26:1<1, 16, 1>-Macro 10 master link
-slider27:1<1, 16, 1>-Macro 11 master link
-slider28:1<1, 16, 1>-Macro 12 master link
-slider29:1<1, 16, 1>-Macro 13 master link
-slider30:1<1, 16, 1>-Macro 14 master link
-slider31:1<1, 16, 1>-Macro 15 master link
-slider32:1<1, 16, 1>-Macro 16 master link
+slider17:0<0, 16, 1>-Macro 1 master link 
+slider18:0<0, 16, 1>-Macro 2 master link
+slider19:0<0, 16, 1>-Macro 3 master link
+slider20:0<0, 16, 1>-Macro 4 master link
+slider21:0<0, 16, 1>-Macro 5 master link
+slider22:0<0, 16, 1>-Macro 6 master link
+slider23:0<0, 16, 1>-Macro 7 master link
+slider24:0<0, 16, 1>-Macro 8 master link
+slider25:0<0, 16, 1>-Macro 9 master link
+slider26:0<0, 16, 1>-Macro 10 master link
+slider27:0<0, 16, 1>-Macro 11 master link
+slider28:0<0, 16, 1>-Macro 12 master link
+slider29:0<0, 16, 1>-Macro 13 master link
+slider30:0<0, 16, 1>-Macro 14 master link
+slider31:0<0, 16, 1>-Macro 15 master link
+slider32:0<0, 16, 1>-Macro 16 master link
 
 slider33:0<0, 131072, 1>-Macro 1 flags
 slider34:0<0, 131072, 1>-Macro 2 flags
@@ -85,6 +86,210 @@ slider62:0<0, 4294967295, 1>-Macro 14 hex, FF per param
 slider63:0<0, 4294967295, 1>-Macro 15 hex, FF per param
 slider64:0<0, 4294967295, 1>-Macro 16 hex, FF per param
 
+slider65:0<0, 1, 0.001>-Macro 17
+slider66:0<0, 1, 0.001>-Macro 18
+slider67:0<0, 1, 0.001>-Macro 19
+slider68:0<0, 1, 0.001>-Macro 20
+slider69:0<0, 1, 0.001>-Macro 21
+slider70:0<0, 1, 0.001>-Macro 22
+slider71:0<0, 1, 0.001>-Macro 23
+slider72:0<0, 1, 0.001>-Macro 24
+slider73:0<0, 1, 0.001>-Macro 25
+slider74:0<0, 1, 0.001>-Macro 26
+slider75:0<0, 1, 0.001>-Macro 27
+slider76:0<0, 1, 0.001>-Macro 28
+slider77:0<0, 1, 0.001>-Macro 29
+slider78:0<0, 1, 0.001>-Macro 30
+slider79:0<0, 1, 0.001>-Macro 31
+slider80:0<0, 1, 0.001>-Macro 32
+
+slider81:0<0, 16, 1>-Macro master link 17
+slider82:0<0, 16, 1>-Macro master link 18
+slider83:0<0, 16, 1>-Macro master link 19
+slider84:0<0, 16, 1>-Macro master link 20
+slider85:0<0, 16, 1>-Macro master link 21
+slider86:0<0, 16, 1>-Macro master link 22
+slider87:0<0, 16, 1>-Macro master link 23
+slider88:0<0, 16, 1>-Macro master link 24
+slider89:0<0, 16, 1>-Macro master link 25
+slider90:0<0, 16, 1>-Macro master link 26
+slider91:0<0, 16, 1>-Macro master link 27
+slider92:0<0, 16, 1>-Macro master link 28
+slider93:0<0, 16, 1>-Macro master link 29
+slider94:0<0, 16, 1>-Macro master link 30
+slider95:0<0, 16, 1>-Macro master link 31
+slider96:0<0, 16, 1>-Macro master link 32
+
+slider97:0<0, 16, 1>-Macro flags 17
+slider98:0<0, 16, 1>-Macro flags 18
+slider99:0<0, 16, 1>-Macro flags 19
+slider100:0<0, 16, 1>-Macro flags 20
+slider101:0<0, 16, 1>-Macro flags 21
+slider102:0<0, 16, 1>-Macro flags 22
+slider103:0<0, 16, 1>-Macro flags 23
+slider104:0<0, 16, 1>-Macro flags 24
+slider105:0<0, 16, 1>-Macro flags 25
+slider106:0<0, 16, 1>-Macro flags 26
+slider107:0<0, 16, 1>-Macro flags 27
+slider108:0<0, 16, 1>-Macro flags 28
+slider109:0<0, 16, 1>-Macro flags 29
+slider110:0<0, 16, 1>-Macro flags 30
+slider111:0<0, 16, 1>-Macro flags 31
+slider112:0<0, 16, 1>-Macro flags 32
+
+slider113:0<0, 16, 1>-Macro hex 0xFF per param 17
+slider114:0<0, 16, 1>-Macro hex 0xFF per param 18
+slider115:0<0, 16, 1>-Macro hex 0xFF per param 19
+slider116:0<0, 16, 1>-Macro hex 0xFF per param 20
+slider117:0<0, 16, 1>-Macro hex 0xFF per param 21
+slider118:0<0, 16, 1>-Macro hex 0xFF per param 22
+slider119:0<0, 16, 1>-Macro hex 0xFF per param 23
+slider120:0<0, 16, 1>-Macro hex 0xFF per param 24
+slider121:0<0, 16, 1>-Macro hex 0xFF per param 25
+slider122:0<0, 16, 1>-Macro hex 0xFF per param 26
+slider123:0<0, 16, 1>-Macro hex 0xFF per param 27
+slider124:0<0, 16, 1>-Macro hex 0xFF per param 28
+slider125:0<0, 16, 1>-Macro hex 0xFF per param 29
+slider126:0<0, 16, 1>-Macro hex 0xFF per param 30
+slider127:0<0, 16, 1>-Macro hex 0xFF per param 31
+slider128:0<0, 16, 1>-Macro hex 0xFF per param 32
+
+slider129:0<0, 1, 0.001>-Macro 33
+slider130:0<0, 1, 0.001>-Macro 34
+slider131:0<0, 1, 0.001>-Macro 35
+slider132:0<0, 1, 0.001>-Macro 36
+slider133:0<0, 1, 0.001>-Macro 37
+slider134:0<0, 1, 0.001>-Macro 38
+slider135:0<0, 1, 0.001>-Macro 39
+slider136:0<0, 1, 0.001>-Macro 40
+slider137:0<0, 1, 0.001>-Macro 41
+slider138:0<0, 1, 0.001>-Macro 42
+slider139:0<0, 1, 0.001>-Macro 43
+slider140:0<0, 1, 0.001>-Macro 44
+slider141:0<0, 1, 0.001>-Macro 45
+slider142:0<0, 1, 0.001>-Macro 46
+slider143:0<0, 1, 0.001>-Macro 47
+slider144:0<0, 1, 0.001>-Macro 48
+
+slider145:0<0, 16, 1>-Macro master link 33
+slider146:0<0, 16, 1>-Macro master link 34
+slider147:0<0, 16, 1>-Macro master link 35
+slider148:0<0, 16, 1>-Macro master link 36
+slider149:0<0, 16, 1>-Macro master link 37
+slider150:0<0, 16, 1>-Macro master link 38
+slider151:0<0, 16, 1>-Macro master link 39
+slider152:0<0, 16, 1>-Macro master link 40
+slider153:0<0, 16, 1>-Macro master link 41
+slider154:0<0, 16, 1>-Macro master link 42
+slider155:0<0, 16, 1>-Macro master link 43
+slider156:0<0, 16, 1>-Macro master link 44
+slider157:0<0, 16, 1>-Macro master link 45
+slider158:0<0, 16, 1>-Macro master link 46
+slider159:0<0, 16, 1>-Macro master link 47
+slider160:0<0, 16, 1>-Macro master link 48
+
+slider161:0<0, 16, 1>-Macro flags 33
+slider162:0<0, 16, 1>-Macro flags 34
+slider163:0<0, 16, 1>-Macro flags 35
+slider164:0<0, 16, 1>-Macro flags 36
+slider165:0<0, 16, 1>-Macro flags 37
+slider166:0<0, 16, 1>-Macro flags 38
+slider167:0<0, 16, 1>-Macro flags 39
+slider168:0<0, 16, 1>-Macro flags 40
+slider169:0<0, 16, 1>-Macro flags 41
+slider170:0<0, 16, 1>-Macro flags 42
+slider171:0<0, 16, 1>-Macro flags 43
+slider172:0<0, 16, 1>-Macro flags 44
+slider173:0<0, 16, 1>-Macro flags 45
+slider174:0<0, 16, 1>-Macro flags 46
+slider175:0<0, 16, 1>-Macro flags 47
+slider176:0<0, 16, 1>-Macro flags 48
+
+slider177:0<0, 16, 1>-Macro hex 0xFF per param 33
+slider178:0<0, 16, 1>-Macro hex 0xFF per param 34
+slider179:0<0, 16, 1>-Macro hex 0xFF per param 35
+slider180:0<0, 16, 1>-Macro hex 0xFF per param 36
+slider181:0<0, 16, 1>-Macro hex 0xFF per param 37
+slider182:0<0, 16, 1>-Macro hex 0xFF per param 38
+slider183:0<0, 16, 1>-Macro hex 0xFF per param 39
+slider184:0<0, 16, 1>-Macro hex 0xFF per param 40
+slider185:0<0, 16, 1>-Macro hex 0xFF per param 41
+slider186:0<0, 16, 1>-Macro hex 0xFF per param 42
+slider187:0<0, 16, 1>-Macro hex 0xFF per param 43
+slider188:0<0, 16, 1>-Macro hex 0xFF per param 44
+slider189:0<0, 16, 1>-Macro hex 0xFF per param 45
+slider190:0<0, 16, 1>-Macro hex 0xFF per param 46
+slider191:0<0, 16, 1>-Macro hex 0xFF per param 47
+slider192:0<0, 16, 1>-Macro hex 0xFF per param 48
+
+slider193:0<0, 1, 0.001>-Macro 49
+slider194:0<0, 1, 0.001>-Macro 50
+slider195:0<0, 1, 0.001>-Macro 51
+slider196:0<0, 1, 0.001>-Macro 52
+slider197:0<0, 1, 0.001>-Macro 53
+slider198:0<0, 1, 0.001>-Macro 54
+slider199:0<0, 1, 0.001>-Macro 55
+slider200:0<0, 1, 0.001>-Macro 56
+slider201:0<0, 1, 0.001>-Macro 57
+slider202:0<0, 1, 0.001>-Macro 58
+slider203:0<0, 1, 0.001>-Macro 59
+slider204:0<0, 1, 0.001>-Macro 60
+slider205:0<0, 1, 0.001>-Macro 61
+slider206:0<0, 1, 0.001>-Macro 62
+slider207:0<0, 1, 0.001>-Macro 63
+slider208:0<0, 1, 0.001>-Macro 64
+
+slider209:0<0, 16, 1>-Macro master link 49
+slider210:0<0, 16, 1>-Macro master link 50
+slider211:0<0, 16, 1>-Macro master link 51
+slider212:0<0, 16, 1>-Macro master link 52
+slider213:0<0, 16, 1>-Macro master link 53
+slider214:0<0, 16, 1>-Macro master link 54
+slider215:0<0, 16, 1>-Macro master link 55
+slider216:0<0, 16, 1>-Macro master link 56
+slider217:0<0, 16, 1>-Macro master link 57
+slider218:0<0, 16, 1>-Macro master link 58
+slider219:0<0, 16, 1>-Macro master link 59
+slider220:0<0, 16, 1>-Macro master link 60
+slider221:0<0, 16, 1>-Macro master link 61
+slider222:0<0, 16, 1>-Macro master link 62
+slider223:0<0, 16, 1>-Macro master link 63
+slider224:0<0, 16, 1>-Macro master link 64
+
+slider225:0<0, 16, 1>-Macro flags 49
+slider226:0<0, 16, 1>-Macro flags 50
+slider227:0<0, 16, 1>-Macro flags 51
+slider228:0<0, 16, 1>-Macro flags 52
+slider229:0<0, 16, 1>-Macro flags 53
+slider230:0<0, 16, 1>-Macro flags 54
+slider231:0<0, 16, 1>-Macro flags 55
+slider232:0<0, 16, 1>-Macro flags 56
+slider233:0<0, 16, 1>-Macro flags 57
+slider234:0<0, 16, 1>-Macro flags 58
+slider235:0<0, 16, 1>-Macro flags 59
+slider236:0<0, 16, 1>-Macro flags 60
+slider237:0<0, 16, 1>-Macro flags 61
+slider238:0<0, 16, 1>-Macro flags 62
+slider239:0<0, 16, 1>-Macro flags 63
+slider240:0<0, 16, 1>-Macro flags 64
+
+slider241:0<0, 16, 1>-Macro hex 0xFF per param 49
+slider242:0<0, 16, 1>-Macro hex 0xFF per param 50
+slider243:0<0, 16, 1>-Macro hex 0xFF per param 51
+slider244:0<0, 16, 1>-Macro hex 0xFF per param 52
+slider245:0<0, 16, 1>-Macro hex 0xFF per param 53
+slider246:0<0, 16, 1>-Macro hex 0xFF per param 54
+slider247:0<0, 16, 1>-Macro hex 0xFF per param 55
+slider248:0<0, 16, 1>-Macro hex 0xFF per param 56
+slider249:0<0, 16, 1>-Macro hex 0xFF per param 57
+slider250:0<0, 16, 1>-Macro hex 0xFF per param 58
+slider251:0<0, 16, 1>-Macro hex 0xFF per param 59
+slider252:0<0, 16, 1>-Macro hex 0xFF per param 60
+slider253:0<0, 16, 1>-Macro hex 0xFF per param 61
+slider254:0<0, 16, 1>-Macro hex 0xFF per param 62
+slider255:0<0, 16, 1>-Macro hex 0xFF per param 63
+slider256:0<0, 16, 1>-Macro hex 0xFF per param 64
+
 @init
   //ext_nodenorm = 1;
   function lim(x) ( min(1,max(0,x)); );
@@ -106,31 +311,40 @@ slider64:0<0, 4294967295, 1>-Macro 16 hex, FF per param
   tens_mapt[16] = 10;
   
 @sample
-  i = 0;
-  loop(16,
-    i+=1;
-    flags = slider(i+32); 
-    tension = ((flags>>1) & 0xF); 
-    flags&1==0 ? ( // mute flag
-      // reference
-      master_slid = slider(i+16);
-      master_val = gmem[master_slid];
-      // pass formula values
-      hex_values = floor(slider(i+48));
-      lim_min =   (hex_values&0xFF)/255;
-      lim_max =   1-((hex_values&0xFF00)>>8)/255;
-      scale_min = ((hex_values&0xFF0000)>>16)/255; 
-      scale_max = 1-((flags>>9)&0xFF)/255;
-      //calc
-      pow_float = tens_mapt[tension+1]; 
-      scale_min_real = min(scale_min, scale_max);
-      scale_max_real = max(scale_min, scale_max);
-      out_val = scale_min +  ((  (master_val-lim_min)/(lim_max - lim_min)  )^pow_float)*(scale_max - scale_min);
-      //
-      //out_val >scale_max  ? out_val = lim_max;
-      out_val = min(max(out_val ,scale_min_real), scale_max_real);
-      master_val <lim_min  ? out_val = scale_min;  
-      master_val >lim_max  ? out_val = scale_max;     
-      slider(i) =out_val;
+    segm=0;
+    loop(3, 
+      i = 0; 
+      loop(
+          16,
+          i+=1;
+          flags = slider(i+32+segm*64); 
+          tension = ((flags>>1) & 0xF); 
+          flags&1==0 ? ( // mute flag
+            
+            // reference
+            master_slid = slider(i+16+segm*64);
+            master_slid ==0 ? (master_val=slider(i)):   (master_val = gmem[master_slid]);
+            //master_val = gmem[master_slid];
+            // pass formula values
+            hex_values = floor(slider(i+48+segm*64));
+            lim_min =   (hex_values&0xFF)/255;
+            lim_max =   1-((hex_values&0xFF00)>>8)/255;
+            scale_min = ((hex_values&0xFF0000)>>16)/255; 
+            scale_max = 1-((flags>>9)&0xFF)/255;
+            //calc
+            pow_float = tens_mapt[tension+1]; 
+            scale_min_real = min(scale_min, scale_max);
+            scale_max_real = max(scale_min, scale_max);
+            out_val = scale_min +  (((master_val-lim_min)/(lim_max - lim_min)  )^pow_float)*(scale_max - scale_min);
+            //
+            //out_val >scale_max  ? out_val = lim_max;
+            out_val = min(max(out_val ,scale_min_real), scale_max_real);
+            master_val <lim_min  ? out_val = scale_min;  
+            master_val >lim_max  ? out_val = scale_max;     
+            slider(i+segm*64) =out_val;
+            );
+          test = 1;
+          );
+      
+      segm+=1;
     );
-  );

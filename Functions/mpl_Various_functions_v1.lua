@@ -1,4 +1,4 @@
--- @description Various_functions_v1
+﻿-- @description Various_functions_v1
 -- @author MPL
 -- @noindex  
   
@@ -66,20 +66,28 @@
     end
   end]]
   ---------------------------------------------------
-  function VF_GetFXByGUID(GUID, tr)
+  function VF_GetFXByGUID(GUID, tr, proj)
     if not GUID then return end
     local pat = '[%p]+'
     if not tr then
-      for trid = 1, CountTracks(0) do
+      for trid = 1, CountTracks(proj or 0) do
         local tr = GetTrack(0,trid-1)
-        for fx_id =1, TrackFX_GetCount( tr ) do
-          
-          if TrackFX_GetFXGUID( tr, fx_id-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_id-1 end
+        local fxcnt_main = TrackFX_GetCount( tr ) 
+        local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
+        for fx = 1, fxcnt do
+          local fx_dest = fx
+          if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
+          if TrackFX_GetFXGUID( tr, fx-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx-1 end 
         end
       end  
      else
-      for fx_id =1, TrackFX_GetCount( tr ) do
-        if TrackFX_GetFXGUID( tr, fx_id-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_id-1 end
+      if not (ValidatePtr2(proj or 0, tr, 'MediaTrack*')) then return end
+      local fxcnt_main = TrackFX_GetCount( tr ) 
+      local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
+      for fx = 1, fxcnt do
+        local fx_dest = fx
+        if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
+        if TrackFX_GetFXGUID( tr, fx_dest-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_dest-1 end 
       end
     end    
   end
