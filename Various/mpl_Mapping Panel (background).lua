@@ -1,35 +1,10 @@
 -- @description MappingPanel
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
--- @changelog
---    + New UI using VariousFunctions v3
---    + Allow for using with multiple project tabs (Note: gmem entries are GLOBAL, i.e. tweaking macro knobs affects slave in ALL opened project tabs)
---    + Macro-per-track mode
---    + Reaper 6.71+ support for direct API access for reading/writing parameter links, huge performance boost
---    + Reaper 6.74+ support for 64 links per track, thanks to Justin for increasing sliders per JSFX
---    + Add support for monitoring FX / Input FX
---    + UI: bigger knobs / knobs tweak areas
---    + UI: when height is less than certain amount, hide links, leave knobs only. When height is high enough, show links list
---    + UI: display destination value as knob
---    + MacroKnob: allow to rename macro (stored into master track state)
---    + MacroKnob: allow to color macro (stored into master track state)
---    + MacroKnob: show linked slaves (may not correctly shown if mapping was created with 2x versions)
---    + MacroKnob: add action to clear all links
---    + MacroKnob: support excluding from randomization
---    + Master JSFX: script adds it to master track, but for backward compatibility it can be moved to some regular track, but not recommended
---    + Links/FX name: click on FX toggle float FX
---    + Links/FX name/ContextMenu: action to remove all links from this FX
---    + Links/FX parameter/ContextMenu: action to link same prameter across selected tracks
---    + Links: when add link check whether it is connected to audio or LFO
---    + Settings/Add link: add option to rename macro from parameter name, optionally only when it is default name
---    + Settings/Add link: allow to set master knob to pre-linked slave value, enabled by default
---    + Settings/Actions: reset all macros
---    + Random: add random button to randomize all macro knobs
---    + Random: allow to set random strength
---    + Random: allow to prevent limits from randomize
---    + Variation list: allow to set 8 macro variations
+-- @changelog--    
+--    # Links/FX parameter/ContextMenu: refresh UI
 
 
 -- to do 
@@ -60,7 +35,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0'
+    DATA.extstate.version = '3.01'
     DATA.extstate.extstatesection = 'MPL_MappingPanel'
     DATA.extstate.mb_title = 'Mapping Panel'
     DATA.extstate.default = 
@@ -1267,7 +1242,7 @@
     local t = { 
       {str= '#'..t.destfx_paramname},
       {str= 'Link same parameter on the FX at selected tracks',
-       func = function() DATA2:Link_mapsame(t) end},
+       func = function() DATA2:Link_mapsame(t) DATA2:SlaveJSFX_Read()  end},
       }
     DATA:GUImenu(t)
   end
@@ -1758,6 +1733,7 @@
     if id0 then i_st = id0 cnt = 0 end
     for id = i_st, i_st+cnt do 
       if DATA.extstate.CONF_mode == 1 and DATA2.masterJSFX_FXid then TrackFX_SetParam( extstate_tr, DATA2.masterJSFX_FXid, id+16-1, 0 ) end
+      --if DATA.extstate.CONF_mode == 0 and DATA2.masterJSFX_FXid then TrackFX_SetParam( extstate_tr, DATA2.masterJSFX_FXid, id+16-1, id0 ) end
       if DATA2.masterJSFX_FXid then TrackFX_SetParamNormalized( extstate_tr, DATA2.masterJSFX_FXid, id-1, DATA2.masterJSFX_sliders[id].val )   end
       local col = DATA2.masterJSFX_sliders[id].col if not col then col = '' end
       if DATA2.masterJSFX_sliders[id] then GetSetMediaTrackInfo_String( extstate_tr, 'P_EXT:MPLMAPPAN_MACRO'..id, DATA2.masterJSFX_sliders[id].name..'|'..DATA2.masterJSFX_sliders[id].scroll..'|'..DATA2.masterJSFX_sliders[id].flags..'|'..col, true )  end
