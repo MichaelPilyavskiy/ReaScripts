@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bff1ba3ebbd12eb3fa33059bca5b4c2835907d40" name="MPL Scripts">
+<index version="1" commit="2ec70090968bbf234745c4ba85219339c3897ea4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -4773,6 +4773,15 @@
         <changelog><![CDATA[# use new REAPER API
 # rename FX (REAPER 6.79+)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba956ac967db6d528a77a51c6c72b7d022307c46/FX%20specific/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Tap length for focused ReaDelay first tab.lua" type="script" desc="Tap length for focused ReaDelay first tab">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-08-29T18:50:27Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2ec70090968bbf234745c4ba85219339c3897ea4/FX%20specific/mpl_Tap%20length%20for%20focused%20ReaDelay%20first%20tab.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
