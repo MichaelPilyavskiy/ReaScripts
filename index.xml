@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2ec70090968bbf234745c4ba85219339c3897ea4" name="MPL Scripts">
+<index version="1" commit="6efc4ae44463019e639c8b9e29ee0b3185bc880a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -4782,6 +4782,12 @@
       <version name="1.0" author="MPL" time="2023-08-29T18:50:27Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2ec70090968bbf234745c4ba85219339c3897ea4/FX%20specific/mpl_Tap%20length%20for%20focused%20ReaDelay%20first%20tab.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-08-30T19:58:32Z">
+        <changelog><![CDATA[+ check is focused FX is readelay
++ require 2 taps
++ quantized to project tempo]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6efc4ae44463019e639c8b9e29ee0b3185bc880a/FX%20specific/mpl_Tap%20length%20for%20focused%20ReaDelay%20first%20tab.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
