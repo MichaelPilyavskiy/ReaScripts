@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="85e5201fdf4cd5ab98018c125f72a641067787fd" name="MPL Scripts">
+<index version="1" commit="a23d9100a40db1e509342c6cf569c0a74423f44e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10794,6 +10794,13 @@
         <changelog><![CDATA[+ Shift+drag fader link all visible faders]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c21ce780217b6232a2de0f434b11153c4c7f68d8/Various/mpl_SendFader%20(background).lua</source>
         <source file="mpl_SendFader_Mark selected tracks as receives.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c21ce780217b6232a2de0f434b11153c4c7f68d8/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20receives.lua</source>
+      </version>
+      <version name="2.13" author="MPL" time="2023-09-20T20:46:09Z">
+        <changelog><![CDATA[# remove track channel count
++ Sends: add receive track channels display. allow to set 1/2,3/4,5/6,7/8 pairs
+# UI: make tracks a bit more narrow]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a23d9100a40db1e509342c6cf569c0a74423f44e/Various/mpl_SendFader%20(background).lua</source>
+        <source file="mpl_SendFader_Mark selected tracks as receives.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a23d9100a40db1e509342c6cf569c0a74423f44e/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20receives.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
