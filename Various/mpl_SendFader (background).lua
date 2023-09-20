@@ -1,11 +1,13 @@
 ﻿-- @description SendFader
--- @version 2.12
+-- @version 2.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as receives.lua
 -- @changelog
---    + Shift+drag fader link all visible faders
+--    # remove track channel count
+--    + Sends: add receive track channels display. allow to set 1/2,3/4,5/6,7/8 pairs
+--    # UI: make tracks a bit more narrow
 
 
 
@@ -20,7 +22,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.12'
+    DATA.extstate.version = '2.13'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -312,6 +314,7 @@
       local B_PHASE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_PHASE' )
       local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' )
       local I_AUTOMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_AUTOMODE' )
+      local I_DSTCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_DSTCHAN' )
       if ValidatePtr(dest_trptr, 'MediaTrack*') then
         local retval, destGUID = reaper.GetSetMediaTrackInfo_String( dest_trptr, 'GUID', '', false )
         for i = 1, #DATA2.sendtracks do
@@ -324,6 +327,7 @@
               B_PHASE =B_PHASE,
               I_SENDMODE =I_SENDMODE,
               I_AUTOMODE =I_AUTOMODE,
+              I_DSTCHAN=I_DSTCHAN,
               }
           end 
         end
@@ -483,7 +487,7 @@
         if seltr then
           trchan = math.floor(reaper.GetMediaTrackInfo_Value( seltr, 'I_NCHAN' ))
         end 
-         
+         --[[
         DATA.GUI.buttons.trackchan = { x=x_offs,
                               y=DATA.GUI.custom_offset,
                               w=DATA.GUI.custom_infobut_w-2,
@@ -511,7 +515,7 @@
                                 reaper.TrackList_AdjustWindows( false )
                               end,
                               }
-          x_offs = x_offs + DATA.GUI.custom_infobut_w
+          x_offs = x_offs + DATA.GUI.custom_infobut_w]]
           
     -- active track
       DATA.GUI.buttons.activetrack = { x=x_offs,
@@ -526,7 +530,7 @@
                             onmouseclick = function() end, 
                             data = {fader_vca=true}
                             }                           
-   
+   GUI_RefreshreadOuts(DATA)
   end
   ---------------------------------------------------------------------------------------------
   function GUI_RESERVED_init(DATA)
@@ -558,9 +562,9 @@
       DATA.GUI.custom_filter_centerH = math.floor(2*DATA.GUI.custom_Yrelation)
       
     -- send block
-      DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*8-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3
+      DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*9-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3
       if DATA.extstate.UI_showsendrecnamevertically == 1 then DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*7-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3 end
-      DATA.GUI.custom_sendfaderW = math.floor(90*DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_sendfaderW = math.floor(80*DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_sendfaderWmin = math.floor(90*DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_fader_scale_lim = 0.8
       DATA.GUI.custom_fader_coeff = 30
@@ -1042,6 +1046,39 @@
     
   end
   -------------------------------------------------------------------- 
+  
+  function GUI_MODULE_BuildSends_ControlStuff_recvchan(DATA,sendID,destGUID,srct,x,y,w,h, name) 
+      local key = 'fader_send'..sendID..'_recvchan'
+      local txt = ''
+      if srct.I_DSTCHAN == 0 then txt = '1/2' end
+      if srct.I_DSTCHAN == 2 then txt = 'SC' end
+      if srct.I_DSTCHAN == 4 then txt = '5/6' end
+      if srct.I_DSTCHAN == 6 then txt = '7/8' end
+      DATA.GUI.buttons[key] = { 
+        x=x,
+        y=y,
+        w=w,
+        h=h,
+        txt = '-> '..txt,
+        frame_a = 0,
+        txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
+        onmouseclick = function()
+          DATA:GUImenu(
+            {
+              {str='-> 1/2', state = srct.I_DSTCHAN == 0, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 0)  DATA.UPD.onprojstatechange = true end},
+              {str='-> 3/4', state = srct.I_DSTCHAN == 2, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 2) local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' ) out = math.max(4, reaper.GetMediaTrackInfo_Value( desttr, 'I_NCHAN' )) reaper.SetMediaTrackInfo_Value(desttr, 'I_NCHAN', out )  DATA.UPD.onprojstatechange = true end},
+              {str='-> 5/6', state = srct.I_DSTCHAN == 4, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 4) local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' ) out = math.max(6, reaper.GetMediaTrackInfo_Value( desttr, 'I_NCHAN' )) reaper.SetMediaTrackInfo_Value(desttr, 'I_NCHAN', out )  DATA.UPD.onprojstatechange = true end},
+              {str='-> 7/8', state = srct.I_DSTCHAN == 6, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 6) local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' ) out = math.max(8, reaper.GetMediaTrackInfo_Value( desttr, 'I_NCHAN' )) reaper.SetMediaTrackInfo_Value(desttr, 'I_NCHAN', out )  DATA.UPD.onprojstatechange = true end},
+            }
+          )
+        end,
+        onmouseclickR = function()
+        
+        end
+      }
+    
+  end  
+  -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x,y,w,h, name) 
     if DATA.extstate.UI_showsendrecnamevertically ==0 then
       local key = 'fader_send'..sendID..'_name'
@@ -1411,6 +1448,8 @@
     local srct = DATA2.tracks[1].sends[destGUID]
     local act_w = faderW-DATA.GUI.custom_offset*2
     local x_offs = x_offs0
+    if srct then GUI_MODULE_BuildSends_ControlStuff_recvchan(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
+    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh  
     GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1,DATA2.sendtracks[sendID].name) 
     local ctrlbutw = math.floor(act_w/2) 
     if DATA.extstate.UI_showsendrecnamevertically == 0 then y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh end
