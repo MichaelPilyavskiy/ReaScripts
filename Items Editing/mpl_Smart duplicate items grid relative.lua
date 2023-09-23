@@ -1,9 +1,9 @@
 -- @description Smart duplicate items grid relative
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   # use more sophisticated approach
+--   # remove test color
 
 
       -------------------------------------------------------
@@ -71,7 +71,7 @@
       if valid then 
         local it = reaper.GetMediaItemTake_Item( tk)
         SetMediaItemInfo_Value( it, 'I_GROUPID',group_t[i].gr_ID ) 
-        SetMediaItemInfo_Value( it, 'I_CUSTOMCOLOR',ColorToNative(1,255,1)|0x1000000 ) 
+        --SetMediaItemInfo_Value( it, 'I_CUSTOMCOLOR',ColorToNative(1,255,1)|0x1000000 ) 
       end 
     end
   end
