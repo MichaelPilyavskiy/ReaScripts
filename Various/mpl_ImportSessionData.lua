@@ -1,11 +1,10 @@
 -- @description ImportSessionData
--- @version 2.11
+-- @version 2.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # support track template
---    # fix parsing track parameters
+--    # fix correctly parsing track group names
 
 
 
@@ -16,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.11
+    DATA.extstate.version = 2.12
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -835,7 +834,7 @@
       if line:match('GROUP_NAME') then
         local groupid, name = line:match('GROUP_NAME (%d+) (.*)')
         if groupid and name then 
-          DATA2.srcproj.GROUPNAMES[groupid] = name
+          DATA2.srcproj.GROUPNAMES[groupid] = name:match('"(.*)"') or name
         end
       end
     end
