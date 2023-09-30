@@ -1,10 +1,12 @@
 -- @description ImportSessionData
--- @version 2.12
+-- @version 2.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix correctly parsing track group names
+--    + Settings/UI options: add setting to ignore tracklist selection, enabled by default [p=2715378]
+--    + Destination menu: improve menu items naming and indentation[p=2715382]
+--    + Settings/Track items/Import items: add experimental option to copy files and fix relative paths
 
 
 
@@ -15,7 +17,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.12
+    DATA.extstate.version = 2.13
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -38,13 +40,14 @@
                           
                           UI_trfilter = '',
                           UI_lastsrcproj = '',
+                          UI_ignoretracklistselection = 1,
                           
                           -- track params
                           CONF_tr_name = 1,
                           CONF_tr_VOL = 1,
                           CONF_tr_PAN = 1,
                           CONF_tr_FX = 1, -- &2 clear existed
-                          CONF_tr_it = 1, -- &2 clear existed &4relink files to full paths --&4 edit cur offs
+                          CONF_tr_it = 1, -- &2 clear existed &4relink files to full paths &4 edit cur offs &8 try fix relative path
                           CONF_tr_PHASE = 1,
                           CONF_tr_RECINPUT = 1,
                           CONF_tr_MAINSEND = 1,
@@ -112,6 +115,7 @@
     if projfn =='' then projfn = '[current / untitled]' end
     DATA2.destproj = {}
     DATA2.destproj.fp = projfn 
+    DATA2.destproj.fp_dir = GetParentFolder(projfn )
     DATA2.destproj.TRACK = {}
     local folderlev = 0
     
@@ -170,6 +174,27 @@
   
   end
   ---------------------------------------------------------------------  
+  function GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,mode,submode) 
+    local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA)  
+    local loopst = 1
+    local loopend = #DATA2.srcproj.TRACK
+    local isloop = true
+    if cnt_selection <= 1 then 
+      loopst = trid loopend = trid 
+      isloop = false
+    end
+    for trid0 = loopst,loopend do
+      if (isloop == true and DATA2.srcproj.TRACK[trid0].sel_isselected) or isloop == false then 
+        DATA2.srcproj.TRACK[trid].destmode = mode
+        if mode ==2  then DATA2.srcproj.TRACK[trid].destmode_submode = submode  end
+        if mode ==0 or mode ==1 or mode ==3 then DATA2:Tracks_SetDestination(trid0, mode) end
+        if mode ==2 then DATA2:MatchTrack(trid)  end
+        if mode ==2 or mode ==3 then  DATA2:Get_DestProject_ValidateSameSources()  end 
+      end
+    end
+    GUI_RESERVED_BuildLayer(DATA)  
+  end
+  ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildLayer_DestMenu(DATA,trid) 
     DATA2:Get_DestProject()
     DATA2:Get_DestProject_ValidateSameSources()   
@@ -197,113 +222,25 @@
             {str='#Destination modes:'},
             {str='['..DATA.GUI.custom_intname0..']',
               state = DATA2.srcproj.TRACK[trid].destmode == 0 ,
-              func =  function() 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
-                        if cnt_selection <= 1 then
-                          DATA2:Tracks_SetDestination(trid, 0) 
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected then DATA2:Tracks_SetDestination(trid0, 0) end end
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end}   ,
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,0)  end}   ,
             {str='['..DATA.GUI.custom_intname1..']',
               state = DATA2.srcproj.TRACK[trid].destmode == 1 ,
-              func = function() 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
-                        if cnt_selection <= 1 then
-                          DATA2:Tracks_SetDestination(trid, 1) 
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2:Tracks_SetDestination(trid0, 1) end end
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end},
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,1)  end}   ,
             {str='['..DATA.GUI.custom_intname2..']',
               state = DATA2.srcproj.TRACK[trid].destmode == 3 ,
-              func = function() 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
-                        if cnt_selection <= 1 then
-                          DATA2:Tracks_SetDestination(trid, 3) 
-                          DATA2:Get_DestProject_ValidateSameSources()
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2:Tracks_SetDestination(trid0, 3) end end
-                          DATA2:Get_DestProject_ValidateSameSources()
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end},                      
-            {str='Match by name',
-              state = DATA2.srcproj.TRACK[trid].destmode == 2 and DATA2.srcproj.TRACK[trid].destmode_flags ~= 3,
-              func = function() 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
-                        if cnt_selection <= 1 then
-                          DATA2:MatchTrack(trid) 
-                          DATA2:Get_DestProject_ValidateSameSources()
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2:MatchTrack(trid0)  end end
-                          DATA2:Get_DestProject_ValidateSameSources()
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end},  
-            {str='Do not import, only mark for sends remap|',
-              state = DATA2.srcproj.TRACK[trid].destmode_flags == 3 ,
-              func = function() 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
-                        if cnt_selection <= 1 then
-                          DATA2.srcproj.TRACK[trid].destmode_flags = 3
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then 
-                            DATA2.srcproj.TRACK[trid0].destmode_flags = 3
-                          end end
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end},                       
-            {str='#Matched track placement'},
-            {str='Replace',
-              state = not DATA2.srcproj.TRACK[trid].destmode_flags,
-              func = function() 
-                        local setstate = nil
-                        if DATA2.srcproj.TRACK[trid].destmode_flags then setstate = nil end 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
-                        if cnt_selection <= 1 then
-                          DATA2.srcproj.TRACK[trid].destmode_flags = setstate
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2.srcproj.TRACK[trid0].destmode_flags = setstate end end
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end},             
-            {str='Place under matched track',
-              state = DATA2.srcproj.TRACK[trid].destmode_flags == 1,
-              func = function() 
-                        local setstate = 1
-                        if DATA2.srcproj.TRACK[trid].destmode_flags and DATA2.srcproj.TRACK[trid].destmode_flags&1 == 1 then setstate = nil end 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
-                        if cnt_selection <= 1 then
-                          DATA2.srcproj.TRACK[trid].destmode_flags = setstate
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2.srcproj.TRACK[trid0].destmode_flags = setstate end end
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end}, 
-            {str='Place under matched track as child|',
-              state = DATA2.srcproj.TRACK[trid].destmode_flags == 2,
-              func = function() 
-                        local setstate = 2
-                        if DATA2.srcproj.TRACK[trid].destmode_flags and DATA2.srcproj.TRACK[trid].destmode_flags == 2 then setstate = nil end 
-                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
-                        if cnt_selection <= 1 then
-                          DATA2.srcproj.TRACK[trid].destmode_flags = setstate
-                          GUI_RESERVED_BuildLayer(DATA)  
-                         else
-                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2.srcproj.TRACK[trid0].destmode_flags = setstate end end
-                          GUI_RESERVED_BuildLayer(DATA)  
-                        end
-                      end},        
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,3)  end}   ,                
+            {str='Match by name: replace',
+              state = DATA2.srcproj.TRACK[trid].destmode==2 and (not DATA2.srcproj.TRACK[trid].destmode_submode or (DATA2.srcproj.TRACK[trid].destmode_submode and DATA2.srcproj.TRACK[trid].destmode_submode==0)),
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2)  end}   , 
+            {str='Match by name: place under matched track',
+              state = DATA2.srcproj.TRACK[trid].destmode==2 and DATA2.srcproj.TRACK[trid].destmode_submode == 1, 
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,1)  end}   , 
+            {str='Match by name: place under matched track as child',
+              state = DATA2.srcproj.TRACK[trid].destmode==2 and DATA2.srcproj.TRACK[trid].destmode_submode == 2,
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,2)  end}   , 
+            {str='Match by name: do not import, only mark for sends remap|',
+              state = DATA2.srcproj.TRACK[trid].destmode==2 and DATA2.srcproj.TRACK[trid].destmode_submode == 3 ,
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,3)  end}   , 
             {str='#Handling sends'},
             {str='Import sends|',
               state = DATA2.srcproj.TRACK[trid].sendlogic_flags and DATA2.srcproj.TRACK[trid].sendlogic_flags&1== 1 ,
@@ -418,10 +355,10 @@
             dest_bfill = 0.5
           end
         end
-        if DATA2.srcproj.TRACK[trid].destmode_flags == nil then dest = dest..' [replace]' end
-        if DATA2.srcproj.TRACK[trid].destmode_flags == 1 then dest = dest..' [under]' end
-        if DATA2.srcproj.TRACK[trid].destmode_flags == 2 then dest = dest..' [under, as child]' end
-        if DATA2.srcproj.TRACK[trid].destmode_flags == 3 then dest = dest..' [mark only]' end
+        if DATA2.srcproj.TRACK[trid].destmode_submode == nil then dest = dest..' [replace]' end
+        if DATA2.srcproj.TRACK[trid].destmode_submode == 1 then dest = dest..' [under]' end
+        if DATA2.srcproj.TRACK[trid].destmode_submode == 2 then dest = dest..' [under, as child]' end
+        if DATA2.srcproj.TRACK[trid].destmode_submode == 3 then dest = dest..' [mark only]' end
       end
       if txt=='[%s]+' or txt == '' then txt = '[track'..trid..']' end
       
@@ -1121,7 +1058,10 @@
     
     for i = 1, #DATA2.srcproj.TRACK do
       local srct = DATA2.srcproj.TRACK[i]
-      if not DATA2:VisibleCondition(DATA2.srcproj.TRACK[i].NAME) or (cnt_selection > 0 and not DATA2.srcproj.TRACK[i].sel_isselected) then goto importnexttrack end
+      if not DATA2:VisibleCondition(DATA2.srcproj.TRACK[i].NAME) 
+        or (DATA.extstate.UI_ignoretracklistselection == 0 and cnt_selection > 0 and not DATA2.srcproj.TRACK[i].sel_isselected) then 
+        goto importnexttrack 
+      end
       
       local mode = srct.destmode or 0 
       
@@ -1140,22 +1080,27 @@
       end 
       
       if mode == 2 and srct.dest_track_GUID then -- replace specific track
-        if not (srct.destmode_flags and srct.destmode_flags == 3) then
+        if not (srct.destmode_submode and srct.destmode_submode == 3) then
+          
           local new_tr_src = DATA2:Import_CreateNewTrack(false, srct)
           local dest_tr 
           local srcpos_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
-          if not srct.destmode_flags then
+          
+          if not srct.destmode_submode then
             dest_tr = srcpos_tr
-           elseif srct.destmode_flags == 1 or srct.destmode_flags ==2 then
+           elseif srct.destmode_submode == 1 or srct.destmode_submode ==2 then
             dest_tr = DATA2:Import_CreateNewTrack(true)
           end 
           DATA2:Import_TransferTrackData(new_tr_src, dest_tr) 
-          if srct.destmode_flags == 1 or srct.destmode_flags ==2 then
+          --srct.dest_track_GUID = GetTrackGUID( dest_tr )
+          
+          if srct.destmode_submode == 1 or srct.destmode_submode ==2 then
             SetOnlyTrackSelected( dest_tr )
             makePrevFolder = 0
-            if srct.destmode_flags ==2 then makePrevFolder = 1 end
+            if srct.destmode_submode ==2 then makePrevFolder = 1 end
             ReorderSelectedTracks(  CSurf_TrackToID( srcpos_tr, false ), makePrevFolder )
           end
+          
         end
       end
       
@@ -1267,10 +1212,61 @@
       GetSetProjectInfo_String( 0, 'RENDER_FORMAT', DATA2.srcproj.HEADER_renderconf, 1 ) 
     end
   end
+    -------------------------------------------------------------------- 
+  function CopyFile(old_path, new_path) 
+    local old_file = io.open(old_path, "rb")
+    if not old_file then return end
+    local new_file = io.open(new_path, "wb")
+    if not new_file then return end
+    
+    local content = old_file:read('a')
+    new_file:write(content)
+    
+    old_file:close()
+    new_file:close()
+  end
   -------------------------------------------------------------------- 
+  function DATA2:Import_TransferTrackData_Items_handlesources(chunk)  
+    if not (DATA.extstate.CONF_tr_it&16 == 16 or DATA.extstate.CONF_tr_it&32 == 32) then return chunk end
+    -- cache chunk
+    local t = {}
+    for line in chunk:gmatch('[^\r\n]+') do t[#t+1]=line end
+    -- search for paths 
+      for i = 1, #t do
+        local line = t[i]
+        if line:match('FILE ') then  
+          line = line:match('FILE (.*)')
+          if DATA2.destproj.fp_dir then line = line:gsub(literalize(DATA2.destproj.fp_dir)..'[%\\%/]', '') end
+          if line:match('%"(.-)%"') then line = line:match('%"(.-)%"') end
+          
+          if not file_exists( line ) then
+            local src_projpath = DATA2.srcproj.path..'/' 
+            local test = src_projpath..line 
+            if reaper.GetOS():lower():match('win') then test = test:gsub('/','\\') end
+            
+            if file_exists( test ) then  
+              local output_file = test
+              local proj_path = GetParentFolder(DATA2.destproj.fp)
+              if DATA.extstate.CONF_tr_it&32 == 32 and proj_path then
+                local srcfp = test
+                local destfp = proj_path..'/'..line
+                output_file = destfp
+                CopyFile(srcfp,destfp)
+              end  
+              if reaper.GetOS():lower():match('win') then output_file = output_file:gsub('/','\\') end
+              t[i] = 'FILE "'..output_file..'" 1'
+            end
+          end
+            
+        end
+      end
+    
+    chunk = table.concat(t,'\n')
+    return chunk
+  end
+    -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_Items(src_tr, dest_tr) 
     local curpos = GetCursorPosition() 
-    
     if DATA.extstate.CONF_tr_it&2 == 2 then -- remove dest tr items
       for itemidx = CountTrackMediaItems( dest_tr ), 1, -1 do 
         local item = GetTrackMediaItem( dest_tr, itemidx-1 )
@@ -1284,14 +1280,7 @@
         local retval, chunk = reaper.GetItemStateChunk( item, '', false ) 
         local gGUID = genGuid('' ) 
         chunk = chunk:gsub('GUID (%{.-%})\n', 'GUID '..gGUID..'\n')
-        
-        --[[local tk_data = {}
-        for takeidx = 1,  CountTakes( item ) do
-          local take =  GetTake( item, takeidx-1 )
-          local source=  GetMediaItemTake_Source( take )
-          local filename = reaper.GetMediaSourceFileName( source, '' )
-          tk_data[takeidx] = {filename = filename}
-        end]]
+        chunk = DATA2:Import_TransferTrackData_Items_handlesources(chunk)  
         
         local new_it = AddMediaItemToTrack( dest_tr )
         SetItemStateChunk( new_it, chunk, false ) 
@@ -1300,6 +1289,7 @@
           local it_pos = GetMediaItemInfo_Value( new_it, 'D_POSITION' )
           SetMediaItemInfo_Value( new_it, 'D_POSITION', it_pos+curpos )
         end
+        
         
       end
     end
@@ -1341,6 +1331,7 @@
   end
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_FXchain(src_tr, dest_tr)
+    if not dest_tr then return end
     local dest_cnt = TrackFX_GetCount( dest_tr )
     
     if DATA.extstate.CONF_tr_FX&2==2 then -- clear existed
@@ -1457,6 +1448,7 @@
   ]]
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, key)
+    if not dest_tr then return end
     if key=='GROUPMEMBERSHIP'  then 
       local t = {'VOLUME_LEAD',
       'VOLUME_FOLLOW',
@@ -1546,6 +1538,7 @@
     new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
     new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
     SetTrackStateChunk( new_tr, new_chunk, false )
+    
     return new_tr
   end
   ---------------------------------------------------------------------  
@@ -1572,10 +1565,11 @@
         
         
       {str = 'Track items' ,                              group = 3, itype = 'sep'},
-        {str = 'Import track items' ,                     group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 0},
+        {str = 'Import track items' ,                     group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 0}, 
+          {str = 'Try fixing relative paths (experimental)' ,            group = 3, itype = 'check', level = 2, confkey = 'CONF_tr_it',confkeybyte = 4, hide=DATA.extstate.CONF_tr_it&1~=1},
+          {str = 'Copy files (experimental)' ,                           group = 3, itype = 'check', level = 2, confkey = 'CONF_tr_it',confkeybyte = 5, hide=DATA.extstate.CONF_tr_it&1~=1},
         {str = 'Clear destination track existing items' , group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 1},
         {str = 'Offset at edit cursor' ,                  group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 2},
-          --{str = 'Relink files paths to absolute' ,     group = 1, itype = 'check', level = 2, confkey = 'CONF_tr_it',confkeybyte = 2, hide=DATA.extstate.CONF_tr_it&1~=1},
        
       {str = 'Track FX chain' ,                           group = 4, itype = 'sep'},   
         {str = 'Import track FX chain' ,                  group = 4, itype = 'check', level = 1, confkey = 'CONF_tr_FX',confkeybyte = 0},
@@ -1606,6 +1600,7 @@
         {str = 'Enable shortcuts' ,                       group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
         {str = 'Init UI at mouse position' ,              group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
         {str = 'Show tootips' ,                           group = 5, itype = 'check', confkey = 'UI_showtooltips', level = 1},
+        {str = 'Ignore tracklist selection at import' ,   group = 5, itype = 'check', confkey = 'UI_ignoretracklistselection', level = 1},
         {str = 'Process on settings change',              group = 5, itype = 'check', confkey = 'UI_appatchange', level = 1},
         {str = 'Parse source project at initialization',  group = 5, itype = 'check', confkey = 'UI_appatinit', level = 1,confkeybyte = 0},
           {str = 'Match source project tracks at init',   group = 5, itype = 'check', confkey = 'UI_appatinit', level = 2,confkeybyte = 1},
