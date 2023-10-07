@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="13b4c9f6381cd3deaa54a577e296827f1533f6aa" name="MPL Scripts">
+<index version="1" commit="e95f0a5ef717a0fdade4f2cfa772da67e19585d1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8692,6 +8692,10 @@
 + Destination menu: improve menu items naming and indentation[p=2715382]
 + Settings/Track items/Import items: add experimental option to copy files and fix relative paths]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/13b4c9f6381cd3deaa54a577e296827f1533f6aa/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.14" author="MPL" time="2023-10-07T05:28:07Z">
+        <changelog><![CDATA[# improve logic around tracklist selection]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e95f0a5ef717a0fdade4f2cfa772da67e19585d1/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
