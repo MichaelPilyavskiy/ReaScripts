@@ -1,12 +1,10 @@
 -- @description ImportSessionData
--- @version 2.13
+-- @version 2.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Settings/UI options: add setting to ignore tracklist selection, enabled by default [p=2715378]
---    + Destination menu: improve menu items naming and indentation[p=2715382]
---    + Settings/Track items/Import items: add experimental option to copy files and fix relative paths
+--    # improve logic around tracklist selection
 
 
 
@@ -17,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.13
+    DATA.extstate.version = 2.14
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -175,22 +173,36 @@
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,mode,submode) 
-    local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA)  
-    local loopst = 1
-    local loopend = #DATA2.srcproj.TRACK
-    local isloop = true
-    if cnt_selection <= 1 then 
-      loopst = trid loopend = trid 
-      isloop = false
-    end
-    for trid0 = loopst,loopend do
-      if (isloop == true and DATA2.srcproj.TRACK[trid0].sel_isselected) or isloop == false then 
-        DATA2.srcproj.TRACK[trid].destmode = mode
-        if mode ==2  then DATA2.srcproj.TRACK[trid].destmode_submode = submode  end
-        if mode ==0 or mode ==1 or mode ==3 then DATA2:Tracks_SetDestination(trid0, mode) end
-        if mode ==2 then DATA2:MatchTrack(trid)  end
-        if mode ==2 or mode ==3 then  DATA2:Get_DestProject_ValidateSameSources()  end 
+    local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
+    local tr_ids = {}
+    
+    -- if menu at track + no selection
+      if cnt_selection == 0 then
+        tr_ids[#tr_ids+1] = trid
       end
+      
+    -- if menu at track + selection + track is selected
+      if cnt_selection > 0 and DATA2.srcproj.TRACK[trid].sel_isselected == true then
+        for i = 1, #DATA2.srcproj.TRACK do
+          if DATA2.srcproj.TRACK[i].sel_isselected == true then
+            tr_ids[#tr_ids+1] = i
+          end
+        end
+      end
+      
+    -- if menu at track + selection + track is not selected
+      if cnt_selection > 0 and DATA2.srcproj.TRACK[trid].sel_isselected ~= true then
+        tr_ids[#tr_ids+1] = trid
+      end
+  
+     
+    for i = 1,#tr_ids do
+      local trid = tr_ids[i]
+      DATA2.srcproj.TRACK[trid].destmode = mode
+      if mode ==2  then DATA2.srcproj.TRACK[trid].destmode_submode = submode  end
+      if mode ==0 or mode ==1 or mode ==3 then DATA2:Tracks_SetDestination(trid0, mode) end
+      if mode ==2 then DATA2:MatchTrack(trid)  end
+      if mode ==2 or mode ==3 then  DATA2:Get_DestProject_ValidateSameSources()  end 
     end
     GUI_RESERVED_BuildLayer(DATA)  
   end
@@ -946,20 +958,28 @@
   function DATA2:MatchTrack(specificid)
     if not DATA2.srcproj.TRACK then return end
     DATA2:Get_DestProject()
-    local cnt_selection = 0 for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then cnt_selection = cnt_selection + 1 end end
     
     -- specific track match
     if specificid and DATA2.srcproj.TRACK[specificid] then 
       local tr_name = DATA2.srcproj.TRACK[specificid].NAME 
-      DATA2:MatchTrack_Sub(tr_name, specificid) return 
+      DATA2:MatchTrack_Sub(tr_name, specificid) 
+      return 
     end
     
-    for i = 1, #DATA2.srcproj.TRACK do 
-      if cnt_selection == 0 or (cnt_selection > 0 and DATA2.srcproj.TRACK[i].sel_isselected == true) then
-        local tr_name = DATA2.srcproj.TRACK[i].NAME
-        DATA2:MatchTrack_Sub(tr_name, i) 
+    -- no specificid
+    if not specificid then
+      local cnt_selection = 0 
+      for trid0 = 1, #DATA2.srcproj.TRACK do  
+        if DATA2.srcproj.TRACK[trid0].sel_isselected == true then cnt_selection = cnt_selection + 1 end 
       end
-    end  
+      
+      for i = 1, #DATA2.srcproj.TRACK do 
+        if cnt_selection == 0 or (cnt_selection > 0 and DATA2.srcproj.TRACK[i].sel_isselected == true) then
+          local tr_name = DATA2.srcproj.TRACK[i].NAME
+          DATA2:MatchTrack_Sub(tr_name, i) 
+        end
+      end  
+    end
   end
   -------------------------------------------------------------------- 
   function DATA2:MatchTrack_Sub(tr_name, id_src) 
