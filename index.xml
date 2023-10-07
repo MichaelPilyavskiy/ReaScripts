@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c5f16b45f5945be1d5a36dd1e3cbd307a8349ae1" name="MPL Scripts">
+<index version="1" commit="36b3f095cacf5991bdf9a6acc550ce2f81bff9ed" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2899,6 +2899,15 @@
       <version name="1.01" author="MPL" time="2022-06-14T19:00:10Z">
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Create ReaVocode routing from selected track to track under mouse cursor.lua" type="script" desc="Create ReaVocode routing from selected track to track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-10-07T07:43:45Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36b3f095cacf5991bdf9a6acc550ce2f81bff9ed/FX%20specific/mpl_Create%20ReaVocode%20routing%20from%20selected%20track%20to%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Explode selected track RS5k instances to new tracks.lua" type="script" desc="Explode selected track RS5k instances to new tracks">
