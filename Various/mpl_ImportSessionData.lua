@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.14
+-- @version 2.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # improve logic around tracklist selection
+--    + Track Properties/Group flags: add support for MEDIA_EDIT_FOLLOW and MEDIA_EDIT_LEAD
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.14
+    DATA.extstate.version = 2.15
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -1367,110 +1367,14 @@
     end
     
   end
-  --[[
-  -------------------------------------------------------------------- 
-  function Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, new_tr, sendidx, auxt)
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_VOL', auxt.vol )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_MUTE', auxt.mute )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_PHASE', auxt.phaseinv )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_MONO', auxt.monosum )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_PAN', auxt.pan )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_PANLAW', auxt.panlaw )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_SENDMODE', auxt.mode )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_SRCCHAN', auxt.srcchan )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_DSTCHAN', auxt.destchan )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_AUTOMODE', auxt.automode )
-    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_MIDIFLAGS', auxt.midichan )
-  end
-  --------------------------------------------------------------------  
-  function Data_ImportTracks_Send(conf, obj, data, refresh, mouse, strategy) 
-    --if strategy.trsend&1 == 0 then return end
-    for i = 1, #data.tr_chunks do
-      if data.tr_chunks[i].dest~= '' and #data.tr_chunks[i].AUXRECV > 0 then
-        for auxid = 1,#data.tr_chunks[i].AUXRECV do
-          local tr_chunks_id = data.tr_chunks[i].AUXRECV[auxid].src_id+1
-          if tr_chunks_id and data.tr_chunks[tr_chunks_id] then
-            
-            if data.tr_chunks[tr_chunks_id].dest == '' and strategy.trsend&2 ==2 then -- src track not added
-            
-                data.tr_chunks[tr_chunks_id].dest = -1
-                local paste_send_at_ID = CountTracks( 0 )
-                local new_tr = Data_ImportTracks_NewTrack(data, tr_chunks_id, paste_send_at_ID,strategy)
-                local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID) 
-                local has_send = false 
-                if strategy.trsend&16 ~=16 then
-                  for sendidx =1,  GetTrackNumSends( imported_dst_tr, 0 ) do
-                    local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, 0, sendidx-1, 'P_SRCTRACK' )
-                    if GetTrackGUID(srctr0) == GetTrackGUID(new_tr) then has_send = true end
-                  end
-                end 
-                if not has_send then
-                  local sendidx = CreateTrackSend( new_tr, imported_dst_tr )
-                  Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, new_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
-                end
-              
-             elseif strategy.trsend&4 ==4 and type(data.tr_chunks[tr_chunks_id].dest) == 'string'   then -- if source track is imported to matched track--and type(data.tr_chunks[tr_chunks_id].dest) =='string'
-             
-               local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
-               local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID) 
-               if imported_src_tr and imported_dst_tr then
-                 local has_send = false 
-                 if strategy.trsend&16 ~=16 then
-                   for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
-                     local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
-                     if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
-                   end
-                 end 
-                 if not has_send then
-                  local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
-                  Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
-                 end
-                end
-                
-             elseif strategy.trsend&8 ==8 and  data.tr_chunks[tr_chunks_id].dest == -1 then -- if source track is imported as a new track
-             
-               local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
-               --reaper.SetTrackColor( imported_src_tr, 0 )
-               local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)
-               local has_send = false 
-               if strategy.trsend&16 ~=16 then
-                 for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
-                   local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
-                   if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
-                 end
-                end
-               if not has_send then
-                local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
-                Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
-               end              
-               
-             elseif data.tr_chunks[tr_chunks_id].dest == -2 and data.tr_chunks[tr_chunks_id].destGUID then -- if source track is only mark as source for send
-                
-               local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
-               local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)
-               local has_send = false
-               if strategy.trsend&16 ~=16 then
-                 for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
-                   local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
-                   if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
-                 end
-               end
-               if not has_send then
-                local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
-                Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
-               end                
-            end             
-          end
-        end
-      end
-    end
-  end
-  ]]
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, key)
     if not dest_tr then return end
     if key=='GROUPMEMBERSHIP'  then 
-      local t = {'VOLUME_LEAD',
+      local t = {
+      'MEDIA_EDIT_FOLLOW',
+      'MEDIA_EDIT_LEAD',
+      'VOLUME_LEAD',
       'VOLUME_FOLLOW',
       'VOLUME_VCA_LEAD',
       'VOLUME_VCA_FOLLOW',
