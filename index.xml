@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7969323133077e3cf9670921e07a896a1078770f" name="MPL Scripts">
+<index version="1" commit="6c40a1f7c90ca011350c77570169f3fe62639f10" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8737,6 +8737,10 @@
       <version name="2.15" author="MPL" time="2023-10-14T14:43:44Z">
         <changelog><![CDATA[+ Track Properties/Group flags: add support for MEDIA_EDIT_FOLLOW and MEDIA_EDIT_LEAD]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a4138d96599849e750ba616ecabae37b0d7808ba/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.16" author="MPL" time="2023-10-20T19:10:50Z">
+        <changelog><![CDATA[# fix error with tempotrack parsing]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6c40a1f7c90ca011350c77570169f3fe62639f10/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
