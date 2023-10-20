@@ -1,5 +1,5 @@
 -- @description Toggle FX oversampling
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -16,7 +16,7 @@
 --    [main] . > mpl_Toggle set to 8x oversampling for all project FX.lua
 --    [main] . > mpl_Toggle set to 8x oversampling for selected track FX.lua
 -- @changelog
---    # cleanup
+--    # fix plugin match
  
 
   --------------------------------------------------------------------
@@ -37,6 +37,7 @@
   end
   --------------------------------------------------------------------
   function main_body(sec, cmd,extstatekey, selectedtrackmode, instanceOS, state, set, plugin)
+    
     -- ext state t
       local extstateout = {}
       local extstatein = main_body_parseextstate(extstatekey) 
@@ -74,8 +75,14 @@
     -- collect top level
       for fx_id = 1,  TrackFX_GetCount( track ) do
         local retval, fxname = TrackFX_GetNamedConfigParm( track, fx_id-1, 'fx_name' )
-        local plugin_match = (retval and not plugin) or (retval and plugin and fxname~='' and fxname:lower():match(plugin:lower()))
-        if plugin_match==true then fxids[#fxids+1] = fx_id-1 end
+        fxname =  fxname:lower():gsub('[%p%s]+','')
+        plugin =  plugin:lower():gsub('[%p%s]+','')
+        local plugin_match = (retval and not plugin) or 
+          (retval and plugin and fxname~='' and fxname:match(plugin) ~= nil)
+
+        if plugin_match==true then 
+          fxids[#fxids+1] = fx_id-1 
+        end
       end
     
     -- collect input fx
