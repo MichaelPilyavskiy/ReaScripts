@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.15
+-- @version 2.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Track Properties/Group flags: add support for MEDIA_EDIT_FOLLOW and MEDIA_EDIT_LEAD
+--    # fix error with tempotrack parsing
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.15
+    DATA.extstate.version = 2.16
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -742,7 +742,7 @@
         local lineartempochange = tonumber(valt[4])&1==0
         local timesig_num, timesig_denom
         if valt[5] then
-          local timesig = valt[5]
+          local timesig = tonumber(valt[5]) or 0
           timesig_num = timesig&0xFFFF
           timesig_denom = (timesig>>16)&0xFFFF
         end
