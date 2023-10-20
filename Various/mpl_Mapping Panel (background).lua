@@ -1,10 +1,11 @@
 -- @description MappingPanel
--- @version 3.01
+-- @version 3.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
--- @changelog--    
---    # Links/FX parameter/ContextMenu: refresh UI
+-- @changelog
+--    + Add support for v2+ graph instead knobs, rightclick for enter XY values, enabled by default
+--    # control tension with horizontal fader
 
 
 -- to do 
@@ -35,7 +36,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.01'
+    DATA.extstate.version = '3.02'
     DATA.extstate.extstatesection = 'MPL_MappingPanel'
     DATA.extstate.mb_title = 'Mapping Panel'
     DATA.extstate.default = 
@@ -61,6 +62,7 @@
                           UI_groupflags = 0,  
                           
                           UI_showvarlist = 0,  
+                          UI_showgraph = 1,  
                           }
     
     DATA:ExtStateGet()
@@ -393,7 +395,8 @@
       DATA.GUI.custom_knobframea = 0.4
       DATA.GUI.custom_knobreadout_h = math.floor(DATA.GUI.custom_knobh * 0.2)
       DATA.GUI.custom_knobnametxtsz = math.min(math.max(math.floor(DATA.GUI.custom_knobreadout_h*0.7),14),17)
-      
+    -- graph
+      DATA.GUI.custom_rectside = math.floor(10*DATA.GUI.default_scale)
     -- scroll
       DATA.GUI.custom_layer_scrollw = 12*DATA.GUI.default_scale
       DATA.GUI.custom_layer_scrollx = gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_offset - DATA.GUI.custom_layer_scrollw
@@ -423,6 +426,53 @@
   ----------------------------------------------------------------------------- 
   function GUI_RESERVED_draw_data(DATA, b)
     if b.data and b.data.isknoblimits == true then GUI_RESERVED_draw_data_knoblimits(DATA, b) end
+    if b.data and b.data.limitsgraph then GUI_RESERVED_draw_data_graph(DATA, b) end
+  end
+  ----------------------------------------------------------------------------- 
+  function GUI_RESERVED_draw_data_graph(DATA, b)
+    local hext = b.data.limitsgraph
+    local knobID = hext.knob
+    local val_src = DATA2.masterJSFX_sliders[knobID].val
+    local x,y,w,h =b.x,b.y,b.w,b.h
+    
+    local hexarray_lim_min = hext.hexarray_lim_min
+    local hexarray_lim_max = 1-hext.hexarray_lim_max
+    local hexarray_scale_min = hext.hexarray_scale_min
+    local hexarray_scale_max = 1-hext.hexarray_scale_max
+    local flags_tension = hext.flags_tension
+    local flags_mute = hext.flags_mute
+    local Slave_param = hext.destfx_param
+    local y_glass_low = y+h
+      
+    local pow_float = 1
+    flags_tension = math.floor(flags_tension*15)
+    local  tens_mapt = {1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 2, 3, 4, 5, 6, 7, 8, 10}
+    if tens_mapt[flags_tension+1] then pow_float = tens_mapt[flags_tension+1]  end
+    local slope 
+    if hexarray_lim_max == hexarray_lim_min then slope = 0 else slope = (hexarray_scale_max - hexarray_scale_min) / (hexarray_lim_max-hexarray_lim_min)end
+   
+    gfx.a = 0.15
+      for i_x = x, x+w do
+        local val
+        local progr_x = lim((i_x-x) / w)
+        if progr_x < hexarray_lim_min then 
+          val = hexarray_scale_min 
+         elseif progr_x > hexarray_lim_max then 
+          val = hexarray_scale_max 
+         else
+          val = hexarray_scale_min +  ((  (progr_x-hexarray_lim_min)/(hexarray_lim_max - hexarray_lim_min)  )^pow_float)*(hexarray_scale_max - hexarray_scale_min)
+        end 
+        gfx.line(i_x, y_glass_low, i_x, math.ceil(y_glass_low - val*h))--obj.glass_h
+      end 
+    
+    local circ_x = math.floor(x+w*val_src)
+    local circ_y = math.floor(y_glass_low - h*Slave_param-2 )+2--obj.glass_h
+    local r = 2
+    gfx.a = 0.4
+    gfx.circle(circ_x,circ_y, r, 1)
+    --gfx.line(circ_x+math.floor(r/2)-1, circ_y-2*r, circ_x+math.floor(r/2)-1, circ_y+2*r)
+    --gfx.line(circ_x-r*3, circ_y, circ_x+r*3, circ_y)
+    
   end
   ----------------------------------------------------------------------------- 
   function GUI_RESERVED_draw_data_knoblimits(DATA, b)
@@ -672,15 +722,17 @@
         
         -- hex
         
-        --local val = 1-t.data.hexarray_lim_max
-        DATA.GUI.buttons[b_key..'limmax'].txt = 'src max'--'SrcMax:'..GUIf_NormToPercent(val) 
-        --local val = t.data.hexarray_lim_min
-        DATA.GUI.buttons[b_key..'limmin'].txt = 'src min'--'SrcMin:'..GUIf_NormToPercent(val) 
-        --local val = 1-t.data.hexarray_scale_max
-        DATA.GUI.buttons[b_key..'scalemax'].txt = 'dest max'--''DestMax:'..GUIf_NormToPercent(val) 
-        --local val = t.data.hexarray_scale_min
-        DATA.GUI.buttons[b_key..'scalemin'].txt = 'dest min'--'DestMin:'..GUIf_NormToPercent(val) 
-        --local val = t.data.flags_tension
+        if DATA.extstate.UI_showgraph == 0 then 
+          --local val = 1-t.data.hexarray_lim_max
+          DATA.GUI.buttons[b_key..'limmax'].txt = 'src max'--'SrcMax:'..GUIf_NormToPercent(val) 
+          --local val = t.data.hexarray_lim_min
+          DATA.GUI.buttons[b_key..'limmin'].txt = 'src min'--'SrcMin:'..GUIf_NormToPercent(val) 
+          --local val = 1-t.data.hexarray_scale_max
+          DATA.GUI.buttons[b_key..'scalemax'].txt = 'dest max'--''DestMax:'..GUIf_NormToPercent(val) 
+          --local val = t.data.hexarray_scale_min
+          DATA.GUI.buttons[b_key..'scalemin'].txt = 'dest min'--'DestMin:'..GUIf_NormToPercent(val) 
+          --local val = t.data.flags_tension
+        end
         DATA.GUI.buttons[b_key..'tension'].txt = 'tension'--'tension:'..GUIf_NormToPercent(val) 
         --local val = t.data.flags_mute
         DATA.GUI.buttons[b_key..'mute'].txt = '[mute]'--'tension:'..GUIf_NormToPercent(val) 
@@ -771,6 +823,142 @@
   end
   -------------------------------------------------------------------------------- 
   function GUI_Links_Control_Params_03hexvalues(DATA,t)
+    GUI_Links_Control_Params_03hexvalues_ViewA(DATA,t)
+    GUI_Links_Control_Params_03hexvalues_ViewB(DATA,t)
+  end
+    -------------------------------------------------------------------------------- 
+  function GUI_Links_Control_Params_03hexvalues_ViewB(DATA,t)  
+    if DATA.extstate.UI_showgraph == 0 then return end
+    
+    local b_key = 'macrolinks_'..t.id
+    local frame_a=0.1
+    local frame_asel=0.1
+    local hexoffsx = t.x+DATA.GUI.custom_linknamew+DATA.GUI.custom_offset--+DATA.GUI.custom_linksegmw
+    local hextxt_flags = 1
+    local txt_a = 0.6
+    local val_res= 0.1
+    local val_res= 0.15
+    local backgr_col2 = '#FFFFFF'
+    local backgr_fill2 = 0
+    
+    local areax,areay,areaw,areah = 
+          hexoffsx,
+          t.y+1,
+          DATA.GUI.custom_linksegmw*2+DATA.GUI.custom_offset,
+          t.h-2
+    -- area
+    DATA.GUI.buttons[b_key..'graph'] = { 
+      x=areax,
+      y=areay,
+      w=areaw,
+      h=areah,
+      frame_a=frame_a,
+      frame_asel=frame_asel,
+      ignoremouse = true,
+      data = {limitsgraph=t.data},
+    }
+    -- points
+    -- areduce area
+    local areax,areay,areaw,areah = areax+DATA.GUI.custom_rectside /2,areay+DATA.GUI.custom_rectside /2,areaw-DATA.GUI.custom_rectside,areah-DATA.GUI.custom_rectside
+          
+    hext = t.data
+    local hexarray_lim_min = hext.hexarray_lim_min
+    local hexarray_lim_max = hext.hexarray_lim_max
+    local hexarray_scale_min = hext.hexarray_scale_min
+    local hexarray_scale_max = hext.hexarray_scale_max
+    local glass_y = areay
+    local p1_x = areax-math.floor(DATA.GUI.custom_rectside /2) + areaw* hexarray_lim_min
+    local p1_y = glass_y-math.floor(DATA.GUI.custom_rectside /2) + areah*(1-hexarray_scale_min)
+    DATA.GUI.buttons[b_key..'graph_P1'] = { 
+                      x = p1_x,
+                      y = p1_y,
+                      w = DATA.GUI.custom_rectside,
+                      h = DATA.GUI.custom_rectside,
+                      
+    onmouseclick =function () DATA.mouselatch_t = { x = DATA.GUI.buttons[b_key..'graph_P1'].x, xval = hexarray_lim_min, y = DATA.GUI.buttons[b_key..'graph_P1'].y, yval = hexarray_scale_min} end,
+    onmouserelease = function()  DATA.mouselatch_t = nil DATA.ondraganything = nil  end,
+    onmousedrag = 
+      function()
+        if not DATA.GUI.mouse_ismoving then return end
+        if not DATA.mouselatch_t then return end
+        DATA.ondraganything=true
+        local latch = DATA.mouselatch_t
+        local mult = 1 if DATA.GUI.Ctrl == true then mult = 0.01 end
+        local out_val1 = lim(latch.xval + mult*DATA.GUI.dx/areaw)
+        local out_val2 = lim(latch.yval - mult*DATA.GUI.dy/areah)
+        if out_val1 >= 1- hexarray_lim_max then out_val1 = 1- hexarray_lim_max-0.01 end
+        DATA.GUI.buttons[b_key..'graph_P1'].x = areax -math.floor(DATA.GUI.custom_rectside/2)+ areaw* out_val1
+        DATA.GUI.buttons[b_key..'graph_P1'].y = glass_y -math.floor(DATA.GUI.custom_rectside/2)+ areah *(1-out_val2)
+        
+        t.data.hexarray_lim_min = out_val1
+        t.data.hexarray_scale_min = out_val2
+        DATA2:SlaveJSFX_Write(t.data)
+        DATA2:SlaveJSFX_UpdateParameters() 
+        GUI_Upd_Links(DATA,t)
+        GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob()) 
+      end,
+    onmouseclickR = function()
+      local retval, retvals_csv = GetUserInputs( DATA.extstate.mb_title, 2, 'X1,Y1,extrawidth=100', hexarray_lim_min..','..hexarray_scale_min )
+      if not retval or (retvals_csv and retvals_csv == '')then return end
+      local out = {}
+      for val in retvals_csv:gmatch('[^%,]+') do if tonumber(val) then out[#out+1] = lim(tonumber(val)) end end
+      if #out ~= 2 then return end
+      t.data.hexarray_lim_min = out[1]
+      t.data.hexarray_scale_min = out[2]
+      DATA2:SlaveJSFX_Write(t.data)
+      DATA2:SlaveJSFX_UpdateParameters() 
+      GUI_Upd_Links(DATA,t)
+      GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob())      
+    end,                     
+                    }
+    
+
+    local p2_x = areax-math.floor(DATA.GUI.custom_rectside/2) + areaw*  (1-hext.hexarray_lim_max)
+    local p2_y = glass_y-math.floor(DATA.GUI.custom_rectside/2) + areah *hext.hexarray_scale_max
+    DATA.GUI.buttons[b_key..'graph_P2'] = {
+      x = p2_x,
+      y = p2_y,
+      w = DATA.GUI.custom_rectside,
+      h = DATA.GUI.custom_rectside,
+      onmouseclick =function () DATA.mouselatch_t = { x = DATA.GUI.buttons[b_key..'graph_P2'].x, xval = hexarray_lim_max, y = DATA.GUI.buttons[b_key..'graph_P2'].y, yval = hexarray_scale_max} end,
+      onmouserelease = function()  DATA.mouselatch_t = nil DATA.ondraganything = nil  end,
+      onmousedrag = 
+        function()
+          if not DATA.GUI.mouse_ismoving then return end
+          if not DATA.mouselatch_t then return end
+          DATA.ondraganything=true
+          local latch = DATA.mouselatch_t
+          local mult = 1 if DATA.GUI.Ctrl == true then mult = 0.01 end
+          local out_val1 = lim(latch.xval - mult*DATA.GUI.dx/areaw)
+          local out_val2 = lim(latch.yval + mult*DATA.GUI.dy/areah)
+          if (1-out_val1)<= hexarray_lim_min then out_val1 = 1- hexarray_lim_min-0.01 end 
+          DATA.GUI.buttons[b_key..'graph_P2'].x= areax-math.floor(DATA.GUI.custom_rectside/2) + areaw*  (1-out_val1)
+          DATA.GUI.buttons[b_key..'graph_P2'].y  = glass_y-math.floor(DATA.GUI.custom_rectside/2) + areah *out_val2 
+          t.data.hexarray_lim_max = out_val1
+          t.data.hexarray_scale_max = out_val2
+          DATA2:SlaveJSFX_Write(t.data)
+          DATA2:SlaveJSFX_UpdateParameters() 
+          GUI_Upd_Links(DATA,t)
+          GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob()) 
+        end,
+    onmouseclickR = function()
+      local retval, retvals_csv = GetUserInputs( DATA.extstate.mb_title, 2, 'X2,Y2,extrawidth=100', hexarray_lim_max..','..hexarray_scale_max )
+      if not retval or (retvals_csv and retvals_csv == '')then return end
+      local out = {}
+      for val in retvals_csv:gmatch('[^%,]+') do if tonumber(val) then out[#out+1] = lim(tonumber(val)) end end
+      if #out ~= 2 then return end
+      t.data.hexarray_lim_max = out[1]
+      t.data.hexarray_scale_max = out[2]
+      DATA2:SlaveJSFX_Write(t.data)
+      DATA2:SlaveJSFX_UpdateParameters() 
+      GUI_Upd_Links(DATA,t)
+      GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob())      
+    end, }               
+  end
+    -------------------------------------------------------------------------------- 
+  function GUI_Links_Control_Params_03hexvalues_ViewA(DATA,t)
+    if DATA.extstate.UI_showgraph == 1 then return end
+    
     local b_key = 'macrolinks_'..t.id
     local frame_a=0
     local frame_asel=0.1
@@ -778,39 +966,39 @@
     local hexoffsx = t.x+DATA.GUI.custom_linknamew+DATA.GUI.custom_offset*2+DATA.GUI.custom_linksegmw
     local hextxt_flags = 1
     local txt_a = 0.6
-    local val_res= 0.1
-    local val_res= 0.15
+    local val_res= 0.3
     local backgr_col2 = '#FFFFFF'
     local backgr_fill2 = 0.2
     -- limmax
     local val = 1-t.data.hexarray_lim_max
-    DATA.GUI.buttons[b_key..'limmax'] = { x=hexoffsx,
-                        y=t.y ,
-                        w=DATA.GUI.custom_linksegmw,
-                        h=DATA.GUI.custom_linknameh-1,
-                        val = val,
-                        val_res=val_res,
-                        val_max=1,
-                        val_min=t.data.hexarray_lim_min,
-                        backgr_fill2 = backgr_fill2,
-                        backgr_col2 = backgr_col2,
-                        backgr_usevalue = true,
-                        frame_a=frame_a,
-                        frame_asel=frame_asel,
-                        txt_fontsz = DATA.GUI.custom_linktxtsz,
-                        txt_flags = hextxt_flags,
-                        txt_a = txt_a,
-                        onmousedrag = function()
-                                        if not DATA.GUI.mouse_ismoving then return end
-                                        DATA.ondraganything=true
-                                        t.data.hexarray_lim_max = 1-DATA.GUI.buttons[b_key..'limmax'].val
-                                        DATA2:SlaveJSFX_Write(t.data)
-                                        DATA2:SlaveJSFX_UpdateParameters() 
-                                        GUI_Upd_Links(DATA,t)
-                                        GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob()) 
-                                      end,
-                        onmouserelease = function() DATA.ondraganything = nil end,
-                        }  
+      DATA.GUI.buttons[b_key..'limmax'] = { x=hexoffsx,
+                          y=t.y ,
+                          w=DATA.GUI.custom_linksegmw,
+                          h=DATA.GUI.custom_linknameh-1,
+                          val = val,
+                          val_res=-val_res,
+                          val_max=1,
+                          val_min=t.data.hexarray_lim_min,
+                          val_xaxis = true,
+                          backgr_fill2 = backgr_fill2,
+                          backgr_col2 = backgr_col2,
+                          backgr_usevalue = true,
+                          frame_a=frame_a,
+                          frame_asel=frame_asel,
+                          txt_fontsz = DATA.GUI.custom_linktxtsz,
+                          txt_flags = hextxt_flags,
+                          txt_a = txt_a,
+                          onmousedrag = function()
+                                          if not DATA.GUI.mouse_ismoving then return end
+                                          DATA.ondraganything=true
+                                          t.data.hexarray_lim_max = 1-DATA.GUI.buttons[b_key..'limmax'].val
+                                          DATA2:SlaveJSFX_Write(t.data)
+                                          DATA2:SlaveJSFX_UpdateParameters() 
+                                          GUI_Upd_Links(DATA,t)
+                                          GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob()) 
+                                        end,
+                          onmouserelease = function() DATA.ondraganything = nil end,
+                          }  
     -- limmin
     local val = t.data.hexarray_lim_min
     DATA.GUI.buttons[b_key..'limmin'] = { x=hexoffsx,
@@ -818,7 +1006,8 @@
                         w=DATA.GUI.custom_linksegmw,
                         h=DATA.GUI.custom_linknameh-1,
                         val = val,
-                        val_res=val_res,
+                        val_res=-val_res,
+                        val_xaxis = true,
                         backgr_fill2 = backgr_fill2,
                         backgr_col2 = backgr_col2,
                         backgr_usevalue = true,
@@ -847,7 +1036,8 @@
                         w=DATA.GUI.custom_linksegmw,
                         h=DATA.GUI.custom_linknameh-1,
                         val = val,
-                        val_res=val_res,
+                        val_res=-val_res,
+                        val_xaxis = true,
                         val_max=1,
                         val_min=0,--t.data.hexarray_scale_min,
                         backgr_fill2 = backgr_fill2,
@@ -876,9 +1066,10 @@
                         w=DATA.GUI.custom_linksegmw,
                         h=DATA.GUI.custom_linknameh-1,
                         val = val,
-                        val_res=val_res,
+                        val_res=-val_res,
                         val_max=1,--t.data.hexarray_scale_max,
                         val_min=0,
+                        val_xaxis = true,
                         backgr_fill2 = backgr_fill2,
                         backgr_col2 = backgr_col2,
                         backgr_usevalue = true,
@@ -918,7 +1109,8 @@
                         w=DATA.GUI.custom_linksegmw,
                         h=DATA.GUI.custom_linknameh-1,
                         val = val,
-                        val_res=val_res,
+                        val_res=-val_res,
+                        val_xaxis = true,
                         backgr_fill2 = backgr_fill2,
                         backgr_col2 = backgr_col2,
                         backgr_usevalue = true,
@@ -1039,7 +1231,8 @@
                         frame_asel=frame_asel,
                         val = val,
                         val_res=val_res,
-                        ignoremouse = t.data.flags_mute == 0,
+                        ignoremouse = (t.data.flags_mute == 0) or DATA.extstate.UI_showgraph == 1,
+                        hide = DATA.extstate.UI_showgraph == 1,
                         back_sela = 0,
                         knob_isknob = true,
                         data={t = t.data, isknoblimits = true},
@@ -1465,6 +1658,7 @@
     { 
       {str = 'General' ,                            group = 1, itype = 'sep'}, 
         {str = 'Mode' ,                             group = 1, itype = 'readout', level = 1,  confkey = 'CONF_mode', menu = { [0]='Master JSFX', [1]='Slave JSFX per track'},readoutw_extw=120},
+        {str = 'Show graph for limits/scale' ,      group = 1, itype = 'check', level = 1,  confkey = 'UI_showgraph'},
         {str = 'Restore defaults',                  group = 1, itype = 'button', level = 1, func_onrelease = function ()
                     DATA:ExtStateRestoreDefaults(nil,true) 
                     DATA.UPD.onconfchange = true 
@@ -1625,6 +1819,7 @@
           local param_name = ({ TrackFX_GetParamName( tr,  fx-1, param-1, '' )})[2]
           DATA2.slaveJSFXlinks[#DATA2.slaveJSFXlinks+1] = 
                 { 
+                  knob = selectedknob,
                   slave_jsfx_trGUID = GetTrackGUID( tr ),
                   slave_jsfx_tr = tr,
                   slave_jsfx_trname = ({GetTrackName(tr)})[2],
