@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c64f728346856c21c17e1a277a4891789d54f99a" name="MPL Scripts">
+<index version="1" commit="c455607e7a00e49ac423904d3b32675eb31e1120" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8748,6 +8748,10 @@
       <version name="2.16" author="MPL" time="2023-10-20T19:10:50Z">
         <changelog><![CDATA[# fix error with tempotrack parsing]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6c40a1f7c90ca011350c77570169f3fe62639f10/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.17" author="MPL" time="2023-10-21T14:40:28Z">
+        <changelog><![CDATA[# fix error selection]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c455607e7a00e49ac423904d3b32675eb31e1120/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
