@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.17
+-- @version 2.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix error selection
+--    + Track properties/Group flags: support for 'Try to not touch current groups' [p=2720684]
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.17
+    DATA.extstate.version = 2.18
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -52,7 +52,7 @@
                           CONF_tr_CUSTOMCOLOR = 1,
                           CONF_tr_LAYOUTS = 0,
                           CONF_tr_LAYOUTS = 0,
-                          CONF_tr_GROUPMEMBERSHIP = 0, 
+                          CONF_tr_GROUPMEMBERSHIP = 0, -- &1 import &2 try to not replace current project groups
                           --CONF_tr_SEND = 0,
                           --CONF_tr_FOLDERDEPTH = 1,
                           
@@ -129,6 +129,55 @@
                             folderlev=folderlev
                             }
       folderlev = folderlev + folderd                            
+    end
+    
+    -- define free groups
+    DATA2.destproj.usedtrackgroups = {}
+    local t = {'VOLUME_LEAD',
+    'VOLUME_FOLLOW',
+    'VOLUME_VCA_LEAD',
+    'VOLUME_VCA_FOLLOW',
+    'PAN_LEAD',
+    'PAN_FOLLOW',
+    'WIDTH_LEAD',
+    'WIDTH_FOLLOW',
+    'MUTE_LEAD',
+    'MUTE_FOLLOW',
+    'SOLO_LEAD',
+    'SOLO_FOLLOW',
+    'RECARM_LEAD',
+    'RECARM_FOLLOW',
+    'POLARITY_LEAD',
+    'POLARITY_FOLLOW',
+    'AUTOMODE_LEAD',
+    'AUTOMODE_FOLLOW',
+    'VOLUME_REVERSE',
+    'PAN_REVERSE',
+    'WIDTH_REVERSE',
+    'NO_LEAD_WHEN_FOLLOW',
+    'VOLUME_VCA_FOLLOW_ISPREFX'}
+    
+    for i = 1, CountTracks(0) do
+      local tr = GetTrack(0,i-1)
+      for keyid = 1, #t do
+        local groupname = t[keyid]
+        
+        local flags = reaper.GetSetTrackGroupMembership( tr, groupname, 0, 0 )
+        local flags32 = reaper.GetSetTrackGroupMembershipHigh( tr, groupname, 0, 0 )
+        for groupID = 1, 32 do
+          local bitset = 1<<(groupID-1)
+          if not DATA2.destproj.usedtrackgroups[groupID] and flags ~= 0 and flags&bitset == bitset then DATA2.destproj.usedtrackgroups[groupID] = true end
+          if not DATA2.destproj.usedtrackgroups[groupID+32] and flags32 ~= 0 and flags32&bitset == bitset then DATA2.destproj.usedtrackgroups[groupID+32] = true end
+        end
+      end
+    end
+    
+    DATA2.destproj.usedtrackgroups_map = {}
+    local skip = 0
+    for groupID = 1, 64 do
+      if DATA2.destproj.usedtrackgroups[groupID] then skip = skip + 1 end
+      if DATA2.destproj.usedtrackgroups[groupID + skip] then skip = skip + 1 end
+      if groupID + skip <= 64 then DATA2.destproj.usedtrackgroups_map[groupID] = groupID + skip end
     end
   end
   ---------------------------------------------------------------------  
@@ -721,6 +770,7 @@
     if not f then return end
     local content = f:read('a')
     f:close()
+    
     
     -- get chunks
       DATA2.srcproj.is_tracktemplatemode = false if fp:lower():match('rtracktemplate') then DATA2.srcproj.is_tracktemplatemode = true end
@@ -1403,18 +1453,43 @@
       if reapervrs and reapervrs <= 6.11 then for i = 1, #t do t[i] = t[i]:gsub('LEAD', 'MASTER'):gsub('FOLLOW', 'SLAVE') end end
       
       for i = 1, #t do 
+        -- bits 1-32
         local flags = GetSetTrackGroupMembership( src_tr,  t[i], 0, 0 )
-        GetSetTrackGroupMembership( dest_tr,  t[i], flags, 0xFFFFFFFF )
-        local flagshigh = GetSetTrackGroupMembershipHigh( src_tr,  t[i], 0, 0 )
-        GetSetTrackGroupMembershipHigh( dest_tr,  t[i], flagshigh, 0xFFFFFFFF )
+        
+        if DATA.extstate.CONF_tr_GROUPMEMBERSHIP&2==2 then 
+          local flagst = {}
+          local flagstnew = {}
+          for i = 1, 32  do flagst[i] = flags&(1<<(i-1))==(1<<(i-1)) end
+          for i = 1, 32  do flagstnew[DATA2.destproj.usedtrackgroups_map[i]] = flagst[i]  end
+          local ouflags = 0
+          for i = 1, 32  do if flagstnew[i]==true then ouflags = ouflags|(1<<(i-1))  end end
+         else
+          ouflags = flags
+        end
+        GetSetTrackGroupMembership( dest_tr,  t[i], ouflags, 0xFFFFFFFF )
+        -- bits 33-64
+        local flags = GetSetTrackGroupMembershipHigh( src_tr,  t[i], 0, 0 )
+        if DATA.extstate.CONF_tr_GROUPMEMBERSHIP&2==2 then 
+          local flagst = {}
+          local flagstnew = {}
+          for i = 1, 32  do flagst[i] = flags&(1<<(i-1))==(1<<(i-1)) end
+          for i = 1, 32  do flagstnew[DATA2.destproj.usedtrackgroups_map[i]] = flagst[i]  end
+          local ouflags = 0
+          for i = 1, 32  do if flagstnew[i]==true then ouflags = ouflags|(1<<(i-1))  end end
+         else
+          ouflags = flags
+        end
+        GetSetTrackGroupMembershipHigh( dest_tr,  t[i], ouflags, 0xFFFFFFFF ) 
       end
       
      elseif (key=='P_NAME'  or  key=='P_TCP_LAYOUT'  or  key=='P_MCP_LAYOUT' ) then
+     
       local retval, stringNeedBig = GetSetMediaTrackInfo_String( src_tr, key, '', 0 )
       GetSetMediaTrackInfo_String( dest_tr, key, stringNeedBig, 1 )
       if DATA2.srcproj.is_tracktemplatemode == true then
         GetSetMediaTrackInfo_String( dest_tr, key, DATA2.srcproj.TRACK[1].NAME, 1 )
       end
+      
      else 
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
@@ -1485,7 +1560,8 @@
         {str = 'Parent send / channels' ,                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_MAINSEND'},
         {str = 'Color' ,                                  group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_CUSTOMCOLOR'},
         {str = 'Layout' ,                                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_LAYOUTS'},
-        {str = 'Group flags' ,                            group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_GROUPMEMBERSHIP'},
+        {str = 'Group flags' ,                            group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_GROUPMEMBERSHIP',confkeybyte = 0},
+          {str = 'Try to not touch current groups' ,      group = 1, itype = 'check', level = 2, confkey = 'CONF_tr_GROUPMEMBERSHIP',confkeybyte = 1, hide= DATA.extstate.CONF_tr_GROUPMEMBERSHIP&1~=1},
         --{str = 'Folder depth' ,                         group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_FOLDERDEPTH', hide= DATA.extstate.CONF_resetfoldlevel==1},
         
         
