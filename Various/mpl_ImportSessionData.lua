@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.16
+-- @version 2.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix error with tempotrack parsing
+--    # fix error selection
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.16
+    DATA.extstate.version = 2.17
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -266,6 +266,7 @@
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
+    if not (DATA2.srcproj and DATA2.srcproj.TRACK) then return end
     --DATA.GUI.buttons['tracksrc'..trid].sel_isselected = true
     --if trid then DATA2.srcproj.TRACK[trid].sel_isselected = true end
     local cnt_selection = 0
