@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c455607e7a00e49ac423904d3b32675eb31e1120" name="MPL Scripts">
+<index version="1" commit="b85bfc5ccfc8534a7de58730f70ad1dd8c1a5450" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8752,6 +8752,10 @@
       <version name="2.17" author="MPL" time="2023-10-21T14:40:28Z">
         <changelog><![CDATA[# fix error selection]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c455607e7a00e49ac423904d3b32675eb31e1120/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.18" author="MPL" time="2023-10-21T16:49:55Z">
+        <changelog><![CDATA[+ Track properties/Group flags: support for 'Try to not touch current groups' [p=2720684]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b85bfc5ccfc8534a7de58730f70ad1dd8c1a5450/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
