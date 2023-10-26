@@ -1,10 +1,11 @@
 -- @description ImportSessionData
--- @version 2.18
+-- @version 2.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Track properties/Group flags: support for 'Try to not touch current groups' [p=2720684]
+--    # fix importing group flags
+--    # refresh destionation project after import (specifically for group updates)
 
 
 
@@ -15,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.18
+    DATA.extstate.version = 2.19
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -133,7 +134,10 @@
     
     -- define free groups
     DATA2.destproj.usedtrackgroups = {}
-    local t = {'VOLUME_LEAD',
+    local t = {
+    'MEDIA_EDIT_LEAD',
+    'MEDIA_EDIT_FOLLOW',
+    'VOLUME_LEAD',
     'VOLUME_FOLLOW',
     'VOLUME_VCA_LEAD',
     'VOLUME_VCA_FOLLOW',
@@ -161,7 +165,6 @@
       local tr = GetTrack(0,i-1)
       for keyid = 1, #t do
         local groupname = t[keyid]
-        
         local flags = reaper.GetSetTrackGroupMembership( tr, groupname, 0, 0 )
         local flags32 = reaper.GetSetTrackGroupMembershipHigh( tr, groupname, 0, 0 )
         for groupID = 1, 32 do
@@ -1279,9 +1282,9 @@
     DATA2:Import2_Header_Tempo()
     DATA2:Import2_Header_Groupnames()
     
-    if DATA.extstate.CONF_head_rendconf == 1 and DATA2.srcproj.HEADER_renderconf then
-      GetSetProjectInfo_String( 0, 'RENDER_FORMAT', DATA2.srcproj.HEADER_renderconf, 1 ) 
-    end
+    if DATA.extstate.CONF_head_rendconf == 1 and DATA2.srcproj.HEADER_renderconf then GetSetProjectInfo_String( 0, 'RENDER_FORMAT', DATA2.srcproj.HEADER_renderconf, 1 )  end
+    
+    DATA2:Get_DestProject()
   end
     -------------------------------------------------------------------- 
   function CopyFile(old_path, new_path) 
@@ -1454,32 +1457,27 @@
       
       for i = 1, #t do 
         -- bits 1-32
-        local flags = GetSetTrackGroupMembership( src_tr,  t[i], 0, 0 )
-        
+        local flags = GetSetTrackGroupMembership( src_tr,  t[i], 0, 0 ) 
+        local flags32 = GetSetTrackGroupMembershipHigh( src_tr,  t[i], 0, 0 )
+        local ouflags = 0
+        local ouflags32 = 0
         if DATA.extstate.CONF_tr_GROUPMEMBERSHIP&2==2 then 
-          local flagst = {}
-          local flagstnew = {}
-          for i = 1, 32  do flagst[i] = flags&(1<<(i-1))==(1<<(i-1)) end
-          for i = 1, 32  do flagstnew[DATA2.destproj.usedtrackgroups_map[i]] = flagst[i]  end
-          local ouflags = 0
-          for i = 1, 32  do if flagstnew[i]==true then ouflags = ouflags|(1<<(i-1))  end end
-         else
-          ouflags = flags
+          for i = 1, 32  do 
+            local bitset = 1<<(i-1)
+            local outgroup = DATA2.destproj.usedtrackgroups_map[i] 
+            local outbit = 1<<(outgroup-1)
+            if flags&bitset == bitset then ouflags = ouflags|outbit end
+            
+            local bitset32 = 1<<(i-1)
+            local outgroup32 = DATA2.destproj.usedtrackgroups_map[i+32] 
+            if outgroup32 then
+              local outbit32 = 1<<(outgroup32-1)
+              if flags32&bitset32 == bitset32 then ouflags32 = ouflags32|outbit32 end
+            end
+          end
         end
         GetSetTrackGroupMembership( dest_tr,  t[i], ouflags, 0xFFFFFFFF )
-        -- bits 33-64
-        local flags = GetSetTrackGroupMembershipHigh( src_tr,  t[i], 0, 0 )
-        if DATA.extstate.CONF_tr_GROUPMEMBERSHIP&2==2 then 
-          local flagst = {}
-          local flagstnew = {}
-          for i = 1, 32  do flagst[i] = flags&(1<<(i-1))==(1<<(i-1)) end
-          for i = 1, 32  do flagstnew[DATA2.destproj.usedtrackgroups_map[i]] = flagst[i]  end
-          local ouflags = 0
-          for i = 1, 32  do if flagstnew[i]==true then ouflags = ouflags|(1<<(i-1))  end end
-         else
-          ouflags = flags
-        end
-        GetSetTrackGroupMembershipHigh( dest_tr,  t[i], ouflags, 0xFFFFFFFF ) 
+        GetSetTrackGroupMembershipHigh( dest_tr,  t[i], ouflags32, 0xFFFFFFFF ) 
       end
       
      elseif (key=='P_NAME'  or  key=='P_TCP_LAYOUT'  or  key=='P_MCP_LAYOUT' ) then
@@ -1510,7 +1508,7 @@
     end
     if DATA.extstate.CONF_tr_PHASE== 1 then         DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'B_PHASE') end
     if DATA.extstate.CONF_tr_CUSTOMCOLOR== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR') end
-    if DATA.extstate.CONF_tr_GROUPMEMBERSHIP== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'GROUPMEMBERSHIP') end
+    if DATA.extstate.CONF_tr_GROUPMEMBERSHIP&1== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'GROUPMEMBERSHIP') end
     if DATA.extstate.CONF_tr_LAYOUTS== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_MCP_LAYOUT') 
                                                 DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_TCP_LAYOUT') end
     if obeystructure then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_FOLDERDEPTH') end
