@@ -1,13 +1,11 @@
 ﻿-- @description SendFader
--- @version 2.13
+-- @version 2.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as receives.lua
 -- @changelog
---    # remove track channel count
---    + Sends: add receive track channels display. allow to set 1/2,3/4,5/6,7/8 pairs
---    # UI: make tracks a bit more narrow
+--    # improved mute visibility
 
 
 
@@ -22,7 +20,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.13'
+    DATA.extstate.version = '2.14'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -552,7 +550,7 @@
       DATA.GUI.custom_infobut_w =  math.floor(80*DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_txtsz1 = math.floor(16*DATA.GUI.custom_Yrelation) -- menu
       DATA.GUI.custom_txta = 1
-      DATA.GUI.custom_txta_disabled = 0.3
+      DATA.GUI.custom_txta_disabled = 0.4
       DATA.GUI.custom_txt_trackinfoinit = '[track not selected]'
       DATA.GUI.custom_txt_trackinfoinit2 = '[receive track selected]'
       
@@ -1134,7 +1132,15 @@
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x,y,w,h) 
     local txt_a = DATA.GUI.custom_txta
-    if srct.B_MUTE==0 then txt_a = DATA.GUI.custom_txta_disabled  end
+    local backgr_fill = 0.4
+    local frame_a = 1
+    local backgr_col='#FFFFFF'
+    if srct.B_MUTE==0 then 
+      txt_a = 0.7--DATA.GUI.custom_txta_disabled 
+      backgr_fill=nil 
+      backgr_col=nil 
+      frame_a = 0
+    end
     local key = 'fader_send'..sendID..'_mute'
     DATA.GUI.buttons[key] = { 
       x=x,--+ctrlbutw,
@@ -1143,9 +1149,12 @@
       h=h,
       txt = 'Mute', 
       txt_a=txt_a,
-      txt_col = '#FF0000',
+      txt_col = '#FF5555',
       txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      frame_a = 0,
+      frame_a = frame_a,
+      frame_col = '#FF5555',
+      backgr_fill = backgr_fill,
+      backgr_col = backgr_col,
       onmouserelease = function() 
         local sendIDx = DATA2:GetSendIdx(destGUID,true)
         SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'B_MUTE', srct.B_MUTE~1)
