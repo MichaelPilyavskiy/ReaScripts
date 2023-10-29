@@ -442,7 +442,10 @@
      
     local x_shift = w/2
     local ang_gr = 120
-    if b.knob_showvalueright and b.txt_strw then x_shift = math.max(arc_r+2,w/2-(arc_r*2+b.txt_strw)/2) end
+    if b.knob_showvalueright and b.txt_strw then 
+      --x_shift = math.max(arc_r+2,w/2-(arc_r*2+b.txt_strw)/2) 
+      x_shift = arc_r + 2
+    end
     local ang_val = math.rad(-ang_gr+ang_gr*2*knob_val)
     local ang = math.rad(ang_gr)
     local thickness = 1

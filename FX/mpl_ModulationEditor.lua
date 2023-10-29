@@ -1,14 +1,13 @@
 -- @description ModulationEditor
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + UI: rearrange nodes
---    + LFO: add phase
---    + LFO: add tempo sync
---    + Audio: add min/max
---    + Audio: add strength
-
+--    # fix docking
+--    # fix link hidden if not active
+--    + Add Link/add last touched
+--    # UI tweaks
+--    + Add action to add param mod
 
 
  
@@ -19,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.06'
+    DATA.extstate.version = '1.07'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -371,7 +370,7 @@
                             GUI_nodes_init(DATA)
                           end
                           } 
-                          
+    if ctrl_t.PMOD['lfo.active']&1==0 then return end                       
     xoffs = DATA.GUI.custom_node_x + DATA.GUI.custom_base_wsingle                      
     DATA.GUI.buttons[basekey..'lfo.strength'] = { 
                           knob_a = txt_a/2,
@@ -480,7 +479,7 @@
                           }                           
                           
     if ctrl_t.PMOD['lfo.active'] == 0 then return end
-    local xoffs = DATA.GUI.custom_node_x 
+    local xoffs = DATA.GUI.custom_node_x +DATA.GUI.custom_base_wsingle
     node_yoffs = node_yoffs+    DATA.GUI.custom_node_nameh   
     DATA.GUI.buttons[basekey..'lfo.speed'] = { 
                           knob_a = txt_a/2,
@@ -571,11 +570,10 @@
                             GUI_nodes_init(DATA)
                           end
                           }  
-                          
-    if ctrl_t.PMOD['plink.active'] == 0 then return end   
-    
-    node_yoffs = node_yoffs +    DATA.GUI.custom_node_nameh     
-    --xoffs = xoffs + DATA.GUI.custom_base_wsingle
+                           
+    if ctrl_t.PMOD['plink.active']&1==0 then return end  
+    --node_yoffs = node_yoffs +    DATA.GUI.custom_node_nameh     
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
     local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['plink.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
     DATA.GUI.buttons[basekey..'plink.offset'] = { 
                           knob_a = txt_a/2,
@@ -640,6 +638,45 @@
                                             DATA2:ApplyPMOD(ctrl_key)
                                           end,
                           } 
+    xoffs = DATA.GUI.custom_base_wsingle + DATA.GUI.custom_node_x 
+    node_yoffs = node_yoffs +    DATA.GUI.custom_node_nameh     
+    
+    -- fx name
+      local txt = 'Add last touched'
+      if ctrl_t.PMOD['plink.effect'] >=0 then
+        local tr = VF_GetMediaTrackByGUID(0,ctrl_t.trGUID)
+        if tr then
+          local retval, fxname = TrackFX_GetFXName( tr, ctrl_t.PMOD['plink.effect'] )
+          local retval, paramname = TrackFX_GetParamName( tr, ctrl_t.PMOD['plink.effect'], ctrl_t.PMOD['plink.param'] )
+          txt =  'from: '..VF_ReduceFXname(fxname)..' / '..paramname
+        end
+      end
+    DATA.GUI.buttons[basekey..'plink.add'] = { 
+                          x=xoffs,
+                          y=node_yoffs,--+DATA.GUI.custom_node_nameh,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle*3,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = txt,
+                          txt_a = txt_a,
+                          txt_flags = 4,
+                          frame_a=0,
+                          --frame_asel=0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease =function()
+                                            local retval, trackidx, itemidx, takeidx, fxidx, parm = reaper.GetTouchedOrFocusedFX(0)
+                                            if not retval then return end
+                                            if itemidx>=0 or takeidx>=0 then return end
+                                            
+                                            local track = GetTrack(0,trackidx)
+                                            if trackidx == -1 then track = GetMasterTrack(0) end
+                                            if ctrl_t.trGUID ~=  GetTrackGUID( track ) then return end
+                                            
+                                            ctrl_t.PMOD['plink.effect']=fxidx
+                                            ctrl_t.PMOD['plink.param']=parm
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          }                           
   end    
   ----------------------------------------------------------------------
   function GUI_nodes_05acs(DATA, ctrl_t,  node_yoffs)  
@@ -664,7 +701,8 @@
                             GUI_nodes_init(DATA)
                           end
                           } 
-                          
+    if ctrl_t.PMOD['acs.active']&1==0 then return end  
+    
     xoffs = DATA.GUI.custom_node_x + DATA.GUI.custom_base_wsingle                      
     DATA.GUI.buttons[basekey..'acs.strength'] = { 
                           knob_a = txt_a/2,
@@ -698,8 +736,8 @@
                           } 
                           
     if ctrl_t.PMOD['acs.active'] == 0 then return end
-    xoffs = DATA.GUI.custom_node_x
-    node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle --DATA.GUI.custom_node_x
+    --node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
     DATA.GUI.buttons[basekey..'acs.attack'] = { 
                           knob_a = txt_a/2,
                           knob_isknob = true,
@@ -760,7 +798,10 @@
                                             DATA2:ApplyPMOD(ctrl_key)
                                           end,
                           } 
-    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+                          
+    xoffs = DATA.GUI.custom_base_wsingle +DATA.GUI.custom_node_x
+    node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+    --xoffs = xoffs + DATA.GUI.custom_base_wsingle
     DATA.GUI.buttons[basekey..'acs.dblo'] = { 
                           knob_a = txt_a/2,
                           knob_isknob = true,
@@ -870,23 +911,8 @@
         if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
         if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
         if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then  GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+        if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then  GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
         if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        --[[if DATA2.modulationstate[param].PMOD and DATA2.modulationstate[param].PMOD['mod.active'] == 1  then
-          GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs)   --node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
-          GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  --node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
-          GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs)   
-          node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh*2
-        end   ]]       
-          --[[
-          
-          ]]
-        --[[
-          node_y_offs = 
-          if DATA2.modulationstate[param].PMOD['mod.active'] == 1 then 
-            
-          end
-        end]]
       end
   end
   ----------------------------------------------------------------------
@@ -908,7 +934,18 @@
                         onmouserelease = function() 
                           DATA:GUImenu(
                           {
-                            { str = '#Filter'},
+                            { str = 'Enable modulation for last touched parameter',
+                              func = function()  
+                                local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
+                                if not retval then return end
+                                local track = GetMasterTrack(0)
+                                if trackidx >=0 then track = GetTrack(0,trackidx) end
+                                TrackFX_SetNamedConfigParm( track, fxidx, 'param.'..parm..'.mod.active', 1)
+                                DATA_RESERVED_ONPROJCHANGE(DATA)
+                                DATA.UPD.onconfchange = true
+                              end
+                            } ,
+                            { str = '|#Filter'},
                             { str = 'No filter',
                               state =  DATA.extstate.CONF_filtermode ==0 ,
                               func = function()  
@@ -956,6 +993,7 @@
             local title = DATA.extstate.mb_title or ''
             if DATA.extstate.version then title = title..' '..DATA.extstate.version end
             gfx.quit()
+            
             gfx.init( title,
                       DATA.extstate.wind_w or 100,
                       DATA.extstate.wind_h or 100,
@@ -963,7 +1001,7 @@
                       DATA.extstate.wind_x or 100, 
                       DATA.extstate.wind_y or 100)
             
-            
+           gfx.dock(state ) 
           end
                             }
                           })
@@ -1071,4 +1109,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.42) if ret then local ret2 = VF_CheckReaperVrs(6.71,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.63) if ret then local ret2 = VF_CheckReaperVrs(6.71,true) if ret2 then main() end end
