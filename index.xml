@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a02ee3f878af4d1ccfe8056682b2650940ce3e3c" name="MPL Scripts">
+<index version="1" commit="26d1484d12df9f1fd43747e3d5fe46103d730e73" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1282,6 +1282,15 @@
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
+      <version name="3.63" author="MPL" time="2023-10-29T18:22:27Z">
+        <changelog><![CDATA[# extend VF_GetFXByGUID]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="FX">
@@ -1934,6 +1943,14 @@
 + Audio: add min/max
 + Audio: add strength]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9378d2179d9ac4f5821343234ce882dffd66609/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2023-10-29T18:22:27Z">
+        <changelog><![CDATA[# fix docking
+# fix link hidden if not active
++ Add Link/add last touched
+# UI tweaks
++ Add action to add param mod]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26d1484d12df9f1fd43747e3d5fe46103d730e73/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
