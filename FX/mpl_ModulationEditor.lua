@@ -1,24 +1,54 @@
 -- @description ModulationEditor
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix docking
---    # fix link hidden if not active
---    + Add Link/add last touched
 --    # UI tweaks
---    + Add action to add param mod
+--    # do not scroll if full list height less than gfx height
+--    # ignore mouse parameters if out of screen
+--    + Support mouse scroll
+--    + Action: clean modulation for selected tracks
 
 
  
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
+  --[[
+    --[[{ str = '|Export learn state as XML into project path',
+      func = function()  
+        DATA2:ExportCSV()
+      end
+    },                              
+    { str = 'Import learn state from XML',
+      func = function()  
+        DATA2:ImportCSV()
+        DATA_RESERVED_ONPROJCHANGE(DATA)
+      end
+    },  
+    
+  { str   = 'Show and arm envelopes with learn and parameter modulation for selected tracks',
+            func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', true) end },
+          { str   = 'Show and arm envelopes with learn and parameter modulation for all tracks',
+            func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', false) end },     
+          { str   = 'Remove selected track MIDI mappings',
+            func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track MIDI mappings', false) end },          
+          { str   = 'Remove selected track OSC mappings',
+            func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track OSC mappings', true) end },
+          { str   = 'Remove selected track parameter modulation',
+            func  = function() Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, 'Remove selected track parameter modulation', true) end },          
+          { str   = 'Link last two touched FX parameters',
+            func  = function() Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, 'Link last two touched FX parameters', true) end },  
+          { str   = 'Show TCP controls for mapped parameters|',
+            func  = function() Data_Actions_SHOWTCP(conf, obj, data, refresh, mouse, 'Show TCP controls for mapped parameters', true) end },            
+            ]]
+            
+            
   DATA2 = { aliasmap={}
           }
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.07'
+    DATA.extstate.version = '1.08'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -57,7 +87,13 @@
   end
   ----------------------------------------------------------------------
   function DATA_RESERVED_DYNUPDATE()
-    
+    if DATA.GUI.wheel_trig == true then
+      if DATA.GUI.wheel_dir == true then mult = 1 else mult =  -1 end
+      DATA.GUI.buttons.scroll.val = VF_lim(DATA.GUI.buttons.scroll.val + 0.1*mult)
+      DATA2.scroll_list  = DATA.GUI.buttons.scroll.val
+      DATA.GUI.buttons.scroll.refresh = true
+      GUI_nodes_init(DATA)
+    end
   end
   ----------------------------------------------------------------------
   function DATA2:ProcessUndoBlock(f, name, a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) 
@@ -117,6 +153,58 @@
     if ret and pid then 
       for i = 1, #params do TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..params[i], param_t.PMOD[params[i]] ) end
     end
+  end
+  ---------------------------------------------------------------------
+  function DATA2:Action_Dock()  
+    local state = gfx.dock(-1)
+    if state&1==1 then
+      state = 0
+     else
+      state = DATA.extstate.dock 
+      if state == 0 then state = 1 end
+    end
+    local title = DATA.extstate.mb_title or ''
+    if DATA.extstate.version then title = title..' '..DATA.extstate.version end
+    gfx.quit()
+    
+    gfx.init( title,
+              DATA.extstate.wind_w or 100,
+              DATA.extstate.wind_h or 100,
+              state, 
+              DATA.extstate.wind_x or 100, 
+              DATA.extstate.wind_y or 100)
+    
+   gfx.dock(state ) 
+  end
+  ---------------------------------------------------------------------
+  function DATA2:Action_ActiveteLastTouchedParam()   
+      local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
+      if not retval then return end
+      local track = GetMasterTrack(0)
+      if trackidx >=0 then track = GetTrack(0,trackidx) end
+      TrackFX_SetNamedConfigParm( track, fxidx, 'param.'..parm..'.mod.active', 1)
+      DATA_RESERVED_ONPROJCHANGE(DATA)
+      DATA.UPD.onconfchange = true
+  end
+  --------------------------------------------------------------------
+  function DATA2:Action_CleanSelectedTracksMod()    
+    local ret =  MB( 'Clean selected tracks modulation', DATA.extstate.mb_title, 3 )
+    if ret ~= 6 then return end
+    
+    for i = 1, CountSelectedTracks(0) do
+      local track = GetSelectedTrack(0,i-1)
+      for fx  = 1, TrackFX_GetCount( track ) do
+        for parm = 1,  TrackFX_GetNumParams( track, fx -1) do
+          local retval, str = TrackFX_GetNamedConfigParm( track, fx -1, 'param.'..(parm-1)..'.mod.active')
+          if retval then
+            TrackFX_SetNamedConfigParm( track, fx -1, 'param.'..(parm-1)..'.mod.active',0)
+          end
+        end
+      end
+    end
+    
+    DATA_RESERVED_ONPROJCHANGE(DATA)
+    DATA.UPD.onconfchange = true
   end
   ---------------------------------------------------------------------  
   function DATA2:CollectProjectData()
@@ -240,6 +328,7 @@
                           --txt_flags = 4,
                           onmouseclick =   function()  end,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           refresh= true,
                           frame_a = frame_a,
                           frame_asel = frame_a,
@@ -265,6 +354,7 @@
     DATA.GUI.buttons['ctrl_'..ctrl_key..'modactive'] = { x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Active',
@@ -297,6 +387,7 @@
                         x=xoffs,
                         y=node_yoffs,
                         hide = node_yoffs<DATA.GUI.custom_infoh,
+                        ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                         w=DATA.GUI.custom_base_wsingle-1,
                         h=DATA.GUI.custom_node_nameh-1,
                         txt = 'Base',
@@ -329,6 +420,7 @@
     DATA.GUI.buttons[basekey..'modvisible'] = { x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Visible',
@@ -358,6 +450,7 @@
     DATA.GUI.buttons[basekey..'lfoactive'] = {x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'LFO',
@@ -380,6 +473,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Strength',
@@ -418,6 +512,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = txt,
@@ -460,6 +555,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = txt,
@@ -489,6 +585,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Speed',
@@ -524,6 +621,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Phase',
@@ -558,6 +656,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Link',
@@ -583,6 +682,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Offset',
@@ -617,6 +717,7 @@
                           x=xoffs,
                           y=node_yoffs,--+DATA.GUI.custom_node_nameh,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Scale',
@@ -655,6 +756,7 @@
                           x=xoffs,
                           y=node_yoffs,--+DATA.GUI.custom_node_nameh,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle*3,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = txt,
@@ -689,6 +791,7 @@
     DATA.GUI.buttons[basekey..'acsactive'] = { x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Audio',
@@ -712,6 +815,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Strength',
@@ -746,6 +850,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Attack',
@@ -777,6 +882,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Release',
@@ -810,6 +916,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Min',
@@ -844,6 +951,7 @@
                           x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
+                          ignoremouse = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Max',
@@ -894,25 +1002,34 @@
       for param in spairs(DATA2.modulationstate) do
         node_comh =node_comh + DATA.GUI.custom_node_nameh
         if DATA2.modulationstate[param].PMOD then 
-          node_comh = node_comh + DATA.GUI.custom_node_nameh*3 
-          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
-          if DATA2.modulationstate[param].PMOD['plink.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
-          if DATA2.modulationstate[param].PMOD['acs.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+          if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then 
+            node_comh = node_comh + DATA.GUI.custom_node_nameh*3 
+            if DATA2.modulationstate[param].PMOD['lfo.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+            if DATA2.modulationstate[param].PMOD['plink.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+            if DATA2.modulationstate[param].PMOD['acs.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+           else
+            node_comh = node_comh + DATA.GUI.custom_node_nameh
+          end
         end
       end
-      node_comh =math.max(node_comh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah,DATA.GUI.custom_gfx_hreal)
-    
+      --node_comh =math.max(node_comh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah,DATA.GUI.custom_gfx_hreal)
+      node_comh =node_comh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah
+      
     -- draw
       local node_yoffs = (DATA2.scroll_list or 0) * (1-node_comh) + DATA.GUI.custom_infoh 
+      if node_comh < DATA.GUI.custom_gfx_hreal then node_yoffs = DATA.GUI.custom_infoh  end
+      
       for param in spairs(DATA2.modulationstate) do
         GUI_nodes_01parameter(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
         GUI_nodes_02base(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
-        if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then  GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-        if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+        if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then 
+          GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh 
+          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+        end
       end
   end
   ----------------------------------------------------------------------
@@ -934,17 +1051,10 @@
                         onmouserelease = function() 
                           DATA:GUImenu(
                           {
-                            { str = 'Enable modulation for last touched parameter',
-                              func = function()  
-                                local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
-                                if not retval then return end
-                                local track = GetMasterTrack(0)
-                                if trackidx >=0 then track = GetTrack(0,trackidx) end
-                                TrackFX_SetNamedConfigParm( track, fxidx, 'param.'..parm..'.mod.active', 1)
-                                DATA_RESERVED_ONPROJCHANGE(DATA)
-                                DATA.UPD.onconfchange = true
-                              end
-                            } ,
+                            { str = '#Actions'},
+                            { str = 'Enable modulation for last touched parameter', func= function() Action_ActiveteLastTouchedParam() end} ,
+                            { str = 'Clean selected tracks modulation', func = function() DATA2:Action_CleanSelectedTracksMod()  end} ,
+                            {str='Dock', func =           function()  DATA2:Action_Dock()   end },
                             { str = '|#Filter'},
                             { str = 'No filter',
                               state =  DATA.extstate.CONF_filtermode ==0 ,
@@ -970,57 +1080,9 @@
                                 DATA.UPD.onconfchange = true
                               end
                             },        
-                            --[[{ str = '|Export learn state as XML into project path',
-                              func = function()  
-                                DATA2:ExportCSV()
-                              end
-                            },                              
-                            { str = 'Import learn state from XML',
-                              func = function()  
-                                DATA2:ImportCSV()
-                                DATA_RESERVED_ONPROJCHANGE(DATA)
-                              end
-                            },  ]]                           
-                            {str='|Dock',
-                             func =           function()  
-            local state = gfx.dock(-1)
-            if state&1==1 then
-              state = 0
-             else
-              state = DATA.extstate.dock 
-              if state == 0 then state = 1 end
-            end
-            local title = DATA.extstate.mb_title or ''
-            if DATA.extstate.version then title = title..' '..DATA.extstate.version end
-            gfx.quit()
-            
-            gfx.init( title,
-                      DATA.extstate.wind_w or 100,
-                      DATA.extstate.wind_h or 100,
-                      state, 
-                      DATA.extstate.wind_x or 100, 
-                      DATA.extstate.wind_y or 100)
-            
-           gfx.dock(state ) 
-          end
-                            }
+                         
+                            
                           })
-                          --[[
-                          { str   = 'Show and arm envelopes with learn and parameter modulation for selected tracks',
-                                    func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', true) end },
-                                  { str   = 'Show and arm envelopes with learn and parameter modulation for all tracks',
-                                    func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', false) end },     
-                                  { str   = 'Remove selected track MIDI mappings',
-                                    func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track MIDI mappings', false) end },          
-                                  { str   = 'Remove selected track OSC mappings',
-                                    func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track OSC mappings', true) end },
-                                  { str   = 'Remove selected track parameter modulation',
-                                    func  = function() Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, 'Remove selected track parameter modulation', true) end },          
-                                  { str   = 'Link last two touched FX parameters',
-                                    func  = function() Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, 'Link last two touched FX parameters', true) end },  
-                                  { str   = 'Show TCP controls for mapped parameters|',
-                                    func  = function() Data_Actions_SHOWTCP(conf, obj, data, refresh, mouse, 'Show TCP controls for mapped parameters', true) end },            
-                                    ]]
                                     
                         end
                         }
