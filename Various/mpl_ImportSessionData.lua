@@ -1,11 +1,10 @@
 -- @description ImportSessionData
--- @version 2.19
+-- @version 2.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix importing group flags
---    # refresh destionation project after import (specifically for group updates)
+--    + Settings: add import sends/receives logic settings
 
 
 
@@ -16,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.19
+    DATA.extstate.version = 2.21
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -54,8 +53,8 @@
                           CONF_tr_LAYOUTS = 0,
                           CONF_tr_LAYOUTS = 0,
                           CONF_tr_GROUPMEMBERSHIP = 0, -- &1 import &2 try to not replace current project groups
-                          --CONF_tr_SEND = 0,
-                          --CONF_tr_FOLDERDEPTH = 1,
+                          CONF_sendlogic_flags = 0, 
+                          CONF_sendlogic_flags_matched = 0, 
                           
                           -- master
                           CONF_head_mast_FX = 0,
@@ -189,7 +188,7 @@
   end
   ---------------------------------------------------------------------  
   function DATA2:Get_DestProject_ValidateSameSources()    -- clean up source mapping if destination has multiple sources
-    dest_GUID_used = {}
+    local dest_GUID_used = {}
     for i= 1, #DATA2.srcproj.TRACK do
       local GUIDsrc=DATA2.srcproj.TRACK[i].GUID 
       if GUIDsrc then
@@ -206,17 +205,17 @@
     end
   end
   ---------------------------------------------------------------------  
-  function GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,togglestate) 
+  function GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,set_flags) 
     local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
     if cnt_selection <= 1 then
-      if not DATA2.srcproj.TRACK[trid].sendlogic_flags then DATA2.srcproj.TRACK[trid].sendlogic_flags = 0 end
-      DATA2.srcproj.TRACK[trid].sendlogic_flags = DATA2.srcproj.TRACK[trid].sendlogic_flags~togglestate
+      --if not DATA2.srcproj.TRACK[trid].sendlogic_flags then DATA2.srcproj.TRACK[trid].sendlogic_flags = DATA.extstate.CONF_sendlogic_flags end
+      DATA2.srcproj.TRACK[trid].sendlogic_flags = set_flags--DATA2.srcproj.TRACK[trid].sendlogic_flags~togglestate
       GUI_RESERVED_BuildLayer(DATA)  
      else
       for trid0 = 1, #DATA2.srcproj.TRACK do 
         if DATA2.srcproj.TRACK[trid0].sel_isselected == true then 
-          if not DATA2.srcproj.TRACK[trid0].sendlogic_flags then DATA2.srcproj.TRACK[trid0].sendlogic_flags = 0 end
-          DATA2.srcproj.TRACK[trid0].sendlogic_flags = DATA2.srcproj.TRACK[trid0].sendlogic_flags~togglestate 
+          --if not DATA2.srcproj.TRACK[trid0].sendlogic_flags then DATA2.srcproj.TRACK[trid0].sendlogic_flags = DATA.extstate.CONF_sendlogic_flags end
+          DATA2.srcproj.TRACK[trid0].sendlogic_flags = set_flags--DATA2.srcproj.TRACK[trid0].sendlogic_flags~togglestate 
         end 
       end
       GUI_RESERVED_BuildLayer(DATA)  
@@ -299,19 +298,15 @@
             {str='Match by name: place under matched track',
               state = DATA2.srcproj.TRACK[trid].destmode==2 and DATA2.srcproj.TRACK[trid].destmode_submode == 1, 
               func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,1)  end}   , 
-            {str='Match by name: place under matched track as child',
+            {str='Match by name: place under matched track as child|',
               state = DATA2.srcproj.TRACK[trid].destmode==2 and DATA2.srcproj.TRACK[trid].destmode_submode == 2,
               func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,2)  end}   , 
-            {str='Match by name: do not import, only mark for sends remap|',
+            --[[{str='Match by name: do not import, only mark for sends remap|',
               state = DATA2.srcproj.TRACK[trid].destmode==2 and DATA2.srcproj.TRACK[trid].destmode_submode == 3 ,
-              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,3)  end}   , 
+              func =  function() GUI_RESERVED_BuildLayer_DestMenu_Setmode(DATA,trid,2,3)  end}   , ]]
             {str='#Handling sends'},
-            {str='Import sends|',
-              state = DATA2.srcproj.TRACK[trid].sendlogic_flags and DATA2.srcproj.TRACK[trid].sendlogic_flags&1== 1 ,
-              func = function() GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,1) end},  
-           --[[{str='Remap routing if receive is imported|',
-              state = DATA2.srcproj.TRACK[trid].sendlogic_flags and DATA2.srcproj.TRACK[trid].sendlogic_flags&2 == 2,
-              func = function() GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,2) end},    ]]                   
+            {str='Import sends: off', state = DATA2.srcproj.TRACK[trid].sendlogic_flags&1== 0 , func = function() GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,0) end},                 
+            {str='Import sends: enable|', state = DATA2.srcproj.TRACK[trid].sendlogic_flags&1== 1 , func = function() GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,1) end},                 
             {str='#Current project tracks'},
             table.unpack(tracks)
             }
@@ -424,6 +419,7 @@
         if DATA2.srcproj.TRACK[trid].destmode_submode == 1 then dest = dest..' [under]' end
         if DATA2.srcproj.TRACK[trid].destmode_submode == 2 then dest = dest..' [under, as child]' end
         if DATA2.srcproj.TRACK[trid].destmode_submode == 3 then dest = dest..' [mark only]' end
+        if DATA2.srcproj.TRACK[trid].sendlogic_flags&1==1 then dest = dest..' [sends]' end
       end
       if txt=='[%s]+' or txt == '' then txt = '[track'..trid..']' end
       
@@ -666,7 +662,7 @@
     for tr_idx = 1, #DATA2.srcproj.TRACK do
       local chunk = DATA2.srcproj.TRACK[tr_idx].chunk
       DATA2.srcproj.TRACK[tr_idx].chunk_full = chunk -- used for raw data import 
-      
+      DATA2.srcproj.TRACK[tr_idx].GUID = chunk:match('(%{.-%})')
       -- extract items
         DATA2.srcproj.TRACK[tr_idx].ITEM = {}
         local it_id = 0
@@ -728,7 +724,7 @@
         end
       
       -- handle parameters map
-        DATA2.srcproj.TRACK[tr_idx].GUID = DATA2.srcproj.TRACK[tr_idx].TRACK[1] 
+        --DATA2.srcproj.TRACK[tr_idx].GUID = DATA2.srcproj.TRACK[tr_idx].TRACK[1] 
         DATA2.srcproj.TRACK[tr_idx].TRACK = nil
         local name = DATA2.srcproj.TRACK[tr_idx].NAME[1] 
         DATA2.srcproj.TRACK[tr_idx].NAME = name
@@ -739,7 +735,7 @@
         local cur_fold_state = DATA2.srcproj.TRACK[tr_idx].ISBUS[2] or 0
         DATA2.srcproj.TRACK[tr_idx].CUST_foldlev = foldlev
         foldlev = foldlev + cur_fold_state
-        
+        DATA2.srcproj.TRACK[tr_idx].sendlogic_flags = DATA.extstate.CONF_sendlogic_flags
     end
     
     -- handle sends
@@ -970,6 +966,7 @@
     if not ( DATA2.srcproj and DATA2.srcproj.TRACK and mode) then return end
     if DATA2.srcproj.TRACK[srctrack_id] then 
       DATA2.srcproj.TRACK[srctrack_id].destmode = mode 
+      if mode == 2 then DATA2.srcproj.TRACK[srctrack_id].sendlogic_flags = DATA.extstate.CONF_sendlogic_flags_matched end
       if DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID then
         local desttrack_id = DATA2:Tracks_GetDestinationbyGUID( DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID)
         if desttrack_id and DATA2.destproj.TRACK[desttrack_id] then DATA2.destproj.TRACK[desttrack_id].has_source =false end
@@ -991,6 +988,7 @@
       
     -- set specific track
       if mode&2==2 and desttrack_id and not DATA2.destproj.TRACK[desttrack_id].has_source then
+        if mode == 2 then DATA2.srcproj.TRACK[srctrack_id].sendlogic_flags = DATA.extstate.CONF_sendlogic_flags_matched end
         local destGUID = DATA2.destproj.TRACK[desttrack_id].GUID        -- check for already set up destination from somwwhere
         DATA2.srcproj.TRACK[srctrack_id].destmode = 2
         DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID = DATA2.destproj.TRACK[desttrack_id].GUID
@@ -1097,31 +1095,84 @@
   ----------------------------------------------------------------------
   function DATA2:Tracks_GetSourcebyGUID(GUID) for j = 1, #DATA2.srcproj.TRACK do if GUID == DATA2.srcproj.TRACK[j].GUID then return j end end end
   ----------------------------------------------------------------------
+  function DATA2:Import2_Tracks_AddSend(tr,dest)
+    local exist
+    for sendidx = 1, GetTrackNumSends( tr, 0 )do 
+      local desttr = reaper.GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
+      if desttr == dest then exist = true break end
+    end 
+    if not exist then CreateTrackSend( tr,dest) end
+  end
+  ----------------------------------------------------------------------
+  function DATA2:Import2_Tracks_ImportReceives_sub(srct) 
+    local tr 
+    if srct.dest_track_GUID then tr = VF_GetMediaTrackByGUID(0,srct.dest_track_GUID) end
+    if not tr then return end
+    
+    
+    if srct.destmode == 2 and srct.sendlogic_flags&2==2 then -- matched track / clear detination track receives
+      for sendidx = GetTrackNumSends( tr, -1 ),1,-1 do RemoveTrackSend( tr, -1, sendidx-1 ) end
+    end 
+    
+    if srct.destmode == 2 and srct.sendlogic_flags&4==4 then -- matched track / clear detination track sends
+      for sendidx = GetTrackNumSends( tr, 0 ),1,-1 do RemoveTrackSend( tr, 0, sendidx-1 ) end
+    end 
+    
+    for sendID = 1, #srct.SENDS do
+      if srct.sendlogic_flags&8==8 then
+        local dest_GUID = srct.SENDS[sendID].AUXRECV_DEST_GUID
+        if not dest_GUID then goto nextsend end
+        for trsrcid = 1, #DATA2.srcproj.TRACK do
+          if DATA2.srcproj.TRACK[trsrcid].GUID and DATA2.srcproj.TRACK[trsrcid].GUID == dest_GUID and DATA2.srcproj.TRACK[trsrcid].destmode == 2 and DATA2.srcproj.TRACK[trsrcid].dest_track_GUID then -- send destination exist and imported
+            local dest = VF_GetMediaTrackByGUID(0,DATA2.srcproj.TRACK[trsrcid].dest_track_GUID) 
+            DATA2:Import2_Tracks_AddSend(tr, dest)
+          end
+        end
+      end
+      ::nextsend::
+    end
+    
+    
+    
+    
+    --[[
+    for sendID = 1, #srct.SENDS do
+    end
+      
+      if srct.destmode == 1 then end-- new track
+      if srct.destmode == 2 and srct.dest_track_GUID then end -- matched track
+      -- new tracks
+        -- if there is no send imported, auto add it as new track
+        -- if there is no receive imported, auto add it as new track
+        -- clean/replace existing routing
+        
+      -- matched tracks
+        -- if there is no send imported, auto add it as new track
+        -- if there is no receive imported, auto add it as new track
+        -- clean/replace existing routing
+        
+      --[[local destination_GUID = srct.SENDS[sendID].AUXRECV_DEST_GUID
+      if destination_GUID then
+        local dest_id = DATA2:Tracks_GetSourcebyGUID(destination_GUID)
+        local has_imported_destination = false 
+        if DATA2.srcproj.TRACK[dest_id] and DATA2.srcproj.TRACK[dest_id].dest_track_GUID then has_imported_destination = true end -- receive is already imported 
+        if has_imported_destination ==true then
+          local src_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
+          local dest_tr = VF_GetTrackByGUID(DATA2.srcproj.TRACK[dest_id].dest_track_GUID)
+          if src_tr and dest_tr then 
+            local sendidx = CreateTrackSend( src_tr, dest_tr )
+            DATA2:Import2_Tracks_ImportReceives_params(src_tr,sendidx,srct.SENDS[sendID])  
+          end
+        end 
+      end]]
+  end
+  ----------------------------------------------------------------------
   function DATA2:Import2_Tracks_ImportReceives()  
     for tr_id = 1, #DATA2.srcproj.TRACK do
       local srct = DATA2.srcproj.TRACK[tr_id] 
-      if srct.sendlogic_flags and srct.sendlogic_flags > 0 and srct.SENDS then 
-        
-        for sendID = 1, #srct.SENDS do
-          local destination_GUID = srct.SENDS[sendID].AUXRECV_DEST_GUID
-          if destination_GUID then
-            local dest_id = DATA2:Tracks_GetSourcebyGUID(destination_GUID)
-            local has_imported_destination = false 
-            if DATA2.srcproj.TRACK[dest_id] and DATA2.srcproj.TRACK[dest_id].dest_track_GUID then has_imported_destination = true end -- receive is already imported
-            
-            if has_imported_destination ==true then
-              local src_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
-              local dest_tr = VF_GetTrackByGUID(DATA2.srcproj.TRACK[dest_id].dest_track_GUID)
-              if src_tr and dest_tr then 
-                local sendidx = CreateTrackSend( src_tr, dest_tr )
-                DATA2:Import2_Tracks_ImportReceives_params(src_tr,sendidx,srct.SENDS[sendID])  
-              end
-            end
-            
-          end
-        end
-        
-      end
+      if not (srct.sendlogic_flags and srct.sendlogic_flags&1==1 and srct.SENDS) then goto skiptr end
+      DATA2:Import2_Tracks_ImportReceives_sub(srct)   
+      ::skiptr::
     end
   end
   ----------------------------------------------------------------------
@@ -1181,7 +1232,9 @@
       
       ::importnexttrack::
     end
-    DATA2:Import2_Tracks_ImportReceives()  
+    
+    DATA2:Import2_Tracks_ImportReceives() 
+    
     if DATA.extstate.CONF_buildpeaks == 1 then Action(40047) end -- Peaks: Build any missing peaks
   end
   ---------------------------------------------------------------------
@@ -1475,6 +1528,9 @@
               if flags32&bitset32 == bitset32 then ouflags32 = ouflags32|outbit32 end
             end
           end
+         else
+          ouflags = flags
+          ouflags32 = flags32
         end
         GetSetTrackGroupMembership( dest_tr,  t[i], ouflags, 0xFFFFFFFF )
         GetSetTrackGroupMembershipHigh( dest_tr,  t[i], ouflags32, 0xFFFFFFFF ) 
@@ -1522,7 +1578,6 @@
     end
     if DATA.extstate.CONF_tr_FX> 0 then             DATA2:Import_TransferTrackData_FXchain(src_tr, dest_tr) end
     if DATA.extstate.CONF_tr_it> 0 then             DATA2:Import_TransferTrackData_Items(src_tr, dest_tr) end
-    --if DATA.extstate.CONF_tr_SEND> 0 then           DATA2:Import_TransferTrackData_Send(src_tr, dest_tr) end
     
     DeleteTrack( src_tr ) -- remove temporary
   end 
@@ -1568,15 +1623,23 @@
           {str = 'Try fixing relative paths (experimental)' ,            group = 3, itype = 'check', level = 2, confkey = 'CONF_tr_it',confkeybyte = 4, hide=DATA.extstate.CONF_tr_it&1~=1},
           {str = 'Copy files (experimental)' ,                           group = 3, itype = 'check', level = 2, confkey = 'CONF_tr_it',confkeybyte = 5, hide=DATA.extstate.CONF_tr_it&1~=1},
         {str = 'Clear destination track existing items' , group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 1},
-        {str = 'Offset at edit cursor' ,                  group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 2},
+        {str = 'Offset at edit cursor' ,                  group = 3, itype = 'check', level = 1, confkey = 'CONF_tr_it',confkeybyte = 2}, 
+        {str = 'Build any missing peaks' ,                group = 3, itype = 'check', level = 1, confkey = 'CONF_it_buildpeaks'},
        
       {str = 'Track FX chain' ,                           group = 4, itype = 'sep'},   
         {str = 'Import track FX chain' ,                  group = 4, itype = 'check', level = 1, confkey = 'CONF_tr_FX',confkeybyte = 0},
           {str = 'FX envelopes' ,                         group = 4, itype = 'check', level = 2, confkey = 'CONF_tr_FX',confkeybyte = 2, hide= DATA.extstate.CONF_tr_FX&1~=1},
         {str = 'Clear destination track existing FX' ,    group = 4, itype = 'check', level = 1, confkey = 'CONF_tr_FX',confkeybyte = 1},
         
-      {str = 'Track import options' ,                     group = 2, itype = 'sep'}, 
-        {str = 'Build any missing peaks' ,                group = 2, itype = 'check', level = 1, confkey = 'CONF_it_buildpeaks'},
+      {str = 'Send/receive import logic defaults',        group = 2, itype = 'sep'}, 
+        {str = 'New tracks',                              group = 2, itype = 'button', level = 1},  
+          {str = 'Import sends' ,                          group = 2, itype = 'check', level = 2, confkey = 'CONF_sendlogic_flags',confkeybyte = 0},
+          {str = 'Add send if destination is imported' ,   group = 2, itype = 'check', level = 2, confkey = 'CONF_sendlogic_flags',confkeybyte = 3,hide= DATA.extstate.CONF_sendlogic_flags&1~=1},
+        {str = 'Matched tracks',                          group = 2, itype = 'button', level = 1}, 
+          {str = 'Import sends' ,                           group = 2, itype = 'check', level = 2, confkey = 'CONF_sendlogic_flags_matched',confkeybyte = 0},
+          {str = 'Clear receives' ,                         group = 2, itype = 'check', level = 2, confkey = 'CONF_sendlogic_flags_matched',confkeybyte = 1,hide= DATA.extstate.CONF_sendlogic_flags_matched&1~=1},
+          {str = 'Clear sends' ,                            group = 2, itype = 'check', level = 2, confkey = 'CONF_sendlogic_flags_matched',confkeybyte = 2,hide= DATA.extstate.CONF_sendlogic_flags_matched&1~=1},
+          {str = 'Add send if destination is imported' ,    group = 2, itype = 'check', level = 2, confkey = 'CONF_sendlogic_flags_matched',confkeybyte = 3,hide= DATA.extstate.CONF_sendlogic_flags_matched&1~=1},
         --{str = 'Reset folder level' ,                   group = 2, itype = 'check', level = 1, confkey = 'CONF_resetfoldlevel'},
         --{str = 'Import invisible filtered out tracks' , group = 2, itype = 'check', level = 1, confkey = 'CONF_importinvisibletracks'},
         --{str = 'Set dest. track',                       group = 2, itype = 'readout', readoutw_extw=readoutw_extw, menu = {[0] = 'Replace if used', [1] = 'Not allow to replace'},confkey = 'CONF_tr_destset', level = 1},CONF_tr_destset = 0,
@@ -1604,7 +1667,7 @@
         {str = 'Parse source project at initialization',  group = 5, itype = 'check', confkey = 'UI_appatinit', level = 1,confkeybyte = 0},
           {str = 'Match source project tracks at init',   group = 5, itype = 'check', confkey = 'UI_appatinit', level = 2,confkeybyte = 1},
         {str = 'Match tracks on setting source',          group = 5, itype = 'check', confkey = 'UI_matchatsettingsrc', level = 1},
-        {str = 'Match algorithm' ,                        group = 2, itype = 'readout', readoutw_extw=readoutw_extw, menu = {[1] = 'Exact match', [2] = 'At least one word match'}, level = 1, confkey = 'CONF_tr_matchmode'},
+        {str = 'Match algorithm' ,                        group = 5, itype = 'readout', readoutw_extw=readoutw_extw, menu = {[1] = 'Exact match', [2] = 'At least one word match'}, level = 1, confkey = 'CONF_tr_matchmode'},
         
       
     } 
