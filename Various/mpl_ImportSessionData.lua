@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.21
+-- @version 2.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Settings: add import sends/receives logic settings
+--    # improve refresh after import
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.21
+    DATA.extstate.version = 2.22
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -1338,6 +1338,8 @@
     if DATA.extstate.CONF_head_rendconf == 1 and DATA2.srcproj.HEADER_renderconf then GetSetProjectInfo_String( 0, 'RENDER_FORMAT', DATA2.srcproj.HEADER_renderconf, 1 )  end
     
     DATA2:Get_DestProject()
+    UpdateArrange()
+    TrackList_AdjustWindows( false )
   end
     -------------------------------------------------------------------- 
   function CopyFile(old_path, new_path) 
@@ -1512,9 +1514,12 @@
         -- bits 1-32
         local flags = GetSetTrackGroupMembership( src_tr,  t[i], 0, 0 ) 
         local flags32 = GetSetTrackGroupMembershipHigh( src_tr,  t[i], 0, 0 )
-        local ouflags = 0
-        local ouflags32 = 0
+        local ouflags = flags
+        local ouflags32 = flags32
+        
         if DATA.extstate.CONF_tr_GROUPMEMBERSHIP&2==2 then 
+          ouflags = 0 
+          ouflags32= 0
           for i = 1, 32  do 
             local bitset = 1<<(i-1)
             local outgroup = DATA2.destproj.usedtrackgroups_map[i] 
@@ -1528,9 +1533,9 @@
               if flags32&bitset32 == bitset32 then ouflags32 = ouflags32|outbit32 end
             end
           end
-         else
+         --[[else
           ouflags = flags
-          ouflags32 = flags32
+          ouflags32 = flags32]]
         end
         GetSetTrackGroupMembership( dest_tr,  t[i], ouflags, 0xFFFFFFFF )
         GetSetTrackGroupMembershipHigh( dest_tr,  t[i], ouflags32, 0xFFFFFFFF ) 
