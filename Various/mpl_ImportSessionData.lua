@@ -1308,9 +1308,7 @@
     if DATA.extstate.CONF_head_tempo&1 ~= 1 then return end
     if not DATA2.srcproj.TEMPOMAP then return end
     
-    if DATA.extstate.CONF_head_tempo&4 == 4 then -- clear
-      for markerindex = CountTempoTimeSigMarkers( 0 ), 1, -1 do DeleteTempoTimeSigMarker( 0, markerindex-1 ) end
-    end
+    for markerindex = CountTempoTimeSigMarkers( 0 ), 1, -1 do DeleteTempoTimeSigMarker( 0, markerindex-1 ) end
     
     -- handle cursor
       local offs = 0
@@ -1662,7 +1660,6 @@
             {str = 'Clear existing regions' ,             group = 6, itype = 'check', level = 3, confkey = 'CONF_head_markers',confkeybyte=3, hide= DATA.extstate.CONF_head_markers&4~=4},
         {str = 'Tempo / time signature' ,                 group = 6, itype = 'check', level = 1, confkey = 'CONF_head_tempo',confkeybyte = 0}, 
           {str = 'Offset at edit cursor' ,                group = 6, itype = 'check', level = 2, confkey = 'CONF_head_tempo',confkeybyte = 1, hide= DATA.extstate.CONF_head_tempo&1~=1},
-          {str = 'Clear existing envelope' ,              group = 6, itype = 'check', level = 2, confkey = 'CONF_head_tempo',confkeybyte = 2, hide= DATA.extstate.CONF_head_tempo&1~=1},
         {str = 'Track group names' ,                      group = 6, itype = 'check', level = 1, confkey = 'CONF_head_groupnames',confkeybyte = 0}, 
         {str = 'Render format configuration' ,            group = 6, itype = 'check', level = 1, confkey = 'CONF_head_rendconf',confkeybyte = 0}, 
         
