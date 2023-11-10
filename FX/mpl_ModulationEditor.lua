@@ -1,12 +1,9 @@
 -- @description ModulationEditor
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix 'Action_ActiveteLastTouchedParam' error
---    # ignore scroll if list h less than gfx.h
---    # add 10px separation
---    # UI: scroll tweaks
+--    # rename action for clean modulation
 
 
 
@@ -47,7 +44,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.09'
+    DATA.extstate.version = '1.10'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -1079,7 +1076,7 @@
                           {
                             { str = '#Actions'},
                             { str = 'Enable modulation for last touched parameter', func= function() DATA2:Action_ActiveteLastTouchedParam() end} ,
-                            { str = 'Clean selected tracks modulation', func = function() DATA2:Action_CleanSelectedTracksMod()  end} ,
+                            { str = 'Deactivate all modulation for selected track', func = function() DATA2:Action_CleanSelectedTracksMod()  end} ,
                             {str='Dock', func =           function()  DATA2:Action_Dock()   end },
                             { str = '|#Filter'},
                             { str = 'No filter',
