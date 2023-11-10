@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ac3efc6d7bdabf8dd47bf86afeaca9097c1995ec" name="MPL Scripts">
+<index version="1" commit="7c8e9ec4f88e3acb3a603087d03ba813f522fc4f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1959,6 +1959,13 @@
 + Support mouse scroll
 + Action: clean modulation for selected tracks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a24d85900963a48fb92466f78333d5e80850d12b/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="1.09" author="MPL" time="2023-11-10T19:22:53Z">
+        <changelog><![CDATA[# fix 'Action_ActiveteLastTouchedParam' error
+# ignore scroll if list h less than gfx.h
+# add 10px separation
+# UI: scroll tweaks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c8e9ec4f88e3acb3a603087d03ba813f522fc4f/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
