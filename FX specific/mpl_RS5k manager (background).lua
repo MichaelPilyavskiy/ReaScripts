@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.22
+-- @version 3.23
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Macro: add attack links
+--    # fix learn_midi1 error
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.22'
+    DATA.extstate.version = '3.23'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -904,6 +904,8 @@ List:
         local retval1, learn_midi1 = reaper.TrackFX_GetNamedConfigParm(track, fx, 'param.'..param..'.learn.midi1')
         local retval2, learn_midi2 = reaper.TrackFX_GetNamedConfigParm(track, fx, 'param.'..param..'.learn.midi2') 
         local retval3, learn_osc = reaper.TrackFX_GetNamedConfigParm(track, fx, 'param.'..param..'.learn.osc') 
+        
+        learn_midi1 = tonumber(learn_midi1) or 0
         
         local validOSC = retval3 and learn_osc and learn_osc~= ''
         local validMIDI = retval1 and retval2 and ((learn_midi1>>4)& 0x0F ) ~= 0
@@ -3645,8 +3647,12 @@ rightclick them to hide all but active.
                   local f = function(note,notedest) DATA2:Actions_Pad_CopyMove(note,notedest)   end
                   DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Add to recent note',note,notedest)  
                 end },
-       
-           
+        --[[{str='Grab selected track(s) samplers to drums rack starting this note',
+          func=function() 
+                  local f = function(note,notedest) DATA2:Actions_GrabSamplers(note)   end
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Grab samplers',note)  
+                end },
+           ]]
                   }
                 
       DATA:GUImenu(t)
@@ -3729,6 +3735,44 @@ rightclick them to hide all but active.
       end
     end
   end]]
+  -----------------------------------------------------------------------
+  function DATA2:Actions_GrabSamplers(note)
+    local cnt = CountSelectedTracks(0)
+    
+    
+    --[[
+    local max_items = 8
+    if cnt > max_items then
+      local ret = MB('There are more than '..max_items..' items to import, continue?', '',3 )
+      if ret~=6 then return end
+    end
+    
+    local itt = {}
+    for selitem = 1, cnt do itt[#itt+1] = GetSelectedMediaItem( 0, selitem -1) end
+    
+    for i = 1, #itt do
+      local item = itt[i]
+      local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+      local take = reaper.GetActiveTake(item)
+      if not take or reaper.TakeIsMIDI(take) then goto skip_to_next_item end
+      local tk_src =  GetMediaItemTake_Source( take )
+      local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+      local src_len =GetMediaSourceLength( tk_src )
+      if GetMediaSourceType( tk_src ) == 'SECTION' or GetMediaSourceType( tk_src ) == 'WAVE' and GetMediaSourceParent( tk_src ) then tk_src = GetMediaSourceParent( tk_src ) end
+      local filepath = reaper.GetMediaSourceFileName( tk_src, '' )
+      local layer = 1
+      local section_data = {}
+      section_data.offs =s_offs
+      section_data.len =it_len
+      section_data.src =tk_src
+      section_data.src_len =src_len
+      section_data.SOFFS =s_offs/src_len
+      section_data.EOFFS =(s_offs+it_len)/src_len 
+      DATA2:Actions_PadOnFileDrop(note+i-1, layer, filepath,section_data)
+      DeleteTrackMediaItem(  reaper.GetMediaItemTrack( item), item )
+      ::skip_to_next_item::
+    end]]
+  end
   -----------------------------------------------------------------------
   function DATA2:Actions_ImportSelectedItems(note) 
     local cnt = CountSelectedMediaItems(0)
