@@ -1138,6 +1138,10 @@
     local b,g,r = ColorFromNative(int)
     if set then
       if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255) end
+      if DATA.GUI.default_ignorecolorswitch then 
+        if DATA.GUI.default_ignorecolorswitch == 0 then gfx.set(b/255,g/255,r/255) end
+        if DATA.GUI.default_ignorecolorswitch == 1 then gfx.set(r/255,g/255,b/255) end
+      end
     end
     return r/255, g/255, b/255
   end

@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.23
+-- @version 3.24
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix learn_midi1 error
+--    # add support for DATA.GUI.default_ignorecolorswitch
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.23'
+    DATA.extstate.version = '3.24'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -86,6 +86,7 @@
                           UI_pads_sendnoteoff = 1,
                           UI_usemousewheelontabs = 1,
                           UI_drracklayout = 0,
+                          UI_colswitch = -1,
                           
                           }
                           
@@ -1363,7 +1364,10 @@ rightclick them to hide all but active.
     -- get globals
       local gfx_h = math.floor(gfx.h/DATA.GUI.default_scale)--math.max(250,gfx.h/DATA.GUI.default_scale)
       local gfx_w = math.floor(gfx.w/DATA.GUI.default_scale)--math.max(250,gfx.h/DATA.GUI.default_scale)
-    --DATA.GUI.default_scale = 1
+      --DATA.GUI.default_scale = 1
+      if DATA.extstate.UI_colswitch > -1 then
+        DATA.GUI.default_ignorecolorswitch = DATA.extstate.UI_colswitch
+      end
       
     -- init main stuff
       DATA.GUI.custom_referenceH = 300
@@ -1561,7 +1565,7 @@ rightclick them to hide all but active.
         {str = 'Rename track',                                  group = 1, itype = 'check', confkey = 'CONF_onadd_renametrack', level = 1},
         {str = 'Copy samples to project path',                  group = 1, itype = 'check', confkey = 'CONF_onadd_copytoprojectpath', level = 1},
         {str = 'Custom track template: '..customtemplate,       group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RTrackTemplate') if retval then DATA.extstate.CONF_onadd_customtemplate=  fp GUI_MODULE_SETTINGS(DATA) end end},
-        {str = 'Custom track template [clear]',                  group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
+        {str = 'Custom track template [clear]',                 group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
         
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
@@ -1577,7 +1581,8 @@ rightclick them to hide all but active.
         {str = 'Drumrack: Click on pad select track',           group = 3, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
         {str = 'Drumrack: Release pad send NoteOff',            group = 3, itype = 'check', confkey = 'UI_pads_sendnoteoff', level = 1},
         {str = 'Tabs: use mouse wheel',                         group = 3, itype = 'check', confkey = 'UI_usemousewheelontabs', level = 1},
-        {str = 'DrumRack layout',                               group = 3, itype = 'readout', confkey = 'UI_drracklayout', level = 1,menu={[0]='Default / 8x4 pads',[1]='2 octaves keys'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2.PARENT_DRRACKSHIFT = 36 end},
+        {str = 'Color switch (require restart)',                group = 3, itype = 'readout', confkey = 'UI_colswitch', level = 1,menu = {[-1]='Auto',[0]='RGB',[1]='BGR'}},
+        {str = 'DrumRack layout',                               group = 3, itype = 'readout', confkey = 'UI_drracklayout', level = 1,menu={[0]='Default / 8x4 pads',[1]='2 octaves keys'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2.PARENT_DRRACKSHIFT = 36 end}, 
         {str = 'Dock / undock',                                 group = 3, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
           function()  
             local state = gfx.dock(-1)
@@ -6302,7 +6307,7 @@ rightclick them to hide all but active.
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(6.73,true) if ret2 then  
+  local ret = VF_CheckFunctions(3.64) if ret then local ret2 = VF_CheckReaperVrs(6.73,true) if ret2 then  
     gmem_attach('RS5K_manager')
     main() 
   end end
