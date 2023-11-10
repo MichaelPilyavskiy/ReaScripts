@@ -1,16 +1,15 @@
 -- @description ModulationEditor
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # UI tweaks
---    # do not scroll if full list height less than gfx height
---    # ignore mouse parameters if out of screen
---    + Support mouse scroll
---    + Action: clean modulation for selected tracks
+--    # fix 'Action_ActiveteLastTouchedParam' error
+--    # ignore scroll if list h less than gfx.h
+--    # add 10px separation
+--    # UI: scroll tweaks
 
 
- 
+
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
   --[[
@@ -48,7 +47,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.08'
+    DATA.extstate.version = '1.09'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -87,10 +86,11 @@
   end
   ----------------------------------------------------------------------
   function DATA_RESERVED_DYNUPDATE()
-    if DATA.GUI.wheel_trig == true then
+    if DATA.GUI.wheel_trig == true then 
+      if DATA.GUI.custom_scroll_off == true then return end
       if DATA.GUI.wheel_dir == true then mult = 1 else mult =  -1 end
       DATA.GUI.buttons.scroll.val = VF_lim(DATA.GUI.buttons.scroll.val + 0.1*mult)
-      DATA2.scroll_list  = DATA.GUI.buttons.scroll.val
+      DATA2.scroll_list = DATA.GUI.buttons.scroll.val
       DATA.GUI.buttons.scroll.refresh = true
       GUI_nodes_init(DATA)
     end
@@ -998,26 +998,51 @@
     if not DATA2.modulationstate then return end
     
     -- calc common h
-      local node_comh = 0
+      DATA.GUI.custom_gfxcomh = 0
+      DATA.GUI.custom_gfxcomhcheck = DATA.GUI.custom_gfx_hreal-DATA.GUI.custom_infoh
+      
+      node_yoffs = 0
       for param in spairs(DATA2.modulationstate) do
-        node_comh =node_comh + DATA.GUI.custom_node_nameh
+        node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+        node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+        if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then 
+          node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh 
+          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+        end
+        node_yoffs = node_yoffs + DATA.GUI.custom_node_voffset 
+      end
+      DATA.GUI.custom_gfxcomh = node_yoffs
+      
+      --[[for param in spairs(DATA2.modulationstate) do
+        DATA.GUI.custom_gfxcomh =DATA.GUI.custom_gfxcomh + DATA.GUI.custom_node_nameh + DATA.GUI.custom_node_voffset 
         if DATA2.modulationstate[param].PMOD then 
+          DATA.GUI.custom_gfxcomh = DATA.GUI.custom_gfxcomh + DATA.GUI.custom_node_nameh*6
           if DATA2.modulationstate[param].PMOD['mod.active'] == 1   then 
-            node_comh = node_comh + DATA.GUI.custom_node_nameh*3 
-            if DATA2.modulationstate[param].PMOD['lfo.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
-            if DATA2.modulationstate[param].PMOD['plink.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
-            if DATA2.modulationstate[param].PMOD['acs.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+            if DATA2.modulationstate[param].PMOD['lfo.active'] == 1 then DATA.GUI.custom_gfxcomh = DATA.GUI.custom_gfxcomh + DATA.GUI.custom_node_nameh end
+            if DATA2.modulationstate[param].PMOD['plink.active'] == 1 then DATA.GUI.custom_gfxcomh = DATA.GUI.custom_gfxcomh + DATA.GUI.custom_node_nameh end
+            if DATA2.modulationstate[param].PMOD['acs.active'] == 1 then DATA.GUI.custom_gfxcomh = DATA.GUI.custom_gfxcomh + DATA.GUI.custom_node_nameh end
            else
-            node_comh = node_comh + DATA.GUI.custom_node_nameh
+            DATA.GUI.custom_gfxcomh = DATA.GUI.custom_gfxcomh + DATA.GUI.custom_node_nameh
           end
         end
-      end
-      --node_comh =math.max(node_comh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah,DATA.GUI.custom_gfx_hreal)
-      node_comh =node_comh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah
+      end]]
+      --DATA.GUI.custom_gfxcomh =math.max(DATA.GUI.custom_gfxcomh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah,DATA.GUI.custom_gfx_hreal)
+      --DATA.GUI.custom_gfxcomh =DATA.GUI.custom_gfxcomh - DATA.GUI.custom_node_areah---DATA.GUI.custom_infoh
       
     -- draw
-      local node_yoffs = (DATA2.scroll_list or 0) * (1-node_comh) + DATA.GUI.custom_infoh 
-      if node_comh < DATA.GUI.custom_gfx_hreal then node_yoffs = DATA.GUI.custom_infoh  end
+      
+      DATA.GUI.custom_gfxcomh_used =DATA.GUI.custom_gfxcomh - (DATA.GUI.custom_gfx_hreal-DATA.GUI.custom_node_nameh)
+      local node_yoffs = (DATA2.scroll_list or 0) * (1-DATA.GUI.custom_gfxcomh_used) + DATA.GUI.custom_infoh 
+      if DATA.GUI.custom_gfxcomh < DATA.GUI.custom_gfxcomhcheck then 
+        node_yoffs = DATA.GUI.custom_infoh 
+        DATA.GUI.custom_scroll_off = true 
+       else 
+        DATA.GUI.custom_scroll_off = false 
+      end
       
       for param in spairs(DATA2.modulationstate) do
         GUI_nodes_01parameter(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
@@ -1030,6 +1055,7 @@
           GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
           if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
         end
+        node_yoffs = node_yoffs + DATA.GUI.custom_node_voffset 
       end
   end
   ----------------------------------------------------------------------
@@ -1052,7 +1078,7 @@
                           DATA:GUImenu(
                           {
                             { str = '#Actions'},
-                            { str = 'Enable modulation for last touched parameter', func= function() Action_ActiveteLastTouchedParam() end} ,
+                            { str = 'Enable modulation for last touched parameter', func= function() DATA2:Action_ActiveteLastTouchedParam() end} ,
                             { str = 'Clean selected tracks modulation', func = function() DATA2:Action_CleanSelectedTracksMod()  end} ,
                             {str='Dock', func =           function()  DATA2:Action_Dock()   end },
                             { str = '|#Filter'},
@@ -1112,7 +1138,8 @@
       DATA.GUI.custom_nodes_area_w = DATA.GUI.custom_gfx_wreal - DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*2
       DATA.GUI.custom_node_areah = math.floor(90*DATA.GUI.custom_Xrelation)
       DATA.GUI.custom_node_removew = math.floor(20*DATA.GUI.custom_Xrelation) 
-      DATA.GUI.custom_val_res = 0.1
+      DATA.GUI.custom_val_res = 0.1 
+      DATA.GUI.custom_node_voffset =  math.floor(10 * DATA.GUI.custom_Xrelation)
     -- ctrls
       DATA.GUI.custom_txtsz_ctrl= math.floor(15* DATA.GUI.custom_Xrelation)
       DATA.GUI.custom_txta_OFF = 0.3
@@ -1157,11 +1184,13 @@
                           val_res = -1,
                           slider_isslider = true,
                           onmousedrag = function() 
+                            if DATA.GUI.custom_scroll_off == true then return end
                             DATA2.scroll_list = DATA.GUI.buttons.scroll.val 
                             DATA.GUI.buttons.scroll.refresh = true
                             GUI_nodes_init(DATA)
                           end,
-                          onmouserelease = function() 
+                          onmouserelease = function()  
+                            if DATA.GUI.custom_scroll_off == true then return end
                             DATA.GUI.buttons.scroll.refresh = true
                           end
                           }
