@@ -1,9 +1,9 @@
 -- @description Smart duplicate items, use measure shift
--- @version 1.32
+-- @version 1.33
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   # remove SWS dependency
+--   # fixed length expanding
   
   local data = {}
   
@@ -26,6 +26,7 @@
       local end_beats_t = {TimeMap2_timeToBeats( 0,pos+len )}
       data[i] = {src_tr =  GetMediaItem_Track( item ),
                 chunk = ({GetItemStateChunk( item, '', false )})[2],
+                len =len,
                 group_ID = GetMediaItemInfo_Value( item, 'I_GROUPID'),
                 col = GetMediaItemInfo_Value( item, 'I_CUSTOMCOLOR' ),
                 pos_conv = {   pos_conv_beats = pos_beats_t [1],
@@ -36,7 +37,7 @@
                     end_conv_measure = end_beats_t [2],
                     end_conv_fullbeats = end_beats_t [4],
                     },                 
-                 GUID = GUID--BR_GetMediaItemGUID( item ) 
+                 GUID = GUID
                  }
                  
     end
@@ -56,7 +57,6 @@
   end
 ---------------------------------------------------------------------   
   function OverlapCheck(data, measure_shift, end_fullbeatsmax)
-    --ClearConsole()
     for i = 1, #data do
       local shifted_pos = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].pos_conv.pos_conv_measure + measure_shift )
       if shifted_pos < TimeMap2_beatsToTime( 0, end_fullbeatsmax ) then  return 1 end
@@ -71,7 +71,6 @@
       local new_pos = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].pos_conv.pos_conv_measure + measure_shift )
       local new_end = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].end_conv.end_conv_measure + measure_shift )
       SetMediaItemInfo_Value( new_it, 'D_POSITION', new_pos)
-      SetMediaItemInfo_Value( new_it, 'D_LENGTH', new_end - new_pos)
       --SetMediaItemInfo_Value( new_it, 'I_CUSTOMCOLOR', data[i].col )
     end
   end
