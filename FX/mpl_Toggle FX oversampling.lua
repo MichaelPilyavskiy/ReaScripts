@@ -1,5 +1,5 @@
 -- @description Toggle FX oversampling
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -72,11 +72,12 @@
   ---------------------------------------------------------------------  
   function main_body_tr_collect_fxids(track,plugin)
     local fxids = {}
+    
+    if plugin then plugin =  plugin:lower():gsub('[%p%s]+','') end
     -- collect top level
       for fx_id = 1,  TrackFX_GetCount( track ) do
         local retval, fxname = TrackFX_GetNamedConfigParm( track, fx_id-1, 'fx_name' )
         fxname =  fxname:lower():gsub('[%p%s]+','')
-        plugin =  plugin:lower():gsub('[%p%s]+','')
         local plugin_match = (retval and not plugin) or 
           (retval and plugin and fxname~='' and fxname:match(plugin) ~= nil)
 
