@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="549ca4cff1cee50fec6147f19406c3636e478129" name="MPL Scripts">
+<index version="1" commit="1cc50398a6e4b4fd27fa871de6b22fc77f3df93c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2619,6 +2619,20 @@
         <source main="main" file="mpl_Toggle set to 4x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da6f00ac156a59004322b00145cb13a4ef074d5a/FX/mpl_Toggle%20FX%20oversampling.lua</source>
         <source main="main" file="mpl_Toggle set to 8x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da6f00ac156a59004322b00145cb13a4ef074d5a/FX/mpl_Toggle%20FX%20oversampling.lua</source>
         <source main="main" file="mpl_Toggle set to 8x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da6f00ac156a59004322b00145cb13a4ef074d5a/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2023-12-29T17:24:01Z">
+        <changelog><![CDATA[# fix plugin match]]></changelog>
+        <source main="main" file="mpl_Toggle set to none oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Disable oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Enable 4x oversampling for all project Slate VMR.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Disable oversampling for all project Slate VMR.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to none oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 2x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 2x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 4x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 4x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 8x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 8x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle mute all tracks contain FX with latency (PDC) higher than X samples">
