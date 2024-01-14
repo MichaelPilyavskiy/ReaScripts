@@ -1,10 +1,10 @@
 -- @description VisualMixer
--- @version 2.25
+-- @version 2.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # minor internal fix
+--    # scale control buttons as well as track rectangles
 
  
   
@@ -18,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.25
+    DATA.extstate.version = 2.26
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -1432,13 +1432,14 @@ track8_pan=0
   ---------------------------------------------------------------------  
   function DATA2:GUI_inittracks_initstuff_topconrols(DATA,GUID,xpos,ypos)  
     local xoffs= xpos
+    local solosz = math.max(DATA.GUI.custom_butside,math.floor(DATA.extstate.CONF_tr_rect_px*0.25))
     -- SOLO --
     if not DATA.GUI.buttons['trackrect'..GUID..'solo'] then
       local backgr_fill  =DATA.GUI.custom_backgr_fill_disabled if DATA2.tracks[GUID].solo == true then backgr_fill = DATA.GUI.custom_backgr_fill_enabled end
       DATA.GUI.buttons['trackrect'..GUID..'solo']={x=xoffs,
-                          y=ypos-DATA.GUI.custom_butside,
-                          w=DATA.GUI.custom_butside-1,
-                          h=DATA.GUI.custom_butside-1,
+                          y=ypos-solosz,
+                          w=solosz-1,
+                          h=solosz-1,
                           txt = 'S',
                           txt_fontsz = DATA.GUI.custom_butstuff,
                           backgr_fill = backgr_fill,
@@ -1457,17 +1458,17 @@ track8_pan=0
                           }
      else 
       DATA.GUI.buttons['trackrect'..GUID..'solo'].x=xpos
-      DATA.GUI.buttons['trackrect'..GUID..'solo'].y=ypos-DATA.GUI.custom_butside
+      DATA.GUI.buttons['trackrect'..GUID..'solo'].y=ypos-solosz
     end  
-    if DATA.extstate.UI_showtopctrl_flags&1==1 then xoffs = xpos+DATA.GUI.custom_butside end
+    if DATA.extstate.UI_showtopctrl_flags&1==1 then xoffs = xpos+solosz end
     
     -- MUTE --
     if not DATA.GUI.buttons['trackrect'..GUID..'mute'] then
       local backgr_fill  =DATA.GUI.custom_backgr_fill_disabled if DATA2.tracks[GUID].mute == true then backgr_fill = DATA.GUI.custom_backgr_fill_enabled end
       DATA.GUI.buttons['trackrect'..GUID..'mute']={x=xoffs,
-                          y=ypos-DATA.GUI.custom_butside,
-                          w=DATA.GUI.custom_butside-1,
-                          h=DATA.GUI.custom_butside-1,
+                          y=ypos-solosz,
+                          w=solosz-1,
+                          h=solosz-1,
                           txt = 'M',
                           txt_fontsz = DATA.GUI.custom_butstuff,
                           backgr_fill = backgr_fill,
@@ -1485,19 +1486,19 @@ track8_pan=0
                                             end
                           } 
      else 
-      --if DATA.extstate.UI_showtopctrl_flags&1==1 then xoffs = xpos+DATA.GUI.custom_butside end
+      --if DATA.extstate.UI_showtopctrl_flags&1==1 then xoffs = xpos+solosz end
       DATA.GUI.buttons['trackrect'..GUID..'mute'].x=xoffs 
-      DATA.GUI.buttons['trackrect'..GUID..'mute'].y=ypos-DATA.GUI.custom_butside                       
+      DATA.GUI.buttons['trackrect'..GUID..'mute'].y=ypos-solosz                       
     end
-    if DATA.extstate.UI_showtopctrl_flags&2==2 then xoffs = xoffs+DATA.GUI.custom_butside end
+    if DATA.extstate.UI_showtopctrl_flags&2==2 then xoffs = xoffs+solosz end
     
     -- FX --
     if not DATA.GUI.buttons['trackrect'..GUID..'fx'] then
       local backgr_fill  =DATA.GUI.custom_backgr_fill_disabled
       DATA.GUI.buttons['trackrect'..GUID..'fx']={x=xoffs,
-                          y=ypos-DATA.GUI.custom_butside,
-                          w=DATA.GUI.custom_butside-1,
-                          h=DATA.GUI.custom_butside-1,
+                          y=ypos-solosz,
+                          w=solosz-1,
+                          h=solosz-1,
                           txt = 'FX',
                           txt_fontsz = DATA.GUI.custom_butstuff,
                           backgr_fill = backgr_fill,
@@ -1511,20 +1512,20 @@ track8_pan=0
                                             end
                           } 
      else 
-      --if DATA.extstate.UI_showtopctrl_flags&2==2 then xoffs = xpos+DATA.GUI.custom_butside end
+      --if DATA.extstate.UI_showtopctrl_flags&2==2 then xoffs = xpos+solosz end
       DATA.GUI.buttons['trackrect'..GUID..'fx'].x=xoffs 
-      DATA.GUI.buttons['trackrect'..GUID..'fx'].y=ypos-DATA.GUI.custom_butside                       
+      DATA.GUI.buttons['trackrect'..GUID..'fx'].y=ypos-solosz                       
     end
-    if DATA.extstate.UI_showtopctrl_flags&4==4 then xoffs = xoffs+DATA.GUI.custom_butside end
+    if DATA.extstate.UI_showtopctrl_flags&4==4 then xoffs = xoffs+solosz end
     
     -- ext1 
     if DATA.extstate.UI_showtopctrl_flags&8==8 then 
       if not DATA.GUI.buttons['trackrect'..GUID..'ext1'] then
         local backgr_fill  =DATA.GUI.custom_backgr_fill_disabled
         DATA.GUI.buttons['trackrect'..GUID..'ext1']={x=xoffs,
-                            y=ypos-DATA.GUI.custom_butside,
-                            w=DATA.GUI.custom_butside-1,
-                            h=DATA.GUI.custom_butside-1,
+                            y=ypos-solosz,
+                            w=solosz-1,
+                            h=solosz-1,
                             val = DATA2.tracks[GUID].ext1,
                             backgr_usevalue = true,
                             backgr_fill2 = 0.5,
@@ -1534,9 +1535,9 @@ track8_pan=0
                             } 
        else 
         DATA.GUI.buttons['trackrect'..GUID..'ext1'].x=xoffs 
-        DATA.GUI.buttons['trackrect'..GUID..'ext1'].y=ypos-DATA.GUI.custom_butside                       
+        DATA.GUI.buttons['trackrect'..GUID..'ext1'].y=ypos-solosz                       
       end
-      xoffs = xoffs+DATA.GUI.custom_butside 
+      xoffs = xoffs+solosz 
     end
     
   end
