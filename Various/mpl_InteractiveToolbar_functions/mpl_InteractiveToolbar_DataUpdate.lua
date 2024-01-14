@@ -1058,6 +1058,8 @@
       data.defsendvol = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2])
       data.defsendpan = 0
       data.defsendflag = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendflag', '0',  get_ini_file() )})[2])
+      data.defsend_chansrc = conf.defsend_chansrc
+      data.defsend_chandest = conf.defsend_chandest
     end
     
     if data.defsendvol then

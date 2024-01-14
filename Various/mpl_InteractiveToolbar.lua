@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.31
+-- @version 2.32
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Add support for sepearate action to close IT
+--    + Track/sendto: add support for setting source destination channels, default 1/2, only valid stereo pairs
 
-    local vrs = '2.31'
+    local vrs = '2.32'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -162,6 +162,9 @@ order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lastt
             actiononchangecontext_env = '',
             actiononchangecontext_ME = '',
             actiononchangecontext_no = '',
+            
+            defsend_chansrc = 0,
+            defsend_chandest = 0,
             
             customname_map = '"TimeSelLEdge=TS L Edge" "TimeSelEnd=TS End" "TimeSelLen=TS Len" "TimeSelStart=TS Pos"',
             }

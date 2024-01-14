@@ -671,17 +671,41 @@
     
   end
 ----------------------------------------------------------- 
-
-
-  
-  
-  
+  function SendTracksChannels(data,mouse, conf,mode0) 
+    local mode = mode0 or 0
+    local t = {}
+    
+    for i = 0, 63 do
+      t[#t+1] = 
+        {
+          str = (i*2+1)..'/'..(i*2+2),
+          func = function() 
+                  if mode == 0 then 
+                    conf.defsend_chansrc = i*2
+                    redraw = 2   
+                  end
+                  if mode == 1 then 
+                    conf.defsend_chandest = i*2
+                    redraw = 2   
+                  end
+                  data.defsend_chansrc = conf.defsend_chansrc
+                  data.defsend_chandest = conf.defsend_chandest
+                  ExtState_Save(conf)  
+                end
+        }          
+    end         
+    Menu( mouse, t )
+  end
 -----------------------------------------------------------   
   function Widgets_Track_sendto(data, obj, mouse, x_offs, widgets, conf, y_offs)
     local send_but = 20*conf.scaling
     local vol_w = 60 *conf.scaling
-    local send_w = send_but + vol_w 
+    local chan_w = 80 *conf.scaling
+    local send_w = send_but + vol_w  + chan_w
     if x_offs + send_w > obj.persist_margin then return x_offs end 
+    
+    
+    -- back
     obj.b.obj_sendto_back1 = { x = x_offs,
                         y = y_offs,
                         w = send_w,--obj.entry_w2,
@@ -702,7 +726,10 @@
       if conf.dock_orientation == 1 then
         obj.b.obj_sendto_back1.w = obj.entry_w2
         obj.b.obj_sendto_back2.w = obj.entry_w2
-      end                           
+      end       
+      
+      
+     -- menu 
     obj.b.obj_sendto_but = { x = x_offs+send_w-send_but,
                         y = y_offs ,
                         w = send_but,--obj.entry_w2,
@@ -712,9 +739,43 @@
                         txt_col = obj.txt_col_header,
                         txt = '->',
                         func = function() SendTracksTo(data, mouse) end }  
-      if conf.dock_orientation == 1 then
-        obj.b.obj_sendto_but.x = obj.entry_w2 - send_but
-      end                             
+      if conf.dock_orientation == 1 then obj.b.obj_sendto_but.x = obj.entry_w2 - send_but end     
+      
+      
+    -- channels
+    local chansrc = conf.defsend_chansrc
+    local chansrc_txt = (chansrc+1)..'/'..(chansrc+2) 
+    local chandest = conf.defsend_chandest 
+    local chandest_txt = (chandest+1)..'/'..(chandest+2)
+    obj.b.obj_sendto_channels = { x = x_offs+vol_w,
+                        y = y_offs ,
+                        w =chan_w,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        frame_rect_a = 0.1,
+                        fontsz = obj.fontsz_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        txt = 'src '..chansrc_txt,
+                        func = function()SendTracksChannels(data, mouse,conf)
+                          
+                        end}  
+    obj.b.obj_sendto_channels2 = { x = x_offs+vol_w,
+                        y = y_offs +obj.entry_h,
+                        w =chan_w,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        frame_rect_a = 0.1,
+                        fontsz = obj.fontsz_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        txt = 'dest '..chandest_txt,
+                        func = function()SendTracksChannels(data, mouse,conf,1)
+                          
+                        end}                     
+                
+                        
+    -- sliders
     obj.b.obj_sendto_vol = { x = x_offs,
                         y = y_offs ,
                         w = vol_w,--obj.entry_w2,
@@ -787,7 +848,7 @@
                         default_val = 0})
     return send_w , obj.entry_h*2
   end
-  
+  ------------------------------------------------------------------------------------------
   function Apply_STrack_vol(data, obj, t_out_values, butkey, out_str_toparse)
     if not out_str_toparse then 
       data.defsendvol = lim(t_out_values,-1,1)
@@ -833,15 +894,15 @@
     end
   end  
   ---------------------------------------------------------
-  function SendTracksTo(data,mouse) 
+  function SendTracksTo(data,mouse,conf) 
     local GUID  =GetTrackGUID( data.tr[1].ptr )
     local is_predefSend = data.PreDefinedSend_GUID[GUID] ~= nil
     local t = {
           {str = '#Send '..#data.tr..' selected track(s)'}  
         }  
-    local unpack_prefed = ({table.unpack(SendTracksTo_CollectPreDef(data, GUID))})
+    local unpack_prefed = ({table.unpack(SendTracksTo_CollectPreDef(data, GUID,conf))})
     for i = 1, #unpack_prefed do table.insert(t, unpack_prefed[i]) end
-    test = CopyTable(unpack_prefed)
+    
     t[#t+1] ={str = '|Mark as predefined send bus',
              func = function ()
                       for i = 1, #data.tr do
@@ -888,19 +949,19 @@
     SetProjExtState( 0, 'MPL_InfoTool', 'PreDefinedSend_GUID', str )
   end
   ---------------------------------------------------------
-  function SendTracksTo_CollectTopFold(data)
+  function SendTracksTo_CollectTopFold(data,conf)
     local out_t = {{str = '|#Top parent folders'}}
     for i = 1, CountTracks(0) do
       local tr = GetTrack(0,i-1)
       if GetTrackDepth( tr ) == 0 then
         out_t[#out_t+1] = { str =  ({GetTrackName( tr, '' )})[2],
-                            func =  function() SendTracksTo_AddSend(data,tr) end}
+                            func =  function() SendTracksTo_AddSend(data,tr,conf) end}
       end
     end
     return out_t     
   end
   ---------------------------------------------------------
-  function SendTracksTo_CollectPreDef(data, GUID0)
+  function SendTracksTo_CollectPreDef(data, GUID0,conf)
     local out_t1 = {}
     local out_t = {}
     for GUID in pairs(data.PreDefinedSend_GUID) do 
@@ -909,18 +970,16 @@
         local str =  ({GetTrackName( tr, '' )})[2]
         out_t1[str] = {str = str,  
                       GUID = GUID,
-                      func =  function() SendTracksTo_AddSend(data, tr) end}
+                      func =  function() SendTracksTo_AddSend(data, tr,conf) end}
       end
     end
     
-    for key in spairs(out_t1) do
-      out_t[#out_t+1] = out_t1[key]
-    end
+    for key in spairs(out_t1) do out_t[#out_t+1] = out_t1[key] end
     table.insert(out_t, 1, {str = '|#PreDefined sends list'})
     return out_t  
   end
   ---------------------------------------------------------
-  function SendTracksTo_AddSend(data, dest_tr_ptr)
+  function SendTracksTo_AddSend(data, dest_tr_ptr,conf)
       if not dest_tr_ptr then return end
       local chan_id = 1
       for i = 1, #data.tr do
@@ -934,8 +993,8 @@
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_PAN', data.defsendpan) 
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', data.defsendflag)
            
-        SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', 0)
-        --SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN',5)
+        SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', data.defsend_chansrc)
+        SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', data.defsend_chandest)
       end
   end
 -----------------------------------------------------------   
