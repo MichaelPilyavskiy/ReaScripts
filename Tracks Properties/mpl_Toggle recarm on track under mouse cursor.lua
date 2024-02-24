@@ -1,21 +1,19 @@
 -- @description Toggle recarm on track under mouse cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # remove SWS dependency
+--    # comment ClearAllRecArmed()
 
 
   function main()
-    --_, _, _ = reaper.BR_GetMouseCursorContext()
-    --track = reaper.BR_GetMouseCursorContext_Track()
-    track = VF_GetTrackUnderMouseCursor()
+    local track = VF_GetTrackUnderMouseCursor()
     if track ~= nil then  
       if reaper.GetMediaTrackInfo_Value(track, 'I_RECARM') == 0 then
-        reaper.ClearAllRecArmed()
+        --reaper.ClearAllRecArmed()
         reaper.SetMediaTrackInfo_Value(track, 'I_RECARM',1)
        else
-        reaper.ClearAllRecArmed()
+        --reaper.ClearAllRecArmed()
         reaper.SetMediaTrackInfo_Value(track, 'I_RECARM',0)
       end  
     end
