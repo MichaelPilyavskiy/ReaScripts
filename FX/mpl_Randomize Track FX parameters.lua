@@ -1,9 +1,10 @@
 -- @description Randomize Track FX parameters
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    # fix error is no FX is presented
+--    # fix typo in exclude filter (thanks to PitchSlap)
+--    + Add support for multiword filter(use _ instead of space)
 
 
 
@@ -14,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.01
+    DATA.extstate.version = 2.02
     DATA.extstate.extstatesection = 'mpl_randomizefxparams'
     DATA.extstate.mb_title = 'MPL Randomize FX parameters'
     DATA.extstate.default = 
@@ -158,7 +159,9 @@
         if ignore == false and DATA.extstate.CONF_filter_system == 1 and (i-1==param_bypass or  i-1==param_wet or i-1==param_delta ) then ignore = true end
         if ignore == false and #parse_globalfilt> 0 then
           for word = 1, #parse_globalfilt do
-            if bufparam:lower():match(parse_globalfilt[word]:lower()) then ignore = true break end
+            local excludefilt = parse_globalfilt[word]:lower()
+            excludefilt = excludefilt:gsub('_', ' ')
+            if bufparam:lower():match(excludefilt) then ignore = true break end
           end
         end
         if not t.params then t.params = {} end
@@ -467,7 +470,7 @@
     local globfiltstr = 'Keywords1: '..DATA.extstate.CONF_filter_Keywords1str 
     local globfiltstr2 = 'Keywords2: '..DATA.extstate.CONF_filter_Keywords2str 
     local globfiltstr3 = 'Keywords3: '..DATA.extstate.CONF_filter_Keywords3str 
-    local globfiltstr4 = 'Keywords3: '..DATA.extstate.CONF_filter_Keywords4str 
+    local globfiltstr4 = 'Keywords4: '..DATA.extstate.CONF_filter_Keywords4str 
     local  t = 
     { 
       {str = 'Actions' ,                                  group = 1, itype = 'sep'}, 
