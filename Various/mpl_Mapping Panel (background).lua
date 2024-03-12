@@ -1,11 +1,12 @@
 -- @description MappingPanel
--- @version 3.02
+-- @version 3.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    + Add support for v2+ graph instead knobs, rightclick for enter XY values, enabled by default
---    # control tension with horizontal fader
+--    # fix error at reset macro name
+--    # remove controls from slave mode
+
 
 
 -- to do 
@@ -36,7 +37,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.02'
+    DATA.extstate.version = '3.03'
     DATA.extstate.extstatesection = 'MPL_MappingPanel'
     DATA.extstate.mb_title = 'Mapping Panel'
     DATA.extstate.default = 
@@ -733,9 +734,10 @@
           DATA.GUI.buttons[b_key..'scalemin'].txt = 'dest min'--'DestMin:'..GUIf_NormToPercent(val) 
           --local val = t.data.flags_tension
         end
-        DATA.GUI.buttons[b_key..'tension'].txt = 'tension'--'tension:'..GUIf_NormToPercent(val) 
-        --local val = t.data.flags_mute
-        DATA.GUI.buttons[b_key..'mute'].txt = '[mute]'--'tension:'..GUIf_NormToPercent(val) 
+        if DATA.extstate.CONF_mode == 0 then 
+          DATA.GUI.buttons[b_key..'tension'].txt = 'tension'
+          DATA.GUI.buttons[b_key..'mute'].txt = '[mute]'
+        end
         
         DATA.GUI.buttons[b_key..'_knob']. txt = '^'
         if t.data.flags_mute == 1 then DATA.GUI.buttons[b_key..'_knob'].txt = ''end
@@ -823,6 +825,7 @@
   end
   -------------------------------------------------------------------------------- 
   function GUI_Links_Control_Params_03hexvalues(DATA,t)
+    if DATA.extstate.CONF_mode == 1 then return end
     GUI_Links_Control_Params_03hexvalues_ViewA(DATA,t)
     GUI_Links_Control_Params_03hexvalues_ViewB(DATA,t)
   end
@@ -1102,6 +1105,7 @@
     local val_res= 0.15
     local backgr_col2 = '#FFFFFF'
     local backgr_fill2 = 0.2
+    if DATA.extstate.CONF_mode == 0 then 
     -- tension
     local val = t.data.flags_tension
     DATA.GUI.buttons[b_key..'tension'] = { x=hexoffsx,
@@ -1154,6 +1158,7 @@
                                         GUI_Upd_Macro(DATA,DATA2:GetSelectedKnob()) 
                                       end,
                         }
+    end
     -- remove
     DATA.GUI.buttons[b_key..'remove'] = { x=hexoffsx,
                         y=t.y+DATA.GUI.custom_linknameh*2,
@@ -1453,7 +1458,7 @@
               end},
       {str= 'Reset macro name',
        func = function()
-                DATA2.masterJSFX_sliders[knobid].name = nil
+                DATA2.masterJSFX_sliders[knobid].name = 'Macro '..knobid
                 DATA2:MasterJSFX_WriteSliders(knobid)
               end},
       {str= 'Set macro color',
