@@ -1,9 +1,9 @@
--- @version 1.03
+-- @description Convert RS5k MIDI item into source based audio items (drum mode)
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description Convert RS5k MIDI item into source based audio items (drum mode)
 -- @changelog
---    # obey MIDI notes length
+--    + obey loop source
 
   local scr_nm = 'Convert RS5k MIDI item into source based audio items (drum mode)'
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -17,12 +17,13 @@
     local tr= GetMediaItem_Track( item )
     
     -- build pitch map
-      local p_map = {}
+       p_map = {}
       for fx = 1, TrackFX_GetCount( tr ) do
         local retval, buf = TrackFX_GetParamName( tr, fx-1, 3, '' )
         if retval and buf == 'Note range start' then
           local pitch = math.floor(TrackFX_GetParam( tr, fx-1, 3 )  * 128)
           local pitch_offset = TrackFX_GetParam( tr, fx-1, 15)
+          local loopsrc = TrackFX_GetParamNormalized(  tr, fx-1, 12 )
           local start_offs = TrackFX_GetParamNormalized(  tr, fx-1, 13 )
           local end_offs = TrackFX_GetParamNormalized(  tr, fx-1, 14 )
           local pan = TrackFX_GetParamNormalized(  tr, fx-1, 1 )
@@ -37,7 +38,8 @@
                             pitch_offset=(pitch_offset-0.5)*160,
                             start_offs=start_offs,
                             end_offs=end_offs,
-                            pan=pan
+                            pan=pan,
+                            loopsrc=loopsrc,
                             }
                             
           end
@@ -76,6 +78,7 @@
           SetMediaItemTakeInfo_Value( take, 'D_PAN', (p_map[p0].pan-0.5)*2) 
           SetMediaItemTakeInfo_Value( take, 'D_PITCH',  p_map[p0].pitch_offset )
           SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE', prate)
+          SetMediaItemInfo_Value( new_item, 'B_LOOPSRC', p_map[p0].loopsrc )
            
         end
       end
