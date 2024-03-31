@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8792f2533d3367edf4aa29bc4bc4b90830a7156e" name="MPL Scripts">
+<index version="1" commit="77c59df425b521b1e09789af97c9aee5f62f5084" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8961,6 +8961,14 @@
       <version name="2.23" author="MPL" time="2023-11-10T20:40:41Z">
         <changelog><![CDATA[+ Settings/Project header/Tempo envelope/Clear envelope]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b735a032c34faea5ffa4244425411a9cbb76c057/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.24" author="MPL" time="2024-03-31T13:56:07Z">
+        <changelog><![CDATA[+ Dest menu: Set destiination project track number
+# Dest menu: fix hide used destinations
+# Dest menu: revert back possibility to mark tracks only, without data transfer (useful for sends remap)
++ Send/receives logic: various internal logic improvements
++ UI options: allow to hide from list source project hidden tracks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/77c59df425b521b1e09789af97c9aee5f62f5084/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
