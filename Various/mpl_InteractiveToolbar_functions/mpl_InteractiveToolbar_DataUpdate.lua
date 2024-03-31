@@ -567,6 +567,11 @@
     
     local obj_type
     local cnt_selected = 0
+    
+    data.it_comlen = 0
+    data.it_comst = math.huge
+    data.it_comend = 0
+    
     for i = 1, CountSelectedMediaItems(0) do
       data.it[i] = {}
       local item = GetSelectedMediaItem(0,i-1)
@@ -576,6 +581,9 @@
       data.it[i].item_pos = GetMediaItemInfo_Value( item, 'D_POSITION')
       data.it[i].item_len = GetMediaItemInfo_Value( item, 'D_LENGTH')
       data.it[i].item_end = data.it[i].item_pos + data.it[i].item_len
+      
+      data.it_comst = math.min(data.it_comst,data.it[i].item_pos)
+      data.it_comend = math.max(data.it_comend, data.it[i].item_end)
       data.it[i].snap_offs = GetMediaItemInfo_Value( item, 'D_SNAPOFFSET')
       data.it[i].fadein_len = GetMediaItemInfo_Value( item, 'D_FADEINLEN')
       data.it[i].fadeout_len = GetMediaItemInfo_Value( item, 'D_FADEOUTLEN')       
@@ -650,6 +658,10 @@
       
     end
     
+    
+    data.it_comlen = data.it_comend - data.it_comst
+    if not (data.it_comlen > 0 and data.it_comlen < math.huge) then data.it_comlen = 0 end
+    data.it_comlen_format = math.floor(data.it_comlen*1000)/1000--format_timestr_len( data.it_comlen, '', data.it_comst, -1 )
     
     --  set obj type 
       if obj_type == 0 then 

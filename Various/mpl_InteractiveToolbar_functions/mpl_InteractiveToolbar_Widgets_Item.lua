@@ -1460,4 +1460,31 @@
     end
     redraw = 1 
   end
-  
+
+  --------------------------------------------------------------   
+  function Widgets_Item_itemcomlen(data, obj, mouse, x_offs, widgets, conf, y_offs) -- generate snap_offs controls  
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_itemcomlen = { x = x_offs,
+                       y =y_offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'Com length'} 
+    obj.b.obj_itemcomlen_back = { x =  x_offs,
+                        y = obj.entry_h+y_offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = data.it_comlen_format,
+                        ignore_mouse = true}  
+      if conf.dock_orientation == 1 then
+        obj.b.obj_itemcomlen.w = obj.entry_w2/2
+        obj.b.obj_itemcomlen_back.x= obj.entry_w2/2
+        obj.b.obj_itemcomlen_back.y = y_offs
+        obj.b.obj_itemcomlen_back.w = obj.entry_w2/2
+        obj.b.obj_itemcomlen_back.frame_a = obj.frame_a_head
+      end                        
+    return obj.entry_w2,obj.entry_h                        
+  end

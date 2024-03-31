@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.32
+-- @version 2.33
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Track/sendto: add support for setting source destination channels, default 1/2, only valid stereo pairs
+--    + Widgets / Item: #itemcomlen difference between fisrt and last of selected items
 
-    local vrs = '2.32'
+    local vrs = '2.33'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -82,15 +82,15 @@
     return [[
 //Configuration for MPL Interactive Toolbar
 [EmptyItem]
-order=#color #position #length
+order=#color #position #length #itemcomlen
 [MIDIItem]
-order=#color #buttons#snap #position #leftedge #endedge #length #offset #vol #transpose #pan #srclen #rate
+order=#color #buttons#snap #position #leftedge #endedge #length #offset #vol #transpose #pan #srclen #rate #itemcomlen
 buttons=#lock #loop #mute 
 [AudioItem]
-order=#color #buttons #snap #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
+order=#color #buttons #snap #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate #itemcomlen
 buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc #timebase 
 [MultipleItem]
-order=#color #buttons #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
+order=#color #buttons #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate #itemcomlen
 buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute   
 [Envelope]
 order=#floatfx #position #value #AIlooplen
