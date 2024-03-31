@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.24
+-- @version 3.25
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,9 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # add support for DATA.GUI.default_ignorecolorswitch
+--    + Settings / On sample add: thick childrens [p=2771494]
+--    + Settings / On sample add: white keys priority [p=2758872], ON by default
+--    # fix incorrect displaying note names when octave is shifted visually in REAPER settings
 
 
 
@@ -30,7 +32,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.24'
+    DATA.extstate.version = '3.25'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -49,6 +51,10 @@
                           CONF_onadd_customtemplate = '',
                           CONF_onadd_renametrack = 1,
                           CONF_onadd_copytoprojectpath = 0,
+                          
+                          -- rs5k various
+                          CONF_onadd_thickchilds = 0, 
+                          CONF_onadd_whitekeyspriority = 1,
                           
                           -- midi bus
                           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -1566,6 +1572,8 @@ rightclick them to hide all but active.
         {str = 'Copy samples to project path',                  group = 1, itype = 'check', confkey = 'CONF_onadd_copytoprojectpath', level = 1},
         {str = 'Custom track template: '..customtemplate,       group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RTrackTemplate') if retval then DATA.extstate.CONF_onadd_customtemplate=  fp GUI_MODULE_SETTINGS(DATA) end end},
         {str = 'Custom track template [clear]',                 group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
+        {str = 'Thick childrens',                               group = 1, itype = 'check', confkey = 'CONF_onadd_thickchilds', level = 1},--,  func_onrelease = function() GUI_MODULE_SETTINGS(DATA) end},
+        {str = 'White keys priority',                           group = 1, itype = 'check', confkey = 'CONF_onadd_whitekeyspriority', level = 1},
         
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
@@ -2874,7 +2882,7 @@ rightclick them to hide all but active.
       local xoffs= xoffs0
       local padID0 = 0
       for note = 0+DATA2.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA2.PARENT_DRRACKSHIFT do
-        GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh)
+         GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh)
         xoffs = xoffs + padw
         if padID0%4==3 then 
           xoffs = xoffs0
@@ -3293,12 +3301,12 @@ rightclick them to hide all but active.
   function DATA2:internal_FormatMIDIPitch(note) 
     local offs = 0
     if DATA2.REAPERini and DATA2.REAPERini.REAPER and DATA2.REAPERini.REAPER.midioctoffs then offs = DATA2.REAPERini.REAPER.midioctoffs end
-    do return VF_GetNoteStr(note+(offs-2)*12,DATA.extstate.UI_keyformat_mode) end
-    --[[local val = math.floor(note)
+    --do return VF_GetNoteStr(note+(offs-2)*12,DATA.extstate.UI_keyformat_mode) or '' end
+    local val = math.floor(note)
     local oct = math.floor(note / 12)
     local note = math.fmod(note,  12)
     local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'}
-    if note and oct and key_names[note+1] then return key_names[note+1]..oct-2 end]]
+    if note and oct and key_names[note+1] then return key_names[note+1]..oct-1 end
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr) 
@@ -3334,9 +3342,13 @@ rightclick them to hide all but active.
       end
     end
     
+    
     DATA2:TrackDataWrite(new_tr, {set_currentparentforchild = true})  
     DATA2:TrackDataWrite(new_tr, {setchild = true}) 
     
+    if DATA.extstate.CONF_onadd_thickchilds == 1 then
+      SetMediaTrackInfo_Value( new_tr, 'I_HEIGHTOVERRIDE', 150 )
+    end
      
     return new_tr
   end
@@ -3953,17 +3965,34 @@ rightclick them to hide all but active.
     if not DATA2.tr_valid then return end
     -- validate additional stuff
     DATA2:TrackDataRead_ValidateMIDIbus()
-    SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERCOMPACT',1 ) -- folder compacted state (only valid on folders), 0=normal, 1=small, 2=tiny children
+    --if DATA.extstate.CONF_onadd_thickchilds == 0 then
+      SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERCOMPACT',1 ) -- folder compacted state (only valid on folders), 0=normal, 1=small, 2=tiny children
+    --end
     DATA2:TrackDataRead(DATA2.tr_ptr)
     
     -- get fp
       if filepath0 then 
         DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath0,section_data0)
        else
+        
+        local nextnote = note-1
         for i =1, #DATA.GUI.droppedfiles.files+1 do
+          nextnote = nextnote + 1
           local filepath = DATA.GUI.droppedfiles.files[i-1]
           if not increaselayeronmultiplespls then 
-            DATA2:Actions_PadOnFileDrop_Sub(note+i-1, layer, filepath)
+            if DATA.extstate.CONF_onadd_whitekeyspriority == 1 then 
+              if 
+                (
+                  nextnote%12 == 1 or 
+                  nextnote%12 == 3 or 
+                  nextnote%12 == 6 or 
+                  nextnote%12 == 8 or 
+                  nextnote%12 == 10)
+                  then
+                nextnote = nextnote + 1
+              end
+            end
+            DATA2:Actions_PadOnFileDrop_Sub(nextnote, layer, filepath)
            else
             DATA2:Actions_PadOnFileDrop_Sub(note, layer+i, filepath)
           end
