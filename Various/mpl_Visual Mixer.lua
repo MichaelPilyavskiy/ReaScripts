@@ -1,10 +1,11 @@
 -- @description VisualMixer
--- @version 2.26
+-- @version 2.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @about Basic Izotope Neutron Visual mixer port to REAPER environment
+-- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # scale control buttons as well as track rectangles
+--    # prevent track to be both selected if placed one under another
+--    + Settings: add option to handle all tracks instead selection
 
  
   
@@ -18,7 +19,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.26
+    DATA.extstate.version = 2.27
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -69,6 +70,7 @@
                           
                           CONF_quantizevolume = 1,
                           CONF_quantizepan = 5,
+                          CONF_handlealltracks = 0,
                           
                           UI_3dmode = 0,
                           }
@@ -1558,7 +1560,14 @@ track8_pan=0
         DATA2.latchctrls = GUID
         DATA2.ontrackobj = true
         --for GUID in pairs(DATA2.tracks) do if DATA.GUI.buttons['trackrect'..GUID] then DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false end end -- reset selection  
-        DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true
+        -- 31.03.24 2.27 prevent track to be both selected if placed one under another
+        local cntsel = 0
+        for GUID in pairs(DATA2.tracks) do 
+          if DATA.GUI.buttons['trackrect'..GUID] and DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then cntsel = cntsel  +1 end  
+          if cntsel > 0 then break end
+        end
+        if cntsel == 0 then DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true end
+        --DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true
       end
       
     -- ctrl click
@@ -2113,8 +2122,16 @@ track8_pan=0
   function DATA2:tracks_init(force)
     if not force and (DATA2.tracks and not DATA.UPD.onprojstatechange) then return end
     DATA2.tracks = {}
-    for i = 1, CountSelectedTracks(0) do
-      local tr = GetSelectedTrack(0,i-1)
+    
+    local fcollect = CountSelectedTracks
+    local fcollectsub = GetSelectedTrack
+    if DATA.extstate.CONF_handlealltracks == 1 then
+      fcollect = CountTracks
+      fcollectsub = GetTrack
+    end
+    
+    for i = 1, fcollect(0) do
+      local tr = fcollectsub(0,i-1)
       local GUID = GetTrackGUID( tr ) 
       -- pan
       local pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
@@ -2243,6 +2260,7 @@ track8_pan=0
         --{str = 'Use SetTrackUI API for objects movings', group = 4, itype = 'check',level = 1,  confkey = 'CONF_csurf'}, 
         --{str = '3D mode',               group = 4, itype = 'check', confkey = 'UI_3dmode', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},  
         {str = 'Snapshot smooth transition' ,       group = 4, itype = 'readout', confkey = 'CONF_snapshrecalltime', level = 1, val_min = 0, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end},
+        {str = 'Collect all tracks instead selected only' ,       group = 4, itype = 'check', confkey = 'CONF_handlealltracks', level = 1,},
         {str = 'Dock / undock',                     group = 4, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () GUI_dock(DATA) end},
       {str = 'UI appearance' ,                                 group = 1, itype = 'sep'}, 
         {str = 'Background color (require restart)',group = 1, itype = 'readout', confkey = 'UI_backgrcol', level = 1, menu = {['#333333'] = 'Grey', ['#0A0A0A'] = 'Black'},func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
