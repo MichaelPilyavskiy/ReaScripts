@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.18
+-- @version 1.19
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,7 +40,7 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # multichannel mode: fix mino send from stereo source
+--    # patch for missing ini variables
 
 
 
@@ -183,7 +183,7 @@
     local defsendvol = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'defsendvol')
     local defsendflag = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'defsendflag')
     local source_type, MCH_mode, src_ch, dest_ch, script_title, custom_sendmode = Parsing_filename()
-    local data_t = {source_type=source_type, MCH_mode=MCH_mode, src_ch=src_ch, dest_ch=dest_ch, script_title=script_title, defsendvol=defsendvol, defsendflag=defsendflag, custom_sendmode=custom_sendmode}
+    local data_t = {source_type=source_type, MCH_mode=MCH_mode, src_ch=src_ch, dest_ch=dest_ch, script_title=script_title, defsendvol=defsendvol or 1, defsendflag=defsendflag or 256, custom_sendmode=custom_sendmode}
     main(data_t)
     if show_routing_window==true then Action(40293) end
   end end
