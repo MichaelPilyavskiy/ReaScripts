@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="164464d4c478f595df10c7b4fc6ba274e12d1e85" name="MPL Scripts">
+<index version="1" commit="708132a984b6cb12fe1c3c1f22ce08b103263e6d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11197,7 +11197,7 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Basic Izotope Neutron Visual mixer port to REAPER environment\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Very basic Izotope Neutron Visual mixer port to REAPER environment\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -11362,6 +11362,11 @@
       <version name="2.26" author="MPL" time="2024-01-14T14:31:27Z">
         <changelog><![CDATA[# scale control buttons as well as track rectangles]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bef6389b0425962276f8ef5dac68e9c76f4c5013/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.27" author="MPL" time="2024-03-31T06:06:22Z">
+        <changelog><![CDATA[# prevent track to be both selected if placed one under another
++ Settings: add option to handle all tracks instead selection]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/708132a984b6cb12fe1c3c1f22ce08b103263e6d/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
