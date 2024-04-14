@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.25
+-- @version 3.27
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,9 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Settings / On sample add: thick childrens [p=2771494]
---    + Settings / On sample add: white keys priority [p=2758872], ON by default
---    # fix incorrect displaying note names when octave is shifted visually in REAPER settings
+--    # Actions: import selected items obey white keys priority 
 
 
 
@@ -27,12 +25,13 @@
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
   -- config defaults
-  DATA2 = { notes={}, 
+  DATA2 = { 
+              notes={}, 
             }
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.25'
+    DATA.extstate.version = '3.27'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -3802,6 +3801,7 @@ rightclick them to hide all but active.
     local itt = {}
     for selitem = 1, cnt do itt[#itt+1] = GetSelectedMediaItem( 0, selitem -1) end
     
+    local nextnote = note-1
     for i = 1, #itt do
       local item = itt[i]
       local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
@@ -3820,7 +3820,21 @@ rightclick them to hide all but active.
       section_data.src_len =src_len
       section_data.SOFFS =s_offs/src_len
       section_data.EOFFS =(s_offs+it_len)/src_len 
-      DATA2:Actions_PadOnFileDrop(note+i-1, layer, filepath,section_data)
+      
+      nextnote = nextnote + 1
+      if DATA.extstate.CONF_onadd_whitekeyspriority == 1 then 
+        if 
+          (
+            nextnote%12 == 1 or 
+            nextnote%12 == 3 or 
+            nextnote%12 == 6 or 
+            nextnote%12 == 8 or 
+            nextnote%12 == 10)
+            then
+          nextnote = nextnote + 1
+        end
+      end
+      DATA2:Actions_PadOnFileDrop(nextnote, layer, filepath,section_data)
       DeleteTrackMediaItem(  reaper.GetMediaItemTrack( item), item )
       ::skip_to_next_item::
     end
