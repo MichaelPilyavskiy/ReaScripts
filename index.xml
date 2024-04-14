@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="77c59df425b521b1e09789af97c9aee5f62f5084" name="MPL Scripts">
+<index version="1" commit="8b30e4318397e3a94931198428d2d88253b05c43" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -4817,6 +4817,21 @@
         <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c39b5121fd39f92637b8e736084dea1c4311d955/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
         <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c39b5121fd39f92637b8e736084dea1c4311d955/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c39b5121fd39f92637b8e736084dea1c4311d955/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="3.27" author="MPL" time="2024-04-14T18:53:02Z">
+        <changelog><![CDATA[# Actions: import selected items obey white keys priority ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_Database_NewSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8b30e4318397e3a94931198428d2d88253b05c43/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k_manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
