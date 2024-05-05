@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0979cf7fa1a042a23c76bee4eac5ceae21bbe9df" name="MPL Scripts">
+<index version="1" commit="9ccc528a30b9a4f42174574b68ac5b366e5c7b57" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7297,6 +7297,15 @@
       <version name="1.0" author="MPL" time="2022-03-30T20:17:44Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Move selected tracks to the end of receives folder.lua" type="script" desc="Move selected tracks to the end of receives folder">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-05-05T10:13:01Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9ccc528a30b9a4f42174574b68ac5b366e5c7b57/Tracks%20Editing/mpl_Move%20selected%20tracks%20to%20the%20end%20of%20receives%20folder.lua</source>
       </version>
     </reapack>
   </category>
