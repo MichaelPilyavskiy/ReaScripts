@@ -1,14 +1,10 @@
 -- @description ImportSessionData
--- @version 2.24
+-- @version 2.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Dest menu: Set destiination project track number
---    # Dest menu: fix hide used destinations
---    # Dest menu: revert back possibility to mark tracks only, without data transfer (useful for sends remap)
---    + Send/receives logic: various internal logic improvements
---    + UI options: allow to hide from list source project hidden tracks
+--    # fix marker parsing / adding
 
 
 
@@ -20,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.24
+    DATA.extstate.version = 2.25
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -896,17 +892,19 @@
         
         if not is_region_flags then -- region end
           id, pos_sec, name, is_region_flags, col = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+)')
-          id = tonumber(id)
-          pos_sec = tonumber(pos_sec)
-          is_region_flags = tonumber(is_region_flags)
-          col = tonumber(col)
-          val6 = tonumber(val6)
+        end
+
+        if not is_region_flags then 
+          id, pos_sec, name, is_region_flags = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+)')
         end
         
-        if not is_region_flags then 
-          id, pos_sec, name, is_region_flags, col = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+) ([%d%p]+) ([%a]+)')
-        end
-        if not is_region_flags then return end
+        id = tonumber(id)
+        pos_sec = tonumber(pos_sec)
+        is_region_flags = tonumber(is_region_flags)
+        col = tonumber(col)
+        
+        
+        if not is_region_flags then goto skipnextmarkerentry end
         
         local is_region = is_region_flags&1==1 
         local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_sec)
@@ -927,6 +925,8 @@
           DATA2.srcproj.MARKERS[#DATA2.srcproj.MARKERS] = nil
         end  
       end
+      
+      ::skipnextmarkerentry::
     end 
   end
   ----------------------------------------------------------------------
@@ -1399,13 +1399,13 @@
     for i = 1, #DATA2.srcproj.MARKERS do
       if DATA2.srcproj.MARKERS[i].is_region==false and DATA.extstate.CONF_head_markers&1 == 1 then
         local pos_sec=TimeMap2_beatsToTime( 0, DATA2.srcproj.MARKERS[i].pos )
-        local idx = AddProjectMarker( 0, false, pos_sec+offs, -1, DATA2.srcproj.MARKERS[i].name, DATA2.srcproj.MARKERS[i].id, DATA2.srcproj.MARKERS[i].col )
+        local idx = AddProjectMarker2( 0, false, pos_sec+offs, -1, DATA2.srcproj.MARKERS[i].name, DATA2.srcproj.MARKERS[i].id, DATA2.srcproj.MARKERS[i].col )
       end
     
       -- add regions from table
       if DATA2.srcproj.MARKERS[i].is_region==true and DATA.extstate.CONF_head_markers&4 == 4 then
         local pos_sec=TimeMap2_beatsToTime( 0, DATA2.srcproj.MARKERS[i].pos )
-        local end_sec=TimeMap2_beatsToTime( 0, DATA2.srcproj.MARKERS[i].rgnend )
+        local end_sec=TimeMap2_beatsToTime( 0, DATA2.srcproj.MARKERS[i].rgnend or DATA2.srcproj.MARKERS[i].pos )
         local idx = AddProjectMarker2( 0, true, pos_sec+offs, end_sec+offs, DATA2.srcproj.MARKERS[i].name, DATA2.srcproj.MARKERS[i].id, DATA2.srcproj.MARKERS[i].col )
       end
       
