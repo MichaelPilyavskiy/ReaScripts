@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9ccc528a30b9a4f42174574b68ac5b366e5c7b57" name="MPL Scripts">
+<index version="1" commit="cdd017105b8d088845e1efa4e6feb7f0f095d0da" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8997,6 +8997,10 @@
 + Send/receives logic: various internal logic improvements
 + UI options: allow to hide from list source project hidden tracks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/77c59df425b521b1e09789af97c9aee5f62f5084/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.25" author="MPL" time="2024-05-05T10:47:44Z">
+        <changelog><![CDATA[# fix marker parsing / adding]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cdd017105b8d088845e1efa4e6feb7f0f095d0da/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
