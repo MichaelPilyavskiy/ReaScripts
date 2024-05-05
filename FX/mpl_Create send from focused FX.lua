@@ -1,9 +1,9 @@
 -- @description Create send from focused FX
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    + Select receive track after execution
   
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -38,6 +38,7 @@
     TrackFX_CopyToTrack( tr, fxidx, dest_track, 0, true ) 
     local fxname = VF_ReduceFXname(fxname)
     GetSetMediaTrackInfo_String( dest_track, 'P_NAME', fxname, true ) 
+    reaper.SetOnlyTrackSelected( dest_track )
   end
     ----------------------------------------------------------------------
   Undo_BeginBlock2( 0 )
