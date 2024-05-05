@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8b30e4318397e3a94931198428d2d88253b05c43" name="MPL Scripts">
+<index version="1" commit="0979cf7fa1a042a23c76bee4eac5ceae21bbe9df" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1461,6 +1461,10 @@
       <version name="1.0" author="MPL" time="2024-03-31T06:45:29Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98818a3618cf57e77c1ce48d3eee61824c109b8/FX/mpl_Create%20send%20from%20focused%20FX.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-05-05T09:14:46Z">
+        <changelog><![CDATA[+ Select receive track after execution]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0979cf7fa1a042a23c76bee4eac5ceae21bbe9df/FX/mpl_Create%20send%20from%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="AB floating FX parameters, make snapshots equal">
