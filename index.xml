@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cdd017105b8d088845e1efa4e6feb7f0f095d0da" name="MPL Scripts">
+<index version="1" commit="3ca59c876abf68c3e8cbbcfcd663e360e35b2a3c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7823,6 +7823,22 @@
     <reapack name="mpl_Select tracks with instruments.lua" type="script" desc="Select tracks with instruments">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Send control.lua" type="script" desc="Send control">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Controlling selected track sends\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-05-08T04:02:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ca59c876abf68c3e8cbbcfcd663e360e35b2a3c/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
