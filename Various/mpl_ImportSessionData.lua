@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.25
+-- @version 2.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix marker parsing / adding
+--    # fill empty mixer visibility if not presented
 
 
 
@@ -16,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.25
+    DATA.extstate.version = 2.26
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -460,7 +460,6 @@
         --if DATA2.srcproj.TRACK[trid].sendlogic_flags&1==1 then dest = dest..' [sends]' end
       end
       if txt=='[%s]+' or txt == '' then txt = '[track'..trid..']' end
-      
       local showcond = DATA2:VisibleCondition(DATA2.srcproj.TRACK[trid].NAME)
       local PEAKCOL = DATA2.srcproj.TRACK[trid].PEAKCOL
       if PEAKCOL == 16576 then 
@@ -701,7 +700,7 @@
     for tr_idx = 1, #DATA2.srcproj.TRACK do
       local chunk = DATA2.srcproj.TRACK[tr_idx].chunk
       DATA2.srcproj.TRACK[tr_idx].chunk_full = chunk -- used for raw data import 
-      DATA2.srcproj.TRACK[tr_idx].GUID = chunk:match('(%{.-%})')
+      DATA2.srcproj.TRACK[tr_idx].GUID = chunk:match('(%{.-%})'):upper()
       -- extract items
         DATA2.srcproj.TRACK[tr_idx].ITEM = {}
         local it_id = 0
@@ -769,6 +768,7 @@
         DATA2.srcproj.TRACK[tr_idx].NAME = name
         local PEAKCOL = DATA2.srcproj.TRACK[tr_idx].PEAKCOL[1] 
         DATA2.srcproj.TRACK[tr_idx].PEAKCOL = PEAKCOL
+        if not (DATA2.srcproj.TRACK[tr_idx].SHOWINMIX and DATA2.srcproj.TRACK[tr_idx].SHOWINMIX[4]) then DATA2.srcproj.TRACK[tr_idx].SHOWINMIX[4]= 1 end
         
       -- handle folder level
         local cur_fold_state = DATA2.srcproj.TRACK[tr_idx].ISBUS[2] or 0
