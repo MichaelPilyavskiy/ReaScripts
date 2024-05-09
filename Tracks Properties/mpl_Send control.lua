@@ -1,5 +1,5 @@
 -- @description Send control
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
@@ -331,10 +331,11 @@ function DATA:CollectData_GetAvailableSends()
   for i = idx, CountTracks(0) do
     local tr = GetTrack(0,i-1)
     level = level + GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  )
+    
+    local ret, trname =  GetTrackName(tr)
+    --msg(trname)
     if level>=0 and i~= idx then 
-      local ret, trname =  GetTrackName(tr)
       local GUID = reaper.GetTrackGUID( tr )
-      
       -- check if already used
       if DATA.tr_data.sends then 
         for j = 1, #DATA.tr_data.sends do
@@ -361,8 +362,8 @@ function DATA:CollectData_GetAvailableSends_GetFolder()
     local tr = GetTrack(0,i-1)
     if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  ) == 1 then
       local retval, trname = GetTrackName( tr )
-      for i=1,#foldname do
-        if trname:lower():match(foldname[i]:lower()) then
+      for i2=1,#foldname do
+        if trname:lower():match(foldname[i2]:lower()) then
           return true, tr, i
         end
       end
