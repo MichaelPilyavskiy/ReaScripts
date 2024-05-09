@@ -1,10 +1,13 @@
 -- @description Send control
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  + init
+--  + Add button to create send if "send" folder is available
+--  # Add send: hide already used sends
+--  # Add send: hide menu if no more sends available
+--  + Add send: add undo entry on creating send
 
     
     
@@ -13,6 +16,7 @@
 
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
+        
       }
 -------------------------------------------------------------------------------- INIT data
 DATA = {
@@ -25,6 +29,7 @@ DATA = {
         custom_fader_scale_lim = 0.8,
         custom_fader_coeff = 30,
         
+        send_folder_names = 'send',
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
@@ -255,9 +260,7 @@ function UI.MAINloop()
   DATA.clock = os.clock() 
   DATA:handleProjUpdates()
   
-  if DATA.upd == true then 
-    DATA:CollectData() 
-  end 
+  if DATA.upd == true then  DATA:CollectData()  end 
   DATA.upd = false
   
   -- draw UI
@@ -323,7 +326,56 @@ function VF_Action(s, sectionID, ME )
   end
 end 
 --------------------------------------------------------------------------------  
+function DATA:CollectData_GetAvailableSends()
+  DATA.available_sends = {}
+  local ret, tr, idx = DATA:CollectData_GetAvailableSends_GetFolder()
+  if not ret then return end
+  local level = 0
+  for i = idx, CountTracks(0) do
+    local tr = GetTrack(0,i-1)
+    level = level + GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  )
+    if level>=0 and i~= idx then 
+      local ret, trname =  GetTrackName(tr)
+      local GUID = reaper.GetTrackGUID( tr )
+      
+      -- check if already used
+      if DATA.tr_data.sends then 
+        for j = 1, #DATA.tr_data.sends do
+          if GUID==DATA.tr_data.sends[j].destGUID then goto nextsend end
+        end
+      end
+      
+      DATA.available_sends[#DATA.available_sends+1] = 
+        {  GUID = GUID,
+          name = trname
+          }
+          
+      ::nextsend::
+    end
+    if level == 0 then break end
+  end
+end
+--------------------------------------------------------------------------------  
+function DATA:CollectData_GetAvailableSends_GetFolder()
+  local foldname = {}
+  for name in DATA.send_folder_names:gmatch('[^,]+') do foldname[#foldname+1] = name end 
+  if #foldname == 0 then return end
+  for i = 1, CountTracks(0) do
+    local tr = GetTrack(0,i-1)
+    if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  ) == 1 then
+      local retval, trname = GetTrackName( tr )
+      for i=1,#foldname do
+        if trname:lower():match(foldname[i]:lower()) then
+          return true, tr, i
+        end
+      end
+    end
+  end
+end
+--------------------------------------------------------------------------------  
 function DATA:CollectData()
+
+  -- collect sel track data
   DATA.tr_data = {sends={}}
   local tr = GetSelectedTrack(0,0)
   if not tr then return end
@@ -336,6 +388,7 @@ function DATA:CollectData()
     local P_DESTTRACK = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
     local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' ) --0=post-fader, 1=pre-fx, 2=post-fx (deprecated), 3=post-fx
     local retval, desttrname = reaper.GetTrackName( P_DESTTRACK )
+    local destGUID = GetTrackGUID( P_DESTTRACK )
     local voldb = WDL_VAL2DB(D_VOL)
     local voldbformat = string.format("%.03f dB",voldb)
     DATA.tr_data.sends[sendidx] = {
@@ -347,8 +400,12 @@ function DATA:CollectData()
       B_MUTE = B_MUTE,
       I_SENDMODE = I_SENDMODE,
       desttrname=desttrname,
+      destGUID=destGUID,
       }
   end
+  
+  DATA:CollectData_GetAvailableSends()
+  
 end
 --------------------------------------------------------------------------------  
 function main()
@@ -464,7 +521,38 @@ function UI.draw_unsetbuttoncolor()
   UI.pushcnt2 = UI.pushcnt2 -3
 end
 --------------------------------------------------------------------------------  
+function GetTrackByGUID(GUIDin)
+  for i = 1, CountTracks(0) do
+    local tr = GetTrack(0,i-1)
+    local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+    if GUID:gsub('%p+','') == GUIDin:gsub('%p+','') then return tr end
+  end
+end
+--------------------------------------------------------------------------------  
 function UI.draw() 
+  if DATA.available_sends and #DATA.available_sends>0 then
+
+    reaper.ImGui_SetCursorPosX( ctx, DATA.display_w - 50 )
+    if ImGui_BeginMenu( ctx, 'Add', true ) then
+      for i = 1 , #DATA.available_sends do
+        local retval, p_selected = ImGui_MenuItem( ctx, DATA.available_sends[i].name..'##send'..i, '', false, true )
+        if retval then 
+          local desttr = GetTrackByGUID(DATA.available_sends[i].GUID)
+          if desttr then 
+            reaper.Undo_BeginBlock2( 0 )
+            CreateTrackSend( DATA.tr_data.ptr, desttr ) 
+            reaper.Undo_EndBlock2( 0, 'Send control - add send', 0xFFFFFFFF )
+            DATA.upd = true 
+            ImGui_EndMenu(ctx) 
+            return 
+          end
+        end
+      end
+      ImGui_EndMenu(ctx)
+    end
+  end
+  
+  
   local sendcnt= #DATA.tr_data.sends
   for i = 1, sendcnt do UI.draw_send(DATA.tr_data.sends[i]) end 
 end
