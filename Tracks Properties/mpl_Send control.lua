@@ -1,13 +1,10 @@
 -- @description Send control
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  + Add button to create send if "send" folder is available
---  # Add send: hide already used sends
---  # Add send: hide menu if no more sends available
---  + Add send: add undo entry on creating send
+--  # Add send: use right click menu
 
     
     
@@ -530,31 +527,41 @@ function GetTrackByGUID(GUIDin)
 end
 --------------------------------------------------------------------------------  
 function UI.draw() 
-  if DATA.available_sends and #DATA.available_sends>0 then
-
-    reaper.ImGui_SetCursorPosX( ctx, DATA.display_w - 50 )
-    if ImGui_BeginMenu( ctx, 'Add', true ) then
-      for i = 1 , #DATA.available_sends do
-        local retval, p_selected = ImGui_MenuItem( ctx, DATA.available_sends[i].name..'##send'..i, '', false, true )
-        if retval then 
-          local desttr = GetTrackByGUID(DATA.available_sends[i].GUID)
-          if desttr then 
-            reaper.Undo_BeginBlock2( 0 )
-            CreateTrackSend( DATA.tr_data.ptr, desttr ) 
-            reaper.Undo_EndBlock2( 0, 'Send control - add send', 0xFFFFFFFF )
-            DATA.upd = true 
-            ImGui_EndMenu(ctx) 
-            return 
-          end
-        end
-      end
-      ImGui_EndMenu(ctx)
-    end
-  end
   
   
   local sendcnt= #DATA.tr_data.sends
   for i = 1, sendcnt do UI.draw_send(DATA.tr_data.sends[i]) end 
+  
+  
+  if not (DATA.available_sends and #DATA.available_sends>0) then return end
+  
+  if  ImGui_IsMouseClicked( ctx,  ImGui_MouseButton_Right(), false ) then ImGui_OpenPopup(ctx, 'sendspopup') end
+  
+  ImGui_SameLine(ctx)
+  --ImGui_Text(ctx, '<None>')
+  if ImGui_BeginPopup(ctx, 'sendspopup') then
+    ImGui_SeparatorText(ctx, 'Available sends')
+    for i = 1 , #DATA.available_sends do 
+      if ImGui_Selectable(ctx, DATA.available_sends[i].name..'##send'..i) then 
+      
+        local desttr = GetTrackByGUID(DATA.available_sends[i].GUID)
+        if desttr then 
+          reaper.Undo_BeginBlock2( 0 )
+          CreateTrackSend( DATA.tr_data.ptr, desttr ) 
+          reaper.Undo_EndBlock2( 0, 'Send control - add send', 0xFFFFFFFF )
+          DATA.upd = true 
+          ImGui_EndMenu(ctx) 
+          return 
+        end
+        
+      end
+    end
+    ImGui_EndPopup(ctx)
+  end
+      
+      
+  
+  
 end
 --------------------------------------------------------------------------------  
 app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
