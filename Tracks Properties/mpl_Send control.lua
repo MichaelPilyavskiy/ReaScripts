@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # Add send: use right click menu
+--  # fix crop for -+ buttons
 
     
     
@@ -93,6 +93,8 @@ function UI.MAIN_PushStyle(key, value, value2, iscol)
 end
 -------------------------------------------------------------------------------- 
 function UI.MAIN_draw(open) 
+  local w_min = 350
+  local h_min = 150
   -- window_flags
     local window_flags = ImGui_WindowFlags_None()
     --window_flags = window_flags | ImGui_WindowFlags_NoTitleBar()
@@ -134,7 +136,7 @@ function UI.MAIN_draw(open)
     UI.MAIN_PushStyle(ImGui_StyleVar_ScrollbarSize(),14)
   -- size
     UI.MAIN_PushStyle(ImGui_StyleVar_GrabMinSize(),30)
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowMinSize(),350,150)
+    UI.MAIN_PushStyle(ImGui_StyleVar_WindowMinSize(),w_min,h_min)
   -- align
     UI.MAIN_PushStyle(ImGui_StyleVar_WindowTitleAlign(),0.5,0.5)
     UI.MAIN_PushStyle(ImGui_StyleVar_ButtonTextAlign(),0.5,0.5)
@@ -222,6 +224,7 @@ function UI.MAIN_draw(open)
     rv,open = ImGui_Begin(ctx, DATA.UI_name, open, window_flags) if not rv then return open end  
     local ImGui_Viewport = ImGui_GetWindowViewport(ctx)
     DATA.display_w, DATA.display_h = ImGui_Viewport_GetSize(ImGui_Viewport)
+    DATA.display_w, DATA.display_h = ImGui_GetWindowContentRegionMin(ctx)
     
   -- calc stuff for childs
     UI.calc_xoffset,UI.calc_yoffset = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_WindowPadding())
@@ -466,7 +469,7 @@ function UI.draw_send(send_t)
   UI.MAIN_PushStyle(ImGui_Col_FrameBgHovered(),UI.main_col, 0.2, true)
   local but_h = 20
   local ctrlw = 150
-  local slider_w = DATA.display_w-ctrlw-UI.calc_xoffset*5
+  local slider_w = DATA.display_w-ctrlw-UI.calc_xoffset*2
   if ImGui_BeginChild( ctx, send_t.sendidx..'##'..send_t.sendidx, 0, 0,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
     
     ImGui_PushFont(ctx, DATA.font3) 
