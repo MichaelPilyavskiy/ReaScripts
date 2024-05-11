@@ -1,12 +1,12 @@
 -- @description Export selected items to RS5k instances (for McSequencer)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init, version for McSequencer
+--    # hide jsfx
 
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   local scr_title = 'Export selected items to RS5k instances (for McSequencer)'
   --NOT gfx NOT reaper
  --------------------------------------------------------------------
@@ -40,8 +40,10 @@
         end
         
         GetSetMediaTrackInfo_String( track, 'P_NAME', shortsplname..' SEQ', true )
-        TrackFX_AddByName(track, "Note Trigger", false, -1)
-        TrackFX_AddByName(track, "Swing", false, -1)
+        local fx_trig = TrackFX_AddByName(track, "Note Trigger", false, -1)
+        TrackFX_Show(track, fx_trig, 2)
+        local fx_swing = TrackFX_AddByName(track, "Swing", false, -1)
+        TrackFX_Show(track, fx_swing, 2)
         ExportItemToRS5K(filepath, s_offs/src_len, (s_offs+it_len)/src_len, track)
         ::skip_to_next_item::
       end
