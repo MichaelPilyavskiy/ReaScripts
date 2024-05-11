@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="52c7667f4b86f35653048cf718b71b072347878b" name="MPL Scripts">
+<index version="1" commit="45636e054c1862d9f1736ee8477bd9e2908824ed" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3058,6 +3058,15 @@
         <changelog><![CDATA[# use VF version check
 # prevent error on empty item]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Export selected items to RS5k instances (for McSequencer).lua" type="script" desc="Export selected items to RS5k instances (for McSequencer)">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-05-11T20:36:49Z">
+        <changelog><![CDATA[+ init, version for McSequencer]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/45636e054c1862d9f1736ee8477bd9e2908824ed/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20(for%20McSequencer).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track (drum mode)">
