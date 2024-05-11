@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a212fc579e768f02a476c2fed1e5cd8d27d08bb4" name="MPL Scripts">
+<index version="1" commit="cb2768e5b36a34a52b3453b66fcab2fdafa83425" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3071,6 +3071,10 @@
       <version name="1.01" author="MPL" time="2024-05-11T20:39:13Z">
         <changelog><![CDATA[# hide jsfx]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a212fc579e768f02a476c2fed1e5cd8d27d08bb4/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20(for%20McSequencer).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-05-11T20:40:24Z">
+        <changelog><![CDATA[# hide rs5k]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb2768e5b36a34a52b3453b66fcab2fdafa83425/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20(for%20McSequencer).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track (drum mode)">
