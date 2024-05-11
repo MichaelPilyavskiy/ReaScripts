@@ -1,12 +1,12 @@
 -- @description Export selected items to RS5k instances (for McSequencer)
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # hide jsfx
+--    # hide rs5k
 
 
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
   local scr_title = 'Export selected items to RS5k instances (for McSequencer)'
   --NOT gfx NOT reaper
  --------------------------------------------------------------------
@@ -44,7 +44,8 @@
         TrackFX_Show(track, fx_trig, 2)
         local fx_swing = TrackFX_AddByName(track, "Swing", false, -1)
         TrackFX_Show(track, fx_swing, 2)
-        ExportItemToRS5K(filepath, s_offs/src_len, (s_offs+it_len)/src_len, track)
+        local rs5k_pos = ExportItemToRS5K(filepath, s_offs/src_len, (s_offs+it_len)/src_len, track)
+        TrackFX_Show(track, rs5k_pos, 2)
         ::skip_to_next_item::
       end
       
@@ -69,6 +70,7 @@
       TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
       TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs )   
     end  
+    return rs5k_pos
   end
    
     ---------------------------------------------------------------------
