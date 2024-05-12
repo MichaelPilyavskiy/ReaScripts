@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cb2768e5b36a34a52b3453b66fcab2fdafa83425" name="MPL Scripts">
+<index version="1" commit="f594ded1bf4c91097974bd1a8d79796f583662cd" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1808,6 +1808,19 @@
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2024-05-12T07:30:01Z">
+        <changelog><![CDATA[+ complete UI rebuild using ReaImGui
++ tint with parent track colors
++ add option to show offline FX at the end of list
++ Right click on name to edit custom name
+# use "Insert Virtual instrument on new track" action for add fx instead of long drop down menu
+# reorder control buttons, track / fx names and preset name
+- remove freeze options, because they don`t supported from API
+# remove any SWS dependencies
+# rename On/Off to Online/Offline
+# rename enabled to bypass, invert state of button]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f594ded1bf4c91097974bd1a8d79796f583662cd/FX/mpl_InstrumentRack.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
