@@ -32,6 +32,13 @@ DATA = {
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
+app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
+if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
+
+if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+require 'imgui' '0.9'
+
 for key in pairs(reaper) do _G[key]=reaper[key] end 
 --local ctx
 -------------------------------------------------------------------------------- UI init variables
@@ -831,10 +838,4 @@ end
 
 
 --------------------------------------------------------------------------------  
-app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
-if app_vrs < 7 then 
-  MB('This script require REAPER 7.0+','',0)
- else
-  if not APIExists( 'ImGui_GetVersion' ) then MB('This script require ReaImGui extension','',0) return end
-  main()
-end
+main()
