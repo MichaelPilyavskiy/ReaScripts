@@ -228,7 +228,7 @@ function UI.MAIN_draw(open)
   -- calc stuff for childs
     UI.calc_xoffset,UI.calc_yoffset = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_WindowPadding())
     local framew,frameh = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_FramePadding())
-    local calcitemw, calcitemh = ImGui_CalcTextSize(ctx, 'test', nil, nil, false, -1.0)
+    local calcitemw, calcitemh = ImGui_CalcTextSize(ctx, 'test')
     UI.calc_itemH = calcitemh + frameh * 2
     UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
     
@@ -530,7 +530,7 @@ function UI.draw_plugin_handlelatchstate(t)
   if  ImGui_IsItemActivated( ctx ) then DATA.latchstate = t.paramval return end 
   
   if  reaper.ImGui_IsItemActive( ctx ) then
-    local x, y = reaper.ImGui_GetMouseDragDelta( ctx, x, y,  ImGui_MouseButton_Left(), -1 )
+    local x, y = reaper.ImGui_GetMouseDragDelta( ctx )
     local outval = DATA.latchstate - y/500
     outval = math.max(0,math.min(outval,1))
     local fxGUID = t.fxGUID
@@ -555,20 +555,20 @@ function UI.draw_plugin(plugdata,sec_col, islast)
   if EXT.usesecondcol == 1 then 
     sz_w = DATA.display_w/2-UI.spacingX*2
   end
-  if ImGui_BeginChild( ctx, plugname..'##'..fxGUID, sz_w,sz_h,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
+  if ImGui_BeginChild( ctx, plugname..'##'..fxGUID, sz_w,sz_h,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border() ) then
     
     
     
     -- online
     local online = 'Online' 
     if plugdata.online == false then online = 'Offline' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
-    local ret = ImGui_Button( ctx, online..'##off'..fxGUID, butw, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, online..'##off'..fxGUID, butw ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{online= plugdata.online}) end
     
     -- bypass
     local bypass = 'Bypass' 
     if plugdata.enabled == true then bypass = 'Bypass' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_green) end 
-    local ret = ImGui_Button( ctx, bypass..'##byp'..fxGUID, butw, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, bypass..'##byp'..fxGUID, butw ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{bypass= not plugdata.enabled}) end
     
     ImGui_Dummy(ctx,20,0) UI.SameLine(ctx)
@@ -581,8 +581,8 @@ function UI.draw_plugin(plugdata,sec_col, islast)
     
     if DATA.editfield == fxGUID then
       UI.SameLine(ctx)
-      ImGui_SetKeyboardFocusHere( ctx, 0 )
-      local retval, buf = ImGui_InputText( ctx,  '##'..fxGUID, txtout, ImGui_InputTextFlags_None()|ImGui_InputTextFlags_EnterReturnsTrue(), nil )
+      ImGui_SetKeyboardFocusHere( ctx )
+      local retval, buf = ImGui_InputText( ctx,  '##'..fxGUID, txtout, ImGui_InputTextFlags_EnterReturnsTrue() )
       if retval then 
         if not DATA.extplugins[fxGUID] then DATA.extplugins[fxGUID] = {} end
         if buf == '' then buf = 'nil' end
@@ -621,7 +621,7 @@ function UI.draw_plugin(plugdata,sec_col, islast)
     
     -- add fx
     local ret = ImGui_Button( ctx, '+'..'##addparam'..fxGUID, 0, UI.calc_itemH) 
-    if ImGui_IsItemHovered(ctx, ImGui_HoveredFlags_ForTooltip()) then ImGui_SetTooltip(ctx, 'Add last touched parameter for instrument of FX') end
+    ImGui_SetItemTooltip(ctx, 'Add last touched parameter for instrument of FX')
     if ret ==true then DATA.Plugin_params_extset(plugdata) DATA.upd = true end
     
     if DATA.extctrls[fxGUID] then  
@@ -636,15 +636,15 @@ function UI.draw_plugin(plugdata,sec_col, islast)
         if not DATA.extctrls[fxGUID][extid] then goto skipnextctrl end
         -- define
         local butid = '##ext'..extid..fxGUID
-        local retval, v = reaper.ImGui_VSliderDouble( ctx, butid,  UI.calc_itemH,  UI.calc_itemH, DATA.extctrls[fxGUID][extid].paramval, 0, 1, '',  ImGui_SliderFlags_None() )
+        local retval, v = reaper.ImGui_VSliderDouble( ctx, butid,  UI.calc_itemH,  UI.calc_itemH, DATA.extctrls[fxGUID][extid].paramval, 0, 1, '' )
         UI.draw_plugin_handlelatchstate(DATA.extctrls[fxGUID][extid])  
         -- tooltip
-        if ImGui_IsItemHovered( ctx,  ImGui_HoveredFlags_None() ) or ImGui_IsItemActive( ctx )  then  
+        if ImGui_IsItemHovered( ctx ) or ImGui_IsItemActive( ctx )  then
           UI.extinfo[fxGUID] = DATA.extctrls[fxGUID][extid].paramname  
         end
-        if ImGui_IsItemHovered( ctx,  ImGui_HoveredFlags_None() )  then 
+        if ImGui_IsItemHovered( ctx )  then
           -- delete click
-          if  ImGui_IsKeyPressed( ctx,   ImGui_Key_Delete(), 0 ) then 
+          if  ImGui_IsKeyPressed( ctx,   ImGui_Key_Delete(), false ) then
             table.remove(DATA.extctrls[fxGUID], extid)
             DATA.CtrlsExtState_Write()
             DATA.upd = true
@@ -701,9 +701,9 @@ function UI.draw_knob(val)
   local ang_max = 40
   local ang_val = ang_min + math.floor((ang_max - ang_min)*val)
   local radiusshift_y = (radius_draw- radius)
-  ImGui_DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max), 0)
+  ImGui_DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
   ImGui_DrawList_PathStroke(draw_list, 0xF0F0F02F,  ImGui_DrawFlags_None(), 2)
-  ImGui_DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+2), 0)
+  ImGui_DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+2))
   ImGui_DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui_DrawFlags_None(), 2)
   
   local radius_draw2 = radius_draw-1
@@ -760,23 +760,23 @@ end
 function UI.draw() 
   UI.menuopened = false
   if ImGui_BeginMenuBar(ctx) then
-    if ImGui_MenuItem(ctx, 'Add FX', nil, false, true) then VF_Action(40701) end
+    if ImGui_MenuItem(ctx, 'Add FX') then VF_Action(40701) end
     if ImGui_BeginMenu(ctx,'Options') then
       UI.menuopened = true
       ImGui_SeparatorText(ctx, 'General')
-      local ret = ImGui_MenuItem(ctx, 'Select and scroll to track on click', nil, EXT.scrolltotrackonedit == 1, true) if ret then DATA.upd = true EXT.scrolltotrackonedit=EXT.scrolltotrackonedit~1 EXT:save() end
-      local ret = ImGui_MenuItem(ctx, 'Show FX chain instead floating FX', nil, EXT.floatchain == 1, true) if ret then DATA.upd = true EXT.floatchain=EXT.floatchain~1 EXT:save() end
-      local ret = ImGui_MenuItem(ctx, 'Hide RS5k instances', nil, EXT.hiders5k == 1, true) if ret then DATA.upd = true EXT.hiders5k=EXT.hiders5k~1 EXT:save() end
-      --local ret = ImGui_MenuItem(ctx, 'Use second column', nil, EXT.usesecondcol == 1, true) if ret then DATA.upd = true EXT.usesecondcol=EXT.usesecondcol~1 EXT:save() end
+      local ret = ImGui_MenuItem(ctx, 'Select and scroll to track on click', nil, EXT.scrolltotrackonedit == 1) if ret then DATA.upd = true EXT.scrolltotrackonedit=EXT.scrolltotrackonedit~1 EXT:save() end
+      local ret = ImGui_MenuItem(ctx, 'Show FX chain instead floating FX', nil, EXT.floatchain == 1) if ret then DATA.upd = true EXT.floatchain=EXT.floatchain~1 EXT:save() end
+      local ret = ImGui_MenuItem(ctx, 'Hide RS5k instances', nil, EXT.hiders5k == 1) if ret then DATA.upd = true EXT.hiders5k=EXT.hiders5k~1 EXT:save() end
+      --local ret = ImGui_MenuItem(ctx, 'Use second column', nil, EXT.usesecondcol == 1) if ret then DATA.upd = true EXT.usesecondcol=EXT.usesecondcol~1 EXT:save() end
       --local ret = ImGui_MenuItem(ctx, 'Sorting', nil, nil, false)
       ImGui_SeparatorText(ctx, 'Sorting')
-      local ret = ImGui_MenuItem(ctx, 'Show offline FX at the end of list', nil, EXT.showofflineattheend == 1, true) if ret then 
+      local ret = ImGui_MenuItem(ctx, 'Show offline FX at the end of list', nil, EXT.showofflineattheend == 1) if ret then
         DATA.upd = true 
         EXT.showofflineattheend=EXT.showofflineattheend~1 
         if EXT.showofflineattheend ==1 then EXT.collectsamefoldinstr =0 end 
         EXT:save() 
       end
-      local ret = ImGui_MenuItem(ctx, 'Show folders as tree', nil, EXT.collectsamefoldinstr == 1, true) if ret then 
+      local ret = ImGui_MenuItem(ctx, 'Show folders as tree', nil, EXT.collectsamefoldinstr == 1) if ret then
         DATA.upd = true 
         EXT.collectsamefoldinstr=EXT.collectsamefoldinstr~1 
         if EXT.collectsamefoldinstr ==1 then EXT.showofflineattheend =0 end 
@@ -785,7 +785,7 @@ function UI.draw()
       ImGui_EndMenu(ctx)
     end
     
-    local retval, search = ImGui_InputText(ctx, '', EXT.searchfilter, ImGui_InputTextFlags_None()|ImGui_InputTextFlags_AutoSelectAll())--|ImGui_InputTextFlags_EnterReturnsTrue()
+    local retval, search = ImGui_InputText(ctx, '##search', EXT.searchfilter, ImGui_InputTextFlags_AutoSelectAll())--|ImGui_InputTextFlags_EnterReturnsTrue()
     if retval then 
       EXT.searchfilter = search
       EXT:save() 
