@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e4195392f15daeb3886cf8660e22d74e401826ac" name="MPL Scripts">
+<index version="1" commit="8164b395311dfc3e96b16f8d14755b9819ff7376" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1821,6 +1821,13 @@
 # rename On/Off to Online/Offline
 # rename enabled to bypass, invert state of button]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f594ded1bf4c91097974bd1a8d79796f583662cd/FX/mpl_InstrumentRack.lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2024-05-15T20:10:49Z">
+        <changelog><![CDATA[# fix error at 357 line
+# align control buttons
+# offline FX collapsible in a tree if shown at the end of list
++ Add filter]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8164b395311dfc3e96b16f8d14755b9819ff7376/FX/mpl_InstrumentRack.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
