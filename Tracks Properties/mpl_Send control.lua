@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # UI tweaks
+--  # fix refresh
 
     
     
@@ -313,7 +313,7 @@ function EXT:load()
 end
 -------------------------------------------------------------------------------- 
 function DATA:handleProjUpdates()
-  local SCC =  GetProjectStateChangeCount( 0 ) if (DATA.upd_lastSCC and DATA.upd_lastSCC~=SCC ) then DATA.upd = true return end  DATA.upd_lastSCC = SCC
+  local SCC =  GetProjectStateChangeCount( 0 ) if (DATA.upd_lastSCC and DATA.upd_lastSCC~=SCC ) then DATA.upd = true end  DATA.upd_lastSCC = SCC
   local editcurpos =  GetCursorPosition()  if (DATA.upd_last_editcurpos and DATA.upd_last_editcurpos~=editcurpos ) then DATA.upd = true end DATA.upd_last_editcurpos=editcurpos 
   local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true end DATA.upd_last_reaproj = reaproj
 end
