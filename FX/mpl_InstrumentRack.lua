@@ -1,20 +1,13 @@
 -- @description InstrumentRack
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---  + complete UI rebuild using ReaImGui
---  + tint with parent track colors
---  + add option to show offline FX at the end of list
---  + Right click on name to edit custom name
---  # use "Insert Virtual instrument on new track" action for add fx instead of long drop down menu
---  # reorder control buttons, track / fx names and preset name
---  - remove freeze options, because they don`t supported from API
---  # remove any SWS dependencies
---  # rename On/Off to Online/Offline
---  # rename enabled to bypass, invert state of button
-
+--  # fix error at 357 line
+--  # align control buttons
+--  # offline FX collapsible in a tree if shown at the end of list
+--  + Add filter
     
     
 --NOT reaper NOT gfx
@@ -29,6 +22,8 @@ EXT = {
   showofflineattheend = 0, 
   collectsamefoldinstr = 0,
   
+  searchfilter = '',
+  usesecondcol = 0,
       }
 -------------------------------------------------------------------------------- INIT data
 DATA = {
@@ -138,7 +133,7 @@ function UI.MAIN_draw(open)
     UI.MAIN_PushStyle(ImGui_StyleVar_FrameBorderSize(),0) 
   -- spacing
     UI.MAIN_PushStyle(ImGui_StyleVar_WindowPadding(),UI.spacingX,UI.spacingY)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_FramePadding(),20,5) 
+    UI.MAIN_PushStyle(ImGui_StyleVar_FramePadding(),5,5) 
     UI.MAIN_PushStyle(ImGui_StyleVar_CellPadding(),UI.spacingX, UI.spacingY) 
     UI.MAIN_PushStyle(ImGui_StyleVar_ItemSpacing(),UI.spacingX, UI.spacingY)
     UI.MAIN_PushStyle(ImGui_StyleVar_ItemInnerSpacing(),4,0)
@@ -354,7 +349,9 @@ function VF_GetFXByGUID(GUID, tr, proj)
       for fx = 1, fxcnt do
         local fx_dest = fx
         if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
-        if TrackFX_GetFXGUID( tr, fx-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx-1 end 
+        if TrackFX_GetFXGUID( tr, fx-1) then 
+          if TrackFX_GetFXGUID( tr, fx-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx-1 end 
+        end
       end
     end  
    else
@@ -364,7 +361,9 @@ function VF_GetFXByGUID(GUID, tr, proj)
     for fx = 1, fxcnt do
       local fx_dest = fx
       if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
-      if TrackFX_GetFXGUID( tr, fx_dest-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_dest-1 end 
+      if TrackFX_GetFXGUID( tr, fx-1) then 
+        if TrackFX_GetFXGUID( tr, fx_dest-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_dest-1 end 
+      end
     end
   end    
 end
@@ -544,27 +543,34 @@ function UI.draw_plugin_handlelatchstate(t)
   end
 end
 --------------------------------------------------------------------------------  
-function UI.draw_plugin(plugdata)  
-  
+function UI.draw_plugin(plugdata,sec_col, islast)  
+  local plugname = plugdata.name 
+  if EXT.searchfilter ~= '' then 
+    if plugname:lower():match(EXT.searchfilter:lower()) == nil then return end
+  end
+  local butw = 60
+  local butw_low = math.floor(butw*2 - UI.spacingX)/3
   local fxGUID = plugdata.fxGUID
   --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
   UI.MAIN_PushStyle(ImGui_Col_ChildBg(),plugdata.tr_col, 0.2, true)
-  
-  local plugname = plugdata.name 
-  if ImGui_BeginChild( ctx, plugname..'##'..fxGUID, 0, 0,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
+  local sz_w,sz_h = 0,0
+  if EXT.usesecondcol == 1 then 
+    sz_w = DATA.display_w/2-UI.spacingX*2
+  end
+  if ImGui_BeginChild( ctx, plugname..'##'..fxGUID, sz_w,sz_h,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
     
     
     
     -- online
     local online = 'Online' 
     if plugdata.online == false then online = 'Offline' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
-    local ret = ImGui_Button( ctx, online..'##off'..fxGUID, 0, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, online..'##off'..fxGUID, butw, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{online= plugdata.online}) end
     
     -- bypass
     local bypass = 'Bypass' 
     if plugdata.enabled == true then bypass = 'Bypass' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_green) end 
-    local ret = ImGui_Button( ctx, bypass..'##byp'..fxGUID, 0, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, bypass..'##byp'..fxGUID, butw, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{bypass= not plugdata.enabled}) end
     
     ImGui_Dummy(ctx,20,0) UI.SameLine(ctx)
@@ -592,18 +598,18 @@ function UI.draw_plugin(plugdata)
     ImGui_PushFont(ctx, DATA.font3) 
     -- open
     if plugdata.open == true then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end 
-    local ret = ImGui_Button( ctx, 'FX'..'##fx'..fxGUID, 0, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, 'FX'..'##fx'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{open= not plugdata.open}) end
 
     -- solo
     if plugdata.tr_solo == true then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end 
-    local ret = ImGui_Button( ctx, 'S'..'##s'..fxGUID, 0, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, 'S'..'##s'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{solo = not plugdata.tr_solo}) end
 
     
     -- mute
     if plugdata.tr_mute == true then UI.draw_setbuttoncolor(UI.butBg_red) else UI.draw_setbuttoncolor(UI.main_col) end 
-    local ret = ImGui_Button( ctx, 'M', 0, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, 'M', butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{mute = not plugdata.tr_mute}) end
     
     ImGui_Dummy(ctx,20,0) UI.SameLine(ctx)
@@ -658,7 +664,9 @@ function UI.draw_plugin(plugdata)
     ImGui_PopFont(ctx) 
     ImGui_EndChild( ctx )
   end
-  
+  if EXT.usesecondcol == 1 then
+    if sec_col  then UI.SameLine(ctx) end
+  end
 end
 -------------------------------------------------------------------------------- 
 function UI.draw_knob(val) 
@@ -758,6 +766,7 @@ function UI.draw()
       local ret = ImGui_MenuItem(ctx, 'Select and scroll to track on click', nil, EXT.scrolltotrackonedit == 1, true) if ret then DATA.upd = true EXT.scrolltotrackonedit=EXT.scrolltotrackonedit~1 EXT:save() end
       local ret = ImGui_MenuItem(ctx, 'Show FX chain instead floating FX', nil, EXT.floatchain == 1, true) if ret then DATA.upd = true EXT.floatchain=EXT.floatchain~1 EXT:save() end
       local ret = ImGui_MenuItem(ctx, 'Hide RS5k instances', nil, EXT.hiders5k == 1, true) if ret then DATA.upd = true EXT.hiders5k=EXT.hiders5k~1 EXT:save() end
+      --local ret = ImGui_MenuItem(ctx, 'Use second column', nil, EXT.usesecondcol == 1, true) if ret then DATA.upd = true EXT.usesecondcol=EXT.usesecondcol~1 EXT:save() end
       --local ret = ImGui_MenuItem(ctx, 'Sorting', nil, nil, false)
       ImGui_SeparatorText(ctx, 'Sorting')
       local ret = ImGui_MenuItem(ctx, 'Show offline FX at the end of list', nil, EXT.showofflineattheend == 1, true) if ret then 
@@ -775,6 +784,11 @@ function UI.draw()
       ImGui_EndMenu(ctx)
     end
     
+    local retval, search = ImGui_InputText(ctx, '', EXT.searchfilter, ImGui_InputTextFlags_None()|ImGui_InputTextFlags_AutoSelectAll())--|ImGui_InputTextFlags_EnterReturnsTrue()
+    if retval then 
+      EXT.searchfilter = search
+      EXT:save() 
+    end
     ImGui_EndMenuBar(ctx)
   end
   
@@ -786,8 +800,15 @@ function UI.draw()
     end
    else
     local plugcnt = #DATA.plugins_data 
-    for i = 1, plugcnt do if DATA.plugins_data[i].online == true then UI.draw_plugin(DATA.plugins_data[i]) end end
-    for i = 1, plugcnt do if DATA.plugins_data[i].online == false then UI.draw_plugin(DATA.plugins_data[i]) end end
+    for i = 1, plugcnt do 
+      if DATA.plugins_data[i].online == true then 
+        UI.draw_plugin(DATA.plugins_data[i], (i%2)==1,i==plugcnt) 
+      end 
+    end
+    if ImGui_TreeNode(ctx, '[Offline plugins]##off', ImGui_TreeNodeFlags_None()) then--ImGui_TreeNodeFlags_DefaultOpen()) then
+      for i = 1, plugcnt do if DATA.plugins_data[i].online == false then UI.draw_plugin(DATA.plugins_data[i]) end end
+      ImGui_TreePop(ctx)
+    end
   end
   
   if EXT.collectsamefoldinstr == 1 then
