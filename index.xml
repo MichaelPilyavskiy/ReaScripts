@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8164b395311dfc3e96b16f8d14755b9819ff7376" name="MPL Scripts">
+<index version="1" commit="3a7f9c8d479c3d526a28398773becb0204f1a7da" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1828,6 +1828,10 @@
 # offline FX collapsible in a tree if shown at the end of list
 + Add filter]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8164b395311dfc3e96b16f8d14755b9819ff7376/FX/mpl_InstrumentRack.lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2024-05-15T20:13:51Z">
+        <changelog><![CDATA[# fix parsing instruments]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a7f9c8d479c3d526a28398773becb0204f1a7da/FX/mpl_InstrumentRack.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
