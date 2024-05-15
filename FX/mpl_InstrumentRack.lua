@@ -1,13 +1,10 @@
 -- @description InstrumentRack
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---  # fix error at 357 line
---  # align control buttons
---  # offline FX collapsible in a tree if shown at the end of list
---  + Add filter
+--  # fix parsing instruments
     
     
 --NOT reaper NOT gfx
@@ -447,6 +444,7 @@ function DATA:CollectData()
     if parent then parenttr_GUID = reaper.GetTrackGUID( parent) end
     for fx_id =1, TrackFX_GetCount( tr ) do
       local retval, buf = TrackFX_GetFXName( tr, fx_id-1, '' ) 
+      if not buf:match('.-i%: ') then goto skipnextFX end 
       if EXT.hiders5k == 1 and (buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') ) then goto skipnextFX end
       
       local retval, presetname = TrackFX_GetPreset( tr, fx_id-1, '' )
