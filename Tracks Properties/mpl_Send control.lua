@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # fix crop for -+ buttons
+--  # UI tweaks
 
     
     
@@ -93,7 +93,7 @@ function UI.MAIN_PushStyle(key, value, value2, iscol)
 end
 -------------------------------------------------------------------------------- 
 function UI.MAIN_draw(open) 
-  local w_min = 350
+  local w_min = 250
   local h_min = 150
   -- window_flags
     local window_flags = ImGui_WindowFlags_None()
@@ -128,7 +128,7 @@ function UI.MAIN_draw(open)
     UI.MAIN_PushStyle(ImGui_StyleVar_FrameBorderSize(),0) 
   -- spacing
     UI.MAIN_PushStyle(ImGui_StyleVar_WindowPadding(),UI.spacingX,UI.spacingY)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_FramePadding(),20,5) 
+    UI.MAIN_PushStyle(ImGui_StyleVar_FramePadding(),10,5) 
     UI.MAIN_PushStyle(ImGui_StyleVar_CellPadding(),UI.spacingX, UI.spacingY) 
     UI.MAIN_PushStyle(ImGui_StyleVar_ItemSpacing(),UI.spacingX, UI.spacingY)
     UI.MAIN_PushStyle(ImGui_StyleVar_ItemInnerSpacing(),4,0)
@@ -224,7 +224,7 @@ function UI.MAIN_draw(open)
     rv,open = ImGui_Begin(ctx, DATA.UI_name, open, window_flags) if not rv then return open end  
     local ImGui_Viewport = ImGui_GetWindowViewport(ctx)
     DATA.display_w, DATA.display_h = ImGui_Viewport_GetSize(ImGui_Viewport)
-    DATA.display_w, DATA.display_h = ImGui_GetWindowContentRegionMin(ctx)
+    --DATA.display_w, DATA.display_h = ImGui_GetWindowContentRegionMin(ctx)
     
   -- calc stuff for childs
     UI.calc_xoffset,UI.calc_yoffset = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_WindowPadding())
@@ -270,7 +270,7 @@ function UI.MAINloop()
   if UI.open then defer(UI.MAINloop) end
 end
 -------------------------------------------------------------------------------- 
-function UI.SameLine(ctx) reaper.ImGui_SameLine(ctx) reaper.ImGui_SameLine(ctx)end
+function UI.SameLine(ctx) reaper.ImGui_SameLine(ctx) end
 -------------------------------------------------------------------------------- 
 function UI.MAIN()
   
@@ -468,8 +468,9 @@ function UI.draw_send(send_t)
   --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),plugdata.tr_col, 0.2, true)
   UI.MAIN_PushStyle(ImGui_Col_FrameBgHovered(),UI.main_col, 0.2, true)
   local but_h = 20
-  local ctrlw = 150
-  local slider_w = DATA.display_w-ctrlw-UI.calc_xoffset*2
+  local ctrlw = 120
+  local slider_w = DATA.display_w-UI.calc_xoffset*4
+  local butw = (DATA.display_w-UI.calc_xoffset*7)/7
   if ImGui_BeginChild( ctx, send_t.sendidx..'##'..send_t.sendidx, 0, 0,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
     
     ImGui_PushFont(ctx, DATA.font3) 
@@ -477,35 +478,39 @@ function UI.draw_send(send_t)
     -- on / mute
     local online = 'M' 
     if send_t.B_MUTE&1~=1 then UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
-    local ret = ImGui_Button( ctx, 'M##off'..send_t.sendidx, 0, but_h ) UI.draw_unsetbuttoncolor() --UI.SameLine(ctx)
+    local ret = ImGui_Button( ctx, 'M##off'..send_t.sendidx, butw, but_h ) UI.draw_unsetbuttoncolor() --UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mute= send_t.B_MUTE~1}) end
     
-    UI.SameLine(ctx) ImGui_Dummy(ctx,0,10)UI.SameLine(ctx) if send_t.I_SENDMODE==0 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
-    local ret = ImGui_Button( ctx, 'PostFader##sm1'..send_t.sendidx, 0, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
-    if ret then DATA.Send_params_set(send_t,{mode= 0}) end
-    if send_t.I_SENDMODE==1 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
-    local ret = ImGui_Button( ctx, 'PreFX##sm2'..send_t.sendidx, 0, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    UI.SameLine(ctx) 
+    if send_t.I_SENDMODE==0 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
+    local txt = 'PostFX'
+    local set = 0
+    if send_t.I_SENDMODE==0 then txt = 'PostFader' set = 3 else set = 0 end  
+    local ret = ImGui_Button( ctx, txt..'##sm1'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    if ret then DATA.Send_params_set(send_t,{mode= set}) end
+    --[[if send_t.I_SENDMODE==1 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
+    local ret = ImGui_Button( ctx, 'PreFX##sm2'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mode= 1}) end
     if send_t.I_SENDMODE==3 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
-    local ret = ImGui_Button( ctx, 'PostFX##sm3'..send_t.sendidx, 0, but_h ) UI.draw_unsetbuttoncolor()
-    if ret then DATA.Send_params_set(send_t,{mode= 3}) end    
+    local ret = ImGui_Button( ctx, 'PostFX##sm3'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor()
+    if ret then DATA.Send_params_set(send_t,{mode= 3}) end ]]   
+    
+    
+    ImGui_SetNextItemWidth( ctx, butw*4+UI.calc_xoffset*2 )
+    local step, step2 = 0.5, 0.2
+    local retval, v = reaper.ImGui_InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui_InputTextFlags_CharsDecimal()|ImGui_InputTextFlags_EnterReturnsTrue() )-- 
+    if retval then 
+      v = VF_lim(v, -150,12)
+      DATA.Send_params_set(send_t, {vol_dB=v}) 
+    end 
     ImGui_PopFont(ctx) 
     
     local curposX, curposY = ImGui_GetCursorPos(ctx)
     ImGui_SetNextItemWidth( ctx, slider_w )
     local retval, v = ImGui_SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui_SliderFlags_None()| ImGui_SliderFlags_NoInput())
     if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx)
-    --ImGui_Text(ctx, send_t.D_VOLdb_format ) 
-    ImGui_SetNextItemWidth( ctx, ctrlw )
-    local step, step2 = 0.5, 0.2
-    --if send_t.D_VOLdb > -6 and send_t.D_VOLdb < 6 then step, step2 = 0.5, 0.2 end
-    local retval, v = reaper.ImGui_InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.03f dB", ImGui_InputTextFlags_CharsDecimal()|ImGui_InputTextFlags_EnterReturnsTrue() )
-    if retval then 
-      v = VF_lim(v, -150,12)
-      DATA.Send_params_set(send_t, {vol_dB=v}) 
-    end 
     ImGui_SetCursorPos(ctx, curposX, curposY)
-    ImGui_Text(ctx, send_t.desttrname) 
+    ImGui_Indent(ctx) ImGui_Text(ctx, send_t.desttrname) 
     ImGui_EndChild( ctx )
   end
   
