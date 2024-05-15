@@ -1,10 +1,10 @@
 -- @description InstrumentRack
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---  # fix parsing instruments
+--  # fix error at removing controls
     
     
 --NOT reaper NOT gfx
@@ -650,7 +650,10 @@ function UI.draw_plugin(plugdata,sec_col, islast)
             DATA.upd = true
           end
         end
-        UI.draw_knob(DATA.extctrls[fxGUID][extid].paramval)
+        if DATA.extctrls[fxGUID][extid] then 
+          UI.draw_knob(DATA.extctrls[fxGUID][extid].paramval)
+          
+        end
         UI.SameLine(ctx)
         ::skipnextctrl::
       end
