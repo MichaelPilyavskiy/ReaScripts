@@ -101,9 +101,7 @@ function UI.MAIN_PushStyle(key, value, value2, iscol)
   end 
 end
 -------------------------------------------------------------------------------- 
-function UI.MAIN_draw(open) 
-  
-  if not (ctx and  ImGui.ValidatePtr( ctx, 'ImGui_Context*' ) ) then return end
+function UI.MAIN_draw()
   -- window_flags
     local window_flags = ImGui.WindowFlags_None
     --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
@@ -228,25 +226,29 @@ function UI.MAIN_draw(open)
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1)
-    rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) if not rv then return open end
-    local ImGui_Viewport = ImGui.GetWindowViewport(ctx)
-    DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(ImGui_Viewport)
-    
-  -- calc stuff for childs
-    UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
-    local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
-    local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
-    UI.calc_itemH = calcitemh + frameh * 2
-    UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
-    
-  -- draw stuff
-    UI.draw()
+    local visible,open = ImGui.Begin(ctx, DATA.UI_name, true, window_flags)
+    if visible then
+      DATA.display_w, DATA.display_h = ImGui.GetWindowSize(ctx) -- GetContentRegionAvail?
+
+    -- calc stuff for childs
+      UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
+      local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
+      local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
+      UI.calc_itemH = calcitemh + frameh * 2
+      UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
+
+    -- draw stuff
+      UI.draw()
+
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2)
+      ImGui.End(ctx)
+    else
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2)
+    end
+
     ImGui.PopFont( ctx )
-    ImGui.PopStyleVar(ctx, UI.pushcnt)
-    ImGui.PopStyleColor(ctx, UI.pushcnt2)
-    
-    ImGui.Dummy(ctx,0,0)
-  ImGui.End(ctx)
   
   return open
 end
@@ -269,7 +271,7 @@ function UI.MAINloop()
   DATA.upd = false
   
   -- draw UI
-  UI.open = UI.MAIN_draw(true) 
+  UI.open = UI.MAIN_draw()
   
   -- data
   if UI.open then defer(UI.MAINloop) end
