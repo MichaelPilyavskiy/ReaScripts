@@ -1,16 +1,34 @@
 -- @description Send control
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # fix refresh
+--  # fix error Begin/End_Window
+--  # invert color of send mode
+--  # update for using with 0.9 reaimgui
+
 
     
     
 --NOT reaper NOT gfx
 
 
+--------------------------------------------------------------------------------  init globals
+  for key in pairs(reaper) do _G[key]=reaper[key] end 
+  app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
+  if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end 
+  local ImGui
+  if APIExists('ImGui_GetBuiltinPath') then
+    if not   reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+    package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+    ImGui = require 'imgui' '0.9'
+   else 
+    return reaper.MB('This script require ReaImGui extension 0.9+','',0) 
+  end
+  
+  
+  
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
         
@@ -84,10 +102,10 @@ end
 -------------------------------------------------------------------------------- 
 function UI.MAIN_PushStyle(key, value, value2, iscol)  
   if not iscol then 
-    ImGui_PushStyleVar(ctx, key, value, value2)
+    ImGui.PushStyleVar(ctx, key, value, value2)
     UI.pushcnt = UI.pushcnt + 1
   else 
-    ImGui_PushStyleColor(ctx, key, math.floor(value2*255)|(value<<8) )
+    ImGui.PushStyleColor(ctx, key, math.floor(value2*255)|(value<<8) )
     UI.pushcnt2 = UI.pushcnt2 + 1
   end 
 end
@@ -96,19 +114,19 @@ function UI.MAIN_draw(open)
   local w_min = 250
   local h_min = 150
   -- window_flags
-    local window_flags = ImGui_WindowFlags_None()
-    --window_flags = window_flags | ImGui_WindowFlags_NoTitleBar()
-    --window_flags = window_flags | ImGui_WindowFlags_NoScrollbar()
-    --window_flags = window_flags | ImGui_WindowFlags_MenuBar()
-    --window_flags = window_flags | ImGui_WindowFlags_NoMove()
-    --window_flags = window_flags | ImGui_WindowFlags_NoResize()
-    window_flags = window_flags | ImGui_WindowFlags_NoCollapse()
-    --window_flags = window_flags | ImGui_WindowFlags_NoNav()
-    --window_flags = window_flags | ImGui_WindowFlags_NoBackground()
-    window_flags = window_flags | ImGui_WindowFlags_NoDocking()
-    window_flags = window_flags | ImGui_WindowFlags_TopMost()
-    --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui_WindowFlags_NoSavedSettings() end
-    --window_flags = window_flags | ImGui_WindowFlags_UnsavedDocument()
+    local window_flags = ImGui.WindowFlags_None
+    --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar()
+    --window_flags = window_flags | ImGui.WindowFlags_NoScrollbar()
+    --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
+    --window_flags = window_flags | ImGui.WindowFlags_NoMove()
+    --window_flags = window_flags | ImGui.WindowFlags_NoReSize
+    window_flags = window_flags | ImGui.WindowFlags_NoCollapse
+    --window_flags = window_flags | ImGui.WindowFlags_NoNav()
+    --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
+    window_flags = window_flags | ImGui.WindowFlags_NoDocking
+    window_flags = window_flags | ImGui.WindowFlags_TopMost
+    --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings() end
+    --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
     --open = false -- disable the close button
   
   
@@ -116,58 +134,58 @@ function UI.MAIN_draw(open)
     UI.pushcnt = 0
     UI.pushcnt2 = 0
   -- rounding
-    UI.MAIN_PushStyle(ImGui_StyleVar_FrameRounding(),5)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_GrabRounding(),5)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowRounding(),10)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_ChildRounding(),5)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_PopupRounding(),0)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_ScrollbarRounding(),9)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_TabRounding(),4)   
+    UI.MAIN_PushStyle(ImGui.StyleVar_FrameRounding,5)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_GrabRounding,5)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowRounding,10)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_ChildRounding,5)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_PopupRounding,0)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_ScrollbarRounding,9)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_TabRounding,4)   
   -- Borders
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowBorderSize(),0)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_FrameBorderSize(),0) 
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowBorderSize,0)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_FrameBorderSize,0) 
   -- spacing
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowPadding(),UI.spacingX,UI.spacingY)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_FramePadding(),10,5) 
-    UI.MAIN_PushStyle(ImGui_StyleVar_CellPadding(),UI.spacingX, UI.spacingY) 
-    UI.MAIN_PushStyle(ImGui_StyleVar_ItemSpacing(),UI.spacingX, UI.spacingY)
-    UI.MAIN_PushStyle(ImGui_StyleVar_ItemInnerSpacing(),4,0)
-    UI.MAIN_PushStyle(ImGui_StyleVar_IndentSpacing(),20)
-    UI.MAIN_PushStyle(ImGui_StyleVar_ScrollbarSize(),14)
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowPadding,UI.spacingX,UI.spacingY)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_FramePadding,10,5) 
+    UI.MAIN_PushStyle(ImGui.StyleVar_CellPadding,UI.spacingX, UI.spacingY) 
+    UI.MAIN_PushStyle(ImGui.StyleVar_ItemSpacing,UI.spacingX, UI.spacingY)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ItemInnerSpacing,4,0)
+    UI.MAIN_PushStyle(ImGui.StyleVar_IndentSpacing,20)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ScrollbarSize,14)
   -- size
-    UI.MAIN_PushStyle(ImGui_StyleVar_GrabMinSize(),30)
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowMinSize(),w_min,h_min)
+    UI.MAIN_PushStyle(ImGui.StyleVar_GrabMinSize,30)
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowMinSize,w_min,h_min)
   -- align
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowTitleAlign(),0.5,0.5)
-    UI.MAIN_PushStyle(ImGui_StyleVar_ButtonTextAlign(),0.5,0.5)
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SelectableTextAlign(),0,0 )
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SeparatorTextAlign(),0,0.5 )
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SeparatorTextPadding(),20,3 )
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SeparatorTextBorderSize(),3 )
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowTitleAlign,0.5,0.5)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ButtonTextAlign,0.5,0.5)
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SelectableTextAlign,0,0 )
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SeparatorTextAlign,0,0.5 )
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SeparatorTextPadding,20,3 )
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SeparatorTextBorderSize,3 )
   -- alpha
-    UI.MAIN_PushStyle(ImGui_StyleVar_Alpha(),0.98)
-    --UI.MAIN_PushStyle(ImGui_StyleVar_DisabledAlpha(),0.6 ) 
-    UI.MAIN_PushStyle(ImGui_Col_Border(),UI.main_col, 0.3, true)
+    UI.MAIN_PushStyle(ImGui.StyleVar_Alpha,0.98)
+    --UI.MAIN_PushStyle(ImGui.StyleVar_DisabledAlpha,0.6 ) 
+    UI.MAIN_PushStyle(ImGui.Col_Border,UI.main_col, 0.3, true)
   -- colors
-    --UI.MAIN_PushStyle(ImGui_Col_BorderShadow(),0xFFFFFF, 1, true)
-    UI.MAIN_PushStyle(ImGui_Col_Button(),UI.main_col, 0.3, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonActive(),UI.main_col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonHovered(),UI.but_hovered, 0.8, true)
-    --UI.MAIN_PushStyle(ImGui_Col_CheckMark(),UI.main_col, 0, true)
-    --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),UI.main_col, 0, true)
-    --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),UI.main_col, 0, true) 
+    --UI.MAIN_PushStyle(ImGui.Col_BorderShadow(),0xFFFFFF, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_Button,UI.main_col, 0.3, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ButtonActive,UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ButtonHovered,UI.but_hovered, 0.8, true)
+    --UI.MAIN_PushStyle(ImGui.Col_CheckMark(),UI.main_col, 0, true)
+    --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.main_col, 0, true)
+    --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.main_col, 0, true) 
     
     
     --Constant: Col_DockingEmptyBg
     --Constant: Col_DockingPreview
     --Constant: Col_DragDropTarget 
-    UI.MAIN_PushStyle(ImGui_Col_DragDropTarget(),0xFF1F5F, 0.6, true)
-    UI.MAIN_PushStyle(ImGui_Col_FrameBg(),0x1F1F1F, 0.7, true)
-    UI.MAIN_PushStyle(ImGui_Col_FrameBgActive(),UI.main_col, .6, true)
-    UI.MAIN_PushStyle(ImGui_Col_FrameBgHovered(),UI.main_col, 0.7, true)
-    UI.MAIN_PushStyle(ImGui_Col_Header(),UI.main_col, 0.5, true) 
-    UI.MAIN_PushStyle(ImGui_Col_HeaderActive(),UI.main_col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_HeaderHovered(),UI.main_col, 0.98, true) 
+    UI.MAIN_PushStyle(ImGui.Col_DragDropTarget,0xFF1F5F, 0.6, true)
+    UI.MAIN_PushStyle(ImGui.Col_FrameBg,0x1F1F1F, 0.7, true)
+    UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.main_col, .6, true)
+    UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.7, true)
+    UI.MAIN_PushStyle(ImGui.Col_Header,UI.main_col, 0.5, true) 
+    UI.MAIN_PushStyle(ImGui.Col_HeaderActive,UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_HeaderHovered,UI.main_col, 0.98, true) 
     --Constant: Col_MenuBarBg
     --Constant: Col_ModalWindowDimBg
     --Constant: Col_NavHighlight
@@ -177,10 +195,10 @@ function UI.MAIN_draw(open)
     --Constant: Col_PlotHistogramHovered
     --Constant: Col_PlotLines
     --Constant: Col_PlotLinesHovered 
-    UI.MAIN_PushStyle(ImGui_Col_PopupBg(),0x303030, 0.9, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ResizeGrip(),UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_PopupBg,0x303030, 0.9, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ResizeGrip,UI.main_col, 1, true) 
     --Constant: Col_ResizeGripActive 
-    UI.MAIN_PushStyle(ImGui_Col_ResizeGripHovered(),UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ResizeGripHovered,UI.main_col, 1, true) 
     --Constant: Col_ScrollbarBg
     --Constant: Col_ScrollbarGrab
     --Constant: Col_ScrollbarGrabActive
@@ -190,62 +208,66 @@ function UI.MAIN_draw(open)
     --Constant: Col_SeparatorHovered
     --Constant: Col_SliderGrab
     --Constant: Col_SliderGrabActive
-    UI.MAIN_PushStyle(ImGui_Col_Tab(),UI.main_col, 0.37, true) 
-    UI.MAIN_PushStyle(ImGui_Col_TabActive(),UI.main_col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_TabHovered(),UI.main_col, 0.8, true) 
+    UI.MAIN_PushStyle(ImGui.Col_Tab,UI.main_col, 0.37, true) 
+    UI.MAIN_PushStyle(ImGui.Col_TabActive,UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_TabHovered,UI.main_col, 0.8, true) 
     --Constant: Col_TabUnfocused
-    --ImGui_Col_TabUnfocusedActive
-    --UI.MAIN_PushStyle(ImGui_Col_TabUnfocusedActive(),UI.main_col, 0.8, true)
+    --ImGui.Col_TabUnfocusedActive
+    --UI.MAIN_PushStyle(ImGui.Col_TabUnfocusedActive(),UI.main_col, 0.8, true)
     --Constant: Col_TableBorderLight
     --Constant: Col_TableBorderStrong
     --Constant: Col_TableHeaderBg
     --Constant: Col_TableRowBg
     --Constant: Col_TableRowBgAlt
-    UI.MAIN_PushStyle(ImGui_Col_Text(),UI.textcol, UI.textcol_a_enabled, true) 
+    UI.MAIN_PushStyle(ImGui.Col_Text,UI.textcol, UI.textcol_a_enabled, true) 
     --Constant: Col_TextDisabled
     --Constant: Col_TextSelectedBg
-    UI.MAIN_PushStyle(ImGui_Col_TitleBg(),UI.main_col, 0.7, true) 
-    UI.MAIN_PushStyle(ImGui_Col_TitleBgActive(),UI.main_col, 0.95, true) 
+    UI.MAIN_PushStyle(ImGui.Col_TitleBg,UI.main_col, 0.7, true) 
+    UI.MAIN_PushStyle(ImGui.Col_TitleBgActive,UI.main_col, 0.95, true) 
     --Constant: Col_TitleBgCollapsed 
-    UI.MAIN_PushStyle(ImGui_Col_WindowBg(),UI.windowBg, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_WindowBg,UI.windowBg, 1, true)
     
   -- We specify a default position/size in case there's no data in the .ini file.
-    local main_viewport = ImGui_GetMainViewport(ctx)
-    local work_pos = {ImGui_Viewport_GetWorkPos(main_viewport)}
+    local main_viewport = ImGui.GetMainViewport(ctx)
+    local work_pos = {ImGui.Viewport_GetWorkPos(main_viewport)}
     x, y = reaper.GetMousePosition()
-    --ImGui_SetNextWindowPos(ctx, work_pos[1] + 20, work_pos[2] + 20)
-    ImGui_SetNextWindowPos(ctx, x+ 20, y+ 20, ImGui_Cond_Appearing())
-    local useini = ImGui_Cond_FirstUseEver()
-    ImGui_SetNextWindowSize(ctx, 550, 680, useini)
+    --ImGui.SetNextWindowPos(ctx, work_pos[1] + 20, work_pos[2] + 20)
+    ImGui.SetNextWindowPos(ctx, x+ 20, y+ 20, ImGui.Cond_Appearing)
+    local useini = ImGui.Cond_FirstUseEver
+    ImGui.SetNextWindowSize(ctx, 550, 680, useini)
     
     
   -- init UI 
-    ImGui_PushFont(ctx, DATA.font1) 
-    rv,open = ImGui_Begin(ctx, DATA.UI_name, open, window_flags) if not rv then return open end  
-    local ImGui_Viewport = ImGui_GetWindowViewport(ctx)
-    DATA.display_w, DATA.display_h = ImGui_Viewport_GetSize(ImGui_Viewport)
-    --DATA.display_w, DATA.display_h = ImGui_GetWindowContentRegionMin(ctx)
-    
-  -- calc stuff for childs
-    UI.calc_xoffset,UI.calc_yoffset = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_WindowPadding())
-    local framew,frameh = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_FramePadding())
-    local calcitemw, calcitemh = ImGui_CalcTextSize(ctx, 'test', nil, nil, false, -1.0)
-    UI.calc_itemH = calcitemh + frameh * 2
-    UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
-    
-  -- draw stuff
-    UI.draw()
-    ImGui_PopFont( ctx ) 
-    ImGui_PopStyleVar(ctx, UI.pushcnt)
-    ImGui_PopStyleColor(ctx, UI.pushcnt2)
-    
-    ImGui_Dummy(ctx,0,0)
-    
-  ImGui_End(ctx)
+    ImGui.PushFont(ctx, DATA.font1) 
+    local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+    if rv then
+      local Viewport = ImGui.GetWindowViewport(ctx)
+      DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport)
+      --DATA.display_w, DATA.display_h = ImGui.GetWindowContentRegionMin(ctx)
+      
+    -- calc stuff for childs
+      UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
+      local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
+      local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test', nil, nil, false, -1.0)
+      UI.calc_itemH = calcitemh + frameh * 2
+      UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
+      
+    -- draw stuff
+      UI.draw()
+      ImGui.Dummy(ctx,0,0) 
+      ImGui.PopFont( ctx ) 
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2) 
+      ImGui.End(ctx)
+     else
+      ImGui.PopFont( ctx ) 
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2) 
+    end
   
-  if  reaper.ImGui_IsKeyPressed( ctx, ImGui_Key_Escape(),false )  then return end
+    if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
   
-  return open
+    return open
 end
 -------------------------------------------------------------------------------- 
 function DATA:perform_add(f) DATA.perform_quere[#DATA.perform_quere+1] = f end
@@ -270,20 +292,20 @@ function UI.MAINloop()
   if UI.open then defer(UI.MAINloop) end
 end
 -------------------------------------------------------------------------------- 
-function UI.SameLine(ctx) reaper.ImGui_SameLine(ctx) end
+function UI.SameLine(ctx) ImGui.SameLine(ctx) end
 -------------------------------------------------------------------------------- 
 function UI.MAIN()
   
   EXT:load() 
   -- imgUI init
-  ctx = ImGui_CreateContext(DATA.UI_name) 
+  ctx = ImGui.CreateContext(DATA.UI_name) 
   -- fonts
-  DATA.font1 = ImGui_CreateFont(UI.font, UI.font1sz) ImGui_Attach(ctx, DATA.font1)
-  DATA.font2 = ImGui_CreateFont(UI.font, UI.font2sz) ImGui_Attach(ctx, DATA.font2)
-  DATA.font3 = ImGui_CreateFont(UI.font, UI.font3sz) ImGui_Attach(ctx, DATA.font3)  
+  DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
+  DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
+  DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
   -- config
-  reaper.ImGui_SetConfigVar(ctx, ImGui_ConfigVar_HoverDelayNormal(), UI.hoverdelay)
-  reaper.ImGui_SetConfigVar(ctx, ImGui_ConfigVar_HoverDelayShort(), UI.hoverdelayshort)
+  ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
+  ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
   
   -- run loop
   defer(UI.MAINloop)
@@ -464,66 +486,66 @@ end
   
 --------------------------------------------------------------------------------  
 function UI.draw_send(send_t)  
-  --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
-  --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),plugdata.tr_col, 0.2, true)
-  UI.MAIN_PushStyle(ImGui_Col_FrameBgHovered(),UI.main_col, 0.2, true)
+  --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
+  --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),plugdata.tr_col, 0.2, true)
+  UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.2, true)
   local but_h = 20
   local ctrlw = 120
   local slider_w = DATA.display_w-UI.calc_xoffset*4
   local butw = (DATA.display_w-UI.calc_xoffset*7)/7
-  if ImGui_BeginChild( ctx, send_t.sendidx..'##'..send_t.sendidx, 0, 0,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
+  if ImGui.BeginChild( ctx, send_t.sendidx..'##'..send_t.sendidx, 0, 0,  ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, 0 ) then
     
-    ImGui_PushFont(ctx, DATA.font3) 
+    ImGui.PushFont(ctx, DATA.font3) 
     
     -- on / mute
     local online = 'M' 
     if send_t.B_MUTE&1~=1 then UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
-    local ret = ImGui_Button( ctx, 'M##off'..send_t.sendidx, butw, but_h ) UI.draw_unsetbuttoncolor() --UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, 'M##off'..send_t.sendidx, butw, but_h ) UI.draw_unsetbuttoncolor() --UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mute= send_t.B_MUTE~1}) end
     
     UI.SameLine(ctx) 
-    if send_t.I_SENDMODE==0 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
+    if send_t.I_SENDMODE==0 then UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_green) end  
     local txt = 'PostFX'
     local set = 0
     if send_t.I_SENDMODE==0 then txt = 'PostFader' set = 3 else set = 0 end  
-    local ret = ImGui_Button( ctx, txt..'##sm1'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, txt..'##sm1'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mode= set}) end
     --[[if send_t.I_SENDMODE==1 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
-    local ret = ImGui_Button( ctx, 'PreFX##sm2'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, 'PreFX##sm2'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mode= 1}) end
     if send_t.I_SENDMODE==3 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
-    local ret = ImGui_Button( ctx, 'PostFX##sm3'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor()
+    local ret = ImGui.Button( ctx, 'PostFX##sm3'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor()
     if ret then DATA.Send_params_set(send_t,{mode= 3}) end ]]   
     
     
-    ImGui_SetNextItemWidth( ctx, butw*4+UI.calc_xoffset*2 )
+    ImGui.SetNextItemWidth( ctx, butw*4+UI.calc_xoffset*2 )
     local step, step2 = 0.5, 0.2
-    local retval, v = reaper.ImGui_InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui_InputTextFlags_CharsDecimal()|ImGui_InputTextFlags_EnterReturnsTrue() )-- 
+    local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui.InputTextFlags_CharsDecimal|ImGui.InputTextFlags_EnterReturnsTrue )-- 
     if retval then 
       v = VF_lim(v, -150,12)
       DATA.Send_params_set(send_t, {vol_dB=v}) 
     end 
-    ImGui_PopFont(ctx) 
+    ImGui.PopFont(ctx) 
     
-    local curposX, curposY = ImGui_GetCursorPos(ctx)
-    ImGui_SetNextItemWidth( ctx, slider_w )
-    local retval, v = ImGui_SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui_SliderFlags_None()| ImGui_SliderFlags_NoInput())
+    local curposX, curposY = ImGui.GetCursorPos(ctx)
+    ImGui.SetNextItemWidth( ctx, slider_w )
+    local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
     if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx)
-    ImGui_SetCursorPos(ctx, curposX, curposY)
-    ImGui_Indent(ctx) ImGui_Text(ctx, send_t.desttrname) 
-    ImGui_EndChild( ctx )
+    ImGui.SetCursorPos(ctx, curposX, curposY)
+    ImGui.Indent(ctx) ImGui.Text(ctx, send_t.desttrname) 
+    ImGui.EndChild( ctx )
   end
   
 end
 --------------------------------------------------------------------------------  
 function UI.draw_setbuttoncolor(col) 
-    UI.MAIN_PushStyle(ImGui_Col_Button(),col, 0.5, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonActive(),col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonHovered(),col, 0.8, true)
+    UI.MAIN_PushStyle(ImGui.Col_Button,col, 0.5, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ButtonActive,col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ButtonHovered,col, 0.8, true)
 end
 --------------------------------------------------------------------------------  
 function UI.draw_unsetbuttoncolor() 
-  ImGui_PopStyleColor(ctx,3)
+  ImGui.PopStyleColor(ctx,3)
   UI.pushcnt2 = UI.pushcnt2 -3
 end
 --------------------------------------------------------------------------------  
@@ -544,14 +566,14 @@ function UI.draw()
   
   if not (DATA.available_sends and #DATA.available_sends>0) then return end
   
-  if  ImGui_IsMouseClicked( ctx,  ImGui_MouseButton_Right(), false ) then ImGui_OpenPopup(ctx, 'sendspopup') end
+  if  ImGui.IsMouseClicked( ctx,  ImGui.MouseButton_Right(), false ) then ImGui.OpenPopup(ctx, 'sendspopup') end
   
-  ImGui_SameLine(ctx)
-  --ImGui_Text(ctx, '<None>')
-  if ImGui_BeginPopup(ctx, 'sendspopup') then
-    ImGui_SeparatorText(ctx, 'Available sends')
+  ImGui.SameLine(ctx)
+  --ImGui.Text(ctx, '<None>')
+  if ImGui.BeginPopup(ctx, 'sendspopup') then
+    ImGui.SeparatorText(ctx, 'Available sends')
     for i = 1 , #DATA.available_sends do 
-      if ImGui_Selectable(ctx, DATA.available_sends[i].name..'##send'..i) then 
+      if ImGui.Selectable(ctx, DATA.available_sends[i].name..'##send'..i) then 
       
         local desttr = GetTrackByGUID(DATA.available_sends[i].GUID)
         if desttr then 
@@ -559,24 +581,18 @@ function UI.draw()
           CreateTrackSend( DATA.tr_data.ptr, desttr ) 
           reaper.Undo_EndBlock2( 0, 'Send control - add send', 0xFFFFFFFF )
           DATA.upd = true 
-          ImGui_EndMenu(ctx) 
+          ImGui.EndMenu(ctx) 
           return 
         end
         
       end
     end
-    ImGui_EndPopup(ctx)
+    ImGui.EndPopup(ctx)
   end
       
       
   
   
 end
---------------------------------------------------------------------------------  
-app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
-if app_vrs < 7 then 
-  MB('This script require REAPER 7.0+','',0)
- else
-  if not APIExists( 'ImGui_GetVersion' ) then MB('This script require ReaImGui extension','',0) return end
+-----------------------------------------------------------------------------------------
   main()
-end
