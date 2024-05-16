@@ -1,10 +1,11 @@
 -- @description InstrumentRack
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---  # fix error at removing controls
+--  # lots of fixes by cfillion, see  https://github.com/MichaelPilyavskiy/ReaScripts/pull/50
+--   # require ReaImGUI 0.9+
     
     
 --NOT reaper NOT gfx
@@ -32,14 +33,18 @@ DATA = {
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
-app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
+for key in pairs(reaper) do _G[key]=reaper[key] end 
+app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
 if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
 
-if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
-package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-local ImGui = require 'imgui' '0.9'
-
-for key in pairs(reaper) do _G[key]=reaper[key] end 
+local ImGui
+if APIExists('ImGui_GetBuiltinPath') then
+  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+  package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+  ImGui = require 'imgui' '0.9'
+ else 
+  return reaper.MB('This script require ReaImGui extension 0.9+','',0) 
+end
 --local ctx
 -------------------------------------------------------------------------------- UI init variables
 UI = {}
