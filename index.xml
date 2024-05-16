@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="63f6877781675cbe54a372c35ae677d36a5c8ec6" name="MPL Scripts">
+<index version="1" commit="7a93d7f7cd9d9232a37adf29a5b9f31cd8cf2c22" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1836,6 +1836,11 @@
       <version name="2.03" author="MPL" time="2024-05-15T20:15:43Z">
         <changelog><![CDATA[# fix error at removing controls]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/63f6877781675cbe54a372c35ae677d36a5c8ec6/FX/mpl_InstrumentRack.lua</source>
+      </version>
+      <version name="2.04" author="MPL" time="2024-05-16T16:51:30Z">
+        <changelog><![CDATA[# lots of fixes by cfillion, see  https://github.com/MichaelPilyavskiy/ReaScripts/pull/50
+ # require ReaImGUI 0.9+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7a93d7f7cd9d9232a37adf29a5b9f31cd8cf2c22/FX/mpl_InstrumentRack.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
