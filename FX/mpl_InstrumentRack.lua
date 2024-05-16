@@ -32,6 +32,13 @@ DATA = {
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
+app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
+if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
+
+if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9'
+
 for key in pairs(reaper) do _G[key]=reaper[key] end 
 --local ctx
 -------------------------------------------------------------------------------- UI init variables
@@ -86,31 +93,29 @@ end
 -------------------------------------------------------------------------------- 
 function UI.MAIN_PushStyle(key, value, value2, iscol)  
   if not iscol then 
-    ImGui_PushStyleVar(ctx, key, value, value2)
+    ImGui.PushStyleVar(ctx, key, value, value2)
     UI.pushcnt = UI.pushcnt + 1
   else 
-    ImGui_PushStyleColor(ctx, key, math.floor(value2*255)|(value<<8) )
+    ImGui.PushStyleColor(ctx, key, math.floor(value2*255)|(value<<8) )
     UI.pushcnt2 = UI.pushcnt2 + 1
   end 
 end
 -------------------------------------------------------------------------------- 
-function UI.MAIN_draw(open) 
-  
-  if not (ctx and  ImGui_ValidatePtr( ctx, 'ImGui_Context*' ) ) then return end
+function UI.MAIN_draw()
   -- window_flags
-    local window_flags = ImGui_WindowFlags_None()
-    --window_flags = window_flags | ImGui_WindowFlags_NoTitleBar()
-    --window_flags = window_flags | ImGui_WindowFlags_NoScrollbar()
-    window_flags = window_flags | ImGui_WindowFlags_MenuBar()
-    --window_flags = window_flags | ImGui_WindowFlags_NoMove()
-    --window_flags = window_flags | ImGui_WindowFlags_NoResize()
-    window_flags = window_flags | ImGui_WindowFlags_NoCollapse()
-    --window_flags = window_flags | ImGui_WindowFlags_NoNav()
-    --window_flags = window_flags | ImGui_WindowFlags_NoBackground()
-    --window_flags = window_flags | ImGui_WindowFlags_NoDocking()
-    window_flags = window_flags | ImGui_WindowFlags_TopMost()
-    --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui_WindowFlags_NoSavedSettings() end
-    --window_flags = window_flags | ImGui_WindowFlags_UnsavedDocument()
+    local window_flags = ImGui.WindowFlags_None
+    --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
+    --window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
+    window_flags = window_flags | ImGui.WindowFlags_MenuBar
+    --window_flags = window_flags | ImGui.WindowFlags_NoMove
+    --window_flags = window_flags | ImGui.WindowFlags_NoResize
+    window_flags = window_flags | ImGui.WindowFlags_NoCollapse
+    --window_flags = window_flags | ImGui.WindowFlags_NoNav
+    --window_flags = window_flags | ImGui.WindowFlags_NoBackground
+    --window_flags = window_flags | ImGui.WindowFlags_NoDocking
+    window_flags = window_flags | ImGui.WindowFlags_TopMost
+    --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings end
+    --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument
     --open = false -- disable the close button
   
   
@@ -118,57 +123,57 @@ function UI.MAIN_draw(open)
     UI.pushcnt = 0
     UI.pushcnt2 = 0
   -- rounding
-    UI.MAIN_PushStyle(ImGui_StyleVar_FrameRounding(),5)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_GrabRounding(),5)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowRounding(),10)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_ChildRounding(),5)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_PopupRounding(),0)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_ScrollbarRounding(),9)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_TabRounding(),4)   
+    UI.MAIN_PushStyle(ImGui.StyleVar_FrameRounding,5)
+    UI.MAIN_PushStyle(ImGui.StyleVar_GrabRounding,5)
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowRounding,10)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ChildRounding,5)
+    UI.MAIN_PushStyle(ImGui.StyleVar_PopupRounding,0)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ScrollbarRounding,9)
+    UI.MAIN_PushStyle(ImGui.StyleVar_TabRounding,4)
   -- Borders
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowBorderSize(),0)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_FrameBorderSize(),0) 
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowBorderSize,0)
+    UI.MAIN_PushStyle(ImGui.StyleVar_FrameBorderSize,0)
   -- spacing
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowPadding(),UI.spacingX,UI.spacingY)  
-    UI.MAIN_PushStyle(ImGui_StyleVar_FramePadding(),5,5) 
-    UI.MAIN_PushStyle(ImGui_StyleVar_CellPadding(),UI.spacingX, UI.spacingY) 
-    UI.MAIN_PushStyle(ImGui_StyleVar_ItemSpacing(),UI.spacingX, UI.spacingY)
-    UI.MAIN_PushStyle(ImGui_StyleVar_ItemInnerSpacing(),4,0)
-    UI.MAIN_PushStyle(ImGui_StyleVar_IndentSpacing(),20)
-    UI.MAIN_PushStyle(ImGui_StyleVar_ScrollbarSize(),14)
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowPadding,UI.spacingX,UI.spacingY)  
+    UI.MAIN_PushStyle(ImGui.StyleVar_FramePadding,5,5) 
+    UI.MAIN_PushStyle(ImGui.StyleVar_CellPadding,UI.spacingX, UI.spacingY) 
+    UI.MAIN_PushStyle(ImGui.StyleVar_ItemSpacing,UI.spacingX, UI.spacingY)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ItemInnerSpacing,4,0)
+    UI.MAIN_PushStyle(ImGui.StyleVar_IndentSpacing,20)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ScrollbarSize,14)
   -- size
-    UI.MAIN_PushStyle(ImGui_StyleVar_GrabMinSize(),10)
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowMinSize(),400,150)
+    UI.MAIN_PushStyle(ImGui.StyleVar_GrabMinSize,10)
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowMinSize,400,150)
   -- align
-    UI.MAIN_PushStyle(ImGui_StyleVar_WindowTitleAlign(),0.5,0.5)
-    UI.MAIN_PushStyle(ImGui_StyleVar_ButtonTextAlign(),0.5,0.5)
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SelectableTextAlign(),0,0 )
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SeparatorTextAlign(),0,0.5 )
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SeparatorTextPadding(),20,3 )
-    --UI.MAIN_PushStyle(ImGui_StyleVar_SeparatorTextBorderSize(),3 )
+    UI.MAIN_PushStyle(ImGui.StyleVar_WindowTitleAlign,0.5,0.5)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ButtonTextAlign,0.5,0.5)
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SelectableTextAlign,0,0 )
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SeparatorTextAlign,0,0.5 )
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SeparatorTextPadding,20,3 )
+    --UI.MAIN_PushStyle(ImGui.StyleVar_SeparatorTextBorderSize,3 )
   -- alpha
-    UI.MAIN_PushStyle(ImGui_StyleVar_Alpha(),0.98)
-    --UI.MAIN_PushStyle(ImGui_StyleVar_DisabledAlpha(),0.6 ) 
-    UI.MAIN_PushStyle(ImGui_Col_Border(),UI.main_col, 0.3, true)
+    UI.MAIN_PushStyle(ImGui.StyleVar_Alpha,0.98)
+    --UI.MAIN_PushStyle(ImGui.StyleVar_DisabledAlpha,0.6 )
+    UI.MAIN_PushStyle(ImGui.Col_Border,UI.main_col, 0.3, true)
   -- colors
-    --UI.MAIN_PushStyle(ImGui_Col_BorderShadow(),0xFFFFFF, 1, true)
-    UI.MAIN_PushStyle(ImGui_Col_Button(),UI.main_col, 0.3, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonActive(),UI.main_col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonHovered(),UI.but_hovered, 0.8, true)
-    --UI.MAIN_PushStyle(ImGui_Col_CheckMark(),UI.main_col, 0, true)
-    --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),UI.main_col, 0, true)
+    --UI.MAIN_PushStyle(ImGui.Col_BorderShadow,0xFFFFFF, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_Button,UI.main_col, 0.3, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonActive,UI.main_col, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonHovered,UI.but_hovered, 0.8, true)
+    --UI.MAIN_PushStyle(ImGui.Col_CheckMark,UI.main_col, 0, true)
+    --UI.MAIN_PushStyle(ImGui.Col_ChildBg,UI.main_col, 0, true)
     
     
     --Constant: Col_DockingEmptyBg
     --Constant: Col_DockingPreview
     --Constant: Col_DragDropTarget 
-    UI.MAIN_PushStyle(ImGui_Col_DragDropTarget(),0xFF1F5F, 0.6, true)
-    UI.MAIN_PushStyle(ImGui_Col_FrameBg(),0x1F1F1F, 0.7, true)
-    UI.MAIN_PushStyle(ImGui_Col_FrameBgActive(),UI.main_col, .9, true)
-    UI.MAIN_PushStyle(ImGui_Col_FrameBgHovered(),UI.main_col, 1, true)
-    UI.MAIN_PushStyle(ImGui_Col_Header(),UI.main_col, 0.5, true) 
-    UI.MAIN_PushStyle(ImGui_Col_HeaderActive(),UI.main_col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_HeaderHovered(),UI.main_col, 0.98, true) 
+    UI.MAIN_PushStyle(ImGui.Col_DragDropTarget,0xFF1F5F, 0.6, true)
+    UI.MAIN_PushStyle(ImGui.Col_FrameBg,0x1F1F1F, 0.7, true)
+    UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.main_col, .9, true)
+    UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_Header,UI.main_col, 0.5, true)
+    UI.MAIN_PushStyle(ImGui.Col_HeaderActive,UI.main_col, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_HeaderHovered,UI.main_col, 0.98, true)
     --Constant: Col_MenuBarBg
     --Constant: Col_ModalWindowDimBg
     --Constant: Col_NavHighlight
@@ -178,13 +183,13 @@ function UI.MAIN_draw(open)
     --Constant: Col_PlotHistogramHovered
     --Constant: Col_PlotLines
     --Constant: Col_PlotLinesHovered 
-    UI.MAIN_PushStyle(ImGui_Col_PopupBg(),0x303030, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ResizeGrip(),UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_PopupBg,0x303030, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_ResizeGrip,UI.main_col, 1, true)
     --Constant: Col_ResizeGripActive 
-    UI.MAIN_PushStyle(ImGui_Col_ResizeGripHovered(),UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ResizeGripHovered,UI.main_col, 1, true)
     --Constant: Col_ScrollbarBg
     --Constant: Col_ScrollbarGrab
-    UI.MAIN_PushStyle(ImGui_Col_ScrollbarGrab(),UI.main_col, 1, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ScrollbarGrab,UI.main_col, 1, true)
     --Constant: Col_ScrollbarGrabActive
     --Constant: Col_ScrollbarGrabHovered
     --Constant: Col_Separator
@@ -192,54 +197,58 @@ function UI.MAIN_draw(open)
     --Constant: Col_SeparatorHovered
     --Constant: Col_SliderGrab
     --Constant: Col_SliderGrabActive
-    UI.MAIN_PushStyle(ImGui_Col_Tab(),UI.main_col, 0.37, true) 
-    UI.MAIN_PushStyle(ImGui_Col_TabActive(),UI.main_col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_TabHovered(),UI.main_col, 0.8, true) 
+    UI.MAIN_PushStyle(ImGui.Col_Tab,UI.main_col, 0.37, true)
+    UI.MAIN_PushStyle(ImGui.Col_TabActive,UI.main_col, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_TabHovered,UI.main_col, 0.8, true)
     --Constant: Col_TabUnfocused
-    --ImGui_Col_TabUnfocusedActive
-    --UI.MAIN_PushStyle(ImGui_Col_TabUnfocusedActive(),UI.main_col, 0.8, true)
+    --ImGui.Col_TabUnfocusedActive
+    --UI.MAIN_PushStyle(ImGui.Col_TabUnfocusedActive,UI.main_col, 0.8, true)
     --Constant: Col_TableBorderLight
     --Constant: Col_TableBorderStrong
     --Constant: Col_TableHeaderBg
     --Constant: Col_TableRowBg
     --Constant: Col_TableRowBgAlt
-    UI.MAIN_PushStyle(ImGui_Col_Text(),UI.textcol, UI.textcol_a_enabled, true) 
+    UI.MAIN_PushStyle(ImGui.Col_Text,UI.textcol, UI.textcol_a_enabled, true)
     --Constant: Col_TextDisabled
     --Constant: Col_TextSelectedBg
-    UI.MAIN_PushStyle(ImGui_Col_TitleBg(),UI.main_col, 0.7, true) 
-    UI.MAIN_PushStyle(ImGui_Col_TitleBgActive(),UI.main_col, 0.95, true) 
+    UI.MAIN_PushStyle(ImGui.Col_TitleBg,UI.main_col, 0.7, true)
+    UI.MAIN_PushStyle(ImGui.Col_TitleBgActive,UI.main_col, 0.95, true)
     --Constant: Col_TitleBgCollapsed 
-    UI.MAIN_PushStyle(ImGui_Col_WindowBg(),UI.windowBg, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_WindowBg,UI.windowBg, 1, true)
     
   -- We specify a default position/size in case there's no data in the .ini file.
-    local main_viewport = ImGui_GetMainViewport(ctx)
-    local work_pos = {ImGui_Viewport_GetWorkPos(main_viewport)}
-    --ImGui_SetNextWindowPos(ctx, work_pos[1] + 20, work_pos[2] + 20, ImGui_Cond_FirstUseEver())
-    local useini = ImGui_Cond_FirstUseEver()
-    ImGui_SetNextWindowSize(ctx, 550, 680, useini)
+    local main_viewport = ImGui.GetMainViewport(ctx)
+    local work_pos = {ImGui.Viewport_GetWorkPos(main_viewport)}
+    --ImGui.SetNextWindowPos(ctx, work_pos[1] + 20, work_pos[2] + 20, ImGui.Cond_FirstUseEver)
+    local useini = ImGui.Cond_FirstUseEver
+    ImGui.SetNextWindowSize(ctx, 550, 680, useini)
     
     
   -- init UI 
-    ImGui_PushFont(ctx, DATA.font1) 
-    rv,open = ImGui_Begin(ctx, DATA.UI_name, open, window_flags) if not rv then return open end  
-    local ImGui_Viewport = ImGui_GetWindowViewport(ctx)
-    DATA.display_w, DATA.display_h = ImGui_Viewport_GetSize(ImGui_Viewport)
-    
-  -- calc stuff for childs
-    UI.calc_xoffset,UI.calc_yoffset = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_WindowPadding())
-    local framew,frameh = reaper.ImGui_GetStyleVar(ctx, ImGui_StyleVar_FramePadding())
-    local calcitemw, calcitemh = ImGui_CalcTextSize(ctx, 'test', nil, nil, false, -1.0)
-    UI.calc_itemH = calcitemh + frameh * 2
-    UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
-    
-  -- draw stuff
-    UI.draw()
-    ImGui_PopFont( ctx ) 
-    ImGui_PopStyleVar(ctx, UI.pushcnt)
-    ImGui_PopStyleColor(ctx, UI.pushcnt2)
-    
-    ImGui_Dummy(ctx,0,0)
-  ImGui_End(ctx)
+    ImGui.PushFont(ctx, DATA.font1)
+    local visible,open = ImGui.Begin(ctx, DATA.UI_name, true, window_flags)
+    if visible then
+      DATA.display_w, DATA.display_h = ImGui.GetWindowSize(ctx) -- GetContentRegionAvail?
+
+    -- calc stuff for childs
+      UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
+      local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
+      local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
+      UI.calc_itemH = calcitemh + frameh * 2
+      UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
+
+    -- draw stuff
+      UI.draw()
+
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2)
+      ImGui.End(ctx)
+    else
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2)
+    end
+
+    ImGui.PopFont( ctx )
   
   return open
 end
@@ -262,26 +271,26 @@ function UI.MAINloop()
   DATA.upd = false
   
   -- draw UI
-  UI.open = UI.MAIN_draw(true) 
+  UI.open = UI.MAIN_draw()
   
   -- data
   if UI.open then defer(UI.MAINloop) end
 end
 -------------------------------------------------------------------------------- 
-function UI.SameLine(ctx) reaper.ImGui_SameLine(ctx) reaper.ImGui_SameLine(ctx)end
+function UI.SameLine(ctx) ImGui.SameLine(ctx) ImGui.SameLine(ctx)end
 -------------------------------------------------------------------------------- 
 function UI.MAIN()
   
   EXT:load() 
-  -- imgUI init
-  ctx = ImGui_CreateContext(DATA.UI_name) 
+  -- imGUI init
+  ctx = ImGui.CreateContext(DATA.UI_name)
   -- fonts
-  DATA.font1 = ImGui_CreateFont(UI.font, UI.font1sz) ImGui_Attach(ctx, DATA.font1)
-  DATA.font2 = ImGui_CreateFont(UI.font, UI.font2sz) ImGui_Attach(ctx, DATA.font2)
-  DATA.font3 = ImGui_CreateFont(UI.font, UI.font3sz) ImGui_Attach(ctx, DATA.font3)  
+  DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
+  DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
+  DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)
   -- config
-  reaper.ImGui_SetConfigVar(ctx, ImGui_ConfigVar_HoverDelayNormal(), UI.hoverdelay)
-  reaper.ImGui_SetConfigVar(ctx, ImGui_ConfigVar_HoverDelayShort(), UI.hoverdelayshort)
+  ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
+  ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
   
   -- run loop
   defer(UI.MAINloop)
@@ -527,14 +536,14 @@ end
 --------------------------------------------------------------------------------  
 function UI.draw_plugin_handlelatchstate(t)  
   -- handle mouse state
-  if  ImGui_IsItemActivated( ctx ) then DATA.latchstate = t.paramval return end 
+  if  ImGui.IsItemActivated( ctx ) then DATA.latchstate = t.paramval return end
   
-  if  reaper.ImGui_IsItemActive( ctx ) then
-    local x, y = reaper.ImGui_GetMouseDragDelta( ctx, x, y,  ImGui_MouseButton_Left(), -1 )
+  if  ImGui.IsItemActive( ctx ) then
+    local x, y = ImGui.GetMouseDragDelta( ctx )
     local outval = DATA.latchstate - y/500
     outval = math.max(0,math.min(outval,1))
     local fxGUID = t.fxGUID
-    local dx, dy = reaper.ImGui_GetMouseDelta( ctx )
+    local dx, dy = ImGui.GetMouseDelta( ctx )
     if dy~=0 then
       DATA.Plugin_params_set(fxGUID,{paramidx = t.paramidx, paramval = outval})
     end
@@ -549,40 +558,40 @@ function UI.draw_plugin(plugdata,sec_col, islast)
   local butw = 60
   local butw_low = math.floor(butw*2 - UI.spacingX)/3
   local fxGUID = plugdata.fxGUID
-  --UI.MAIN_PushStyle(ImGui_Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
-  UI.MAIN_PushStyle(ImGui_Col_ChildBg(),plugdata.tr_col, 0.2, true)
+  --UI.MAIN_PushStyle(ImGui.Col_ChildBg,UI.windowBg_plugin, 0.2, true)
+  UI.MAIN_PushStyle(ImGui.Col_ChildBg,plugdata.tr_col, 0.2, true)
   local sz_w,sz_h = 0,0
   if EXT.usesecondcol == 1 then 
     sz_w = DATA.display_w/2-UI.spacingX*2
   end
-  if ImGui_BeginChild( ctx, plugname..'##'..fxGUID, sz_w,sz_h,  ImGui_ChildFlags_AutoResizeY()|ImGui_ChildFlags_Border(), 0 ) then
+  if ImGui.BeginChild( ctx, plugname..'##'..fxGUID, sz_w,sz_h,  ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border ) then
     
     
     
     -- online
     local online = 'Online' 
     if plugdata.online == false then online = 'Offline' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
-    local ret = ImGui_Button( ctx, online..'##off'..fxGUID, butw, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, online..'##off'..fxGUID, butw ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{online= plugdata.online}) end
     
     -- bypass
     local bypass = 'Bypass' 
     if plugdata.enabled == true then bypass = 'Bypass' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_green) end 
-    local ret = ImGui_Button( ctx, bypass..'##byp'..fxGUID, butw, 0 ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, bypass..'##byp'..fxGUID, butw ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{bypass= not plugdata.enabled}) end
     
-    ImGui_Dummy(ctx,20,0) UI.SameLine(ctx)
+    ImGui.Dummy(ctx,20,0) UI.SameLine(ctx)
     local txtout =  plugdata.txt_out
     if DATA.extplugins[fxGUID] and DATA.extplugins[fxGUID].customname and DATA.extplugins[fxGUID].customname ~= 'nil' then txtout = DATA.extplugins[fxGUID].customname end
-    if not (DATA.editfield and DATA.editfield == fxGUID) then ImGui_Text(ctx, txtout) end
-    if ImGui_IsItemClicked( ctx,  ImGui_MouseButton_Right() ) then
+    if not (DATA.editfield and DATA.editfield == fxGUID) then ImGui.Text(ctx, txtout) end
+    if ImGui.IsItemClicked( ctx,  ImGui.MouseButton_Right ) then
       DATA.editfield = fxGUID
     end
     
     if DATA.editfield == fxGUID then
       UI.SameLine(ctx)
-      ImGui_SetKeyboardFocusHere( ctx, 0 )
-      local retval, buf = ImGui_InputText( ctx,  '##'..fxGUID, txtout, ImGui_InputTextFlags_None()|ImGui_InputTextFlags_EnterReturnsTrue(), nil )
+      ImGui.SetKeyboardFocusHere( ctx )
+      local retval, buf = ImGui.InputText( ctx,  '##'..fxGUID, txtout, ImGui.InputTextFlags_EnterReturnsTrue )
       if retval then 
         if not DATA.extplugins[fxGUID] then DATA.extplugins[fxGUID] = {} end
         if buf == '' then buf = 'nil' end
@@ -593,58 +602,58 @@ function UI.draw_plugin(plugdata,sec_col, islast)
       end
     end
     --
-    ImGui_PushFont(ctx, DATA.font3) 
+    ImGui.PushFont(ctx, DATA.font3)
     -- open
     if plugdata.open == true then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end 
-    local ret = ImGui_Button( ctx, 'FX'..'##fx'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, 'FX'..'##fx'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{open= not plugdata.open}) end
 
     -- solo
     if plugdata.tr_solo == true then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end 
-    local ret = ImGui_Button( ctx, 'S'..'##s'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, 'S'..'##s'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{solo = not plugdata.tr_solo}) end
 
     
     -- mute
     if plugdata.tr_mute == true then UI.draw_setbuttoncolor(UI.butBg_red) else UI.draw_setbuttoncolor(UI.main_col) end 
-    local ret = ImGui_Button( ctx, 'M', butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, 'M', butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Plugin_params_set(fxGUID,{mute = not plugdata.tr_mute}) end
     
-    ImGui_Dummy(ctx,20,0) UI.SameLine(ctx)
+    ImGui.Dummy(ctx,20,0) UI.SameLine(ctx)
     
     -- preset
     UI.draw_setbuttoncolor(UI.main_col)
-    local ret = ImGui_Button( ctx, '<'..'##presL'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(fxGUID,{preset = -1}) end
-    local ret = ImGui_Button( ctx, '>'..'##presR'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(fxGUID,{preset = 1}) end
-    ImGui_Text(ctx, plugdata.presetname)
+    local ret = ImGui.Button( ctx, '<'..'##presL'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(fxGUID,{preset = -1}) end
+    local ret = ImGui.Button( ctx, '>'..'##presR'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(fxGUID,{preset = 1}) end
+    ImGui.Text(ctx, plugdata.presetname)
     UI.draw_unsetbuttoncolor()
     
     -- add fx
-    local ret = ImGui_Button( ctx, '+'..'##addparam'..fxGUID, 0, UI.calc_itemH) 
-    if ImGui_IsItemHovered(ctx, ImGui_HoveredFlags_ForTooltip()) then ImGui_SetTooltip(ctx, 'Add last touched parameter for instrument of FX') end
+    local ret = ImGui.Button( ctx, '+'..'##addparam'..fxGUID, 0, UI.calc_itemH)
+    ImGui.SetItemTooltip(ctx, 'Add last touched parameter for instrument of FX')
     if ret ==true then DATA.Plugin_params_extset(plugdata) DATA.upd = true end
     
     if DATA.extctrls[fxGUID] then  
       
       UI.extinfo[fxGUID] = ""
       UI.SameLine(ctx) 
-      UI.MAIN_PushStyle(ImGui_Col_SliderGrab(),UI.main_col, 0, true) 
-      UI.MAIN_PushStyle(ImGui_Col_SliderGrabActive(),UI.main_col, 0, true) 
-      UI.MAIN_PushStyle(ImGui_Col_FrameBgHovered(),UI.main_col, .1, true)
-      UI.MAIN_PushStyle(ImGui_Col_FrameBgActive(),UI.main_col, .3, true)
+      UI.MAIN_PushStyle(ImGui.Col_SliderGrab,UI.main_col, 0, true)
+      UI.MAIN_PushStyle(ImGui.Col_SliderGrabActive,UI.main_col, 0, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, .1, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.main_col, .3, true)
       for extid = 1, #DATA.extctrls[fxGUID] do
         if not DATA.extctrls[fxGUID][extid] then goto skipnextctrl end
         -- define
         local butid = '##ext'..extid..fxGUID
-        local retval, v = reaper.ImGui_VSliderDouble( ctx, butid,  UI.calc_itemH,  UI.calc_itemH, DATA.extctrls[fxGUID][extid].paramval, 0, 1, '',  ImGui_SliderFlags_None() )
+        local retval, v = ImGui.VSliderDouble( ctx, butid,  UI.calc_itemH,  UI.calc_itemH, DATA.extctrls[fxGUID][extid].paramval, 0, 1, '' )
         UI.draw_plugin_handlelatchstate(DATA.extctrls[fxGUID][extid])  
         -- tooltip
-        if ImGui_IsItemHovered( ctx,  ImGui_HoveredFlags_None() ) or ImGui_IsItemActive( ctx )  then  
+        if ImGui.IsItemHovered( ctx ) or ImGui.IsItemActive( ctx )  then
           UI.extinfo[fxGUID] = DATA.extctrls[fxGUID][extid].paramname  
         end
-        if ImGui_IsItemHovered( ctx,  ImGui_HoveredFlags_None() )  then 
+        if ImGui.IsItemHovered( ctx )  then
           -- delete click
-          if  ImGui_IsKeyPressed( ctx,   ImGui_Key_Delete(), 0 ) then 
+          if  ImGui.IsKeyPressed( ctx,   ImGui.Key_Delete, false ) then
             table.remove(DATA.extctrls[fxGUID], extid)
             DATA.CtrlsExtState_Write()
             DATA.upd = true
@@ -657,13 +666,13 @@ function UI.draw_plugin(plugdata,sec_col, islast)
         UI.SameLine(ctx)
         ::skipnextctrl::
       end
-      ImGui_PopStyleColor(ctx,4)UI.pushcnt2 = UI.pushcnt2 - 4
+      ImGui.PopStyleColor(ctx,4)UI.pushcnt2 = UI.pushcnt2 - 4
       
-      ImGui_Text(ctx,UI.extinfo[fxGUID])
+      ImGui.Text(ctx,UI.extinfo[fxGUID])
     end
     
-    ImGui_PopFont(ctx) 
-    ImGui_EndChild( ctx )
+    ImGui.PopFont(ctx)
+    ImGui.EndChild( ctx )
   end
   if EXT.usesecondcol == 1 then
     if sec_col  then UI.SameLine(ctx) end
@@ -672,14 +681,14 @@ end
 -------------------------------------------------------------------------------- 
 function UI.draw_knob(val) 
   if not val then return end
-  --local draw_list = ImGui_GetWindowDrawList(ctx)
-  local draw_list = ImGui_GetForegroundDrawList(ctx)
+  --local draw_list = ImGui.GetWindowDrawList(ctx)
+  local draw_list = ImGui.GetForegroundDrawList(ctx)
   if UI.menuopened == true then 
     return 
   end
-  ImGui_SameLine( ctx, 0, 0 ) 
-  local curposx, curposy = ImGui_GetCursorScreenPos(ctx)
-  local knob_w = ImGui_CalcItemWidth( ctx )
+  ImGui.SameLine( ctx, 0, 0 )
+  local curposx, curposy = ImGui.GetCursorScreenPos(ctx)
+  local knob_w = ImGui.CalcItemWidth( ctx )
   curposx = curposx - UI.calc_itemH
   
   local thicknessIn = 1
@@ -695,23 +704,23 @@ function UI.draw_knob(val)
   local radius_draw = math.floor(0.9 * radius)
   local center_x = curposx + radius
   local center_y = curposy + radius
-  --ImGui_DrawList_AddRect( draw_list, p_min_x, p_min_y, p_max_x, p_max_y, col_rgba, roundingIn,  ImGui_DrawFlags_None(), thicknessIn )
-  --ImGui_DrawList_AddCircle(draw_list, center_x, center_y, radius, 0xF0F0F0FF, 0,1.0)
+  --ImGui.DrawList_AddRect( draw_list, p_min_x, p_min_y, p_max_x, p_max_y, col_rgba, roundingIn,  ImGui.DrawFlags_None, thicknessIn )
+  --ImGui.DrawList_AddCircle(draw_list, center_x, center_y, radius, 0xF0F0F0FF, 0,1.0)
   local ang_min = -220
   local ang_max = 40
   local ang_val = ang_min + math.floor((ang_max - ang_min)*val)
   local radiusshift_y = (radius_draw- radius)
-  ImGui_DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max), 0)
-  ImGui_DrawList_PathStroke(draw_list, 0xF0F0F02F,  ImGui_DrawFlags_None(), 2)
-  ImGui_DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+2), 0)
-  ImGui_DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui_DrawFlags_None(), 2)
+  ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
+  ImGui.DrawList_PathStroke(draw_list, 0xF0F0F02F,  ImGui.DrawFlags_None, 2)
+  ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+2))
+  ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
   
   local radius_draw2 = radius_draw-1
   local radius_draw3 = radius_draw-6
-  ImGui_DrawList_PathClear(draw_list)
-  ImGui_DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
-  ImGui_DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
-  ImGui_DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui_DrawFlags_None(), 2)
+  ImGui.DrawList_PathClear(draw_list)
+  ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
+  ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
+  ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
 end
 -------------------------------------------------------------------------------- 
 function DATA.Plugin_params_extset(plugdata) 
@@ -747,50 +756,50 @@ function DATA.CtrlsExtState_Write()
 end
 --------------------------------------------------------------------------------  
 function UI.draw_setbuttoncolor(col) 
-    UI.MAIN_PushStyle(ImGui_Col_Button(),col, 0.7, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonActive(),col, 1, true) 
-    UI.MAIN_PushStyle(ImGui_Col_ButtonHovered(),col, 0.8, true)
+    UI.MAIN_PushStyle(ImGui.Col_Button,col, 0.7, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonActive,col, 1, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonHovered,col, 0.8, true)
 end
 --------------------------------------------------------------------------------  
 function UI.draw_unsetbuttoncolor() 
-  ImGui_PopStyleColor(ctx,3)
+  ImGui.PopStyleColor(ctx,3)
   UI.pushcnt2 = UI.pushcnt2 -3
 end
 --------------------------------------------------------------------------------  
 function UI.draw() 
   UI.menuopened = false
-  if ImGui_BeginMenuBar(ctx) then
-    if ImGui_MenuItem(ctx, 'Add FX', nil, false, true) then VF_Action(40701) end
-    if ImGui_BeginMenu(ctx,'Options') then
+  if ImGui.BeginMenuBar(ctx) then
+    if ImGui.MenuItem(ctx, 'Add FX') then VF_Action(40701) end
+    if ImGui.BeginMenu(ctx,'Options') then
       UI.menuopened = true
-      ImGui_SeparatorText(ctx, 'General')
-      local ret = ImGui_MenuItem(ctx, 'Select and scroll to track on click', nil, EXT.scrolltotrackonedit == 1, true) if ret then DATA.upd = true EXT.scrolltotrackonedit=EXT.scrolltotrackonedit~1 EXT:save() end
-      local ret = ImGui_MenuItem(ctx, 'Show FX chain instead floating FX', nil, EXT.floatchain == 1, true) if ret then DATA.upd = true EXT.floatchain=EXT.floatchain~1 EXT:save() end
-      local ret = ImGui_MenuItem(ctx, 'Hide RS5k instances', nil, EXT.hiders5k == 1, true) if ret then DATA.upd = true EXT.hiders5k=EXT.hiders5k~1 EXT:save() end
-      --local ret = ImGui_MenuItem(ctx, 'Use second column', nil, EXT.usesecondcol == 1, true) if ret then DATA.upd = true EXT.usesecondcol=EXT.usesecondcol~1 EXT:save() end
-      --local ret = ImGui_MenuItem(ctx, 'Sorting', nil, nil, false)
-      ImGui_SeparatorText(ctx, 'Sorting')
-      local ret = ImGui_MenuItem(ctx, 'Show offline FX at the end of list', nil, EXT.showofflineattheend == 1, true) if ret then 
+      ImGui.SeparatorText(ctx, 'General')
+      local ret = ImGui.MenuItem(ctx, 'Select and scroll to track on click', nil, EXT.scrolltotrackonedit == 1) if ret then DATA.upd = true EXT.scrolltotrackonedit=EXT.scrolltotrackonedit~1 EXT:save() end
+      local ret = ImGui.MenuItem(ctx, 'Show FX chain instead floating FX', nil, EXT.floatchain == 1) if ret then DATA.upd = true EXT.floatchain=EXT.floatchain~1 EXT:save() end
+      local ret = ImGui.MenuItem(ctx, 'Hide RS5k instances', nil, EXT.hiders5k == 1) if ret then DATA.upd = true EXT.hiders5k=EXT.hiders5k~1 EXT:save() end
+      --local ret = ImGui.MenuItem(ctx, 'Use second column', nil, EXT.usesecondcol == 1) if ret then DATA.upd = true EXT.usesecondcol=EXT.usesecondcol~1 EXT:save() end
+      --local ret = ImGui.MenuItem(ctx, 'Sorting', nil, nil, false)
+      ImGui.SeparatorText(ctx, 'Sorting')
+      local ret = ImGui.MenuItem(ctx, 'Show offline FX at the end of list', nil, EXT.showofflineattheend == 1) if ret then
         DATA.upd = true 
         EXT.showofflineattheend=EXT.showofflineattheend~1 
         if EXT.showofflineattheend ==1 then EXT.collectsamefoldinstr =0 end 
         EXT:save() 
       end
-      local ret = ImGui_MenuItem(ctx, 'Show folders as tree', nil, EXT.collectsamefoldinstr == 1, true) if ret then 
+      local ret = ImGui.MenuItem(ctx, 'Show folders as tree', nil, EXT.collectsamefoldinstr == 1) if ret then
         DATA.upd = true 
         EXT.collectsamefoldinstr=EXT.collectsamefoldinstr~1 
         if EXT.collectsamefoldinstr ==1 then EXT.showofflineattheend =0 end 
         EXT:save() 
       end
-      ImGui_EndMenu(ctx)
+      ImGui.EndMenu(ctx)
     end
     
-    local retval, search = ImGui_InputText(ctx, '', EXT.searchfilter, ImGui_InputTextFlags_None()|ImGui_InputTextFlags_AutoSelectAll())--|ImGui_InputTextFlags_EnterReturnsTrue()
+    local retval, search = ImGui.InputText(ctx, '##search', EXT.searchfilter, ImGui.InputTextFlags_AutoSelectAll)--|ImGui.InputTextFlags_EnterReturnsTrue
     if retval then 
       EXT.searchfilter = search
       EXT:save() 
     end
-    ImGui_EndMenuBar(ctx)
+    ImGui.EndMenuBar(ctx)
   end
   
   -- normal sorting by found instrument
@@ -806,21 +815,21 @@ function UI.draw()
         UI.draw_plugin(DATA.plugins_data[i], (i%2)==1,i==plugcnt) 
       end 
     end
-    if ImGui_TreeNode(ctx, '[Offline plugins]##off', ImGui_TreeNodeFlags_None()) then--ImGui_TreeNodeFlags_DefaultOpen()) then
+    if ImGui.TreeNode(ctx, '[Offline plugins]##off', ImGui.TreeNodeFlags_None) then--ImGui.TreeNodeFlags_DefaultOpen) then
       for i = 1, plugcnt do if DATA.plugins_data[i].online == false then UI.draw_plugin(DATA.plugins_data[i]) end end
-      ImGui_TreePop(ctx)
+      ImGui.TreePop(ctx)
     end
   end
   
   if EXT.collectsamefoldinstr == 1 then
     for partrGUID in pairs(DATA.plugins_tree) do
-      if ImGui_TreeNode(ctx, '##'..partrGUID, ImGui_TreeNodeFlags_DefaultOpen()) then
+      if ImGui.TreeNode(ctx, '##'..partrGUID, ImGui.TreeNodeFlags_DefaultOpen) then
         for j = 1, #DATA.plugins_tree[partrGUID] do   
           local id = DATA.plugins_tree[partrGUID][j]
           UI.draw_plugin(DATA.plugins_data[id]) 
         
         end 
-        ImGui_TreePop(ctx)
+        ImGui.TreePop(ctx)
       end
     end
   end
@@ -831,10 +840,4 @@ end
 
 
 --------------------------------------------------------------------------------  
-app_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
-if app_vrs < 7 then 
-  MB('This script require REAPER 7.0+','',0)
- else
-  if not APIExists( 'ImGui_GetVersion' ) then MB('This script require ReaImGui extension','',0) return end
-  main()
-end
+main()
