@@ -1,12 +1,10 @@
 -- @description Send control
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # fix error Begin/End_Window
---  # invert color of send mode
---  # update for using with 0.9 reaimgui
+--  # fix right mouse button
 
 
     
@@ -566,7 +564,7 @@ function UI.draw()
   
   if not (DATA.available_sends and #DATA.available_sends>0) then return end
   
-  if  ImGui.IsMouseClicked( ctx,  ImGui.MouseButton_Right(), false ) then ImGui.OpenPopup(ctx, 'sendspopup') end
+  if  ImGui.IsMouseClicked( ctx,  ImGui.MouseButton_Right, false ) then ImGui.OpenPopup(ctx, 'sendspopup') end
   
   ImGui.SameLine(ctx)
   --ImGui.Text(ctx, '<None>')
