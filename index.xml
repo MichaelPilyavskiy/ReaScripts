@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1344996041064800ceae0e715ecda696139802c4" name="MPL Scripts">
+<index version="1" commit="062c9daad458652fd3d893e354adfef2bddb7a08" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7811,6 +7811,23 @@
       <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/Tracks%20Properties/mpl_Reset%20color%20for%20all%20children%20tracks%20to%20their%20top%20level%20folders.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Return control.lua" type="script" desc="Return control">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Controlling send folder\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2024-05-17T20:22:01Z">
+        <changelog><![CDATA[# 0.9 reaimgui
+various fixes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/062c9daad458652fd3d893e354adfef2bddb7a08/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
