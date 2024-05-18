@@ -1,10 +1,14 @@
 -- @description Send control
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # fix right mouse button
+--    + handle last window position
+--    + Enable mousewheel on sliders
+--    # increase scrollbar width a bit
+--    # improve sizing
+--    # write automation in Latch mode
 
 
     
@@ -17,19 +21,17 @@
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
   if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end 
   local ImGui
-  if APIExists('ImGui_GetBuiltinPath') then
-    if not   reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
-    package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-    ImGui = require 'imgui' '0.9'
-   else 
-    return reaper.MB('This script require ReaImGui extension 0.9+','',0) 
-  end
+  
+  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+  package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+  ImGui = require 'imgui' '0.9'
   
   
   
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
-        
+        viewport_posX = 0,
+        viewport_posY = 0,
       }
 -------------------------------------------------------------------------------- INIT data
 DATA = {
@@ -123,6 +125,7 @@ function UI.MAIN_draw(open)
     --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
     window_flags = window_flags | ImGui.WindowFlags_NoDocking
     window_flags = window_flags | ImGui.WindowFlags_TopMost
+    window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
     --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings() end
     --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
     --open = false -- disable the close button
@@ -149,7 +152,7 @@ function UI.MAIN_draw(open)
     UI.MAIN_PushStyle(ImGui.StyleVar_ItemSpacing,UI.spacingX, UI.spacingY)
     UI.MAIN_PushStyle(ImGui.StyleVar_ItemInnerSpacing,4,0)
     UI.MAIN_PushStyle(ImGui.StyleVar_IndentSpacing,20)
-    UI.MAIN_PushStyle(ImGui.StyleVar_ScrollbarSize,14)
+    UI.MAIN_PushStyle(ImGui.StyleVar_ScrollbarSize,20)
   -- size
     UI.MAIN_PushStyle(ImGui.StyleVar_GrabMinSize,30)
     UI.MAIN_PushStyle(ImGui.StyleVar_WindowMinSize,w_min,h_min)
@@ -227,12 +230,9 @@ function UI.MAIN_draw(open)
     
   -- We specify a default position/size in case there's no data in the .ini file.
     local main_viewport = ImGui.GetMainViewport(ctx)
-    local work_pos = {ImGui.Viewport_GetWorkPos(main_viewport)}
-    x, y = reaper.GetMousePosition()
-    --ImGui.SetNextWindowPos(ctx, work_pos[1] + 20, work_pos[2] + 20)
-    ImGui.SetNextWindowPos(ctx, x+ 20, y+ 20, ImGui.Cond_Appearing)
-    local useini = ImGui.Cond_FirstUseEver
-    ImGui.SetNextWindowSize(ctx, 550, 680, useini)
+    local x, y =EXT.viewport_posX,EXT.viewport_posY-- ImGui.Viewport_GetPos(main_viewport)
+    ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+    ImGui.SetNextWindowSize(ctx, 550, 680, ImGui.Cond_FirstUseEver)
     
     
   -- init UI 
@@ -240,7 +240,9 @@ function UI.MAIN_draw(open)
     local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
-      DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport)
+      --DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport)
+      DATA.display_w, DATA.display_h = reaper.ImGui_GetContentRegionAvail( ctx )
+      DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport)
       --DATA.display_w, DATA.display_h = ImGui.GetWindowContentRegionMin(ctx)
       
     -- calc stuff for childs
@@ -286,8 +288,27 @@ function UI.MAINloop()
   -- draw UI
   UI.open = UI.MAIN_draw(true) 
   
+  -- handle xy
+  DATA:handleViewportXY()
   -- data
   if UI.open then defer(UI.MAINloop) end
+end
+-------------------------------------------------------------------------------- 
+function DATA:handleViewportXY()
+  if not (DATA.display_x and DATA.display_y) then return end
+  
+  if not DATA.display_x_last then DATA.display_x_last = DATA.display_x end
+  if not DATA.display_y_last then DATA.display_y_last = DATA.display_y end
+  
+  if DATA.display_x_last~= DATA.display_x or DATA.display_y_last~= DATA.display_y then DATA.display_schedule_save = os.clock() end
+  if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.3 then 
+    EXT.viewport_posX = DATA.display_x
+    EXT.viewport_posY = DATA.display_y
+    EXT:save() 
+    DATA.display_schedule_save = nil 
+  end
+  DATA.display_x_last = DATA.display_x
+  DATA.display_y_last = DATA.display_y
 end
 -------------------------------------------------------------------------------- 
 function UI.SameLine(ctx) ImGui.SameLine(ctx) end
@@ -435,9 +456,18 @@ end
 --------------------------------------------------------------------------------  
 function DATA.Send_params_set(send_t, param)
   if not param then return end
+  local immode = 0
   if param.mute~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'B_MUTE', param.mute) end
-  if param.vol_lin~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', DATA.Convert_Fader2Val(param.vol_lin)) end
-  if param.vol_dB~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', WDL_DB2VAL(param.vol_dB)) end
+  if param.vol_lin~= nil then 
+    local outvol = DATA.Convert_Fader2Val(param.vol_lin)
+    SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', outvol) 
+    SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
+  end
+  if param.vol_dB~= nil then 
+    local outvol = WDL_DB2VAL(param.vol_dB)
+    SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL',outvol )
+    SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
+  end
   if param.mode~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'I_SENDMODE', param.mode) end
   
   DATA.upd = true
@@ -489,8 +519,8 @@ function UI.draw_send(send_t)
   UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.2, true)
   local but_h = 20
   local ctrlw = 120
-  local slider_w = DATA.display_w-UI.calc_xoffset*4
-  local butw = (DATA.display_w-UI.calc_xoffset*7)/7
+  local slider_w = DATA.display_w-UI.calc_xoffset*2
+  local butw = (DATA.display_w-UI.calc_xoffset*6)/7
   if ImGui.BeginChild( ctx, send_t.sendidx..'##'..send_t.sendidx, 0, 0,  ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, 0 ) then
     
     ImGui.PushFont(ctx, DATA.font3) 
@@ -524,10 +554,24 @@ function UI.draw_send(send_t)
       DATA.Send_params_set(send_t, {vol_dB=v}) 
     end 
     ImGui.PopFont(ctx) 
-    
     local curposX, curposY = ImGui.GetCursorPos(ctx)
     ImGui.SetNextItemWidth( ctx, slider_w )
     local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
+    if ImGui_IsItemHovered( ctx ) then
+      local ctrl = ( 
+        ImGui.IsKeyPressed( ctx, ImGui.Mod_Ctrl, 1 )or
+        ImGui.IsKeyPressed( ctx, ImGui.Key_LeftCtrl, 1 )or
+        ImGui.IsKeyPressed( ctx, ImGui.Key_RightCtrl,1 )
+        ) 
+        
+      local vertical, horizontal = ImGui_GetMouseWheel( ctx )
+      if vertical ~=0 and ctrl then
+        local dir = -1
+        if vertical>0 then dir = 1 end
+        local step= 0.1
+        DATA.Send_params_set(send_t, {vol_dB=send_t.D_VOLdb+dir*step})
+      end
+    end
     if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx)
     ImGui.SetCursorPos(ctx, curposX, curposY)
     ImGui.Indent(ctx) ImGui.Text(ctx, send_t.desttrname) 
