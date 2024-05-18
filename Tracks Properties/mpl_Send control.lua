@@ -1,14 +1,10 @@
 -- @description Send control
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + handle last window position
---    + Enable mousewheel on sliders
---    # increase scrollbar width a bit
---    # improve sizing
---    # write automation in Latch mode
+--    # fix push/pop unsync
 
 
     
@@ -255,16 +251,14 @@ function UI.MAIN_draw(open)
     -- draw stuff
       UI.draw()
       ImGui.Dummy(ctx,0,0) 
-      ImGui.PopFont( ctx ) 
       ImGui.PopStyleVar(ctx, UI.pushcnt)
       ImGui.PopStyleColor(ctx, UI.pushcnt2) 
       ImGui.End(ctx)
      else
-      ImGui.PopFont( ctx ) 
       ImGui.PopStyleVar(ctx, UI.pushcnt)
       ImGui.PopStyleColor(ctx, UI.pushcnt2) 
-    end
-  
+    end 
+    ImGui.PopFont( ctx ) 
     if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
   
     return open
