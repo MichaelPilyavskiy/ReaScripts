@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # fix push/pop unsync
+--    # fix mousewheel
 
 
     
@@ -559,7 +559,7 @@ function UI.draw_send(send_t)
         ) 
         
       local vertical, horizontal = ImGui_GetMouseWheel( ctx )
-      if vertical ~=0 and ctrl then
+      if vertical ~=0  then
         local dir = -1
         if vertical>0 then dir = 1 end
         local step= 0.1
