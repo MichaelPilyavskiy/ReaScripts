@@ -1,13 +1,13 @@
 -- @description Send control
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # fix mousewheel
+--    + Add FX button
 
 
-    
+
     
 --NOT reaper NOT gfx
 
@@ -505,7 +505,17 @@ end
     if val > 1 then val = 1 end
     return VF_lim(val, 0.0001, 1)
   end
-  
+
+  --------------------------------------------------
+  function VF_GetTrackByGUID(giv_guid, reaproj)
+    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
+    for i = 1, CountTracks(reaproj or 0) do
+      local tr = GetTrack(reaproj or 0,i-1)
+      --local GUID = reaper.GetTrackGUID( tr )
+      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
+    end
+  end
 --------------------------------------------------------------------------------  
 function UI.draw_send(send_t)  
   --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
@@ -514,7 +524,7 @@ function UI.draw_send(send_t)
   local but_h = 20
   local ctrlw = 120
   local slider_w = DATA.display_w-UI.calc_xoffset*2
-  local butw = (DATA.display_w-UI.calc_xoffset*6)/7
+  local butw = (DATA.display_w-UI.calc_xoffset*7)/7
   if ImGui.BeginChild( ctx, send_t.sendidx..'##'..send_t.sendidx, 0, 0,  ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, 0 ) then
     
     ImGui.PushFont(ctx, DATA.font3) 
@@ -538,9 +548,18 @@ function UI.draw_send(send_t)
     if send_t.I_SENDMODE==3 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
     local ret = ImGui.Button( ctx, 'PostFX##sm3'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor()
     if ret then DATA.Send_params_set(send_t,{mode= 3}) end ]]   
+    local ret = ImGui.Button( ctx, 'FX##sm1fx'..send_t.sendidx, butw, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    if ret then 
+      local destGUID = send_t.destGUID
+      local tr = VF_GetTrackByGUID(destGUID)
+      if ValidatePtr(tr, 'MediaTrack*') then 
+        TrackFX_Show( tr, 0, 1 )
+      end
+        
+    end
     
     
-    ImGui.SetNextItemWidth( ctx, butw*4+UI.calc_xoffset*2 )
+    ImGui.SetNextItemWidth( ctx, butw*3+UI.calc_xoffset*2 )
     local step, step2 = 0.5, 0.2
     local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui.InputTextFlags_CharsDecimal|ImGui.InputTextFlags_EnterReturnsTrue )-- 
     if retval then 
