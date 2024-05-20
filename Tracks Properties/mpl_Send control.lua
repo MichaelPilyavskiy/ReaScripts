@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Add FX button
+--    # remove "db" from indicator
 
 
 
@@ -561,7 +561,7 @@ function UI.draw_send(send_t)
     
     ImGui.SetNextItemWidth( ctx, butw*3+UI.calc_xoffset*2 )
     local step, step2 = 0.5, 0.2
-    local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui.InputTextFlags_CharsDecimal|ImGui.InputTextFlags_EnterReturnsTrue )-- 
+    local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f", ImGui.InputTextFlags_CharsDecimal|ImGui.InputTextFlags_EnterReturnsTrue )-- dB 
     if retval then 
       v = VF_lim(v, -150,12)
       DATA.Send_params_set(send_t, {vol_dB=v}) 
