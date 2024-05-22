@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d0b89dff3a352e8c870d0968f0aabf915965e849" name="MPL Scripts">
+<index version="1" commit="2504c0c3b730cc56e88c694469fd0cc20507a2b0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6857,6 +6857,24 @@
       <version name="1.0" author="MPL" time="2022-03-30T20:17:44Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Ruler/mpl_Cycle%20grid%20values%20(mousewheel).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set edit cursor to mouse position quantized to beats.lua" type="script" desc="Set edit cursor to mouse position quantized to beats">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-05-22T18:41:23Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2504c0c3b730cc56e88c694469fd0cc20507a2b0/Ruler/mpl_Set%20edit%20cursor%20to%20mouse%20position%20quantized%20to%20beats.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set edit cursor to mouse position quantized to measures.lua" type="script" desc="Set edit cursor to mouse position quantized to measures">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-05-22T18:41:23Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2504c0c3b730cc56e88c694469fd0cc20507a2b0/Ruler/mpl_Set%20edit%20cursor%20to%20mouse%20position%20quantized%20to%20measures.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set project grid (MIDI CC and OSC only).lua" type="script" desc="Set project grid (MIDI CC and OSC only)">
