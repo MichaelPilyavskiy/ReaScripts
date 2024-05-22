@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # remove "db" from indicator
+--    # color prefaders sliders back with blue
 
 
 
@@ -67,6 +67,7 @@ UI = {}
   UI.textcol = 0xFFFFFF
   UI.but_hovered = 0x878787
   UI.windowBg = 0x303030
+  UI.sliderbackcol = 0x4F6C97
 -- alpha
   UI.textcol_a_enabled = 1
   UI.textcol_a_disabled = 0.5
@@ -540,6 +541,8 @@ function UI.draw_send(send_t)
     local txt = 'PostFX'
     local set = 0
     if send_t.I_SENDMODE==0 then txt = 'PostFader' set = 3 else set = 0 end  
+    
+    
     local ret = ImGui.Button( ctx, txt..'##sm1'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mode= set}) end
     --[[if send_t.I_SENDMODE==1 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
@@ -558,6 +561,13 @@ function UI.draw_send(send_t)
         
     end
     
+    if send_t.I_SENDMODE~=0 then  
+      UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.sliderbackcol, 0.2, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.sliderbackcol, 0.5, true)
+     else
+      UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.main_col, 0.2, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.5, true)
+    end
     
     ImGui.SetNextItemWidth( ctx, butw*3+UI.calc_xoffset*2 )
     local step, step2 = 0.5, 0.2
