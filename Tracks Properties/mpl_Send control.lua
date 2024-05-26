@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # color prefaders sliders back with blue
+--    # improve colouring of postfx slider
 
 
 
@@ -562,11 +562,13 @@ function UI.draw_send(send_t)
     end
     
     if send_t.I_SENDMODE~=0 then  
-      UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.sliderbackcol, 0.2, true)
-      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.sliderbackcol, 0.5, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.sliderbackcol, 0.7, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.sliderbackcol,0.8, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.sliderbackcol,1, true)
      else
       UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.main_col, 0.2, true)
       UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.5, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.main_col, 0.7, true)
     end
     
     ImGui.SetNextItemWidth( ctx, butw*3+UI.calc_xoffset*2 )
