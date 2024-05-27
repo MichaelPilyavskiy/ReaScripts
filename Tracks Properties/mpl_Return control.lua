@@ -1,11 +1,10 @@
 -- @description Return control
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---  # 0.9 reaimgui
---  various fixes
+--    + Right click to add send
 
     
 --NOT reaper NOT gfx
@@ -589,6 +588,44 @@ end
 function UI.draw()  
   local sendcnt= #DATA.available_sends
   for i = 1, sendcnt do UI.draw_send(DATA.available_sends[i]) end  
+  
+  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) then
+   
+    DATA:Action_AddSend()
+  end
+end
+-------------------------------------------------------------------------------- 
+function DATA:CollectData_GetLastAvailableSend()
+  local ret, tr, idx = DATA:CollectData_GetAvailableSends_GetFolder()
+  if not ret then return end
+  local level = 0
+  for i = idx, CountTracks(0) do
+    local tr = GetTrack(0,i-1)
+    level = level + GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  ) 
+    if level == 0 then 
+      return true, i-1
+    end
+  end
+end
+--------------------------------------------------------------------------------  
+function DATA:Action_AddSend()
+  
+  local retval, retvals_csv = reaper.GetUserInputs( 'New send', 1, '', '' )
+  if not retval then return end
+  
+  local ret, idx = DATA:CollectData_GetLastAvailableSend()
+  if not ret then return end
+  
+  local tr = GetTrack(0,idx)
+  local level = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  ) 
+  local I_CUSTOMCOLOR = GetMediaTrackInfo_Value( tr, 'I_CUSTOMCOLOR'  ) 
+  InsertTrackAtIndex( idx+1, false )
+  local newtr = GetTrack(0,idx+1)
+  GetSetMediaTrackInfo_String( newtr, 'P_NAME', retvals_csv, true )
+  SetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH',level+1  ) 
+  SetMediaTrackInfo_Value( newtr, 'I_FOLDERDEPTH',level  ) 
+  SetMediaTrackInfo_Value( newtr, 'I_CUSTOMCOLOR',I_CUSTOMCOLOR  ) 
+  reaper.TrackFX_Show( newtr, -1, 1 )
 end
 --------------------------------------------------------------------------------  
 
