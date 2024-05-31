@@ -1,10 +1,10 @@
 -- @description Return control
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Right click to add send
+--    + use integrated plugin search at right click
 
     
 --NOT reaper NOT gfx
@@ -34,6 +34,8 @@ DATA = {
         custom_fader_coeff = 50,
         
         send_folder_names = 'send',
+        find_plugin = {enabled=false},
+        lastfilter = '',
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
@@ -232,6 +234,8 @@ function UI.MAIN_draw(open)
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
+    
+    
     local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
@@ -246,11 +250,17 @@ function UI.MAIN_draw(open)
       UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
       
     -- draw stuff
-      UI.draw()
+      UI.draw() 
       ImGui.PopFont( ctx ) 
       ImGui.PopStyleVar(ctx, UI.pushcnt)
       ImGui.PopStyleColor(ctx, UI.pushcnt2) 
       ImGui.Dummy(ctx,0,0)
+      
+      if DATA.find_plugin.forcescrolltonewsend and os.clock()-DATA.find_plugin.forcescrolltonewsend>0.4 then  
+       reaper.ImGui_SetScrollY( ctx, reaper.ImGui_GetScrollMaxY( ctx ) )
+        DATA.find_plugin.forcescrolltonewsend = nil
+      end
+      
       ImGui.End(ctx)
      else
       ImGui.PopFont( ctx ) 
@@ -284,13 +294,40 @@ function UI.MAINloop()
   UI.open = UI.MAIN_draw(true) 
   
   -- data
-  if UI.open then defer(UI.MAINloop) end
+  if UI.open and not DATA.triggerstopdefer then defer(UI.MAINloop) end
 end
 -------------------------------------------------------------------------------- 
 function UI.SameLine(ctx) ImGui.SameLine(ctx) ImGui.SameLine(ctx)end
+--------------------------------------------------- 
+function DATA.EnumeratePlugins()
+  DATA.plugs_data = {} 
+  for i = 1, 10000 do
+    local retval, name, ident = reaper.EnumInstalledFX( i-1 )
+    if not retval then break end
+    if not name:match('i%:') then
+      DATA.plugs_data[#DATA.plugs_data+1] = {name = name, 
+                                   reduced_name = VF_ReduceFXname(name) ,
+                                   ident = ident}
+    end                                   
+  end
+  return plugs_data
+end
+---------------------------------------------------
+function VF_ReduceFXname(s) 
+  local s_out = s:match('[%:%/%s]+(.*)')
+  if not s_out then return s end
+  s_out = s_out:gsub('%(.-%)','') 
+  local pat_js = '.*[%/](.*)'
+  if s_out:match(pat_js) then s_out = s_out:match(pat_js) end  
+  if not s_out then 
+   return s 
+  else 
+    if s_out ~= '' then return s_out else return s end
+  end
+end
 -------------------------------------------------------------------------------- 
 function UI.MAIN()
-  
+  DATA.EnumeratePlugins()
   EXT:load() 
   -- imgUI init
   ctx = ImGui.CreateContext(DATA.UI_name) 
@@ -585,14 +622,51 @@ function Action(s,section,midieditor,flag,proj)
   end
 end
 --------------------------------------------------------------------------------  
-function UI.draw()  
-  local sendcnt= #DATA.available_sends
-  for i = 1, sendcnt do UI.draw_send(DATA.available_sends[i]) end  
-  
-  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) then
-   
-    DATA:Action_AddSend()
+function UI.draw_search() 
+  local retval, buf = reaper.ImGui_InputText( ctx, '##labinput', DATA.lastfilter, ImGui.InputTextFlags_None) UI.SameLine(ctx) 
+  if ImGui.Button(ctx, 'X', 0,0) then 
+    DATA.find_plugin.enabled = false
+    DATA.find_plugin.first_time = nil
   end
+  if retval and buf~= '' then 
+    DATA.plugs_data_filtered = {}
+    DATA.lastfilter = buf
+    local buf = buf:gsub('%p%s+',''):lower()
+    for i = 1, #DATA.plugs_data do
+      local fxname =  DATA.plugs_data[i].reduced_name:lower():gsub('%p%s+','')
+      if fxname:match(buf) then
+        DATA.plugs_data_filtered[#DATA.plugs_data_filtered+1] = DATA.plugs_data[i]
+      end
+    end
+  end
+  
+  if DATA.plugs_data_filtered then
+    for i = 1, #DATA.plugs_data_filtered do
+      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].reduced_name) then
+        DATA:Action_AddSend(DATA.plugs_data_filtered[i].name, DATA.plugs_data_filtered[i].reduced_name)
+        DATA.find_plugin.enabled = false
+        DATA.find_plugin.first_time = nil
+        DATA.find_plugin.forcescrolltonewsend = os.clock()
+      end
+    end
+  end 
+  
+  
+end
+--------------------------------------------------------------------------------  
+function UI.draw()  
+  if DATA.find_plugin.enabled == true then 
+    if not DATA.find_plugin.first_time then
+      reaper.ImGui_SetKeyboardFocusHere( ctx, 0 )
+      DATA.find_plugin.first_time = true
+    end
+    UI.draw_search() 
+    return 
+  end
+  local sendcnt= #DATA.available_sends
+  for i = 1, sendcnt do  UI.draw_send(DATA.available_sends[i])  end 
+  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) then DATA.find_plugin = {enabled = true} end
+  
 end
 -------------------------------------------------------------------------------- 
 function DATA:CollectData_GetLastAvailableSend()
@@ -608,24 +682,20 @@ function DATA:CollectData_GetLastAvailableSend()
   end
 end
 --------------------------------------------------------------------------------  
-function DATA:Action_AddSend()
-  
-  local retval, retvals_csv = reaper.GetUserInputs( 'New send', 1, '', '' )
-  if not retval then return end
-  
+function DATA:Action_AddSend(fxnameadd, fxname)
   local ret, idx = DATA:CollectData_GetLastAvailableSend()
-  if not ret then return end
-  
+  if not ret then return end 
   local tr = GetTrack(0,idx)
   local level = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  ) 
   local I_CUSTOMCOLOR = GetMediaTrackInfo_Value( tr, 'I_CUSTOMCOLOR'  ) 
   InsertTrackAtIndex( idx+1, false )
   local newtr = GetTrack(0,idx+1)
-  GetSetMediaTrackInfo_String( newtr, 'P_NAME', retvals_csv, true )
+  GetSetMediaTrackInfo_String( newtr, 'P_NAME', fxname, true )
   SetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH',level+1  ) 
   SetMediaTrackInfo_Value( newtr, 'I_FOLDERDEPTH',level  ) 
   SetMediaTrackInfo_Value( newtr, 'I_CUSTOMCOLOR',I_CUSTOMCOLOR  ) 
-  reaper.TrackFX_Show( newtr, -1, 1 )
+  TrackFX_AddByName( newtr, fxnameadd, false, 1 )
+  TrackFX_Show( newtr, 0, 3 )
 end
 --------------------------------------------------------------------------------  
 
