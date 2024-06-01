@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + show current track
+--    # fix error at empty src track name
 
 
 
@@ -418,7 +418,8 @@ function DATA:CollectData()
   if not tr then return end
   
   local sendscnt =  GetTrackNumSends( tr, 0 )
-  local retval, name = reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '', false )
+  --local retval, name = reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '', false )
+  local retval, name = reaper.GetTrackName( tr )
   DATA.tr_data.ptr = tr
   DATA.tr_data.name = name
   
@@ -629,7 +630,7 @@ end
 --------------------------------------------------------------------------------  
 function UI.draw() 
   
-  if DATA.tr_data.name then
+  if DATA.tr_data.name and DATA.tr_data.name ~= ''  then
     --ImGui.BeginDisabled(ctx)
     UI.MAIN_PushStyle(ImGui.Col_Button,UI.main_col,0, true) 
     UI.MAIN_PushStyle(ImGui.Col_ButtonActive,UI.but_hovered, 0, true)
