@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # improve colouring of postfx slider
+--    + show current track
 
 
 
@@ -418,7 +418,10 @@ function DATA:CollectData()
   if not tr then return end
   
   local sendscnt =  GetTrackNumSends( tr, 0 )
+  local retval, name = reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '', false )
   DATA.tr_data.ptr = tr
+  DATA.tr_data.name = name
+  
   for sendidx =1, sendscnt do
     local D_VOL = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
     local B_MUTE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' )
@@ -625,6 +628,16 @@ function GetTrackByGUID(GUIDin)
 end
 --------------------------------------------------------------------------------  
 function UI.draw() 
+  
+  if DATA.tr_data.name then
+    --ImGui.BeginDisabled(ctx)
+    UI.MAIN_PushStyle(ImGui.Col_Button,UI.main_col,0, true) 
+    UI.MAIN_PushStyle(ImGui.Col_ButtonActive,UI.but_hovered, 0, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonHovered,UI.but_hovered, 0, true)
+    ImGui.Button(ctx,DATA.tr_data.name, -1,0)
+    ImGui.PopStyleColor(ctx, 3) UI.pushcnt2=UI.pushcnt2-3
+    --ImGui.EndDisabled(ctx)
+  end
   
   
   local sendcnt= #DATA.tr_data.sends
