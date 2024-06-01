@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b60c5dc71ded1f9434c65ef3597ec3ec14f641df" name="MPL Scripts">
+<index version="1" commit="384dc98d50ba251d2bc01dcea99f3767929db26b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7855,6 +7855,11 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ use integrated plugin search at right click]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b60c5dc71ded1f9434c65ef3597ec3ec14f641df/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
+      <version name="1.05" author="MPL" time="2024-06-01T18:39:14Z">
+        <changelog><![CDATA[# use ident for plugin add
+# reset filter at add]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2db4aaa90e196afcefd8306490395d1bf104d750/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
       <metadata>
@@ -8001,6 +8006,10 @@ various fixes]]></changelog>
       <version name="1.15" author="MPL" time="2024-05-26T18:01:31Z">
         <changelog><![CDATA[# improve colouring of postfx slider]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf6358200de65f082bd06d2177a59d4564fdd6fe/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
+      <version name="1.16" author="MPL" time="2024-06-01T18:48:40Z">
+        <changelog><![CDATA[+ show current track]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384dc98d50ba251d2bc01dcea99f3767929db26b/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
