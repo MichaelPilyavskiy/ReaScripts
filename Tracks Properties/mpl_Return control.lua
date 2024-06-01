@@ -1,10 +1,11 @@
 -- @description Return control
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + use integrated plugin search at right click
+--    # use ident for plugin add
+--    # reset filter at add
 
     
 --NOT reaper NOT gfx
@@ -643,10 +644,11 @@ function UI.draw_search()
   if DATA.plugs_data_filtered then
     for i = 1, #DATA.plugs_data_filtered do
       if ImGui.Button(ctx, DATA.plugs_data_filtered[i].reduced_name) then
-        DATA:Action_AddSend(DATA.plugs_data_filtered[i].name, DATA.plugs_data_filtered[i].reduced_name)
+        DATA:Action_AddSend(DATA.plugs_data_filtered[i].ident, DATA.plugs_data_filtered[i].reduced_name)
         DATA.find_plugin.enabled = false
         DATA.find_plugin.first_time = nil
         DATA.find_plugin.forcescrolltonewsend = os.clock()
+        DATA.lastfilter = ''
       end
     end
   end 
