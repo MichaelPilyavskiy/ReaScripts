@@ -1,10 +1,11 @@
 -- @description Return control
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # ignore punctuation
+--    # fix unsynced ReaImGui state
+--    # use full path for AU
 
     
 --NOT reaper NOT gfx
@@ -251,7 +252,6 @@ function UI.MAIN_draw(open)
       
     -- draw stuff
       UI.draw() 
-      ImGui.PopFont( ctx ) 
       ImGui.PopStyleVar(ctx, UI.pushcnt)
       ImGui.PopStyleColor(ctx, UI.pushcnt2) 
       ImGui.Dummy(ctx,0,0)
@@ -263,11 +263,11 @@ function UI.MAIN_draw(open)
       
       ImGui.End(ctx)
      else
-      ImGui.PopFont( ctx ) 
       ImGui.PopStyleVar(ctx, UI.pushcnt)
       ImGui.PopStyleColor(ctx, UI.pushcnt2)
     end
-  
+    
+    ImGui.PopFont( ctx ) 
   if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
   
   return open
@@ -643,13 +643,16 @@ function UI.draw_search()
   if DATA.plugs_data_filtered then
     for i = 1, #DATA.plugs_data_filtered do
       if ImGui.Button(ctx, DATA.plugs_data_filtered[i].name..'##results'..i) then
-      
+        
         DATA.find_plugin.enabled = false
         DATA.find_plugin.first_time = nil
         DATA.lastfilter = ''
         local fxadd = DATA.plugs_data_filtered[i].name
-        
-        DATA:Action_AddSend(fxadd,fxadd)
+        local trname = DATA.plugs_data_filtered[i].name
+        if fxadd:match('AU%:') then
+          fxadd = DATA.plugs_data_filtered[i].ident
+        end
+        DATA:Action_AddSend(fxadd,trname)
         
         
         DATA.find_plugin.forcescrolltonewsend = os.clock()
