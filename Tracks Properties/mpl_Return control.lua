@@ -1,11 +1,12 @@
 -- @description Return control
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # use ident for plugin add
---    # reset filter at add
+--    # use name for plugin add
+--    # immediately close search on mac
+--    # swow meassage if not found
 
     
 --NOT reaper NOT gfx
@@ -634,7 +635,7 @@ function UI.draw_search()
     DATA.lastfilter = buf
     local buf = buf:gsub('%p%s+',''):lower()
     for i = 1, #DATA.plugs_data do
-      local fxname =  DATA.plugs_data[i].reduced_name:lower():gsub('%p%s+','')
+      local fxname =  DATA.plugs_data[i].ident:lower():gsub('%p%s+','')
       if fxname:match(buf) then
         DATA.plugs_data_filtered[#DATA.plugs_data_filtered+1] = DATA.plugs_data[i]
       end
@@ -643,12 +644,19 @@ function UI.draw_search()
   
   if DATA.plugs_data_filtered then
     for i = 1, #DATA.plugs_data_filtered do
-      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].reduced_name) then
-        DATA:Action_AddSend(DATA.plugs_data_filtered[i].ident, DATA.plugs_data_filtered[i].reduced_name)
+      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].name..'##results'..i) then
+      
         DATA.find_plugin.enabled = false
         DATA.find_plugin.first_time = nil
-        DATA.find_plugin.forcescrolltonewsend = os.clock()
         DATA.lastfilter = ''
+        local fxadd = DATA.plugs_data_filtered[i].name
+        
+        DATA:Action_AddSend(fxadd,fxadd)
+        
+        
+        DATA.find_plugin.forcescrolltonewsend = os.clock()
+        
+        return 
       end
     end
   end 
@@ -686,7 +694,7 @@ end
 --------------------------------------------------------------------------------  
 function DATA:Action_AddSend(fxnameadd, fxname)
   local ret, idx = DATA:CollectData_GetLastAvailableSend()
-  if not ret then return end 
+  if not ret then MB('Available send not found', 'Error',0)return end 
   local tr = GetTrack(0,idx)
   local level = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH'  ) 
   local I_CUSTOMCOLOR = GetMediaTrackInfo_Value( tr, 'I_CUSTOMCOLOR'  ) 
