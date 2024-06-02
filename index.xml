@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0dcfc0157e078b20b2db08b3c8f77822c08defa8" name="MPL Scripts">
+<index version="1" commit="a110eff323d3f44de233cb958a5b8ebf88b6222a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7869,6 +7869,11 @@ various fixes]]></changelog>
       <version name="1.07" author="MPL" time="2024-06-02T04:34:25Z">
         <changelog><![CDATA[# ignore punctuation]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dcfc0157e078b20b2db08b3c8f77822c08defa8/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2024-06-02T04:42:23Z">
+        <changelog><![CDATA[# fix unsynced ReaImGui state
+# use full path for AU]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a110eff323d3f44de233cb958a5b8ebf88b6222a/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
