@@ -1,11 +1,11 @@
 -- @description Return control
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # fix unsynced ReaImGui state
---    # use full path for AU
+--    # improve reducing fx names
+
 
     
 --NOT reaper NOT gfx
@@ -314,7 +314,13 @@ function DATA.EnumeratePlugins()
 end
 ---------------------------------------------------
 function VF_ReduceFXname(s) 
-  local s_out = s:match('[%:%/%s]+(.*)')
+  for man in s:gmatch('%(.-%)') do
+    if man:len() > 1 and not (man:match('64') or man:match('86')) then
+      s=s:gsub('%('..man..'%)', '')
+    end
+  end
+  return s
+  --[[local s_out = s:match('[%:%/%s]+(.*)')
   if not s_out then return s end
   s_out = s_out:gsub('%(.-%)','') 
   local pat_js = '.*[%/](.*)'
@@ -323,7 +329,7 @@ function VF_ReduceFXname(s)
    return s 
   else 
     if s_out ~= '' then return s_out else return s end
-  end
+  end]]
 end
 -------------------------------------------------------------------------------- 
 function UI.MAIN()
@@ -642,7 +648,7 @@ function UI.draw_search()
   
   if DATA.plugs_data_filtered then
     for i = 1, #DATA.plugs_data_filtered do
-      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].name..'##results'..i) then
+      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].reduced_name..'##results'..i) then
         
         DATA.find_plugin.enabled = false
         DATA.find_plugin.first_time = nil

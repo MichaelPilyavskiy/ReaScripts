@@ -1,11 +1,10 @@
 -- @description Send control
--- @version 1.18
+-- @version 1.19
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Add action to add new send
---    # dont show send in menu if already a send/same track
+--    # improve reducing fx names
 
 
 
@@ -334,7 +333,13 @@ function DATA.EnumeratePlugins()
 end
 ---------------------------------------------------
 function VF_ReduceFXname(s) 
-  local s_out = s:match('[%:%/%s]+(.*)')
+  for man in s:gmatch('%(.-%)') do
+    if man:len() > 1 and not (man:match('64') or man:match('86')) then
+      s=s:gsub('%('..man..'%)', '')
+    end
+  end
+  return s
+  --[[local s_out = s:match('[%:%/%s]+(.*)')
   if not s_out then return s end
   s_out = s_out:gsub('%(.-%)','') 
   local pat_js = '.*[%/](.*)'
@@ -343,7 +348,7 @@ function VF_ReduceFXname(s)
    return s 
   else 
     if s_out ~= '' then return s_out else return s end
-  end
+  end]]
 end
 -------------------------------------------------------------------------------- 
 function UI.MAIN()
@@ -560,8 +565,11 @@ end
     end
   end
 --------------------------------------------------------------------------------  
-function UI.draw_send(send_t)  
-  --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
+function UI.draw_send(send_t, id)  
+  local ChildBg_a = 0.0
+  if id%2==0 then ChildBg_a = 0.1 end
+  --UI.MAIN_PushStyle(ImGui.Col_Border,0xFFFFFF, 0.1, true)
+  --UI.MAIN_PushStyle(ImGui.Col_ChildBg,0xFFFFFF, ChildBg_a, true)
   --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),plugdata.tr_col, 0.2, true)
   UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.2, true)
   local but_h = 20
@@ -644,7 +652,7 @@ function UI.draw_send(send_t)
     ImGui.Indent(ctx) ImGui.Text(ctx, send_t.desttrname) 
     ImGui.EndChild( ctx )
   end
-  
+  --ImGui.PopStyleColor(ctx, 1) UI.pushcnt2=UI.pushcnt2-1
 end
 --------------------------------------------------------------------------------  
 function UI.draw_setbuttoncolor(col) 
@@ -688,7 +696,7 @@ function UI.draw_search()
   
   if DATA.plugs_data_filtered then
     for i = 1, #DATA.plugs_data_filtered do
-      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].name..'##results'..i) then
+      if ImGui.Button(ctx, DATA.plugs_data_filtered[i].reduced_name..'##results'..i) then
         
         DATA.find_plugin.enabled = false
         DATA.find_plugin.first_time = nil
@@ -772,7 +780,7 @@ function UI.draw()
   
   
   local sendcnt= #DATA.tr_data.sends
-  for i = 1, sendcnt do UI.draw_send(DATA.tr_data.sends[i]) end 
+  for i = 1, sendcnt do UI.draw_send(DATA.tr_data.sends[i],i) end 
   
   
   if not (DATA.available_sends and #DATA.available_sends>0) then return end
