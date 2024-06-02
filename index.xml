@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f90241fb3c01223b619906163cf48fb4b696e804" name="MPL Scripts">
+<index version="1" commit="b38ba03bff662008c2a75f35619d5d3d3608ef1b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7875,6 +7875,10 @@ various fixes]]></changelog>
 # use full path for AU]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a110eff323d3f44de233cb958a5b8ebf88b6222a/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
+      <version name="1.09" author="MPL" time="2024-06-02T09:20:36Z">
+        <changelog><![CDATA[# improve reducing fx names]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b38ba03bff662008c2a75f35619d5d3d3608ef1b/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
       <metadata>
@@ -8034,6 +8038,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ Add action to add new send
 # dont show send in menu if already a send/same track]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f90241fb3c01223b619906163cf48fb4b696e804/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
+      <version name="1.19" author="MPL" time="2024-06-02T09:20:36Z">
+        <changelog><![CDATA[# improve reducing fx names]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b38ba03bff662008c2a75f35619d5d3d3608ef1b/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
