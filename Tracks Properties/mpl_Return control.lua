@@ -1,12 +1,10 @@
 -- @description Return control
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # use name for plugin add
---    # immediately close search on mac
---    # swow meassage if not found
+--    # ignore punctuation
 
     
 --NOT reaper NOT gfx
@@ -633,9 +631,9 @@ function UI.draw_search()
   if retval and buf~= '' then 
     DATA.plugs_data_filtered = {}
     DATA.lastfilter = buf
-    local buf = buf:gsub('%p%s+',''):lower()
+    local buf = buf:gsub('[%p%s]+',''):lower()
     for i = 1, #DATA.plugs_data do
-      local fxname =  DATA.plugs_data[i].ident:lower():gsub('%p%s+','')
+      local fxname =  DATA.plugs_data[i].name:lower():gsub('[%p%s]+','')
       if fxname:match(buf) then
         DATA.plugs_data_filtered[#DATA.plugs_data_filtered+1] = DATA.plugs_data[i]
       end
