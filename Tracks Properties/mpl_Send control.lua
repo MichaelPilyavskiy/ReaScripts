@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.19
+-- @version 1.20
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # improve reducing fx names
+--    + Add feedback for non-trim automation mode
 
 
 
@@ -282,14 +282,42 @@ function DATA:perform()
   for i = 1, #DATA.perform_quere do if DATA.perform_quere[i] then DATA.perform_quere[i]() end end
   DATA.perform_quere = {} --- clear
 end
+-----------------------------------------------------
+function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
+-------------------------------------------------------------------------------- 
+function DATA:CollectData_Dynamic()
+  DATA.timepos = GetCursorPosition()
+  if GetPlayState()&1==1 then DATA.timepos =  GetPlayPosition() end
+  
+  if not (DATA.tr_data and DATA.tr_data.sends ) then return end
+  for sendid = 1, #DATA.tr_data.sends do 
+    if DATA.tr_data.sends[sendid].automode_follow and ValidatePtr( DATA.tr_data.sends[sendid].automode_env, 'TrackEnvelope*') then
+      local envelope = DATA.tr_data.sends[sendid].automode_env
+      local scaling_mode = GetEnvelopeScalingMode( envelope )
+      local retval, value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( envelope, DATA.timepos, DATA.SR, 1 )
+      
+      --value
+      local D_VOL = ScaleFromEnvelopeMode( scaling_mode, value )
+      local D_VOLdb = WDL_VAL2DB(D_VOL)
+      local D_VOLdb_format = string.format("%.03f dB",D_VOLdb)
+      local D_VOL_scaled = DATA.Convert_Val2Fader(D_VOL)
+      
+      DATA.tr_data.sends[sendid].D_VOL=D_VOL
+      DATA.tr_data.sends[sendid].D_VOLdb=D_VOLdb
+      DATA.tr_data.sends[sendid].D_VOLdb_format=D_VOLdb_format
+      DATA.tr_data.sends[sendid].D_VOL_scaled=D_VOL_scaled
+    end
+  end
+end
 -------------------------------------------------------------------------------- 
 function UI.MAINloop() 
   DATA.clock = os.clock() 
   DATA:handleProjUpdates()
   
-  if DATA.upd == true then  DATA:CollectData()  end 
-  DATA.upd = false
   
+  if DATA.upd == true then  DATA:CollectData() end DATA.upd = false
+  DATA:CollectData_Dynamic()
+   
   -- draw UI
   UI.open = UI.MAIN_draw(true) 
   
@@ -453,8 +481,18 @@ function DATA:CollectData_GetAvailableSends_GetFolder()
   end
 end
 --------------------------------------------------------------------------------  
+function DATA:CollectData_GetEnv(track,desttr0)
+  for envidx = 1, CountTrackEnvelopes( track ) do
+    local envelope = GetTrackEnvelope( track, envidx-1 )
+    local desttr = GetEnvelopeInfo_Value( envelope, 'P_DESTTRACK' )
+    if desttr == desttr0 then
+      return envelope 
+    end
+  end
+end
+--------------------------------------------------------------------------------  
 function DATA:CollectData()
-
+  DATA.SR = VF_GetProjectSampleRate()
   -- collect sel track data
   DATA.tr_data = {sends={}}
   local tr = GetSelectedTrack(0,0)
@@ -467,24 +505,35 @@ function DATA:CollectData()
   DATA.tr_data.name = name
   
   for sendidx =1, sendscnt do
-    local D_VOL = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
     local B_MUTE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' )
     local P_DESTTRACK = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
     local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' ) --0=post-fader, 1=pre-fx, 2=post-fx (deprecated), 3=post-fx
     local retval, desttrname = reaper.GetTrackName( P_DESTTRACK )
     local destGUID = GetTrackGUID( P_DESTTRACK )
-    local voldb = WDL_VAL2DB(D_VOL)
-    local voldbformat = string.format("%.03f dB",voldb)
+    
+    local automode = GetTrackAutomationMode( tr )
+    local automode_global = GetGlobalAutomationOverride()
+    if (automode_global ~= -1 and automode_global > 0 ) or automode > 0  then automode_follow = true end
+    
+    
+    local D_VOL = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
+    local D_VOLdb = WDL_VAL2DB(D_VOL)
+    local D_VOLdb_format = string.format("%.03f dB",D_VOLdb)
+    local D_VOL_scaled = DATA.Convert_Val2Fader(D_VOL)
+    
     DATA.tr_data.sends[sendidx] = {
       sendidx = sendidx,
       D_VOL = D_VOL,
-      D_VOLdb = voldb,
-      D_VOLdb_format = voldbformat,
-      D_VOL_scaled = DATA.Convert_Val2Fader(D_VOL),
+      D_VOLdb = D_VOLdb,
+      D_VOLdb_format = D_VOLdb_format,
+      D_VOL_scaled=D_VOL_scaled,
       B_MUTE = B_MUTE,
       I_SENDMODE = I_SENDMODE,
       desttrname=desttrname,
       destGUID=destGUID,
+      
+      automode_follow=automode_follow,
+      automode_env = DATA:CollectData_GetEnv(tr,P_DESTTRACK),
       }
   end
   
