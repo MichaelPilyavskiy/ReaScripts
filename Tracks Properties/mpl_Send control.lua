@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Add feedback for non-trim automation mode
+--    # improve feedback behaviour
 
 
 
@@ -513,6 +513,7 @@ function DATA:CollectData()
     
     local automode = GetTrackAutomationMode( tr )
     local automode_global = GetGlobalAutomationOverride()
+    local automode_follow
     if (automode_global ~= -1 and automode_global > 0 ) or automode > 0  then automode_follow = true end
     
     
@@ -547,17 +548,28 @@ end
 --------------------------------------------------------------------------------  
 function DATA.Send_params_set(send_t, param)
   if not param then return end
-  local immode = 0
+  local immode = 0 
+  local automode_follow=  send_t.automode_follow 
+  
   if param.mute~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'B_MUTE', param.mute) end
   if param.vol_lin~= nil then 
     local outvol = DATA.Convert_Fader2Val(param.vol_lin)
-    SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', outvol) 
-    SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
+    
+    if automode_follow then
+      CSurf_OnSendVolumeChange( DATA.tr_data.ptr,  send_t.sendidx-1, outvol, false )
+     else
+      SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', outvol) 
+      SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
+    end
   end
   if param.vol_dB~= nil then 
     local outvol = WDL_DB2VAL(param.vol_dB)
-    SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL',outvol )
-    SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
+    if automode_follow then
+      CSurf_OnSendVolumeChange( CSurf_TrackToID( DATA.tr_data.ptr, false ),  send_t.sendidx-1, outvol, false )
+     else
+      SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', outvol) 
+      SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
+    end
   end
   if param.mode~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'I_SENDMODE', param.mode) end
   
