@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # improve feedback behaviour
+--    # workaround for touch mode
 
 
 
@@ -292,6 +292,7 @@ function DATA:CollectData_Dynamic()
   if not (DATA.tr_data and DATA.tr_data.sends ) then return end
   for sendid = 1, #DATA.tr_data.sends do 
     if DATA.tr_data.sends[sendid].automode_follow and ValidatePtr( DATA.tr_data.sends[sendid].automode_env, 'TrackEnvelope*') then
+    
       local envelope = DATA.tr_data.sends[sendid].automode_env
       local scaling_mode = GetEnvelopeScalingMode( envelope )
       local retval, value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( envelope, DATA.timepos, DATA.SR, 1 )
@@ -301,11 +302,12 @@ function DATA:CollectData_Dynamic()
       local D_VOLdb = WDL_VAL2DB(D_VOL)
       local D_VOLdb_format = string.format("%.03f dB",D_VOLdb)
       local D_VOL_scaled = DATA.Convert_Val2Fader(D_VOL)
-      
-      DATA.tr_data.sends[sendid].D_VOL=D_VOL
-      DATA.tr_data.sends[sendid].D_VOLdb=D_VOLdb
-      DATA.tr_data.sends[sendid].D_VOLdb_format=D_VOLdb_format
-      DATA.tr_data.sends[sendid].D_VOL_scaled=D_VOL_scaled
+      if not (DATA.activetouch == true  and DATA.tr_data.sends[sendid].automode == 2) then 
+        DATA.tr_data.sends[sendid].D_VOL=D_VOL
+        DATA.tr_data.sends[sendid].D_VOLdb=D_VOLdb
+        DATA.tr_data.sends[sendid].D_VOLdb_format=D_VOLdb_format
+        DATA.tr_data.sends[sendid].D_VOL_scaled=D_VOL_scaled
+      end
     end
   end
 end
@@ -514,7 +516,10 @@ function DATA:CollectData()
     local automode = GetTrackAutomationMode( tr )
     local automode_global = GetGlobalAutomationOverride()
     local automode_follow
-    if (automode_global ~= -1 and automode_global > 0 ) or automode > 0  then automode_follow = true end
+    if (automode_global ~= -1 and automode_global > 0 ) or automode > 0  then 
+      automode_follow = true 
+      if automode_global ~= -1 and automode_global > 0 then automode = automode_global end 
+    end
     
     
     local D_VOL = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
@@ -535,6 +540,7 @@ function DATA:CollectData()
       
       automode_follow=automode_follow,
       automode_env = DATA:CollectData_GetEnv(tr,P_DESTTRACK),
+      automode=automode,
       }
   end
   
@@ -551,26 +557,35 @@ function DATA.Send_params_set(send_t, param)
   local immode = 0 
   local automode_follow=  send_t.automode_follow 
   
+  -- mute
   if param.mute~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'B_MUTE', param.mute) end
-  if param.vol_lin~= nil then 
-    local outvol = DATA.Convert_Fader2Val(param.vol_lin)
-    
+  
+  -- vol
+  local outvol
+  if param.vol_lin~= nil then outvol = DATA.Convert_Fader2Val(param.vol_lin) end
+  if param.vol_dB~= nil then outvol = WDL_DB2VAL(param.vol_dB) end
+  if outvol then
     if automode_follow then
-      CSurf_OnSendVolumeChange( DATA.tr_data.ptr,  send_t.sendidx-1, outvol, false )
+      --if send_t.automode~=2 then
+        CSurf_OnSendVolumeChange( DATA.tr_data.ptr,  send_t.sendidx-1, outvol, false )
+       --[[else -- touch
+        local area = 0.035 
+        local jitter = area
+        local scaling_mode = GetEnvelopeScalingMode( send_t.automode_env)
+        outvol = ScaleToEnvelopeMode( scaling_mode, outvol )
+        outpos = DATA.timepos
+        local jittershift = outpos%jitter
+        outpos = outpos - jittershift
+        DeleteEnvelopePointRangeEx( send_t.automode_env, -1, outpos-area, outpos+area )
+        InsertEnvelopePoint( send_t.automode_env, outpos, outvol, 0, 0, true, false )
+      end]]
      else
       SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', outvol) 
       SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
     end
   end
-  if param.vol_dB~= nil then 
-    local outvol = WDL_DB2VAL(param.vol_dB)
-    if automode_follow then
-      CSurf_OnSendVolumeChange( CSurf_TrackToID( DATA.tr_data.ptr, false ),  send_t.sendidx-1, outvol, false )
-     else
-      SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'D_VOL', outvol) 
-      SetTrackSendUIVol( DATA.tr_data.ptr, send_t.sendidx-1, outvol, immode)
-    end
-  end
+  
+  -- mode
   if param.mode~= nil then SetTrackSendInfo_Value( DATA.tr_data.ptr, 0, send_t.sendidx-1, 'I_SENDMODE', param.mode) end
   
   DATA.upd = true
@@ -625,6 +640,21 @@ end
       if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
     end
   end
+--------------------------------------------------------------------------------  
+function UI.draw_send_touchworkaround(send_t)
+  if send_t.automode == 2 and DATA.touchstate ~= true and ImGui.IsItemActivated( ctx ) then 
+    SetTrackAutomationMode( DATA.tr_data.ptr, 3 )
+    DATA.touchstate = true
+    DATA.upd = true
+  end
+  
+  if ImGui.IsItemDeactivated( ctx ) and DATA.touchstate == true then 
+    SetTrackAutomationMode( DATA.tr_data.ptr, 2 )
+    DATA.touchstate = false
+    DATA.upd = true
+  end
+  
+end
 --------------------------------------------------------------------------------  
 function UI.draw_send(send_t, id)  
   local ChildBg_a = 0.0
@@ -693,6 +723,8 @@ function UI.draw_send(send_t, id)
     local curposX, curposY = ImGui.GetCursorPos(ctx)
     ImGui.SetNextItemWidth( ctx, slider_w )
     local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
+    -- touch woraround
+    UI.draw_send_touchworkaround(send_t)
     if ImGui_IsItemHovered( ctx ) then
       local ctrl = ( 
         ImGui.IsKeyPressed( ctx, ImGui.Mod_Ctrl, 1 )or
@@ -708,7 +740,13 @@ function UI.draw_send(send_t, id)
         DATA.Send_params_set(send_t, {vol_dB=send_t.D_VOLdb+dir*step})
       end
     end
+    
+    
+    
     if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx)
+    
+    
+    DATA.activetouch = ImGui.IsItemActive( ctx )
     ImGui.SetCursorPos(ctx, curposX, curposY)
     ImGui.Indent(ctx) ImGui.Text(ctx, send_t.desttrname) 
     ImGui.EndChild( ctx )
