@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.22
+-- @version 1.23
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # workaround for touch mode
+--    # improve workaround for touch mode
 
 
 
@@ -643,7 +643,7 @@ end
 --------------------------------------------------------------------------------  
 function UI.draw_send_touchworkaround(send_t)
   if send_t.automode == 2 and DATA.touchstate ~= true and ImGui.IsItemActivated( ctx ) then 
-    SetTrackAutomationMode( DATA.tr_data.ptr, 3 )
+    --SetTrackAutomationMode( DATA.tr_data.ptr, 3 )
     DATA.touchstate = true
     DATA.upd = true
   end
@@ -743,7 +743,10 @@ function UI.draw_send(send_t, id)
     
     
     
-    if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx)
+    if retval then 
+      DATA.Send_params_set(send_t, {vol_lin=v}) 
+    end 
+    UI.SameLine(ctx)
     
     
     DATA.activetouch = ImGui.IsItemActive( ctx )
