@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.19
+-- @version 3.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Target/MIDI: add option to convert noteOn velocity 0 to NoteOff
+--    # fix targets / items / obey snap offset
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.19
+    DATA.extstate.version = 3.20
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -73,7 +73,7 @@
                           -- target -----------------------
                           -- positions
                           CONF_src_positions = 1,
-                          CONF_src_selitems = 1,
+                          CONF_src_selitems = 1,-- &2 == snap offset
                           CONF_src_selitemsflag = 1, -- &1 positions &2 length &4 stretch &8 offset by autofadeout
                           CONF_src_envpoints = 0,
                           CONF_src_envpointsflags =1, -- ==1 selected ==2 all selected --==4 selected AI
@@ -152,6 +152,7 @@
   --------------------------------------------------------------------- 
   function DATA2:GetTargets_Items() 
     local mode = DATA.extstate.CONF_src_selitemsflag
+    local mode2 = DATA.extstate.CONF_src_selitems
     local table_name = 'src'
     local groupIDt = {}
     local id = 1
@@ -164,9 +165,9 @@
       local len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
       local groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
       
-      local position_has_snap_offs, snapoffs_sec
-      if mode&2==2 then --snap offset
-        position_has_snap_offs = true
+      local position_has_snap_offs, snapoffs_sec 
+      if mode2&2==2 then --snap offset
+        position_has_snap_offs = true 
         snapoffs_sec = GetMediaItemInfo_Value( item, 'D_SNAPOFFSET' )
         pos = pos + snapoffs_sec
       end
@@ -1089,7 +1090,8 @@
         if it then 
           if t.pos_secOUT then 
             local pos_secOUT = t.pos_sec + (t.pos_secOUT - t.pos_sec)*val1
-            if t.position_has_snap_offs and t.srctype~='item_end' and DATA.extstate.CONF_src_selitems&2==2 then pos_secOUT = pos_secOUT - t.snapoffs_sec end  
+            if DATA.extstate.CONF_src_selitems&2==2 and  t.position_has_snap_offs and t.srctype~='item_end'   then pos_secOUT = pos_secOUT - t.snapoffs_sec end 
+            
                         
             if DATA.extstate.CONF_src_selitemsflag&1==1 and t.srctype~='item_end' and t.group_master == true and iteration == 1 then 
               SetMediaItemInfo_Value( it, 'D_POSITION', pos_secOUT )
