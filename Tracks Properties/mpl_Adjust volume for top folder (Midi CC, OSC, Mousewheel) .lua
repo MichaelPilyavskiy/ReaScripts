@@ -1,17 +1,17 @@
--- @description Adjust volume for top folder (Midi CC, OSC, Mousewheel) 
--- @version 1.0
+-- @description Adjust volume for top folder (MIDI, OSC, mousewheel)
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
---    [main] . > mpl_Adjust volume for top folder 1 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 2 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 3 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 4 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 5 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 6 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 7 (Midi CC, OSC, Mousewheel).lua
---    [main] . > mpl_Adjust volume for top folder 8 (Midi CC, OSC, Mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 1 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 2 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 3 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 4 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 5 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 6 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 7 (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust volume for top folder 8 (MIDI, OSC, mousewheel).lua
 -- @changelog
 --    + init
 
