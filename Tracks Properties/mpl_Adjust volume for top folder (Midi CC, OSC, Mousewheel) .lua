@@ -1,5 +1,5 @@
 -- @description Adjust volume for top folder (MIDI, OSC, mousewheel)
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -13,12 +13,13 @@
 --    [main] . > mpl_Adjust volume for top folder 7 (MIDI, OSC, mousewheel).lua
 --    [main] . > mpl_Adjust volume for top folder 8 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    + init
+--    # fix reapack metapackage handle
 
    
    
   --------------------------------------------------------------------
-  function Get1stlevelFolder(groupID)
+  function Get1stlevelFolder()
+    --local folderID
     local groupcnt = 0
     local depth_comn = 0
     for i = 1, reaper.CountTracks(0) do
@@ -27,14 +28,14 @@
       depth_comn = depth_comn + depth
       if depth_comn == 1 and depth == 1 then 
         groupcnt = groupcnt + 1
-        if groupcnt == groupID then 
+        if groupcnt == folderID then 
           return tr
         end
       end
     end
   end
   --------------------------------------------------------------------
-  function main(folderID)
+  function main()
     local is_new_value,filename,sectionID,cmdID,mode,resolution,val = reaper.get_action_context()
     local dir
     val = val / resolution
@@ -43,7 +44,7 @@
     end
     
     
-    local track = Get1stlevelFolder(folderID)
+    local track = Get1stlevelFolder()
     if not track then return end
     
     AdjustTrackVol(track, val, dir) 
@@ -72,7 +73,7 @@
   ------------------------------------------------------------------------------------------------------
   
   local scr_name = ({reaper.get_action_context()})[2]
-  local folderID = scr_name:match('mpl_Adjust volume for top folder (%d+)')
+   folderID = scr_name:match('mpl_Adjust volume for top folder (%d+)')
   if tonumber(folderID) then
     folderID = tonumber(folderID)
     reaper.defer(main)
