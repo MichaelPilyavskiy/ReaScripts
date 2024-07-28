@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cc6d9e9d079c20dfbc2d7fcb1b5982d147e5e03c" name="MPL Scripts">
+<index version="1" commit="a5ede559b7aeaf76b8b40828bc7b2e66e546ce21" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7365,6 +7365,22 @@
     </reapack>
   </category>
   <category name="Tracks Properties">
+    <reapack name="Adjust volume for top folder (Midi CC, OSC, Mousewheel) .txt" type="midinotenames" desc="Adjust volume for top folder (Midi CC, OSC, Mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-07-28T19:45:33Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source file="mpl_Adjust volume for top folder 1 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 2 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 3 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 4 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 5 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 6 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 7 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+        <source file="mpl_Adjust volume for top folder 8 (Midi CC, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5ede559b7aeaf76b8b40828bc7b2e66e546ce21/Tracks%20Properties/Adjust%20volume%20for%20top%20folder%20(Midi%20CC,%20OSC,%20Mousewheel)%20.txt</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Color project tracks by user defined filter and color.lua" type="script" desc="Color project tracks by user defined filter and color">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
