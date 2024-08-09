@@ -1,11 +1,10 @@
 -- @description MappingPanel
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    # fix error at reset macro name
---    # remove controls from slave mode
+--    # fix shifted graphs on non-1.0x scaling
 
 
 
@@ -190,18 +189,21 @@
     local sel_knob = DATA2:GetSelectedKnob()
           
     -- get last touched param
-    local retval, tracknumber, fxnumber, paramnumber, tr
+    local retval, tracknumber, itemidx, takeidx, fxnumber, paramnumber, tr
     
     if not ignorelasttouched then 
-      retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
+      retval, tracknumber, itemidx, takeidx, fxnumber, paramnumber = reaper.GetTouchedOrFocusedFX( 0 )
       if not retval then return end 
-      local trid = tracknumber&0xFFFF 
-       tr = GetTrack(0,trid-1) if trid==0 then tr = GetMasterTrack(0) end
+      local trid = tracknumber
+       tr = GetTrack(0,trid) 
+       if trid==-1 then tr = GetMasterTrack(0) end
       if DATA.extstate.CONF_mode == 1 and tr ~= GetSelectedTrack(DATA2.ReaProj,0)then  MB('You are in "slave JSFX per track" mode, only inside track links supported"', DATA.extstate.mb_title, 0)  return end
-      local itid = (tracknumber>>16)&0xFFFF
-      if itid ~= 0 then MB('Item FX is not supported yet', DATA.extstate.mb_title, 0) return end 
+      local itid = itemidx
+      if itid ~= -1 then MB('Item FX is not supported yet', DATA.extstate.mb_title, 0) return end 
       
     end
+    
+    
     -- NOT lasttouched
     if ignorelasttouched == true then
       tr, fxnumber, paramnumber = tr_pass, fxnumber_pass, paramnumber_pass
@@ -214,6 +216,8 @@
       local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fxnumber, 'original_name' )
       if fxname:match('MappingPanel') then  MB('Last touched FX should not be Mapping Panel utility', DATA.extstate.mb_title, 0) return end
     
+    
+    
     -- check if parameter already linked
       local retval, active = TrackFX_GetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.active' )
       if (retval== true and tonumber(active) == 1) then return end
@@ -225,12 +229,15 @@
       if (retval== true and tonumber(active) == 1) then return end        
     -- prevent map master fx as last touched 
       if DATA2.masterJSFX_tr == tr and DATA2.masterJSFX_FXid == fxnumber then return end 
+      
+      
     -- get slave fx/add
       local slavefx_id = DATA2:SlaveJSFX_Validate(tr) 
       if not slavefx_id then MB('Link is not added. Can`t find Mapping Panel slave JSFX.', DATA.extstate.mb_title, 0) return  end   
     -- refresh last touched fx after slave jsfx possible adding 
       if not ignorelasttouched then
-        retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX() 
+        retval, tracknumber, itemidx, takeidx, fxnumber, paramnumber = reaper.GetTouchedOrFocusedFX( 0 )
+        --retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX() 
         if fxnumber == slavefx_id then return end  -- prevent map slave fx as last touched
       end
     
@@ -279,7 +286,6 @@
       TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.param', freeslider )
      
     -- link slider to selected knob
-      
       
       if DATA.extstate.CONF_mode == 0 then
         TrackFX_SetParam( tr, slavefx_id, freeslider+16, sel_knob )
@@ -434,7 +440,7 @@
     local hext = b.data.limitsgraph
     local knobID = hext.knob
     local val_src = DATA2.masterJSFX_sliders[knobID].val
-    local x,y,w,h =b.x,b.y,b.w,b.h
+    local x,y,w,h =b.x*DATA.GUI.default_scale,b.y*DATA.GUI.default_scale,b.w*DATA.GUI.default_scale,b.h*DATA.GUI.default_scale
     
     local hexarray_lim_min = hext.hexarray_lim_min
     local hexarray_lim_max = 1-hext.hexarray_lim_max
