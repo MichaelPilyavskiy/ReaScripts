@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b9c8f2992c5211b2a39797f64c1fb0dbd77e9aad" name="MPL Scripts">
+<index version="1" commit="32c02178f6fbe8ead95192d57ccfd540841b0435" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8697,6 +8697,10 @@ various fixes]]></changelog>
 - remove shortcuts
 - remove Various function requirement]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9c8f2992c5211b2a39797f64c1fb0dbd77e9aad/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="3.01" author="MPL" time="2024-08-17T21:24:39Z">
+        <changelog><![CDATA[# update for use with new API (pitch shift, timestretch modes)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32c02178f6fbe8ead95192d57ccfd540841b0435/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
