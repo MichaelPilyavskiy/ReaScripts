@@ -1,20 +1,10 @@
 -- @description Align Takes
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Complete script UI rebuild using ReaImGui
---    + Use some modern (2024+) Reaper APIs
---    + Support complex domain onset envelope (default audio data receive method)
---    + Obey take SR different from project sample rate
---    + Rightclick reset any value
---    + Flick reference/dub if dirty (i.e. require reinitialisation)
---    # Anchor points algorithms overhaul, will probably extended in the future
---    - remove displaying src/dest in dub data
---    - remove editing anchor points manually
---    - remove shortcuts
---    - remove Various function requirement
+--    # update for use with new API (pitch shift, timestretch modes)
 
 
 
@@ -28,6 +18,7 @@
   ]]
     
 --NOT reaper NOT gfx
+local vrs = 3.01
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -591,6 +582,10 @@ end
           ImGui.SetItemTooltip(ctx, name) 
         end
       end
+      
+      
+      ImGui.SeparatorText(ctx, 'Script info') 
+      ImGui.Text(ctx, 'Version: '..vrs)
       
       ImGui.PopStyleVar(ctx,3)
       ImGui.PopFont(ctx) 
@@ -1826,9 +1821,7 @@ function DATA.f05_ApplyOutput(is_major)
       end 
     
     if is_major == true then
-      if EXT.CONF_post_pshift >= 0 then pshift = EXT.CONF_post_pshift end
-      if EXT.CONF_post_pshift >= 0 and  EXT.CONF_post_pshiftsub >= 0 then  pshiftsub = EXT.CONF_post_pshiftsub end
-      if EXT.CONF_post_pshift >= 0 or EXT.CONF_post_strmarkfdsize ~= 0.0025 then  VF_SetTimeShiftPitchChange(item, false, (EXT.CONF_post_pshift<<16) + EXT.CONF_post_pshiftsub, EXT.CONF_post_smmode, EXT.CONF_post_strmarkfdsize)  end 
+      DATA.f05_ApplyOutput_SetTakeModes(item)
       if EXT.CONF_post_zerocross ==1 then  DATA.f05_ApplyOutput_QuantizeSMtoZeroCross( reaper.GetActiveTake( item )) end 
     end
     if item then UpdateItemInProject( item ) end
@@ -1846,38 +1839,14 @@ function DATA.f05_ApplyOutput_ProjPosToStretchMarkerSrcPos(projpos, item_pos, ta
   return markpos
 end
 --------------------------------------------------------------------- 
-  function VF_SetTimeShiftPitchChange(item, get_only, pshift_mode0, timestr_mode0, stretchfadesz)
-    -- 13.07.2021 - mod all takes
-    if not item then return end
-    local retval, str = reaper.GetItemStateChunk( item, '', false ) 
-    
-    -- get first take table of values
-    local playratechunk = str:match('(PLAYRATE .-\n)') 
-    local t = {} for val in playratechunk:gmatch('[^%s]+') do if  tonumber(val ) then  t[#t+1] = tonumber(val )end end
-    if get_only==true then return t end 
-     
-    if pshift_mode0 and not timestr_mode0 and not stretchfadesz then 
-      for takeidx = 1,  CountTakes( item ) do
-        local take =  GetTake( item, takeidx-1 )
-        if ValidatePtr2( 0, take, 'MediaItem_Take*' ) then SetMediaItemTakeInfo_Value( take, 'I_PITCHMODE',pshift_mode0  ) end
-      end
-      return
-    end
-    
-    -- mod all takes
-    local str_mod = str
-    for playratechunk in str:gmatch('(PLAYRATE .-\n)') do
-      local t = {} for val in playratechunk:gmatch('[^%s]+') do if  tonumber(val ) then  t[#t+1] = tonumber(val )end end
-      if pshift_mode0 then t[4]=pshift_mode0 end      
-      if timestr_mode0 then t[5]=timestr_mode0 end
-      if stretchfadesz then t[6]=stretchfadesz end
-      local playratechunk_out = 'PLAYRATE '..table.concat(t, ' ')..'\n'
-      str_mod =str_mod:gsub(playratechunk:gsub("[%.%+%-]", function(c) return "%" .. c end), playratechunk_out)
-      str_mod = str_mod:gsub('PLAYRATE .-\n', playratechunk_out)
-    end
-    --msg(str_mod)
-    reaper.SetItemStateChunk( item, str_mod, false )
+function DATA.f05_ApplyOutput_SetTakeModes(item)
+  for takeidx = 1,  CountTakes( item ) do
+    local take =  GetTake( item, takeidx-1 )
+    reaper.SetMediaItemTakeInfo_Value( take, 'I_PITCHMODE', (EXT.CONF_post_pshift<<16) + EXT.CONF_post_pshiftsub ) --  : int * : pitch shifter mode, -1=project default, otherwise high 2 bytes=shifter, low 2 bytes=parameter
+    reaper.SetMediaItemTakeInfo_Value( take, 'I_STRETCHFLAGS', EXT.CONF_post_smmode ) --  : int * : stretch marker flags (&7 mask for mode override: 0=default, 1=balanced, 2/3/6=tonal, 4=transient, 5=no pre-echo)
+    reaper.SetMediaItemTakeInfo_Value( take, 'F_STRETCHFADESIZE',EXT.CONF_post_strmarkfdsize ) 
   end
+end
 ---------------------------------------------------------------------
 function DATA.f05_ApplyOutput_QuantizeSMtoZeroCross(take) 
   if not take then return end
