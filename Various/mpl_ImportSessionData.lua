@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.26
+-- @version 2.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fill empty mixer visibility if not presented
+--    # free matched track at set source destination to none
 
 
 
@@ -16,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.26
+    DATA.extstate.version = 2.27
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -264,6 +264,9 @@
       if mode ==0 or mode ==1 or mode ==3 then DATA2:Tracks_SetDestination(trid0, mode) end
       if mode ==2  then DATA2:MatchTrack(trid)  end
       if mode ==2 or mode ==3 then  DATA2:Get_DestProject_ValidateSameSources()  end 
+      if mode ==0 then
+        DATA2.srcproj.TRACK[trid].dest_track_GUID = nil
+      end 
     end
     GUI_RESERVED_BuildLayer(DATA)  
   end
@@ -997,6 +1000,7 @@
   ----------------------------------------------------------------------
   function DATA2:Tracks_IsDestinationUsed(desttrack_id)
     local destGUID = DATA2.destproj.TRACK[desttrack_id].GUID 
+    
     for j = 1, #DATA2.srcproj.TRACK do
       if DATA2.srcproj.TRACK[j].dest_track_GUID == destGUID then
         return true
@@ -1012,7 +1016,9 @@
       if mode == 2 then DATA2.srcproj.TRACK[srctrack_id].sendlogic_flags = DATA.extstate.CONF_sendlogic_flags_matched end
       if DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID then
         local desttrack_id = DATA2:Tracks_GetDestinationbyGUID( DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID)
-        if desttrack_id and DATA2.destproj.TRACK[desttrack_id] then DATA2.destproj.TRACK[desttrack_id].has_source =false end
+        if desttrack_id and DATA2.destproj.TRACK[desttrack_id] then 
+          DATA2.destproj.TRACK[desttrack_id].has_source =false 
+        end
       end
       DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID = nil
     end
@@ -1022,10 +1028,12 @@
         for i = 1, #DATA2.srcproj.TRACK do 
           if DATA2.srcproj.TRACK[i].dest_track_GUID then
             local desttrack_id = DATA2:Tracks_GetDestinationbyGUID( DATA2.srcproj.TRACK[i].dest_track_GUID)
-            if desttrack_id and DATA2.destproj.TRACK[desttrack_id] then DATA2.destproj.TRACK[desttrack_id].has_source =false end
+            if desttrack_id and DATA2.destproj.TRACK[desttrack_id] then  
+              DATA2.destproj.TRACK[desttrack_id].has_source =false 
+            end
           end
           DATA2.srcproj.TRACK[i].dest_track_GUID = nil
-          DATA2.srcproj.TRACK[i].destmode = mode 
+          DATA2.srcproj.TRACK[i].destmode = mode  
         end 
       end
       
@@ -1036,6 +1044,7 @@
         DATA2.srcproj.TRACK[srctrack_id].destmode = 2
         DATA2.srcproj.TRACK[srctrack_id].dest_track_GUID = DATA2.destproj.TRACK[desttrack_id].GUID
         DATA2.destproj.TRACK[desttrack_id].has_source =true
+        
       end
       
     return output_error_code -- 0 success 1 -- destination is moved 
