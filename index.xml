@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="94359b237c1c84e5e67d1a5fe08bdb89148ab01c" name="MPL Scripts">
+<index version="1" commit="b9c8f2992c5211b2a39797f64c1fb0dbd77e9aad" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8408,7 +8408,7 @@ various fixes]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for matching RMS of audio takes and stratch them using stretch markers\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for matching takes audio and stretch them using stretch markers\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -8683,6 +8683,20 @@ various fixes]]></changelog>
       <version name="2.27" author="MPL" time="2023-03-19T19:21:04Z">
         <changelog><![CDATA[# fix 'Switch to full mode' for retina on Mac and non-100% scaling on Win]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb679707a49ad6bb0076ca1156493c0b2dc38ce7/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2024-08-17T21:03:24Z">
+        <changelog><![CDATA[+ Complete script UI rebuild using ReaImGui
++ Use some modern (2024+) Reaper APIs
++ Support complex domain onset envelope (default audio data receive method)
++ Obey take SR different from project sample rate
++ Rightclick reset any value
++ Flick reference/dub if dirty (i.e. require reinitialisation)
+# Anchor points algorithms overhaul, will probably extended in the future
+- remove displaying src/dest in dub data
+- remove editing anchor points manually
+- remove shortcuts
+- remove Various function requirement]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9c8f2992c5211b2a39797f64c1fb0dbd77e9aad/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
