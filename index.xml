@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="397090989f650da661ceaddab25e4f269a897ad7" name="MPL Scripts">
+<index version="1" commit="94359b237c1c84e5e67d1a5fe08bdb89148ab01c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9254,6 +9254,10 @@ various fixes]]></changelog>
       <version name="2.26" author="MPL" time="2024-05-09T15:46:09Z">
         <changelog><![CDATA[# fill empty mixer visibility if not presented]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52c7667f4b86f35653048cf718b71b072347878b/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.27" author="MPL" time="2024-08-17T17:03:11Z">
+        <changelog><![CDATA[# free matched track at set source destination to none]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94359b237c1c84e5e67d1a5fe08bdb89148ab01c/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
