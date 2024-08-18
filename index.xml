@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0823924562447dd882f00bdebf98debcfbfc771e" name="MPL Scripts">
+<index version="1" commit="82bd289bb859259bd77f16aa313acf6b95947ae1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2396,33 +2396,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Reset%20FX%20chain%20pin%20mapping.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Restore focused FX parent track bypass states.lua" type="script" desc="Restore focused FX parent track bypass states">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Restore%20focused%20FX%20parent%20track%20bypass%20states.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Retrospective record of focused FX parameter tweaks - dump.lua" type="script" desc="Retrospective record of focused FX parameter tweaks - dump">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-03-23T05:27:02Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78754ac69a278a51ebdf5a50c6d8b689ed36e65a/FX/mpl_Retrospective%20record%20of%20focused%20FX%20parameter%20tweaks%20-%20dump.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Retrospective record of focused FX parameter tweaks - log (background).lua" type="script" desc="Retrospective record of focused FX parameter tweaks - log (background)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-03-23T05:27:02Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78754ac69a278a51ebdf5a50c6d8b689ed36e65a/FX/mpl_Retrospective%20record%20of%20focused%20FX%20parameter%20tweaks%20-%20log%20(background).lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Route FX chain followed by focused FX to 3-4 pair.lua" type="script" desc="Route FX chain followed by focused FX to 3-4 pair">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -2454,14 +2427,10 @@
         <changelog><![CDATA[# handle 6.79+ VF_SetFXName]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/FX/mpl_Route%20FX%20chain%20followed%20by%20focused%20FX%20to%203-4%20pair.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Save focused FX parent track bypass states.lua" type="script" desc="Save focused FX parent track bypass states">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Save%20focused%20FX%20parent%20track%20bypass%20states.lua</source>
+      <version name="1.03" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent
+# use native API for FX rename]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Route%20FX%20chain%20followed%20by%20focused%20FX%20to%203-4%20pair.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set auxilary input as a modulation for last touched parameter.lua" type="script" desc="Set auxilary input as a modulation for last touched parameter">
@@ -2477,10 +2446,14 @@
 # improve using GetLastTouchedFX]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20auxilary%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20auxilary%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set last touched parameter value (via deductive brutforce).lua" type="script" desc="Set last touched parameter value (via deductive brutforce)">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2017-08-14T20:25:55Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -2494,6 +2467,10 @@
         <changelog><![CDATA[# use more straigh approach]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5bc7dd7e4b0700ee608b61db6a0f00ecb82ecfb/FX/mpl_Set%20last%20touched%20parameter%20value%20(via%20deductive%20brutforce).lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20last%20touched%20parameter%20value%20(via%20deductive%20brutforce).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO direction to centered for last touched parameter.lua" type="script" desc="Set LFO direction to centered for last touched parameter">
       <metadata>
@@ -2502,6 +2479,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20direction%20to%20centered%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20direction%20to%20centered%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set LFO direction to negative for last touched parameter.lua" type="script" desc="Set LFO direction to negative for last touched parameter">
@@ -2512,6 +2493,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20direction%20to%20negative%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20direction%20to%20negative%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO direction to positive for last touched parameter.lua" type="script" desc="Set LFO direction to positive for last touched parameter">
       <metadata>
@@ -2520,6 +2505,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20direction%20to%20positive%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20direction%20to%20positive%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set LFO shape to sine for last touched parameter.lua" type="script" desc="Set LFO shape to sine for last touched parameter">
@@ -2530,6 +2519,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20shape%20to%20sine%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20shape%20to%20sine%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO speed to 0.5 beat for last touched parameter.lua" type="script" desc="Set LFO speed to 0.5 beat for last touched parameter">
       <metadata>
@@ -2538,6 +2531,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20speed%20to%200.5%20beat%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20speed%20to%200.5%20beat%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set LFO speed to 1 beat for last touched parameter.lua" type="script" desc="Set LFO speed to 1 beat for last touched parameter">
@@ -2548,6 +2545,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20speed%20to%201%20beat%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20speed%20to%201%20beat%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO speed to 2 beats for last touched parameter.lua" type="script" desc="Set LFO speed to 2 beats for last touched parameter">
       <metadata>
@@ -2556,6 +2557,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20speed%20to%202%20beats%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20speed%20to%202%20beats%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set LFO square to random for last touched parameter.lua" type="script" desc="Set LFO square to random for last touched parameter">
@@ -2566,6 +2571,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20random%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20square%20to%20random%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO square to saw L for last touched parameter.lua" type="script" desc="Set LFO square to saw L for last touched parameter">
       <metadata>
@@ -2574,6 +2583,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20saw%20L%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20square%20to%20saw%20L%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set LFO square to saw R for last touched parameter.lua" type="script" desc="Set LFO square to saw R for last touched parameter">
@@ -2584,6 +2597,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20saw%20R%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20square%20to%20saw%20R%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO square to sine for last touched parameter.lua" type="script" desc="Set LFO square to sine for last touched parameter">
       <metadata>
@@ -2593,6 +2610,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20sine%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20square%20to%20sine%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set LFO square to triangle for last touched parameter.lua" type="script" desc="Set LFO square to triangle for last touched parameter">
       <metadata>
@@ -2601,6 +2622,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20triangle%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20LFO%20square%20to%20triangle%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set main input as a modulation for last touched parameter.lua" type="script" desc="Set main input as a modulation for last touched parameter">
@@ -2616,6 +2641,10 @@
 # improve using GetLastTouchedFX]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20main%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20main%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set selected track FX outputs to incremental stereo pairs.lua" type="script" desc="Set selected track FX outputs to incremental stereo pairs">
       <metadata>
@@ -2624,6 +2653,10 @@
       <version name="1.0" author="MPL" time="2020-05-22T06:14:50Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9be8725a84684636e6947ed871c1d853b1e44a39/FX/mpl_Set%20selected%20track%20FX%20outputs%20to%20incremental%20stereo%20pairs.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Set%20selected%20track%20FX%20outputs%20to%20incremental%20stereo%20pairs.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Show instrument in FX chain on selected track.lua" type="script" desc="Show instrument in FX chain on selected track">
@@ -2653,6 +2686,10 @@
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/FX/mpl_Show%20instrument%20in%20FX%20chain%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Show%20instrument%20in%20FX%20chain%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Show last touched FX parameter info.lua" type="script" desc="Show last touched FX parameter info">
       <metadata>
@@ -2680,6 +2717,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/290bfe6c6293de26b09780bc00120cd2731dde88/FX/mpl_Show%20selected%20envelope%20FX.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Show%20selected%20envelope%20FX.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle auto bypass on silence.lua" type="script" desc="Toggle auto bypass on silence">
       <metadata>
@@ -2689,6 +2730,11 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main" file="mpl_Toggle auto bypass on silence for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a4a36ec572017d616391ac81827e19505e59a95/FX/mpl_Toggle%20auto%20bypass%20on%20silence.lua</source>
         <source main="main" file="mpl_Toggle auto bypass on silence for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a4a36ec572017d616391ac81827e19505e59a95/FX/mpl_Toggle%20auto%20bypass%20on%20silence.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Toggle auto bypass on silence for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20auto%20bypass%20on%20silence.lua</source>
+        <source main="main" file="mpl_Toggle auto bypass on silence for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20auto%20bypass%20on%20silence.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle bypass FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle bypass FX with latency (PDC) higher than X samples">
@@ -2714,6 +2760,25 @@
         <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7031a780407a2c4673cd02d2a21985fd2f5ddca2/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7031a780407a2c4673cd02d2a21985fd2f5ddca2/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
       </version>
+      <version name="1.07" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 64 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 128 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 256 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 512 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 1024 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 64 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 128 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 256 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 512 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 1024 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
       <metadata>
@@ -2734,6 +2799,10 @@
         <changelog><![CDATA[# check if plugin is instrument by checking pre-aliased name
 + allow to add plugin name into exception list]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc9dabf718a363508eefd876652d3223d906e411/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle FX oversampling.lua" type="script" desc="Toggle FX oversampling">
@@ -2838,6 +2907,20 @@
         <source main="main" file="mpl_Toggle set to 8x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
         <source main="main" file="mpl_Toggle set to 8x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cc50398a6e4b4fd27fa871de6b22fc77f3df93c/FX/mpl_Toggle%20FX%20oversampling.lua</source>
       </version>
+      <version name="1.07" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Toggle set to none oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Disable oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Enable 4x oversampling for all project Slate VMR.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Disable oversampling for all project Slate VMR.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to none oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 2x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 2x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 4x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 4x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 8x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+        <source main="main" file="mpl_Toggle set to 8x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle mute all tracks contain FX with latency (PDC) higher than X samples">
       <metadata>
@@ -2860,6 +2943,15 @@
         <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6ca50689f8827cde4b8cb516562fe7ffe8b3013e/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6ca50689f8827cde4b8cb516562fe7ffe8b3013e/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6ca50689f8827cde4b8cb516562fe7ffe8b3013e/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 256 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 512 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 1024 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20mute%20all%20tracks%20contain%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle mute focused FX track.lua" type="script" desc="Toggle mute focused FX track">
@@ -2886,6 +2978,17 @@
         <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e55a3e1420fefb58252bbb90318ef16a537c52db/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e55a3e1420fefb58252bbb90318ef16a537c52db/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
       </version>
+      <version name="1.08" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 64 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 128 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 256 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 512 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 1024 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle offline selected track FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20offline%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle parameter modulation for last touched parameter.lua" type="script" desc="Toggle parameter modulation for last touched parameter">
       <metadata>
@@ -2898,6 +3001,10 @@
       <version name="1.01" author="MPL" time="2023-01-24T19:54:28Z">
         <changelog><![CDATA[# fix undo typo]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf0f2760f6d40396c1d15696b3e349948d1b5838/FX/mpl_Toggle%20parameter%20modulation%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20parameter%20modulation%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle soft pseudo bypass focused FX.lua" type="script" desc="Toggle soft pseudo bypass focused FX">
@@ -2915,6 +3022,10 @@
       <version name="1.01" author="MPL" time="2021-06-02T18:11:02Z">
         <changelog><![CDATA[+ (X-Raym) Time based counter incrementation variable]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cdadfde5daf3e09404a60658ea0981c78560749/FX/mpl_Toggle%20soft%20pseudo%20bypass%20focused%20FX.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:12:58Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20soft%20pseudo%20bypass%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle solo focused FX track.lua" type="script" desc="Toggle solo focused FX track">
