@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea" name="MPL Scripts">
+<index version="1" commit="0823924562447dd882f00bdebf98debcfbfc771e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1703,6 +1703,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Enable%20LFO%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Enable%20LFO%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Enable parameter modulation for selected tracks.lua" type="script" desc="Enable parameter modulation for selected tracks">
       <metadata>
@@ -1711,6 +1715,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Enable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Enable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float instrument on selected track.lua" type="script" desc="Float instrument on selected track">
@@ -1730,6 +1738,10 @@
       <version name="1.04" author="MPL" time="2019-07-23T17:39:57Z">
         <changelog><![CDATA[# fix checking Various_functions (2)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/673ef1541a223c10e6cdbb8b9d0313b69a73985c/FX/mpl_Float%20instrument%20on%20selected%20track.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Float%20instrument%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float instrument on track under mouse cursor.lua" type="script" desc="Float instrument on track under mouse cursor">
@@ -1758,6 +1770,10 @@
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.07" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Generate reabank from focused FX.lua" type="script" desc="Generate reabank from focused FX">
       <metadata>
@@ -1776,6 +1792,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Increase%20LFO%20speed%20for%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Increase%20LFO%20speed%20for%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Insert focused FX to selected tracks, preserve parameters.lua" type="script" desc="Insert focused FX to selected tracks, preserve parameters">
       <metadata>
@@ -1790,6 +1810,10 @@
 + use native direct copy FX API (REAPER 5.95+)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a066643920c79f45c743fdec61ec7bdd340df568/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks,%20preserve%20parameters.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks,%20preserve%20parameters.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Insert focused FX to selected tracks.lua" type="script" desc="Insert focused FX to selected tracks">
       <metadata>
@@ -1798,6 +1822,10 @@
       <version name="1.0" author="MPL" time="2017-01-22T09:39:26Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be2c444d577fea1b597def577887433883fcb9d3/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InstrumentRack.lua" type="script" desc="InstrumentRack">
@@ -2163,6 +2191,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/FX/mpl_Offline%20all%20the%20track%20FX%20before%20focused%20FX%20(including%20focused%20FX).lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Offline%20all%20the%20track%20FX%20before%20focused%20FX%20(including%20focused%20FX).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX.lua" type="script" desc="Offline all the track FX before focused FX">
       <metadata>
@@ -2172,6 +2204,10 @@
         <changelog><![CDATA[# change name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/FX/mpl_Offline%20all%20the%20track%20FX%20before%20focused%20FX.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Offline%20all%20the%20track%20FX%20before%20focused%20FX.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX starting from focused FX.lua" type="script" desc="Offline all the track FX starting from focused FX">
       <metadata>
@@ -2180,6 +2216,10 @@
       <version name="1.01" author="MPL" time="2022-02-18T19:13:41Z">
         <changelog><![CDATA[# changing name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/FX/mpl_Offline%20all%20the%20track%20FX%20starting%20from%20focused%20FX.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Offline%20all%20the%20track%20FX%20starting%20from%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline bypassed fx on selected tracks.lua" type="script" desc="Offline bypassed fx on selected tracks">
@@ -2194,26 +2234,9 @@
         <changelog><![CDATA[# do not bypass FX with bypass envelope (req Reaper 6.37+)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cd700ea4d1604cd033ea02c69d21396a2dcadfb/FX/mpl_Offline%20bypassed%20fx%20on%20selected%20tracks.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Open FX browser and close FX browser when FX is inserted.lua" type="script" desc="Open FX browser and close FX browser when FX is inserted">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-11T01:55:07Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f75b24befef19252bb54e60a9c64891a7fdfd549/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-03-11T03:03:13Z">
-        <changelog><![CDATA[# fix adding by doubleclick]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26630347833e54eb7e5601a67bb0d5c48e4bdfda/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
-      </version>
-      <version name="1.2" author="MPL" time="2017-03-11T12:34:22Z">
-        <changelog><![CDATA[# fix proper loop exit]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36318cfc0e80400347da972de15a7fb5fa9d4d31/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
-      </version>
-      <version name="1.3" author="MPL" time="2017-03-11T13:10:32Z">
-        <changelog><![CDATA[# doubleclick on FX runs FX browser again]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ceb519fb7919b20364f6c59b72af32cdcf8ff761/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
+      <version name="1.02" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Offline%20bypassed%20fx%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Pan focused FX track 10% left.lua" type="script" desc="Pan focused FX track 10% left">
@@ -2250,6 +2273,10 @@
       <version name="1.0" author="MPL" time="2023-02-01T20:57:55Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c04836c2738c1a506b60f5a345b8a3fdb37d251e/FX/mpl_Random%20modulated%20parameters%20LFO%20phase%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Random%20modulated%20parameters%20LFO%20phase%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script" desc="Randomize Track FX parameters">
@@ -2305,6 +2332,10 @@
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20MIDI%20learn%20from%20focused%20FX.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Remove%20MIDI%20learn%20from%20focused%20FX.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Remove MIDI learn from selected tracks.lua" type="script" desc="Remove MIDI learn from selected tracks">
       <metadata>
@@ -2313,6 +2344,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20MIDI%20learn%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Remove%20MIDI%20learn%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove OSC learn from focused FX.lua" type="script" desc="Remove OSC learn from focused FX">
@@ -2323,6 +2358,10 @@
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20OSC%20learn%20from%20focused%20FX.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Remove%20OSC%20learn%20from%20focused%20FX.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Remove OSC learn from selected tracks.lua" type="script" desc="Remove OSC learn from selected tracks">
       <metadata>
@@ -2331,6 +2370,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20OSC%20learn%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Remove%20OSC%20learn%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset FX chain pin mapping.lua" type="script" desc="Reset FX chain pin mapping">
@@ -2347,6 +2390,10 @@
       <version name="1.0" author="MPL" time="2019-01-22T10:08:37Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6f5b4f7439e828e0e70c3c0fbea740d2c8d746b3/FX/mpl_Reset%20FX%20chain%20pin%20mapping.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T10:35:06Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0823924562447dd882f00bdebf98debcfbfc771e/FX/mpl_Reset%20FX%20chain%20pin%20mapping.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Restore focused FX parent track bypass states.lua" type="script" desc="Restore focused FX parent track bypass states">
