@@ -5,7 +5,7 @@
 --    Select envelope, select item, run script
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
-  --    # VF independent
+--    # VF independent
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
