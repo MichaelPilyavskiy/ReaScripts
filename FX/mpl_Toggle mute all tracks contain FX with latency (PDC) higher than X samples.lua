@@ -1,5 +1,5 @@
 -- @description Toggle mute all tracks contain FX with latency (PDC) higher than X samples
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -11,7 +11,20 @@
 --    [main] . > mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    # fix link
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
@@ -52,23 +65,8 @@
       end     
       SetExtState( 'MPLPDCTOGGLETR', 'STATE', 0, true )
     end
-  end
-  ---------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)      
-      if not _G[str_func] then   reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true  end      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
-  end  
+  end 
 -------------------------------------------------------------------- 
   local cnt_spls = ({reaper.get_action_context()})[2]:match('([%d]+) samples')
-  if not (cnt_spls and tonumber(cnt_spls)) then cnt_spls = 256 else cnt_spls = tonumber(cnt_spls) end
-  
-  local ret = CheckFunctions('VF_GetFormattedGrid') 
-  local ret2 = VF_CheckReaperVrs(5.95)    
-  if ret and ret2 then main(cnt_spls) end
+  if not (cnt_spls and tonumber(cnt_spls)) then cnt_spls = 256 else cnt_spls = tonumber(cnt_spls) end 
+  if VF_CheckReaperVrs(5.95, true)then  main(cnt_spls) end

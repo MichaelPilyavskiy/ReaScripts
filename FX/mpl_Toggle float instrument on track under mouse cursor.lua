@@ -1,12 +1,24 @@
 -- @description Toggle float instrument on track under mouse cursor
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # check if plugin is instrument by checking pre-aliased name
---    + allow to add plugin name into exception list
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
   
-  
+    ---------------------------------------------------
 local exceptions_list =
 {
 "Transpose", 
@@ -14,9 +26,13 @@ local exceptions_list =
 "m pc", 
 "m chan" 
 }
-  
-  -- NOT gfx NOT reaper
-  local scr_title = 'Toggle float instrument on track under mouse cursor'
+  ---------------------------------------------------
+  function VF_GetTrackUnderMouseCursor()
+    local screen_x, screen_y = GetMousePosition()
+    local retval, info = reaper.GetTrackFromPoint( screen_x, screen_y )
+    return retval
+  end
+    ---------------------------------------------------
   function main()
     local tr = VF_GetTrackUnderMouseCursor()
     if tr then 
@@ -24,6 +40,28 @@ local exceptions_list =
       ApplyFunctionToTrackInTree(tr, FloatInstrument2)
     end
   end  
+  ---------------------------------------------------------------------
+    function ApplyFunctionToTrackInTree(track, func) -- function return true stop search
+      -- search tree
+        local parent_track, ret2, ret3
+        local track2 = track
+        repeat
+          parent_track = reaper.GetParentTrack(track2)
+          if parent_track ~= nil then
+            ret2 = func(parent_track )
+            if ret2 then return end
+            track2 = parent_track
+          end
+        until parent_track == nil    
+        
+      -- search sends
+        local cnt_sends = GetTrackNumSends( track, 0)
+        for sendidx = 1,  cnt_sends do
+          dest_tr = BR_GetMediaTrackSendInfo_Track( track, 0, sendidx-1, 1 )
+          ret3 = func(dest_tr )
+          if ret3 then return  end
+        end
+    end
   -------------------------------------------------------------------------------     
   function FloatInstrument2(track, toggle)
     -- find instrument
@@ -52,12 +90,7 @@ local exceptions_list =
     end
   end
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-
---------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_GetItemTakeUnderMouseCursor') 
-  local ret2 = VF_CheckReaperVrs(6.37,true)    
-  if ret and ret2 then 
+  if VF_CheckReaperVrs(6.37,true) then 
     script_title = "Toggle float instrument on track under mouse cursor"
     reaper.Undo_BeginBlock() 
     main()
