@@ -1,10 +1,23 @@
--- @version 1.0
--- @author MPL
--- @changelog
---   + init release
 -- @description Insert focused FX to selected tracks
+-- @version 1.01
+-- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
-  
+-- @changelog
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  ---------------------------------------------------
   function main()
     local ret, tracknumber, _, fxnumberOut = reaper.GetFocusedFX()
     if ret == 0 then return end
@@ -25,4 +38,4 @@
     end
   end
   
-  main()
+  if VF_CheckReaperVrs(6,true) then main() end

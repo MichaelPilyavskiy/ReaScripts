@@ -1,12 +1,25 @@
 -- @description Reset FX chain pin mapping
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about http://forum.cockos.com/showpost.php?p=2009857&postcount=3
 -- @changelog
---    + init
+--    # VF independent
 
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
+    ---------------------------------------------------
 
   change_name = 0
   
@@ -53,11 +66,8 @@
         str_out = str_out..'#'..(i+1)..' '..fxname..': go to 1-4 channels\n'         
       end]]
     end
-    MB(str_out, '', 0)
+    --MB(str_out, '', 0)
   end
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-
-  --------------------------------------------------------------------
-  if CheckFunctions('SetFXName')      then SplitInstrumentTo34AfterFocusedFX() end
+  if VF_CheckReaperVrs(6,true) then SplitInstrumentTo34AfterFocusedFX() end
   
