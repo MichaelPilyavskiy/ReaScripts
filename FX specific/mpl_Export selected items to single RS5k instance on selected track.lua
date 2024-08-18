@@ -1,9 +1,22 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Export selected items to single RS5k instance on selected track
 -- @changelog
---    # use VF version check
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   local script_title = 'Export selected items to single RS5k instance on selected track'
   -------------------------------------------------------------------------------   
@@ -25,18 +38,29 @@
           reaper.SetMediaItemSelected(item, true)
           reaper.Main_OnCommand(40362, 0) -- glue without time selection
           local cur_item =  reaper.GetSelectedMediaItem( 0, 0)
-          if cur_item then new_GUIDs[#new_GUIDs+1] = reaper.BR_GetMediaItemGUID( cur_item ) end
+          local retval, GUID = reaper.GetSetMediaItemInfo_String( cur_item, 'GUID', '', 0 )
+          if cur_item then new_GUIDs[#new_GUIDs+1] = GUID end
         end
       end
     
     reaper.Main_OnCommand(40289, 0) -- unselect all items
     -- add new items to selection
       for i = 1, #new_GUIDs do
-        local item = reaper.BR_GetMediaItemByGUID( 0, new_GUIDs[i] )
+        local item = VF_GetMediaItemByGUID( 0, new_GUIDs[i] )
         if item then reaper.SetMediaItemSelected(item, true) end
       end
     reaper.UpdateArrange() 
   end
+  ---------------------------------------------------------------------
+  function VF_GetMediaItemByGUID(optional_proj, itemGUID)
+    local optional_proj0 = optional_proj or 0
+    local itemCount = CountMediaItems(optional_proj);
+    for i = 1, itemCount do
+      local item = GetMediaItem(0, i-1);
+      local retval, stringNeedBig = GetSetMediaItemInfo_String(item, "GUID", '', false)
+      if stringNeedBig  == itemGUID then return item end
+    end
+  end  
   ------------------------------------------------------------------------------- 
   function GetRS5kID(tr)
     local id = -1
@@ -103,12 +127,8 @@
       reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
     end
   
-    ---------------------------------------------------------------------
-      function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  --------------------------------------------------------------------  
-    local ret = CheckFunctions('VF_CalibrateFont') 
-    local ret2 = VF_CheckReaperVrs(5.4,true)    
-    if ret and ret2 then 
+    -------------------------------------------------------------------  
+    if VF_CheckReaperVrs(5.4,true) then 
       reaper.Undo_BeginBlock()
       main()
       reaper.Undo_EndBlock(script_title, 1)

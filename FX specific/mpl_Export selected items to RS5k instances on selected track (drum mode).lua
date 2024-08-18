@@ -1,85 +1,62 @@
 -- @version 1.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @description Export selected items to RS5k instances on selected track (drum mode)
+-- @description Export selected items to RS5k instances on selected track
 -- @changelog
---    # use VF version check
+--    # VF independent
 
-
-  local script_title = 'Export selected items to RS5k instances on selected track (drum mode)' 
-  
-  -------------------------------------------------------------------------------
-  function F_SetFXName(track, fx, new_name)
-    local edited_line,edited_line_id,segm
-    -- get ref guid
-      if not track or not tonumber(fx) then return end
-      local FX_GUID = reaper.TrackFX_GetFXGUID( track, fx )
-      if not FX_GUID then return else FX_GUID = FX_GUID:gsub('-',''):sub(2,-2) end
-      local plug_type = reaper.TrackFX_GetIOSize( track, fx )
-    -- get chunk t
-      local _, chunk = reaper.GetTrackStateChunk( track, '', false )
-      local t = {} for line in chunk:gmatch("[^\r\n]+") do t[#t+1] = line end
-    -- find edit line
-      local search
-      for i = #t, 1, -1 do
-        local t_check = t[i]:gsub('-','')
-        if t_check:find(FX_GUID) then search = true  end
-        if t[i]:find('<') and search and not t[i]:find('JS_SER') then
-          edited_line = t[i]:sub(2)
-          edited_line_id = i
-          break
-        end
-      end
-    -- parse line
-      if not edited_line then return end
-      local t1 = {}
-      for word in edited_line:gmatch('[%S]+') do t1[#t1+1] = word end
-      local t2 = {}
-      for i = 1, #t1 do
-        segm = t1[i]
-        if not q then t2[#t2+1] = segm else t2[#t2] = t2[#t2]..' '..segm end
-        if segm:find('"') and not segm:find('""') then if not q then q = true else q = nil end end
-      end
-  
-      if plug_type == 2 then t2[3] = '"'..new_name..'"' end -- if JS
-      if plug_type == 3 then t2[5] = '"'..new_name..'"' end -- if VST
-  
-      local out_line = table.concat(t2,' ')
-      t[edited_line_id] = '<'..out_line
-      local out_chunk = table.concat(t,'\n')
-      --msg(out_chunk)
-      reaper.SetTrackStateChunk( track, out_chunk, false )
-      reaper.UpdateArrange()
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
   end
+
+  local script_title = 'Export selected items to RS5k instances on selected track'
+  ---------------------------------------------------------------------
+  function VF_GetMediaItemByGUID(optional_proj, itemGUID)
+    local optional_proj0 = optional_proj or 0
+    local itemCount = CountMediaItems(optional_proj);
+    for i = 1, itemCount do
+      local item = GetMediaItem(0, i-1);
+      local retval, stringNeedBig = GetSetMediaItemInfo_String(item, "GUID", '', false)
+      if stringNeedBig  == itemGUID then return item end
+    end
+  end  
   -------------------------------------------------------------------------------   
   function GlueSelectedItemsIndependently()
     -- store GUIDs
       local GUIDs = {}
       for it_id = 1, reaper.CountSelectedMediaItems(0) do
         local item =  reaper.GetSelectedMediaItem( 0, it_id-1 )
-        if item then 
-          local it_GUID = reaper.BR_GetMediaItemGUID( item )
-          GUIDs[#GUIDs+1] = it_GUID
-        end
+        local it_GUID = VF_GetItemGUID( item )
+        GUIDs[#GUIDs+1] = it_GUID
       end
       
     -- glue items
       local new_GUIDs = {}
       for i = 1, #GUIDs do
-        local item = reaper.BR_GetMediaItemByGUID( 0, GUIDs[i] )
+        local item = VF_GetMediaItemByGUID( 0, GUIDs[i] )
         if item then 
           reaper.Main_OnCommand(40289, 0) -- unselect all items
           reaper.SetMediaItemSelected(item, true)
           reaper.Main_OnCommand(40362, 0) -- glue without time selection
           local cur_item =  reaper.GetSelectedMediaItem( 0, 0)
-          if cur_item then new_GUIDs[#new_GUIDs+1] = reaper.BR_GetMediaItemGUID( cur_item ) end
+          local retval, GUID = reaper.GetSetMediaItemInfo_String( cur_item, 'GUID', '', 0 )
+          if cur_item then new_GUIDs[#new_GUIDs+1] = GUID end
         end
       end
     
     reaper.Main_OnCommand(40289, 0) -- unselect all items
     -- add new items to selection
       for i = 1, #new_GUIDs do
-        local item = reaper.BR_GetMediaItemByGUID( 0, new_GUIDs[i] )
+        local item = VF_GetMediaItemByGUID( 0, new_GUIDs[i] )
         if item then reaper.SetMediaItemSelected(item, true) end
       end
     reaper.UpdateArrange() 
@@ -100,18 +77,17 @@
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 4, base_pitch/127 ) -- note range end
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
+      --reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 1 ) -- obey note offs
       local new_name = F_extract_filename(filename)
-      F_SetFXName(track, rs5k_pos, 'RS5K '..new_name)
+      reaper.TrackFX_SetNamedConfigParm( track, rs5k_pos, 'renamed_name', 'RS5K '..new_name )
       reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "FILE0", filename)
       reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "DONE","")
       base_pitch = base_pitch + 1                
       ::skip_to_next_item::
     end
   end
-   
   -------------------------------------------------------------------------------   
   function FormMIDItake_data()
     local MIDI = {}
@@ -211,14 +187,10 @@
       reaper.SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track
       reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
     end
-
-    ---------------------------------------------------------------------
-      function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  
   --------------------------------------------------------------------  
-    local ret = CheckFunctions('VF_CalibrateFont') 
-    local ret2 = VF_CheckReaperVrs(5.4,true)    
-    if ret and ret2 then 
-      reaper.Undo_BeginBlock()
-      main()
-      reaper.Undo_EndBlock(script_title, 1)
-    end
+  if  VF_CheckReaperVrs(5.975,true) then 
+    reaper.Undo_BeginBlock() 
+    main() 
+    reaper.Undo_EndBlock(script_title, 1) 
+  end

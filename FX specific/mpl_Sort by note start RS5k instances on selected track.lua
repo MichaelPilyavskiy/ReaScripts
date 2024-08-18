@@ -1,12 +1,23 @@
 -- @description Sort by note start RS5k instances on selected track
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # VF independent
 
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
-  local vrs = 'v1.0'
   
   --NOT gfx NOT reaper
 --------------------------------------------------------------------
@@ -27,14 +38,8 @@
     for i=cntfx, 1,-1 do TrackFX_Delete( track, i-1 ) end 
   end
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  if ret then
-    local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret and ret2 then 
+  if VF_CheckReaperVrs(5.95,true)  then 
       Undo_BeginBlock2( 0 )
       main() 
-      Undo_EndBlock2( 0, 'Sort by note start RS5k instances on selected track', -1 )
-    end
+      Undo_EndBlock2( 0, 'Sort by note start RS5k instances on selected track', 0xFFFFFF )
   end

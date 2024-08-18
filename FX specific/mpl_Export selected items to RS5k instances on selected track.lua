@@ -1,55 +1,25 @@
--- @version 1.17
+-- @version 1.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Export selected items to RS5k instances on selected track
 -- @changelog
---    # remove SWS dependency
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   local script_title = 'Export selected items to RS5k instances on selected track'
   
-  -------------------------------------------------------------------------------
-  function F_SetFXName(track, fx, new_name)
-    local edited_line,edited_line_id,segm
-    -- get ref guid
-      if not track or not tonumber(fx) then return end
-      local FX_GUID = reaper.TrackFX_GetFXGUID( track, fx )
-      if not FX_GUID then return else FX_GUID = FX_GUID:gsub('-',''):sub(2,-2) end
-      local plug_type = reaper.TrackFX_GetIOSize( track, fx )
-    -- get chunk t
-      local _, chunk = reaper.GetTrackStateChunk( track, '', false )
-      local t = {} for line in chunk:gmatch("[^\r\n]+") do t[#t+1] = line end
-    -- find edit line
-      local search
-      for i = #t, 1, -1 do
-        local t_check = t[i]:gsub('-','')
-        if t_check:find(FX_GUID) then search = true  end
-        if t[i]:find('<') and search and not t[i]:find('JS_SER') then
-          edited_line = t[i]:sub(2)
-          edited_line_id = i
-          break
-        end
-      end
-    -- parse line
-      if not edited_line then return end
-      local t1 = {}
-      for word in edited_line:gmatch('[%S]+') do t1[#t1+1] = word end
-      local t2 = {}
-      for i = 1, #t1 do
-        segm = t1[i]
-        if not q then t2[#t2+1] = segm else t2[#t2] = t2[#t2]..' '..segm end
-        if segm:find('"') and not segm:find('""') then if not q then q = true else q = nil end end
-      end
-  
-      if plug_type == 2 then t2[3] = '"'..new_name..'"' end -- if JS
-      if plug_type == 3 then t2[5] = '"'..new_name..'"' end -- if VST
-  
-      local out_line = table.concat(t2,' ')
-      t[edited_line_id] = '<'..out_line
-      local out_chunk = table.concat(t,'\n')
-      --msg(out_chunk)
-      reaper.SetTrackStateChunk( track, out_chunk, false )
-      reaper.UpdateArrange()
-  end
   -------------------------------------------------------------------------------   
   function GlueSelectedItemsIndependently()
     -- store GUIDs
@@ -69,7 +39,8 @@
           reaper.SetMediaItemSelected(item, true)
           reaper.Main_OnCommand(40362, 0) -- glue without time selection
           local cur_item =  reaper.GetSelectedMediaItem( 0, 0)
-          if cur_item then new_GUIDs[#new_GUIDs+1] = VF_GetItemGUID( cur_item ) end
+          local retval, GUID = reaper.GetSetMediaItemInfo_String( cur_item, 'GUID', '', 0 )
+          if cur_item then new_GUIDs[#new_GUIDs+1] = GUID end
         end
       end
     
@@ -101,7 +72,7 @@
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 1 ) -- obey note offs
       local new_name = F_extract_filename(filename)
-      F_SetFXName(track, rs5k_pos, 'RS5K '..new_name)
+      reaper.TrackFX_SetNamedConfigParm( track, rs5k_pos, 'renamed_name', 'RS5K '..new_name )
       reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "FILE0", filename)
       reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "DONE","")
       base_pitch = base_pitch + 1                
@@ -209,6 +180,8 @@
     end
   
   ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then reaper.Undo_BeginBlock() main() reaper.Undo_EndBlock(script_title, 1) end end
+  if VF_CheckReaperVrs(5.975,true)then
+    reaper.Undo_BeginBlock() 
+    main() 
+    reaper.Undo_EndBlock(script_title, 1) 
+  end
