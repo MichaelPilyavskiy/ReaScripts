@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="185e5b4338f344d5e55c166ceca8b033101b6d5c" name="MPL Scripts">
+<index version="1" commit="d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1450,6 +1450,10 @@
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/451f5a28438408e0196876b93088abc8a8f6c782/FX/mpl_Bind%20last%20touched%20controller%20to%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Bind%20last%20touched%20controller%20to%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Bypass all FX except instruments on all tracks.lua" type="script" desc="Toggle bypass all FX except instruments on all tracks">
       <metadata>
@@ -1472,6 +1476,10 @@
       <version name="1.51" author="MPL" time="2021-05-29T19:11:40Z">
         <changelog><![CDATA[# add exception for reaticulate]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d0e62059f03b2bd930eebc361b019096e3f42dc3/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
+      </version>
+      <version name="1.52" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Bypass all FX except instruments on selected tracks.lua" type="script" desc="Toggle bypass all FX except instruments on selected tracks">
@@ -1510,6 +1518,10 @@
         <changelog><![CDATA[# add exception for reaticulate]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d0e62059f03b2bd930eebc361b019096e3f42dc3/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
       </version>
+      <version name="1.52" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Bypass all the selected track FX starting after focused FX.lua" type="script" desc="Bypass all the selected track FX starting after focused FX">
       <metadata>
@@ -1519,6 +1531,10 @@
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38211ae529d1ca251bf34b4584497c79a1642ba6/FX/mpl_Bypass%20all%20the%20selected%20track%20FX%20starting%20after%20focused%20FX.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Bypass%20all%20the%20selected%20track%20FX%20starting%20after%20focused%20FX.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Bypass all the selected track FX starting from focused FX.lua" type="script" desc="Bypass all the selected track FX starting from focused FX">
       <metadata>
@@ -1527,6 +1543,10 @@
       <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Bypass%20all%20the%20selected%20track%20FX%20starting%20from%20focused%20FX.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Bypass%20all%20the%20selected%20track%20FX%20starting%20from%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create send from focused FX.lua" type="script" desc="Create send from focused FX">
@@ -1569,6 +1589,10 @@
         <changelog><![CDATA[# fix missing FX GUID error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b1746378e2c295b9c1e16825b5c2ec4fff0e8704/FX/mpl_Cubase%20AB%20floating%20FX%20make%20equal.lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Cubase%20AB%20floating%20FX%20make%20equal.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX.lua" type="script" desc="AB floating FX parameters">
       <metadata>
@@ -1601,6 +1625,10 @@
         <changelog><![CDATA[# fix missing FX GUID error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b1746378e2c295b9c1e16825b5c2ec4fff0e8704/FX/mpl_Cubase%20AB%20floating%20FX.lua</source>
       </version>
+      <version name="1.07" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Cubase%20AB%20floating%20FX.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Decrease LFO speed for last touched parameter.lua" type="script" desc="Decrease LFO speed for last touched parameter">
       <metadata>
@@ -1609,6 +1637,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Decrease%20LFO%20speed%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Decrease%20LFO%20speed%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete bypassed fx from selected tracks.lua" type="script" desc="Delete bypassed fx from selected tracks">
@@ -1626,20 +1658,28 @@
     </reapack>
     <reapack name="mpl_Delete offline fx from selected tracks.lua" type="script" desc="Delete offline fx from selected tracks">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2018-08-10T14:29:23Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f796fb7ee80aec7289d049eabde20aa2ffe11c25/FX/mpl_Delete%20offline%20fx%20from%20selected%20tracks.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Delete%20offline%20fx%20from%20selected%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Disable LFO for last touched parameter.lua" type="script" desc="Disable LFO for last touched parameter">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Disable%20LFO%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Disable%20LFO%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Disable parameter modulation for selected tracks.lua" type="script" desc="Disable parameter modulation for selected tracks">
@@ -1649,6 +1689,10 @@
       <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Disable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Disable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Enable LFO for last touched parameter.lua" type="script" desc="Enable LFO for last touched parameter">
