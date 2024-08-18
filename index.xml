@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e" name="MPL Scripts">
+<index version="1" commit="79c35d79146480d8c247d0be9b776ca78f77ce5c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3446,7 +3446,7 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20(for%20McSequencer).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track (drum mode)">
+    <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
@@ -3463,6 +3463,10 @@
         <changelog><![CDATA[# use VF version check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (use original source, wait for input).lua" type="script" desc="Export selected items to RS5k instances on selected track (use original source, wait for input)">
       <metadata>
@@ -3471,6 +3475,10 @@
       <version name="1.0" author="MPL" time="2023-04-02T20:21:00Z">
         <changelog><![CDATA[+ ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source,%20wait%20for%20input).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source,%20wait%20for%20input).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
@@ -3481,6 +3489,10 @@
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
+      <version name="1.18" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export selected items to single RS5k instance on selected track (use original source).lua" type="script" desc="Export selected items to single RS5k instance on selected track (use original source)">
       <metadata>
@@ -3490,6 +3502,10 @@
         <changelog><![CDATA[+ init, require variousFunctions 2.62+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track%20(use%20original%20source).lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track%20(use%20original%20source).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export selected items to single RS5k instance on selected track.lua" type="script" desc="Export selected items to single RS5k instance on selected track">
       <metadata>
@@ -3498,6 +3514,10 @@
       <version name="1.02" author="MPL" time="2023-04-02T20:21:00Z">
         <changelog><![CDATA[# use VF version check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
@@ -3530,6 +3550,10 @@
         <changelog><![CDATA[# fix math for detecting rs5k note
 + Select founded track]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Float%20RS5k%20instance%20by%20last%20incoming%20note.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Float%20RS5k%20instance%20by%20last%20incoming%20note.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float RS5k related to input note on last touched track.lua" type="script" desc="Float RS5k related to input note on last touched track">
@@ -3630,46 +3654,14 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua" type="script" desc="Move sample selection for focused RS5k (MIDI, OSC, Mousewheel)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-04-02T20:21:00Z">
-        <changelog><![CDATA[#header]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Move%20sample%20selection%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export chromatically to RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.02" author="MPL" time="2023-04-02T20:21:00Z">
-        <changelog><![CDATA[# use VF version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.05" author="MPL" time="2023-04-02T20:21:00Z">
-        <changelog><![CDATA[# use VF version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Port focused ReaEQ bands to spectral edits on selected items.lua" type="script" desc="Port focused ReaEQ bands to spectral edits on selected items">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.11" author="MPL" time="2023-02-02T10:29:06Z">
-        <changelog><![CDATA[# reindex out of metapackage by lot of requests]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07c62170526ca5bb1e28e44f7e4089de64abcc39/FX%20specific/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Remove ReaEQ from selected tracks.lua" type="script" desc="Remove ReaEQ from selected tracks">
       <version name="1.0" author="MPL" time="2022-08-06T04:21:45Z">
         <changelog><![CDATA[init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5973c40b828f6e73b98a247b4c2dd6a3744fbb09/FX%20specific/mpl_Remove%20ReaEQ%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Remove%20ReaEQ%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reverse focused RS5k instance sample.lua" type="script" desc="Reverse focused RS5k instance sample (render reversed and use as new source)">
@@ -3679,6 +3671,10 @@
       <version name="1.0" author="MPL" time="2023-04-02T20:21:00Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Reverse%20focused%20RS5k%20instance%20sample.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Reverse%20focused%20RS5k%20instance%20sample.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager (background).lua" type="script" desc="RS5k manager">
@@ -5304,6 +5300,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Set%20RS5k%20sample%20start%20offset%20based%20on%20sample%20peak.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Set%20RS5k%20sample%20start%20offset%20based%20on%20sample%20peak.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set Sample mode for focused RS5k.lua" type="script" desc="Set Sample mode for focused RS5k">
       <metadata>
@@ -5321,6 +5321,10 @@
       <version name="1.0" author="MPL" time="2022-12-13T15:41:28Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e7c9056ef066c6c19af5b465c0527ca41606d10/FX%20specific/mpl_Set%20selected%20tracks%20ReaGate%20threshold%20to%20peak%20hold%20level.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Set%20selected%20tracks%20ReaGate%20threshold%20to%20peak%20hold%20level.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Solo last touched ReaEQ band (alter).lua" type="script" desc="Solo last touched ReaEQ band (alter)">
@@ -5356,14 +5360,9 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Sort%20by%20note%20start%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Sort focused ReaEQ bands by frequency.lua" type="script" desc="Sort focused ReaEQ bands by frequency">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.05" author="MPL" time="2023-02-02T10:29:06Z">
-        <changelog><![CDATA[# reindex out of metapackage by lot of requests]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07c62170526ca5bb1e28e44f7e4089de64abcc39/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
+      <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Sort%20by%20note%20start%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Split focused ReaEQ to LR routing.lua" type="script" desc="Split focused ReaEQ to LR routing">
@@ -5378,6 +5377,10 @@
         <changelog><![CDATA[# use new REAPER API
 # rename FX (REAPER 6.79+)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba956ac967db6d528a77a51c6c72b7d022307c46/FX%20specific/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2024-08-18T20:08:10Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Tap length for focused ReaDelay first tab.lua" type="script" desc="Tap length for focused ReaDelay first tab">
