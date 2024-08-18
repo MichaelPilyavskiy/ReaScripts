@@ -1,9 +1,22 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Add or replace source of item under mouse cursor for RS5k instance on selected track
 -- @changelog
---    # update for use with REAPER 5.981+
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
 
   function GetRS5Kpos(track)
@@ -14,7 +27,13 @@
       if nameOut:lower():find(name_ref) or nameOut:lower():find(name_ref2)  then return i-1 end
     end
   end
-  
+  ------------------------------------------------------------------------------------------------------
+  function VF_GetItemTakeUnderMouseCursor()
+    local screen_x, screen_y = GetMousePosition()
+    local item , take = reaper.GetItemFromPoint( screen_x, screen_y, true )
+    return item , take
+  end
+  ------------------------------------------------------------------------------------------------------
   function main()
     local item =  VF_GetItemTakeUnderMouseCursor()
     if not item then return end
@@ -31,14 +50,8 @@
     reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "FILE0", filename)
     reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "DONE","")    
   end
-
----------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-
 --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_GetItemTakeUnderMouseCursor') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then 
+  if VF_CheckReaperVrs(5.981,true) then 
     reaper.Undo_BeginBlock()
     main()
     reaper.Undo_EndBlock('Add or replace source of item under mouse cursor for RS5k instance on selected track', 1)

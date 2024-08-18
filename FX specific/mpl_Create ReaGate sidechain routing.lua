@@ -1,13 +1,42 @@
 -- @description Create ReaGate sidechain routing from selected track to track under mouse cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
   
   
   threshold = 0.25
   defsendvol = 1
+        
+        
+        
+        
+        
+        function VF_GetTrackUnderMouseCursor()
+          local screen_x, screen_y = GetMousePosition()
+          local retval, info = reaper.GetTrackFromPoint( screen_x, screen_y )
+          return retval
+        end
+        ------------------------------------------------------------------------------------------------------  
+        function VF_GetMediaTrackByGUID(optional_proj, GUID)
+          local optional_proj0 = optional_proj or 0
+          for i= 1, CountTracks(optional_proj0) do tr = GetTrack(0,i-1 )if reaper.GetTrackGUID( tr ) == GUID then return tr end end
+          local mast = reaper.GetMasterTrack( optional_proj0 ) if reaper.GetTrackGUID( mast ) == GUID then return mast end
+        end  
         
   --------------------------------------------------------------------------------------
   function main(threshold, ratio, defsendvol)
@@ -39,12 +68,12 @@
     -- add sends                  
       for i = 1, #src_tr do
         if src_tr[i] ~= dest_trGUID then
-          local src_tr =  BR_GetMediaTrackByGUID( 0, src_tr[i] )
+          local src_tr =  VF_GetMediaTrackByGUID( 0, src_tr[i] )
           
           local new_id
           -- check for existing id
           for sid = 1, GetTrackNumSends( src_tr, 0 ) do
-            local dest_tr_pointer = BR_GetMediaTrackSendInfo_Track( src_tr, 0,  sid-1, 1 )
+            local dest_tr_pointer = reaper.GetTrackSendInfo_Value(src_tr, 0,  sid-1, 'P_DESTTRACK' )
             local dest_tr_pointerGUID = GetTrackGUID(dest_tr_pointer)
             if dest_tr_pointerGUID == dest_trGUID then new_id = sid-1 break end
           end
@@ -58,11 +87,7 @@
     
   end
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.982,true)    
-  if ret and ret2 then 
+  if VF_CheckReaperVrs(5.982,true) then 
     Undo_BeginBlock()
     main(threshold, ratio, defsendvol)
     Undo_EndBlock('Create ReaGate sidechain routing', -1)

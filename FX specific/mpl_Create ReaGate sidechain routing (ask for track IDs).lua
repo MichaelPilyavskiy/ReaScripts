@@ -1,14 +1,32 @@
 -- @description Create ReaGate sidechain routing (ask for track IDs)
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
   
   
   threshold = 0.25
   defsendvol = 1
-        
+        ------------------------------------------------------------------------------------------------------  
+        function VF_GetMediaTrackByGUID(optional_proj, GUID)
+          local optional_proj0 = optional_proj or 0
+          for i= 1, CountTracks(optional_proj0) do tr = GetTrack(0,i-1 )if reaper.GetTrackGUID( tr ) == GUID then return tr end end
+          local mast = reaper.GetMasterTrack( optional_proj0 ) if reaper.GetTrackGUID( mast ) == GUID then return mast end
+        end  
   --------------------------------------------------------------------------------------
   function main(threshold, ratio, defsendvol)
   
@@ -27,7 +45,7 @@
       
     -- increase chan
       for i = 1, #dest_tr do
-        local dest_tr =  BR_GetMediaTrackByGUID( 0, dest_tr[i] )
+        local dest_tr =  VF_GetMediaTrackByGUID( 0, dest_tr[i] )
         local ch_cnt = GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN' )
         SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', math.max(4, ch_cnt) )
         
@@ -43,7 +61,7 @@
     -- add sends                  
       for i = 1, #dest_tr do
         if dest_tr[i] ~= src_trGUID then
-          local dest_tr =  BR_GetMediaTrackByGUID( 0, dest_tr[i] )
+          local dest_tr =  VF_GetMediaTrackByGUID( 0, dest_tr[i] )
           
           local ex
           
@@ -65,11 +83,7 @@
     
   end
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.982,true)    
-  if ret and ret2 then 
+  if VF_CheckReaperVrs(5.982,true)     then 
     Undo_BeginBlock()
     main(threshold, ratio, defsendvol)
     Undo_EndBlock('Create ReaGate sidechain routing', -1)

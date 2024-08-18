@@ -1,14 +1,33 @@
 -- @description Export selected items to RS5k instances (for McSequencer)
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # hide rs5k
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
 
-  local vrs = 'v1.02'
   local scr_title = 'Export selected items to RS5k instances (for McSequencer)'
   --NOT gfx NOT reaper
+  function VF_GetShortSmplName(path) 
+    local fn = path
+    fn = fn:gsub('%\\','/')
+    if fn then fn = fn:reverse():match('(.-)/') end
+    if fn then fn = fn:reverse() end
+    return fn
+  end  
  --------------------------------------------------------------------
   function main()
     
@@ -73,12 +92,8 @@
     return rs5k_pos
   end
    
-    ---------------------------------------------------------------------
-      function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  --------------------------------------------------------------------  
-    local ret = CheckFunctions('VF_CalibrateFont') 
-    local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret and ret2 then 
+    --------------------------------------------------------------------  
+    if VF_CheckReaperVrs(5.95,true)   then 
       reaper.Undo_BeginBlock()
       main()
       reaper.Undo_EndBlock(scr_title, 1)

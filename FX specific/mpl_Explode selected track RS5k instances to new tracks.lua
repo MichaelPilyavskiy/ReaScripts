@@ -1,12 +1,22 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Explode selected track RS5k instances to new tracks
 -- @changelog
---    # remove chunking code, use native TrackFX_CopyToTrack, which increase performance
---    # move FX instead copying
---    # use improved FX name reducer
---    # Create MIDI send from parent track
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
  ------------------------------------------------------------------------  
   function RenameTrAsFirstInstance(track)
@@ -33,10 +43,8 @@
   end
   
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  if ret then
-    local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret and ret2 then Undo_BeginBlock2( 0 ) main() reaper.Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0 ) end
+  if VF_CheckReaperVrs(5.95,true) then 
+    Undo_BeginBlock2( 0 ) 
+    main() 
+    reaper.Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0xFFFFFF )
   end
