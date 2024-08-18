@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="82bd289bb859259bd77f16aa313acf6b95947ae1" name="MPL Scripts">
+<index version="1" commit="b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3093,6 +3093,11 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Add%20note%20into%20RS5k%20instance%20name%20on%20selected%20track.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent
+# use modern REAPER API]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Add%20note%20into%20RS5k%20instance%20name%20on%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua" type="script" desc="Add or replace source of item under mouse cursor for RS5k instance on selected track">
       <metadata>
@@ -3101,6 +3106,10 @@
       <version name="1.02" author="MPL" time="2023-04-02T20:21:00Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Add or replace source of selected item for RS5k instance on its track.lua" type="script" desc="Add or replace source of selected item for RS5k instance on its track">
@@ -3129,6 +3138,10 @@
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Build harmonic series bands for focused ReaEQ.lua" type="script" desc="Build harmonic series bands for focused ReaEQ">
       <metadata>
@@ -3141,6 +3154,10 @@
 # change type to band
 + Improve BW link offset / scale]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a98a6fe55307dab947e13b9d88b6f0c289823611/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script" desc="Bypass all UAD FX on all tracks">
@@ -3162,6 +3179,10 @@
       <version name="1.01" author="MPL" time="2023-04-02T20:21:00Z">
         <changelog><![CDATA[# change copy function]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Convert RS5k MIDI item into source based audio items (drum mode).lua" type="script" desc="Convert RS5k MIDI item into source based audio items (drum mode)">
@@ -3205,6 +3226,10 @@
         <changelog><![CDATA[# fix check for reacomp name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c768c66598ab67b372f36b23c50cd0fd98d45618/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(always%20new%20renamed%20instance).lua</source>
       </version>
+      <version name="1.09" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(always%20new%20renamed%20instance).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaComp sidechain routing (ask for track IDs)">
       <metadata>
@@ -3218,6 +3243,10 @@
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (inversed source destination).lua" type="script" desc="Create ReaComp sidechain routing from track under mouse cursor to selected track">
       <metadata>
@@ -3230,6 +3259,11 @@
       <version name="1.05" author="MPL" time="2022-06-14T19:00:10Z">
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent
+# SWS independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script" desc="Create ReaComp sidechain routing from selected track to track under mouse cursor">
@@ -3268,6 +3302,10 @@
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
       </version>
+      <version name="1.07" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaGate sidechain routing (ask for track IDs)">
       <metadata>
@@ -3280,6 +3318,10 @@
       <version name="1.01" author="MPL" time="2022-06-14T19:00:10Z">
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing (inversed source destination).lua" type="script" desc="Create ReaGate sidechain routing from track under mouse cursor to selected track">
@@ -3294,6 +3336,11 @@
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
       </version>
+      <version name="1.06" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent
+# SWS independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing.lua" type="script" desc="Create ReaGate sidechain routing from selected track to track under mouse cursor">
       <metadata>
@@ -3307,6 +3354,10 @@
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaVocode routing from selected track to track under mouse cursor.lua" type="script" desc="Create ReaVocode routing from selected track to track under mouse cursor">
       <metadata>
@@ -3315,6 +3366,10 @@
       <version name="1.0" author="MPL" time="2023-10-07T07:43:45Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36b3f095cacf5991bdf9a6acc550ce2f81bff9ed/FX%20specific/mpl_Create%20ReaVocode%20routing%20from%20selected%20track%20to%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Create%20ReaVocode%20routing%20from%20selected%20track%20to%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create SSD routing from selected track.lua" type="script" desc="Create SSD routing from selected track">
@@ -3337,6 +3392,10 @@
 # Create MIDI send from parent track]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export RS5k sample into item on same track.lua" type="script" desc="Export RS5k sample into item on same track">
       <metadata>
@@ -3345,6 +3404,10 @@
       <version name="1.0" author="MPL" time="2023-03-12T09:34:53Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c14675485c6a42dfb7117f660d7fe7de8685597/FX%20specific/mpl_Export%20RS5k%20sample%20into%20item%20on%20same%20track.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Export%20RS5k%20sample%20into%20item%20on%20same%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected item to RS5k instance on same track as chromatic source.lua" type="script" desc="Export selected item to RS5k instance on same track as chromatic source">
@@ -3355,6 +3418,11 @@
         <changelog><![CDATA[# use VF version check
 # prevent error on empty item]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent
+# use modern API, remove chunking part]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances (for McSequencer).lua" type="script" desc="Export selected items to RS5k instances (for McSequencer)">
@@ -3372,6 +3440,10 @@
       <version name="1.02" author="MPL" time="2024-05-11T20:40:24Z">
         <changelog><![CDATA[# hide rs5k]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb2768e5b36a34a52b3453b66fcab2fdafa83425/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20(for%20McSequencer).lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20(for%20McSequencer).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track (drum mode)">
