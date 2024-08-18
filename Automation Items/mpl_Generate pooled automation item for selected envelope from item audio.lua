@@ -1,20 +1,25 @@
 -- @description Generate pooled automation item for selected envelope from item audio
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @about
 --    Select envelope, select item, run script
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Store parameters
---    # Don`t clear envelope/AI
---    # Don`t pool AI
---    # Use envelope scaling
---    # Enclose AI with the latched value
---    # Use media item parent track instead selected one
---    # Use media item boundaries instead time selection
---    # Latch value on threshold fall
+  --    # VF independent
 
-
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  
  ----------------------------------------------------------------------------  
   function BuildPointsFromTable(t, time_start, time_end, threshold_linear, env)
     if not t then return end
@@ -88,7 +93,7 @@
     BuildPointsFromTable(RMS_t,ts_st, ts_end, threshold_linear, env )
   end
   ----------------------------------------------------------------------------  
-  
+  function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
   function main()
     local in_str =  reaper.GetExtState( 'MPL_GenAIfromAudio', 'cs_parm' )
     if in_str == '' then in_str = '0.01,-60' end
@@ -102,12 +107,9 @@
       end
     end
   end
-
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.41) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then 
+  ----------------------------------------------------------------------------  
+  if VF_CheckReaperVrs(6,true) then 
     Undo_BeginBlock2( 0 )
     main() 
     Undo_EndBlock2( 0, 'Generate pooled automation item for selected envelope from item audio', 0xFFFFFFFF )
-  end end    
+  end     

@@ -1,5 +1,5 @@
 -- @description Adjust normalized last touched parameter
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -11,10 +11,21 @@
 --    [main] . > mpl_Subtract 0.001 from normalized last touched parameter.lua
 --    [main] . > mpl_Subtract 0.0001 from normalized last touched parameter.lua
 -- @changelog
---    + Add support for take FX
+--    # VF independent
 
- 
-  --NOT gfx NOT reaper
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  --------------------------------------------------------------------  
   function main(val, dir)
     if not dir then return end
      retval, trackid, fxid, paramid = reaper.GetLastTouchedFX()
@@ -43,9 +54,7 @@
     end
   end  
   ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then 
+  if VF_CheckReaperVrs(6.68,true) then 
     local val = ({reaper.get_action_context()})[2]:match('Add%s([%d%p]+%s)')
     if not val then  val = ({reaper.get_action_context()})[2]:match('Subtract%s([%d%p]+%s)') end
     val = val:match('[%d%p]+')
@@ -57,6 +66,6 @@
     Undo_BeginBlock()
     main(val, dir)
     Undo_EndBlock(scr_title, 1)
-  end end
+  end
   
   

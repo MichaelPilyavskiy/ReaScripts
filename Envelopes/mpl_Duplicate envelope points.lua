@@ -1,28 +1,23 @@
 -- @description Duplicate envelope points
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # remove SWS dependency
+--    # VF independent
 
-
---[[changelog
-  -- 1.04 / 01.09.2016
-    # fix dealing with take envelopes
-  -- 1.03 / 31.08.2016
-    #enabled track envelope support
-  -- 1.02 / 31.08.2016
-    #fixed -1 sample offset
-    #fixed comparing time beetween points
-  -- 1.01 / 31.08.2016
-    + fx envelope support
-    + take envelope support
-    + proper unselect all points function
-    - Disabled track envelope support, see below
-    - Prevent REAPER bad behaviour: CountTrackEnvelopes / GetTrackEnvelope() include FX envelopes
-  -- 1.0  / 31.08.2016
-]]
-    
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+    ---------------------------------------------------
   DATA2 = {}
   
   function DATA2:UnselectAllPoints_Unset(env, id)
@@ -171,6 +166,16 @@
     end
     reaper.UpdateArrange()
   end
+  --------------------------------------------------
+  function VF_GetTrackByGUID(giv_guid, reaproj)
+    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
+    for i = 1, CountTracks(reaproj or 0) do
+      local tr = GetTrack(reaproj or 0,i-1)
+      --local GUID = reaper.GetTrackGUID( tr )
+      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
+    end
+  end
   -----------------------------------------------------------------------------------
   function DATA2:ReplaceAdd(envelope, t)
     local test_point_id = reaper.GetEnvelopePointByTime( envelope, t.pnt_pos + DATA2.diff) 
@@ -204,6 +209,8 @@
             false)--noSortInOptional )
     end  
   end
+  -----------------------------------------------------
+  function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
   -----------------------------------------------------------------------------------
 
   function main() 
@@ -211,14 +218,11 @@
     DATA2:GetBoundaryDiff()  -- get difference
     DATA2.SR = VF_GetProjectSampleRate()  -- get sample rate
     DATA2:UnselectAllPoints()
-    DATA2:DuplicatePoints()  -- duplicat
+    DATA2:DuplicatePoints()  -- duplicate
   end
-  
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.41) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then 
+  if VF_CheckReaperVrs(6,true) then 
     Undo_BeginBlock2( 0 )
     main() 
     Undo_EndBlock2( 0, 'Duplicate envelope points', 0xFFFFFFFF )
-  end end
+  end 
