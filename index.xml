@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="79c35d79146480d8c247d0be9b776ca78f77ce5c" name="MPL Scripts">
+<index version="1" commit="3a575fdf7d295e737c55e4e2fa8d2204b76d094f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1693,6 +1693,16 @@
       <version name="1.01" author="MPL" time="2024-08-18T09:10:19Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d98c2125e3081f9bfcc05a05468cf2d6b7cd0eea/FX/mpl_Disable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Duplicate focused plugin into left and right instances.lua" type="script" desc="Duplicate focused plugin into left and right instances">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2024-08-22T08:04:09Z">
+        <changelog><![CDATA[# VF independent
+# use API instead chunking]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a575fdf7d295e737c55e4e2fa8d2204b76d094f/FX/mpl_Duplicate%20focused%20plugin%20into%20left%20and%20right%20instances.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Enable LFO for last touched parameter.lua" type="script" desc="Enable LFO for last touched parameter">
