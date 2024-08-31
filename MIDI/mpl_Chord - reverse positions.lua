@@ -1,9 +1,22 @@
 -- @description Chord - reverse positions
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    + init
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   ----------------------------------------------------------------------  
@@ -15,6 +28,21 @@
     modifychords(chords) 
     setevtsback(take,evts,chords)
   end
+    ----------------------------------------------------------------------  
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
   ----------------------------------------------------------------------
   function modifychords(chords)
     local chords_src = CopyTable(chords)
@@ -179,10 +207,8 @@
       end
     return chords
   end
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(5.32,true) if ret2 then 
+  -----------------------------------------------------------------------------------------
+  if VF_CheckReaperVrs(5.32,true) then 
     Undo_BeginBlock()
     local ME = reaper.MIDIEditor_GetActive()
     if ME then
@@ -200,4 +226,4 @@
       end
     end
     Undo_EndBlock('Chord - reverse positions', 0xFFFFFFFF)
-  end end
+  end 

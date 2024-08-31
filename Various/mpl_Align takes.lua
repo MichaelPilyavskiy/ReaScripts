@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 3.01
+-- @version 3.03
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # update for use with new API (pitch shift, timestretch modes)
+--    # fix flickering at no reference
 
 
 
@@ -755,7 +755,11 @@ function UI.draw_flow_00data_reference()
   -- reference
   local max = 1
   local refdata = new_array(1)
-  if(DATA.AT.refdata and  DATA.AT.refdata.data) then refdata = new_array(DATA.AT.refdata.data) end
+  if(DATA.AT.refdata and  DATA.AT.refdata.data) then 
+    refdata = new_array(DATA.AT.refdata.data) 
+   else 
+    return
+  end
   ImGui.PlotHistogram(ctx, 'Reference', refdata, 0, '', 0, max, UI.plotW, UI.plotH)
   refdata.clear()
 end
@@ -772,7 +776,11 @@ function UI.draw_flow_00data_dub(showonlyone)
   for dubID = 1, maxdubsshow do
     if DATA.AT.dubdata[dubID] and DATA.AT.dubdata[dubID].take_name then
       local dubdata = new_array(1)
-      if(DATA.AT.dubdata[dubID] and  DATA.AT.dubdata[dubID].data) then dubdata = new_array(DATA.AT.dubdata[dubID].data) end
+      if(DATA.AT.dubdata[dubID] and  DATA.AT.dubdata[dubID].data) then 
+        dubdata = new_array(DATA.AT.dubdata[dubID].data) 
+       else
+        return
+      end
       local posX, posY = ImGui.GetCursorPos( ctx )
       ImGui.PlotHistogram(ctx, 'Dub #'..dubID..' '..DATA.AT.dubdata[dubID].take_name..'##'..dubID, dubdata, 0, '', 0, max, UI.plotW, UI.plotH)
       ImGui.SetCursorPos( ctx, posX, posY )
@@ -806,7 +814,9 @@ function UI.draw_flow_00data_dub(showonlyone)
       end 
       
       local posX, posY = ImGui.GetCursorPos( ctx )
-      if DATA.AT.dubdata[dubID].data_points then ImGui.PlotHistogram(ctx, '##pts'..dubID, dubdata_points, 0, '', 0, max, UI.plotW, UI.plotH) end
+      if DATA.AT.dubdata[dubID].data_points then 
+        ImGui.PlotHistogram(ctx, '##pts'..dubID, dubdata_points, 0, '', 0, max, UI.plotW, UI.plotH) 
+      end
       
       if UI.activetab == 4 and EXT.CONF_markgen_algo==1 then
         local thresharr = new_array(2)

@@ -1,5 +1,5 @@
 -- @description Remove selected takes MIDI data
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -48,13 +48,31 @@
 --    [main] . > mpl_Remove selected takes MIDI CC126 Mono Operation.lua
 --    [main] . > mpl_Remove selected takes MIDI CC127 Poly Mode.lua
 -- @changelog
---    # fix refresh arrange for non-in-project MIDI source
---    # add text events removing support
---    # fix special events remove for more than 3-byte messages (ex. ProgramChange)
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end 
 
   --NOT gfx NOT reaper
-  
-  
+  ---------------------------------------------------------------------------------------------------------------------
+  function GetShortSmplName(path) 
+    local fn = path
+    fn = fn:gsub('%\\','/')
+    if fn then fn = fn:reverse():match('(.-)/') end
+    if fn then fn = fn:reverse() end
+    return fn
+  end  
+  -------------------------------------------------------------------- 
   local s_unpack = string.unpack
   local s_pack = string.pack
   --------------------------------------------------------------------
@@ -192,23 +210,11 @@
       MIDI_SetAllEvts(take, table.concat(tableEvents)..s_pack("i4Bs4", evts[#evts].offset, evts[#evts].flags, evts[#evts].msg1))
       MIDI_Sort(take)   
   end
-
-  ---------------------------------------------------------------------
-  function VF_CheckFunctions(vrs) 
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' 
-    if  reaper.file_exists( SEfunc_path ) then
-      dofile(SEfunc_path) 
-      if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  
-     else 
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) 
-      if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end
-    end   
-  end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.5) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
+  if VF_CheckReaperVrs(5.975,true)  then 
       local exclude_msg_byte1, exclude_msg_byte2, leave_notes_only, scr_title = ParseScriptname()
       Undo_BeginBlock() 
       RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2, leave_notes_only) 
       Undo_EndBlock(scr_title, -1)  
-  end end
+  end 
   

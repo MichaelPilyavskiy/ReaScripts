@@ -1,9 +1,22 @@
 -- @description Export selected items as MIDI files into project path
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @changelog
---    + Add option to take names from take names
---    + Increment filenames to prevent overwriting
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  --------------------------------------------------------------------  
 
   
   DATA2 = {
@@ -117,6 +130,8 @@
       MIDI_SetAllEvts(take, tk_t.src_events)
     end
   end
+  -----------------------------------------------------
+  function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
   ---------------------------------------------------------------------  
   function DATA2:BuildPoints(t) 
     local SR = VF_GetProjectSampleRate()
@@ -370,9 +385,4 @@
                 
                 
                 
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.42) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then 
-    main() 
-  end end
+  if VF_CheckReaperVrs(6.68,true) then  main()  end

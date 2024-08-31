@@ -1,10 +1,22 @@
 -- @description Select first notes in selected passages
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    + init
- 
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
   ----------------------------------------------------------------------      
   function CheckForRegions(regions, st, en)
     for region = 1, #regions do
@@ -48,7 +60,5 @@
     
     MIDI_Sort(take) 
   end
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  -------------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.18) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then main() end end
+ -------------------------------------------------------------------------  
+  if VF_CheckReaperVrs(5.95,true)  then main() end 

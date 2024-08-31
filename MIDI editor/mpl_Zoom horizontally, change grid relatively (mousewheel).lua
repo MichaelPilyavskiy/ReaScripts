@@ -1,11 +1,23 @@
 -- @description Zoom horizontally, change grid relatively (mousewheel) 
--- @version 1.0
+-- @version 1.01
 -- @author MPL
--- @changelog
---    + init port from arrange
---    # clean script structure
 -- @website http://forum.cockos.com/member.php?u=70694
+-- @changelog
+--    # VF independent
 
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+    ---------------------------------------------------
   function main()
     local ME  = MIDIEditor_GetActive()
     if not ME then return end
@@ -42,13 +54,15 @@
       end
     end
   end
+  ------------------------------------------------------------------------------------------------------
+  function VF_Action(s, sectionID, ME )  
+    if sectionID == 32060 and ME then 
+      MIDIEditor_OnCommand( ME, NamedCommandLookup(s) )
+     else
+      Main_OnCommand(NamedCommandLookup(s), sectionID or 0) 
+    end
+  end  
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
-  --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF2_GetMEZoom') 
-  if ret then 
-    local ret2 = VF_CheckReaperVrs(5.975,true)    
-    if ret2 then VF_LoadLibraries() reaper.defer(main) end
-  end
+  if VF_CheckReaperVrs(5.975,true) then reaper.defer(main) end
   
   

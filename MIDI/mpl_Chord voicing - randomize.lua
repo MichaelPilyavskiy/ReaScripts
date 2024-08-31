@@ -1,9 +1,23 @@
 -- @description Chord voicing - randomize
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---  # apply to selected chord only
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  --------------------------------------------------------------------  
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   ----------------------------------------------------------------------  
@@ -187,10 +201,8 @@
     if store_to_rpp then GetSetMediaItemInfo_String(  GetMediaItemTake_Item( take ), 'P_EXT:mplchords', outstr, true ) end
     return chords
   end
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(5.32,true) if ret2 then 
+  if VF_CheckReaperVrs(5.32,true) then 
     Undo_BeginBlock()
     local ME = reaper.MIDIEditor_GetActive()
     if ME then
@@ -208,4 +220,4 @@
       end
     end
     Undo_EndBlock('Chord voicing - randomize', 0xFFFFFFFF)
-  end end
+  end
