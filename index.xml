@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c11ea9c23c2727473c5ca9f52377d921ac7c4cf9" name="MPL Scripts">
+<index version="1" commit="5083e03c2d8bd82f9cb075d446e057a33431de79" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6064,11 +6064,19 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3518251d6b0ba7c9258a3e46dcfe0e5f9404a025/MIDI/mpl_Chord%20-%20reverse%20positions.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20-%20reverse%20positions.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Chord voicing - clear internal data.lua" type="script" desc="Chord voicing - clear internal data">
       <version name="1.0" author="MPL" time="2023-01-03T16:37:17Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d40f6fcf8e1d26c1a9281a2cc4216346d45fa878/MIDI/mpl_Chord%20voicing%20-%20clear%20internal%20data.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20clear%20internal%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Chord voicing - randomize.lua" type="script" desc="Chord voicing - randomize">
@@ -6079,6 +6087,10 @@
       <version name="1.01" author="MPL" time="2023-01-03T16:37:17Z">
         <changelog><![CDATA[# apply to selected chord only]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d40f6fcf8e1d26c1a9281a2cc4216346d45fa878/MIDI/mpl_Chord%20voicing%20-%20randomize.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20randomize.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select higher note under play cursor.lua" type="script" desc="Chord voicing - select higher note under play cursor">
@@ -6095,6 +6107,10 @@
         <changelog><![CDATA[# fix order]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ba91cd994a57d1fcde6be9775522724c972a325/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20note%20under%20play%20cursor.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20note%20under%20play%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select higher notes.lua" type="script" desc="Chord voicing - select higher notes">
       <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
@@ -6104,6 +6120,10 @@
       <version name="1.01" author="MPL" time="2023-07-02T13:06:21Z">
         <changelog><![CDATA[# fix order]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ba91cd994a57d1fcde6be9775522724c972a325/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20notes.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select lower note under play cursor.lua" type="script" desc="Chord voicing - select lower note under play cursor">
@@ -6120,6 +6140,10 @@
         <changelog><![CDATA[# fix order]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ba91cd994a57d1fcde6be9775522724c972a325/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20note%20under%20play%20cursor.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20note%20under%20play%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select lower notes.lua" type="script" desc="Chord voicing - select lower notes">
       <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
@@ -6129,6 +6153,10 @@
       <version name="1.01" author="MPL" time="2023-07-02T13:06:21Z">
         <changelog><![CDATA[+ fix order]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ba91cd994a57d1fcde6be9775522724c972a325/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20notes.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items as MIDI files into project path.lua" type="script" desc="Export selected items as MIDI files into project path">
@@ -6141,11 +6169,19 @@
 + Increment filenames to prevent overwriting]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fbc63b1b583d349946f33616b3e2ff3b8a8a3752/MIDI/mpl_Export%20selected%20items%20as%20MIDI%20files%20into%20project%20path.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Export%20selected%20items%20as%20MIDI%20files%20into%20project%20path.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Interpolate MIDI item envelopes.lua" type="script" desc="Interpolate MIDI item envelopes">
       <version name="1.0" author="MPL" time="2023-01-05T20:45:24Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/30027e831ed61ad0863e558aa4e234e579c3f4bf/MIDI/mpl_Interpolate%20MIDI%20item%20envelopes.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Interpolate%20MIDI%20item%20envelopes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_MIDI note names generator.lua" type="script" desc="MIDI map generator">
@@ -6173,6 +6209,10 @@
         <changelog><![CDATA[# quantize to grid forward if supposed output note length is less than ME grid]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e22a92809eeaa65086b7dd5c839b2f49a9c84b0/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
       </version>
+      <version name="1.15" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Quantize selected MIDI notes positions.lua" type="script" desc="Quantize selected MIDI notes positions">
       <metadata>
@@ -6181,6 +6221,10 @@
       <version name="1.13" author="MPL" time="2022-12-10T08:22:18Z">
         <changelog><![CDATA[# add support for multiple MIDI editor takes]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7d1449e1fc5d182c54b9e07686e2ab19885a889f/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20positions.lua</source>
+      </version>
+      <version name="1.14" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove selected takes MIDI data.lua" type="script" desc="Remove selected takes MIDI data">
@@ -6467,6 +6511,52 @@
         <source main="main" file="mpl_Remove selected takes MIDI CC126 Mono Operation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71aa5cf837122306055f565aa22cc8d47c9672b6/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
         <source main="main" file="mpl_Remove selected takes MIDI CC127 Poly Mode.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71aa5cf837122306055f565aa22cc8d47c9672b6/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
       </version>
+      <version name="1.12" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Remove selected takes all MIDI data except notes.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes ProgramChange.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes AfterTouch.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes PitchWheel.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes TextEvents.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC0 Bank Select (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC1 Modulation Wheel.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC2 Breath controller.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC4 Foot Pedal (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC5 Portamento Time (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC6 Data Entry (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC7 Volume (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC8 Balance (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC10 Pan position (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC11 Expression (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC64 Hold Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC65 Portamento.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC66 Sostenuto Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC67 Soft Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC68 Legato Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC69 Hold 2 Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC70 Sound Variation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC71 Resonance (Timbre).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC72 Sound Release Time.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC73 Sound Attack Time.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC74 Frequency Cutoff (Brightness).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC80 Decay.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC81 Hi Pass Filter Frequency.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC84 Portamento Amount.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC91 Reverb Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC92 Tremolo Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC93 Chorus Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC94 Detune Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC95 Phaser Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC120 All Sound Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC121 All Controllers Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC122 Local Keyboard.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC123 All Notes Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC124 Omni Mode Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC125 Omni Mode On.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC126 Mono Operation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC127 Poly Mode.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Select first notes in selected passages.lua" type="script" desc="Select first notes in selected passages">
       <metadata>
@@ -6475,6 +6565,10 @@
       <version name="1.0" author="MPL" time="2023-02-27T20:51:55Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6355b290825c0afcdf58550b5fbb3897d8206920/MIDI/mpl_Select%20first%20notes%20in%20selected%20passages.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Select%20first%20notes%20in%20selected%20passages.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send short NoteOn MIDI message to virtual keyboard.lua" type="script" desc="Send short NoteOn MIDI message to virtual keyboard">
@@ -6592,6 +6686,15 @@
         <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31f7234cb3e6a8ff52fbdc8e8c2115cc2b53d160/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
         <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31f7234cb3e6a8ff52fbdc8e8c2115cc2b53d160/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
       </version>
+      <version name="2.04" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Convert noteOn with velocity 0 to noteOff.lua" type="script" desc="Convert noteOn with velocity 0 to noteOff">
       <metadata>
@@ -6600,6 +6703,10 @@
       <version name="1.0" author="MPL" time="2023-03-05T07:23:42Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c66764d1e141c657c2c0409abf399523287beb6a/MIDI%20editor/mpl_Convert%20noteOn%20with%20velocity%200%20to%20noteOff.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Convert%20noteOn%20with%20velocity%200%20to%20noteOff.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy selected CC.lua" type="script" desc="Copy selected CC">
@@ -6627,6 +6734,10 @@
       <version name="1.0" author="MPL" time="2021-10-24T10:04:56Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d791e858775ba0e495df92ce602694b022355f63/MIDI%20editor/mpl_Cycle%20grid%20values%20MIDI%20Editor%20(mousewheel).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Cycle%20grid%20values%20MIDI%20Editor%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Fit selected notes to MIDI item edges.lua" type="script" desc="Fit selected notes to MIDI item edges">
@@ -6656,6 +6767,11 @@
       <version name="1.03" author="MPL" time="2018-06-11T15:21:49Z">
         <changelog><![CDATA[# use Various_function]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8415c0c10fbf47f0e4322a7f8ae348722de2b5f3/MIDI%20editor/mpl_Float%20instrument%20relevant%20to%20MIDI%20editor.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent
+# SWS independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Float%20instrument%20relevant%20to%20MIDI%20editor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
@@ -6833,6 +6949,10 @@
         <changelog><![CDATA[# fix maxppq var miss]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/571c10a9c3b6d78dc454fd7f69ec8f40fb81d9c8/MIDI%20editor/mpl_Smart%20duplicate%20events.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Smart%20duplicate%20events.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Snap selected notes to scale.lua" type="script" desc="Snap selected notes to scale">
       <metadata>
@@ -6910,6 +7030,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/MIDI%20editor/mpl_Strum%20selected%20notes.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Strum%20selected%20notes.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
       <metadata>
@@ -6919,6 +7043,10 @@
         <changelog><![CDATA[+ init port from arrange
 # clean script structure]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ef794f0adead48b3509d202467b8e6f919905e8/MIDI%20editor/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
@@ -9161,6 +9289,10 @@ various fixes]]></changelog>
       <version name="3.01" author="MPL" time="2024-08-17T21:24:39Z">
         <changelog><![CDATA[# update for use with new API (pitch shift, timestretch modes)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32c02178f6fbe8ead95192d57ccfd540841b0435/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="3.03" author="MPL" time="2024-08-31T21:39:47Z">
+        <changelog><![CDATA[# fix flickering at no reference]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
