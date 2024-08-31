@@ -1,12 +1,25 @@
 -- @description Stretch item to project tempo
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # use seek len limit as current item length
---    # change item length as well when stretching
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
 
+  DATA ={}
   DATA2 ={}
   
   --------------------------------------------------------------------  
@@ -275,6 +288,24 @@
     
     return peaks,thresh_t
   end
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF2_NormalizeT(t, key)
+    local m = 0 
+    for i in pairs(t) do 
+      if not key then 
+        m = math.max(math.abs(t[i]),m) 
+       else
+        m = math.max(math.abs(t[i][key]),m) 
+      end
+    end
+    for i in pairs(t) do 
+      if not key then
+        t[i] = t[i] / m 
+       else 
+        t[i][key] = t[i][key] / m 
+      end
+    end
+  end 
   -------------------------------------------------------------------- 
   function DATA2:iFFT(t)
     local sz = #t
@@ -305,6 +336,7 @@
     for offs = min_offs, max_offs do 
       local sum = 0
       val = t[offs]
+      if not val then return end
       if val > max_val then id = offs end
       max_val = math.max(max_val, val)
     end
@@ -435,6 +467,23 @@
       local tempo_bpm = DATA2:ExtractTempoCorrelation(beatmarks)
       if tempo_bpm then  return math_q(tempo_bpm*2)/2 end
   end
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  ---------------------------------------------------------------------------------------------------------------------
+    function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
+  
   -------------------------------------------------------------------- 
   function DATA2:ExtractTempoCorrelation(beatmarks)
     local q_sz = 500
@@ -497,9 +546,6 @@
         reaper.Undo_EndBlock2( 0, 'Stretch item to tempo', 0xFFFFFFFF )
       end
   end 
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
+  if VF_CheckReaperVrs(6.68,true)  then main() end
   
   

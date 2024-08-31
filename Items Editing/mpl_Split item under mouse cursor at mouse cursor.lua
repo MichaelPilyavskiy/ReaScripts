@@ -1,28 +1,55 @@
 -- @description Split item under mouse cursor at mouse cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   # update for use with REAPER 5.981+
+--    # VF independent
+--    # SWS independent
 
-  function main()  
-    local item = VF_GetItemTakeUnderMouseCursor()
-    if item then 
-      local position = VF_GetPositionUnderMouseCursor()
-      SplitMediaItem( item, position )
-      UpdateArrange() 
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
     end
   end
+  --------------------------------------------------------------------  
+  function VF_GetPositionUnderMouseCursor()
+    local x,y = reaper.GetMousePosition()
+    local mouse_pos = reaper.GetSet_ArrangeView2(0, false, x, x+1) -- get
+    
+    local arr_start, arr_end = reaper.GetSet_ArrangeView2(0, false, 0, 0) -- get
+    if mouse_pos >= arr_start and mouse_pos <= arr_end then
+      return mouse_pos
+    
+    end
+  end
+  --------------------------------------------------------------------  
+  function main()  
+    local item = VF_GetItemTakeUnderMouseCursor()
+    if item then  
+      local position = VF_GetPositionUnderMouseCursor()
+      if position then 
+        SplitMediaItem( item, position )
+        UpdateArrange() 
+      end
+    end
+  end
+    --------------------------------------------------------------------  
+  function VF_GetItemTakeUnderMouseCursor()
+    local screen_x, screen_y = GetMousePosition()
+    local item , take = reaper.GetItemFromPoint( screen_x, screen_y, true )
+    return item , take
+  end
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-
---------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_GetItemTakeUnderMouseCursor') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then 
-    script_title = "Split item under mouse cursor at mouse cursor"
+  if VF_CheckReaperVrs(5.95,true) then 
     reaper.Undo_BeginBlock() 
     main()
-    reaper.Undo_EndBlock(script_title, 0)
+    reaper.Undo_EndBlock("Split item under mouse cursor at mouse cursor", 0)
   end    
 

@@ -1,9 +1,22 @@
 -- @description Rename items on selected tracks incrementally
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---    + init
+--    # VF independent
 
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  ---------------------------------------------------
   function main()
     for i = 1, CountSelectedTracks(0) do
       local track = GetSelectedTrack(0,i-1)
@@ -18,11 +31,9 @@
     end
   end
   ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.42) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then 
+  if VF_CheckReaperVrs(6.68,true)then 
     Undo_BeginBlock2( 0 )
     main() 
     reaper.UpdateArrange()
     Undo_EndBlock2( 0, 'Rename items on selected tracks incrementally', 0xFFFFFFFF )
-  end end
+  end
