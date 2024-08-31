@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="09a856136e87ab160d90e2309711b7083b58f8f7" name="MPL Scripts">
+<index version="1" commit="c11ea9c23c2727473c5ca9f52377d921ac7c4cf9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5489,6 +5489,10 @@
         <changelog><![CDATA[# fix math a bit]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fbdf80bef02a91f00cb6393e676803b79dc05796/Items%20Editing/mpl_Duplicate%20items%20until%20end%20of%20time%20selection.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Duplicate%20items%20until%20end%20of%20time%20selection.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Explode stereo take into 2 mono takes in place and normalize.lua" type="script" desc="Explode stereo take into 2 mono takes in place and normalize">
       <metadata>
@@ -5497,6 +5501,10 @@
       <version name="1.0" author="MPL" time="2020-05-23T22:21:59Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/680401580dac64e9feb64b67ee8049e4df1cf6bf/Items%20Editing/mpl_Explode%20stereo%20take%20into%202%20mono%20takes%20in%20place%20and%20normalize.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Explode%20stereo%20take%20into%202%20mono%20takes%20in%20place%20and%20normalize.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Fit selected items to MIDI notes boundaries.lua" type="script" desc="Fit selected items to MIDI notes boundaries">
@@ -5541,6 +5549,10 @@
 # improve parsing]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/Items%20Editing/mpl_Move%20items%20to%20tracks%20with%20same%20name.lua</source>
       </version>
+      <version name="1.08" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Move%20items%20to%20tracks%20with%20same%20name.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Move selected items to selected track.lua" type="script" desc="Move selected items to selected track">
       <metadata>
@@ -5562,6 +5574,10 @@
       <version name="1.02" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Editing/mpl_Remove%20item%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Remove%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove Items, confirm if multiple.lua" type="script" desc="Remove Items, confirm if multiple">
@@ -5588,6 +5604,10 @@
       <version name="1.03" author="MPL" time="2023-04-02T16:02:26Z">
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba956ac967db6d528a77a51c6c72b7d022307c46/Items%20Editing/mpl_Remove%20selected%20overlapped%20items.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Remove%20selected%20overlapped%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select items named as selected item.lua" type="script" desc="Select items named as selected item">
@@ -5628,6 +5648,10 @@
       <version name="1.16" author="MPL" time="2023-09-23T05:16:44Z">
         <changelog><![CDATA[# remove test color]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd9b8e265bd6690c10b6acd75af82895fdab91ca/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
+      </version>
+      <version name="1.17" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate items N times.eel" type="script" desc="Smart duplicate items N times">
@@ -5670,6 +5694,10 @@
         <changelog><![CDATA[# fixed length expanding]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/549ca4cff1cee50fec6147f19406c3636e478129/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
       </version>
+      <version name="1.34" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Snap selected items to each other.lua" type="script" desc="Snap selected items to each other">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -5687,6 +5715,11 @@
       <version name="1.01" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Editing/mpl_Split%20item%20under%20mouse%20cursor%20at%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent
+# SWS independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Split%20item%20under%20mouse%20cursor%20at%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Stretch selected items to edit cursor preserve snapoffset.eel" type="script" desc="Stretch selected items to edit cursor preserve snapoffset">
@@ -5709,14 +5742,9 @@
 # fix wrong offset for a SMPTE sync pattern]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c1055eeef1cd3eb63ffd6d84b9fe163d5aadbfc0/Items%20Properties/mpl_Align%20item%20position%20by%20SMPTE%20code%20on%20last%20channel.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Align selected track items vertically (free positioned mode).lua" type="script" desc="Align selected track items vertically (free positioned mode)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.02" author="MPL" time="2023-04-02T20:21:00Z">
-        <changelog><![CDATA[# remove SWS dependency]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/Items%20Properties/mpl_Align%20selected%20track%20items%20vertically%20(free%20positioned%20mode).lua</source>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Align%20item%20position%20by%20SMPTE%20code%20on%20last%20channel.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Change pan for item under mouse cursor active take (mousewheel).lua" type="script" desc="Change pan for item under mouse cursor active take (mousewheel)">
@@ -5731,8 +5759,12 @@
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Properties/mpl_Change%20pan%20for%20item%20under%20mouse%20cursor%20active%20take%20(mousewheel).lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Change%20pan%20for%20item%20under%20mouse%20cursor%20active%20take%20(mousewheel).lua</source>
+      </version>
     </reapack>
-    <reapack name="mpl_Change volume for item under mouse cursor (mousewheel).lua" type="script" desc="Change volume for item under mouse cursor (mousewheel)">
+    <reapack name="mpl_Change volume for item under mouse cursor (mousewheel).lua" type="script" desc="Change pan for item under mouse cursor active take (mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
@@ -5743,6 +5775,10 @@
       <version name="1.02" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create snap offset at maximum peak in first second of take.lua" type="script" desc="Create snap offset at maximum peak in first second of take">
@@ -5775,6 +5811,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d3f225fa55aa4ca7e7338098e9a73ad294a8fd87/Items%20Properties/mpl_Mute%20item%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Mute%20item%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Normalize selected items takes loudness to XdB.lua" type="script" desc="Normalize selected items takes loudness to XdB">
       <metadata>
@@ -5791,6 +5831,18 @@
         <source main="main" file="mpl_Normalize selected items takes LUFS to -14dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31bda5d0cb0872840b7c7b7f1c35138a6adc1b13/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
         <source main="main" file="mpl_Normalize selected items takes LUFS to -18dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31bda5d0cb0872840b7c7b7f1c35138a6adc1b13/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
         <source main="main" file="mpl_Normalize selected items takes LUFS to -23dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31bda5d0cb0872840b7c7b7f1c35138a6adc1b13/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Normalize selected items takes RMS to -3dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes RMS to -10dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes RMS to -14dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes RMS to -18dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes LUFS to -7dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes LUFS to -11dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes LUFS to -14dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes LUFS to -18dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
+        <source main="main" file="mpl_Normalize selected items takes LUFS to -23dB.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20takes%20loudness%20to%20XdB.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Normalize selected items to middle loudness between them.lua" type="script" desc="Normalize selected items to middle loudness between them">
@@ -5809,6 +5861,12 @@
         <source main="main" file="mpl_Normalize selected items to middle momentary max LUFS between them.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c581660c8b0c263056f4fa3aefbf660d85215cf/Items%20Properties/mpl_Normalize%20selected%20items%20to%20middle%20loudness%20between%20them.lua</source>
         <source main="main" file="mpl_Normalize selected items to middle short term max LUFS between them.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c581660c8b0c263056f4fa3aefbf660d85215cf/Items%20Properties/mpl_Normalize%20selected%20items%20to%20middle%20loudness%20between%20them.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Normalize selected items to middle integrated LUFS between them.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20to%20middle%20loudness%20between%20them.lua</source>
+        <source main="main" file="mpl_Normalize selected items to middle momentary max LUFS between them.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20to%20middle%20loudness%20between%20them.lua</source>
+        <source main="main" file="mpl_Normalize selected items to middle short term max LUFS between them.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Normalize%20selected%20items%20to%20middle%20loudness%20between%20them.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Rename audio items as analyzed MIDI note.lua" type="script" desc="Rename audio items as analyzed MIDI note">
       <metadata>
@@ -5824,6 +5882,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/116f6ed057720e5c03af7c4747e5de388a024caf/Items%20Properties/mpl_Rename%20items%20on%20selected%20tracks%20incrementally.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Rename%20items%20on%20selected%20tracks%20incrementally.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Select items by pattern.lua" type="script" desc="Select items by pattern">
       <metadata>
@@ -5832,6 +5894,10 @@
       <version name="1.0" author="MPL" time="2020-05-10T11:52:02Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c0f58f762d535cb59317a6ef4f9987af59a00ae1/Items%20Properties/mpl_Select%20items%20by%20pattern.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Select%20items%20by%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set fadein of item under cursor to mouse position.lua" type="script" desc="Set fadein of item under cursor to mouse position">
@@ -5849,6 +5915,10 @@
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Properties/mpl_Set%20fadein%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Set%20fadein%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set fadeout of item under cursor to mouse position.lua" type="script" desc="Set fadeout of item under cursor to mouse position">
       <metadata>
@@ -5865,6 +5935,10 @@
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Stretch item to project tempo.lua" type="script" desc="Stretch item to project tempo">
       <metadata>
@@ -5878,6 +5952,10 @@
         <changelog><![CDATA[# use seek len limit as current item length
 # change item length as well when stretching]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/af7d68052a48ad93446a1bab378fb7fed21fc4de/Items%20Properties/mpl_Stretch%20item%20to%20project%20tempo.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Stretch%20item%20to%20project%20tempo.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle solo selected track items.lua" type="script" desc="Toggle solo selected track items">
@@ -5901,6 +5979,10 @@
 # overall cleanup
 # better handle item validation]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/554e3e94234691ab447332a2d11eff629399d47e/Items%20Properties/mpl_Unlock%20selected%20items%20for%2030%20seconds.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-08-31T20:39:28Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Unlock%20selected%20items%20for%2030%20seconds.lua</source>
       </version>
     </reapack>
   </category>
