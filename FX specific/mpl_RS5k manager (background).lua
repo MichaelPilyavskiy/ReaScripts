@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.27
+-- @version 3.28
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,8 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Actions: import selected items obey white keys priority 
+--    # revert back whate keys priority default
+--    # fix not rename note name if 'rename track' option dectivated
 
 
 
@@ -31,7 +32,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.27'
+    DATA.extstate.version = '3.28'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -53,7 +54,7 @@
                           
                           -- rs5k various
                           CONF_onadd_thickchilds = 0, 
-                          CONF_onadd_whitekeyspriority = 1,
+                          CONF_onadd_whitekeyspriority = 0,
                           
                           -- midi bus
                           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -3918,9 +3919,11 @@ rightclick them to hide all but active.
       DATA_RESERVED_ONPROJCHANGE(DATA)
       local filepath_sh = GetShortSmplName(filepath) 
       if filepath_sh and filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end 
-      if filepath_sh then 
-        SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh) 
-        SetTrackMIDINoteNameEx( 0,new_tr, note, -1, filepath_sh)
+      if filepath_sh then  
+        if DATA.extstate.CONF_onadd_renametrack == 1 then  
+          SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh) 
+          SetTrackMIDINoteNameEx( 0,new_tr, note, -1, filepath_sh)
+        end
       end
       return
     end
@@ -3930,7 +3933,8 @@ rightclick them to hide all but active.
       DATA2:Actions_PadOnFileDrop_ReplaceRS5kSample(note, 1, filepath) 
       DATA2:TrackDataRead_GetChildrens() 
       DATA_RESERVED_ONPROJCHANGE(DATA)
-      local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
+      local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end 
+      SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
       return 
     end
     
