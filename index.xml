@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1010be68ace051db1e6d1484883280ee9b5366ed" name="MPL Scripts">
+<index version="1" commit="002ad736f4670669a14cdf007f53e573cac57c6c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7842,6 +7842,35 @@
         <source main="main" file="mpl_Set selected items time stretch mode to Transient.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1010be68ace051db1e6d1484883280ee9b5366ed/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
         <source main="main" file="mpl_Set selected items time stretch mode to No pre echo reduction.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1010be68ace051db1e6d1484883280ee9b5366ed/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent
+# use metapackage sharing
+# do not use chunking
+# use modern API (2024)
+# check if REAPER support specific mode on specific machine]]></changelog>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to Dirac LE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to elastique 2.2.8 efficient.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to elastique 2.2.8 pro.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to elastique 2.2.8 soloist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to elastique 3.3.0 efficient.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to elastique 3.3.0 pro.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to elastique 3.3.0 soloist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to project default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to ReaReaRea.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to Rrreeeaaa.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to Rubber Band.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to Simple windowed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items takes pitch shift mode to SoundTouch.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items stretch marker fade size to 2.5ms.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items stretch marker fade size to 5ms.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items stretch marker fade size to 10ms.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items stretch marker fade size to 15ms.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items time stretch mode to default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items time stretch mode to Balanced.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items time stretch mode to Tonal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items time stretch mode to Transient.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+        <source main="main" file="mpl_Set selected items time stretch mode to No pre echo reduction.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Takes%20Properties/mpl_Set%20selected%20items%20timestretch,%20pitchshift%20modes.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="Tempo">
@@ -7888,6 +7917,10 @@
         <changelog><![CDATA[# fix looping all items instead only first one]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f7f134f10d5e88618507b858455f7c80d743a77a/Tracks%20Editing/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Editing/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Import media folder content as structured tracks, ordered items.lua" type="script" desc="Import media folder content as structured tracks, ordered items">
       <metadata>
@@ -7904,6 +7937,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd63fc94318e50ba7507b893a30e413fa309f566/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks,%20ordered%20items.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks,%20ordered%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Import media folder content as structured tracks.lua" type="script" desc="Import media folder content as structured tracks">
       <metadata>
@@ -7919,6 +7956,10 @@
       <version name="1.0" author="MPL" time="2022-03-30T20:17:44Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move selected tracks to the end of receives folder.lua" type="script" desc="Move selected tracks to the end of receives folder">
@@ -8285,6 +8326,44 @@
         <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e37662e4906aab5fa5d9b88a54eb3572ea8dd6d/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
         <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e37662e4906aab5fa5d9b88a54eb3572ea8dd6d/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.20" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2, post-fader).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2, pre-fx).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2, post-fx).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Delete x characters from selected track names.eel" type="script" desc="Delete x characters from selected track names">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -8302,6 +8381,10 @@
       <version name="1.01" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Tracks%20Properties/mpl_Disable%20master%20or%20parent%20send%20for%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Disable%20master%20or%20parent%20send%20for%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Enlarge selected track (background).lua" type="script" desc="Enlarge selected track">
@@ -8330,6 +8413,10 @@
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Go%20to%20first%20receive%20track%20(send%20source).lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Go%20to%20first%20receive%20track%20(send%20source).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Go to first send destination track.lua" type="script" desc="Go to first send destination track">
       <metadata>
@@ -8342,6 +8429,10 @@
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Invert selected tracks solo to mute states.lua" type="script" desc="Invert selected tracks solo to mute states">
       <metadata>
@@ -8351,15 +8442,11 @@
         <changelog><![CDATA[+init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/Tracks%20Properties/mpl_Invert%20selected%20tracks%20solo%20to%20mute%20states.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Monitor selected track with track 1.lua" type="script" desc="Monitor selected track with track 1">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2023-04-10T18:32:17Z">
-        <changelog><![CDATA[# remove SWS dependency
-# cleanup]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Monitor%20selected%20track%20with%20track%201.lua</source>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent
+# handle solo flag instead of boolean
+# fix using selected tracks instead all tracks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Invert%20selected%20tracks%20solo%20to%20mute%20states.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move selected tracks faders to 0dB relative to holded peak.lua" type="script" desc="Move selected tracks faders to 0dB relative to holded peak">
@@ -8401,6 +8488,11 @@
       <version name="1.2" author="MPL" time="2020-04-01T10:45:51Z">
         <changelog><![CDATA[# use VF rename function]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/24b36480b0cc010c23c5da5f60cca69d11a5a1f6/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent
+# do not rename if new name is clear]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset color for all children tracks to their top level folders.lua" type="script" desc="Reset color for all children tracks to their top level folders">
@@ -8476,6 +8568,10 @@ various fixes]]></changelog>
       <version name="1.0.2" author="MPL" time="2023-04-10T18:32:17Z">
         <changelog><![CDATA[#remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Search%20tracks.lua</source>
+      </version>
+      <version name="1.0.3" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Search%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select last track.lua" type="script" desc="Select last track">
@@ -8649,6 +8745,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6264b23ca9eefd1c85eec1512c2d83706886ecd/Tracks%20Properties/mpl_Set%20hardware%20MIDI%20output%20to%20GM.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20hardware%20MIDI%20output%20to%20GM.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set parent channels according to index for selected tracks.lua" type="script" desc="Set parent channels according to index for selected tracks">
       <metadata>
@@ -8671,13 +8771,9 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2022-08-05T21:20:07Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70b3eca10eab2e76bdd89fae23798dad097d116e/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Guit.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Set selected tracks audio input device to Lambda guitar.lua" type="script" desc="Set selected tracks audio input device to Lambda guitar">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-21T21:10:31Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d289995570fe32730851fe3560ac8f54e5a7497/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Lambda%20guitar.lua</source>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Guit.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected tracks audio input device to Mic.lua" type="script" desc="Set selected tracks audio input device to Mic">
@@ -8687,6 +8783,10 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2022-08-05T21:20:07Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70b3eca10eab2e76bdd89fae23798dad097d116e/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Mic.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Mic.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set selected tracks MIDI input device to TouchOSC bridge.lua" type="script" desc="Set selected tracks MIDI input device to TouchOSC bridge">
       <metadata>
@@ -8694,6 +8794,10 @@ various fixes]]></changelog>
       </metadata>
       <version name="1.0" author="MPL" time="2019-05-21T21:10:31Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d289995570fe32730851fe3560ac8f54e5a7497/Tracks%20Properties/mpl_Set%20selected%20tracks%20MIDI%20input%20device%20to%20TouchOSC%20bridge.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20selected%20tracks%20MIDI%20input%20device%20to%20TouchOSC%20bridge.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set solo for random selected track.lua" type="script" desc="Set solo for random selected track">
@@ -8713,6 +8817,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/290bfe6c6293de26b09780bc00120cd2731dde88/Tracks%20Properties/mpl_Set%20stereo%20as%20parent%20channels%20for%20selected%20tracks.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20stereo%20as%20parent%20channels%20for%20selected%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set track offset in seconds.lua" type="script" desc="Set track offset in seconds">
       <metadata>
@@ -8721,6 +8829,10 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2021-08-10T02:24:01Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83a6244f50ac4df54faa6987f46c13e9af510f86/Tracks%20Properties/mpl_Set%20track%20offset%20in%20seconds.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20track%20offset%20in%20seconds.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap selected tracks volume faders (background).lua" type="script" desc="Snap selected tracks volume faders (background)">
@@ -8755,6 +8867,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
       </version>
+      <version name="1.4.3" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Swap master channels (cycle width 100...-100).lua" type="script" desc="Swap master channels (cycle width 100...-100)">
       <metadata>
@@ -8764,20 +8880,19 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d791e858775ba0e495df92ce602694b022355f63/Tracks%20Properties/mpl_Swap%20master%20channels%20(cycle%20width%20100...-100).lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_TalkBack Track 1 (MIDI CC and OSC only).lua" type="script" desc="TalkBack Track 1 (MIDI CC and OSC only)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-03-06T20:53:31Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad7417d4ce189994a7dbc0d0caf8ebe19667f3d8/Tracks%20Properties/mpl_TalkBack%20Track%201%20(MIDI%20CC%20and%20OSC%20only).lua</source>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Swap%20master%20channels%20(cycle%20width%20100...-100).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle between normal and supercollapsed selected folders state.lua" type="script" desc="Toggle between normal and supercollapsed selected folders state">
       <version name="1.0" author="MPL" time="2021-07-12T05:19:40Z">
         <changelog><![CDATA[init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/becae82b16926015fb0a579294f70ac787e2b4e2/Tracks%20Properties/mpl_Toggle%20between%20normal%20and%20supercollapsed%20selected%20folders%20state.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20between%20normal%20and%20supercollapsed%20selected%20folders%20state.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle MIDI hardware output by name (UMC).lua" type="script" desc="Toggle MIDI hardware output by name (UMC)">
@@ -8787,6 +8902,10 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2021-08-10T02:24:01Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83a6244f50ac4df54faa6987f46c13e9af510f86/Tracks%20Properties/mpl_Toggle%20MIDI%20hardware%20output%20by%20name%20(UMC).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20MIDI%20hardware%20output%20by%20name%20(UMC).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle parent and regular send for selected tracks, ignore MIDI when regular.lua" type="script" desc="Toggle parent and regular send for selected tracks, ignore MIDI when regular">
@@ -8824,6 +8943,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# comment ClearAllRecArmed()]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/80b79c75705c1b454142881a99d99a5fa855f07f/Tracks%20Properties/mpl_Toggle%20recarm%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20recarm%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle reverse pan flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse pan flag and invert color of track under mouse cursor">
       <metadata>
@@ -8838,6 +8961,10 @@ various fixes]]></changelog>
 # correctly handle followed mask
 # support 64 groups]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Toggle%20reverse%20pan%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20reverse%20pan%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle reverse volume flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse volume flag and invert color of track under mouse cursor">
@@ -8854,6 +8981,10 @@ various fixes]]></changelog>
 # support 64 groups]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle set midi routing mode for all selected tracks sends.lua" type="script" desc="Toggle set midi routing mode for all selected tracks sends">
       <metadata>
@@ -8862,6 +8993,10 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2019-12-14T19:29:19Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdbbc1b54acfbe22ab73428b4a6989b1cedd9bcc/Tracks%20Properties/mpl_Toggle%20set%20midi%20routing%20mode%20for%20all%20selected%20tracks%20sends.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20set%20midi%20routing%20mode%20for%20all%20selected%20tracks%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle show only selected tracks in mixer.lua" type="script" desc="Toggle show only selected tracks in mixer">
@@ -8919,6 +9054,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Transport Play Stop (obey longest negative track offset).lua" type="script" desc="Transport Play Stop (obey longest negative track offset)">
       <metadata>
@@ -8948,6 +9087,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/634a972f382a262e17213e885f1857bee120656d/Transport/mpl_Trigger%20record%20after%20recent%20audio%20event,%20set%20channel%20input.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Transport/mpl_Trigger%20record%20after%20recent%20audio%20event,%20set%20channel%20input.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Trigger record after recent input MIDI event.lua" type="script" desc="Trigger record after recent input MIDI event">
       <metadata>
@@ -8956,6 +9099,10 @@ various fixes]]></changelog>
       <version name="2.01" author="MPL" time="2022-03-23T18:33:41Z">
         <changelog><![CDATA[# stuff into stream chord notes (performed 1 second just before the recent MIDI event come)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dfcb45ea727a9ec9d5c5625dbff3199147d871e3/Transport/mpl_Trigger%20record%20after%20recent%20input%20MIDI%20event.lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2024-09-01T07:50:42Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Transport/mpl_Trigger%20record%20after%20recent%20input%20MIDI%20event.lua</source>
       </version>
     </reapack>
   </category>
