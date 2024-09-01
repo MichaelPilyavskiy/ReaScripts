@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="93c2660aef1692d4a251a440816e1a6ea6269081" name="MPL Scripts">
+<index version="1" commit="06ebc1415e8f0dd0f3301fa27be3f4681637e647" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12523,6 +12523,11 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2023-01-29T14:07:18Z">
         <changelog><![CDATA[+ Init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0df63a74b397fd92c8be7bb325cb2bb1ee2bbb5d/Various/mpl_Write%20LUFS%20compensation%20to%20trim%20volume%20every%20bar.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T11:38:14Z">
+        <changelog><![CDATA[# ReaImGui based UI
+# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06ebc1415e8f0dd0f3301fa27be3f4681637e647/Various/mpl_Write%20LUFS%20compensation%20to%20trim%20volume%20every%20bar.lua</source>
       </version>
     </reapack>
   </category>
