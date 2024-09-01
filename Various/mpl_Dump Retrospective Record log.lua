@@ -1,5 +1,5 @@
 -- @description Dump Retrospective Record log
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dump recent MIDI messages log. 
@@ -17,8 +17,20 @@
 --    [main] . > mpl_Dump Retrospective Record log (everything from last hour, obey stored data break).lua
 --    [main] . > mpl_Dump Retrospective Record log (clean buffer only).lua
 -- @changelog 
---    + add mpl_Dump Retrospective Record log (everything from last 5 minutes, ignore loop)
---    + Put all the functions into the dcript body
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   ---------------------------------------------------------------------------------
   function MPL_DumpRetrospectiveLog_CollectEvents(settings) -- collect raw data
@@ -58,6 +70,21 @@
       end
     end
   end
+  ---------------------------------------------------
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
   ---------------------------------------------------------------------------------  
   function MPL_DumpRetrospectiveLog_DumpToTake(item, t, mode, settings)
     
@@ -338,11 +365,17 @@
                       
                     }
     for i = 1, #versions do if script_title==versions[i].str then return versions[i].t end end
-  end                    
+  end   
+    ---------------------------------------------------------------------
+  function GetShortSmplName(path) 
+    local fn = path
+    fn = fn:gsub('%\\','/')
+    if fn then fn = fn:reverse():match('(.-)/') end
+    if fn then fn = fn:reverse() end
+    return fn
+  end 
   ---------------------------------------------------------------------
-  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.67) if ret then local ret2 = VF_CheckReaperVrs(6.39,true) if ret2 then 
+  if VF_CheckReaperVrs(6.39,true) then 
     local filename = ({reaper.get_action_context()})[2]
     local script_title = GetShortSmplName(filename):gsub('%.lua','')
     local settings = MPL_DumpRetrospectiveLog_Parsing_filename(script_title)
@@ -351,4 +384,4 @@
       MPL_DumpRetrospectiveLog(settings) 
       Undo_EndBlock2( 0, 'MPL_DumpRetrospectiveLog', 0)
     end
-  end end
+  end
