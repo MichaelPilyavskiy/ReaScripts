@@ -1,5 +1,5 @@
 -- @description Add time signature
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -33,7 +33,21 @@
 --    [main] . > mpl_Add 14 to 16 time signature.lua
 --    [main] . > mpl_Add 15 to 16 time signature.lua
 -- @changelog
---    + init
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  --------------------------------------------------------------------  
  
   --NOT gfx NOT reaper
   function main(num, denom)
@@ -46,11 +60,6 @@
     UpdateTimeline()
   end  
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
--------------------------------------------------------------------- 
   local scr_name = ({reaper.get_action_context()})[2]
   local num, denom = scr_name:match('Add (%d+) to (%d+) time signature')
-  local ret = CheckFunctions('VF_CheckReaperVrs') 
-  if ret then 
-    if VF_CheckReaperVrs(5.95) then main(num, denom) end
-  end
+  if VF_CheckReaperVrs(5.95) then main(num, denom) end

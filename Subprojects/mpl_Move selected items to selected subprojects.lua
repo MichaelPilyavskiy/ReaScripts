@@ -1,9 +1,22 @@
 -- @description Move selected items to selected subprojects
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   -------------------------------------------------------------------  
   function main(max_check, threshold_dB, minslicelen_sec, window_sec) 
@@ -21,7 +34,8 @@
             subproj = GetSubProjectFromSource( src )
           end
         end
-      t[#t+1] = {ptr = item, GUID =  VF_GetItemGUID(item) , subproj = subproj, itemchunk = itemchunk}
+      local retval, GUID = reaper.GetSetMediaItemInfo_String( item, 'GUID', '', 0 )
+      t[#t+1] = {ptr = item, GUID =  GUID , subproj = subproj, itemchunk = itemchunk}
       end
      
     -- share items to subprojects
@@ -47,12 +61,10 @@
     
   end
   -------------------------------------------------------------------  
-  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.8) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then
+  if VF_CheckReaperVrs(5.95,true)  then
     Undo_BeginBlock2( 0 )
     reaper.PreventUIRefresh( 1 )
     main(max_check, threshold_dB, minslicelen_sec, window_sec)
     PreventUIRefresh( -1 )
     Undo_EndBlock2( 0, 'mpl Move selected items to selected subprojects', -1 )
-  end end
+  end 
