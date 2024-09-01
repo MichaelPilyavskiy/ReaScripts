@@ -1,10 +1,22 @@
 -- @description Move cursor to previous phrase in items
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
---    + limit forward audio check to 60sec
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
   local max_check = 60 -- formward audio data check
   local threshold_dB = -20 -- dB
@@ -64,12 +76,22 @@
     local prevpos = GetPrevPhrasePos(data, threshold_dB, minslicelen_sec, window_sec, threshold_dB2)
     if prevpos then SetEditCurPos( prevpos, true, true ) end
   end
+  ------------------------------------------------------------------------------------------------------
+  function WDL_VAL2DB(x, reduce)   --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+    if not x or x < 0.0000000298023223876953125 then return -150.0 end
+    local v=math.log(x)*8.6858896380650365530225783783321
+    if v<-150.0 then return -150.0 else 
+      if reduce then 
+        return string.format('%.2f', v)
+       else 
+        return v 
+      end
+    end
+  end
   -------------------------------------------------------------------  
-  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.8) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then
+  if VF_CheckReaperVrs(5.95,true)  then
     Undo_BeginBlock2( 0 )
     main(max_check, threshold_dB, minslicelen_sec, window_sec, threshold_dB2)
     PreventUIRefresh( 1 )
     Undo_EndBlock2( 0, 'mpl Move cursor to next phrase in items', -1 )
-  end end
+  end 
