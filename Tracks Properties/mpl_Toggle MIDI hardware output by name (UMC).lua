@@ -1,9 +1,22 @@
 -- @description Toggle MIDI hardware output by name (UMC)
--- @version 1.0
+-- @version 1.01
 -- @author MPL 
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---  + init
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
 
 function main(device_name,channel)
@@ -32,18 +45,12 @@ end
 
 
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
-  --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF2_LoadVFv2') 
-  if ret then 
-    local ret2 = VF_CheckReaperVrs(5.975,true)    
-    if ret2 then 
+  if VF_CheckReaperVrs(5.975,true)   then 
       Undo_BeginBlock2( 0 )
       device_name = 'UMC'
       channel=0
       main(device_name,channel)
       UpdateArrange()
       Undo_EndBlock2( 0, 'Toggle MIDI hardware output by name (UMC)', -1 )
-    end
   end
   

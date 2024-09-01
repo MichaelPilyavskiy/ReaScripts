@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.19
+-- @version 1.20
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,14 +40,32 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # patch for missing ini variables
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
 
 
   obeyparent_channels = true
   show_routing_window = false
   reset_stereo_in_multich_mode = false
-  
+  ---------------------------------------------------
+  function VF_GetTrackUnderMouseCursor()
+    local screen_x, screen_y = GetMousePosition()
+    local retval, info = reaper.GetTrackFromPoint( screen_x, screen_y )
+    return retval
+  end
   ---------------------------------------------------------------------
   function GetDestTrGUID()
     local t = {}
@@ -74,6 +92,30 @@
           break
         end
       end
+    end
+  end
+  ---------------------------------------------------
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  function VF_GetTrackByGUID(giv_guid, reaproj)
+    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
+    for i = 1, CountTracks(reaproj or 0) do
+      local tr = GetTrack(reaproj or 0,i-1)
+      --local GUID = reaper.GetTrackGUID( tr )
+      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
     end
   end
   ---------------------------------------------------------------------   
@@ -144,6 +186,14 @@
       end
     end
   end
+  ---------------------------------------------------------------------------------------------------------------------
+  function GetShortSmplName(path) 
+    local fn = path
+    fn = fn:gsub('%\\','/')
+    if fn then fn = fn:reverse():match('(.-)/') end
+    if fn then fn = fn:reverse() end
+    return fn
+  end 
   ---------------------------------------------------------------------  
   function Parsing_filename()
     local filename = ({reaper.get_action_context()})[2]
@@ -165,6 +215,71 @@
     
     return source_type, MCH_mode, src_ch, dest_ch, script_title, custom_sendmode
   end
+  
+  function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cockos.com/showpost.php?p=1535873&postcount=8
+    -- String functions from Haywoods DROPP Script..
+    local function VF_spk77_get_ini_value_startswith(text,prefix) return string.sub(text, 1, string.len(prefix)) == prefix end
+    local function VF_spk77_get_ini_value_split(s, sep) return s:match("([^" .. sep .. "]+)[" .. sep .. "]+(.+)") end
+    local function VF_spk77_get_ini_value_trim(s) return s:match("^%s*(.-)%s*$")end
+    
+    local section_found = false
+    local key_found = false
+    local f = io.open(ini_file_name,'rb')
+    if not f then return end
+    local content = f:read('a')
+    f:close()
+    
+    
+    for line in content:gmatch('[^\r\n]+') do
+      if not section_found and line:lower() == "[" .. section:lower() .. "]" then    -- Try to find the section
+        section_found = true
+        goto skipnextline
+      end
+      
+      if section_found and line == "%[.*%]" then break end -- break at next section
+      
+      
+      if section_found then
+        if not VF_spk77_get_ini_value_startswith(line, ";") then
+          local temp_line = line:match("([^=]+)")
+          if temp_line ~= nil and VF_spk77_get_ini_value_trim(temp_line) ~= nil then
+            temp_line = VF_spk77_get_ini_value_trim(temp_line)
+            if temp_line:lower() == key:lower() then
+              key_found = true
+              
+              -- Key found -> Try to get the value
+              local val = ({VF_spk77_get_ini_value_split(line,"=")})[2]
+              -- No value set for this key -> return an empty string
+              if val == nil then val = "" end
+              val = VF_spk77_get_ini_value_trim(val)
+              if tonumber(val) then val = tonumber(val) end
+              return val
+            end
+          end
+        end
+      end
+      
+      ::skipnextline::
+    end
+    
+    -- Section was not found
+    if not section_found then 
+      reaper.ShowConsoleMsg("Couldn't find section: " .. section .. "\n")
+      return false
+    end
+    if not key_found then 
+      if section_found and not key_found then reaper.ShowConsoleMsg("Couldn't find key: " .. key .. "\n") end
+    return false
+    end
+  end
+  ------------------------------------------------------------------------------------------------------
+  function Action(s, sectionID, ME )  
+    if sectionID == 32060 and ME then 
+      MIDIEditor_OnCommand( ME, NamedCommandLookup(s) )
+     else
+      Main_OnCommand(NamedCommandLookup(s), sectionID or 0) 
+    end
+  end  
   ---------------------------------------------------------------------  
   function main(data_t)
     Undo_BeginBlock()
@@ -177,13 +292,11 @@
     Undo_EndBlock(data_t.script_title, 0xFFFFFFFF) 
   end 
   ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.20) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
+  if VF_CheckReaperVrs(5.975,true)  then 
     local defsendvol = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'defsendvol')
     local defsendflag = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'defsendflag')
     local source_type, MCH_mode, src_ch, dest_ch, script_title, custom_sendmode = Parsing_filename()
     local data_t = {source_type=source_type, MCH_mode=MCH_mode, src_ch=src_ch, dest_ch=dest_ch, script_title=script_title, defsendvol=defsendvol or 1, defsendflag=defsendflag or 256, custom_sendmode=custom_sendmode}
     main(data_t)
     if show_routing_window==true then Action(40293) end
-  end end
+  end 

@@ -1,10 +1,23 @@
 -- @description Import media folder content as structured tracks
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Scan folder media and add media items on named tracks obey paths structure
 -- @changelog
---    + init
+--    # VF independent
+
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
 
 
  -------------------------------------------------------------------
@@ -88,9 +101,7 @@
     return files
   end
   -------------------------------------------------------------------  
-  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.5) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then
+  if VF_CheckReaperVrs(5.95,true)  then
     local ret, dir = reaper.GetUserInputs('Paste source directory', 1, 'path,extrawidth=400', '')
     if not (ret and dir ~= '') then return end
     Undo_BeginBlock2( 0 )
@@ -101,4 +112,4 @@
     
     PreventUIRefresh( 1 )
     Undo_EndBlock2( 0, 'Import media as track structure', -1 )
-  end end
+  end 

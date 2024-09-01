@@ -1,11 +1,30 @@
 -- @description Set selected tracks audio input device to Guit
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
+-- @changelog
+--    # VF independent
+
 
   device_name = 'Guit'
   is_stereo = false
-
+  
+  
+  
+  
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
+  ---------------------------------------------------
   function main()
     for i = 1, CountSelectedTracks(0) do
       local tr = GetSelectedTrack(0,i-1)
@@ -25,11 +44,7 @@
     reaper.SetMediaTrackInfo_Value( tr, 'I_RECINPUT',is_stereo + dev_id)
   end
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then 
+  if VF_CheckReaperVrs(5.95,true) then 
     Undo_BeginBlock()
     main()
     Undo_EndBlock("Set selected tracks audio input device", 0)  

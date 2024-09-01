@@ -1,5 +1,5 @@
 -- @description Set selected items timestretch, pitchshift modes
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -25,8 +25,7 @@
 --   [main] . > mpl_Set selected items time stretch mode to Balanced.lua
 --   [main] . > mpl_Set selected items time stretch mode to Tonal.lua
 --   [main] . > mpl_Set selected items time stretch mode to Transient.lua
---   [main] . > mpl_Set selected items time stretch mode to No pre echo reduction.lua
-      
+--   [main] . > mpl_Set selected items time stretch mode to No pre echo reduction.lua      
 -- @changelog
 --    # VF independent
 --    # use metapackage sharing
