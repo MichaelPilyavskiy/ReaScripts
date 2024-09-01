@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5083e03c2d8bd82f9cb075d446e057a33431de79" name="MPL Scripts">
+<index version="1" commit="7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7060,6 +7060,10 @@
 + limit forward audio check to 60sec]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Move%20cursor%20to%20next%20phrase%20in%20items.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Navigation/mpl_Move%20cursor%20to%20next%20phrase%20in%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Move cursor to next selected item edge, keep overlapping condition.lua" type="script" desc="Move cursor to next selected item edge, keep overlapping condition">
       <metadata>
@@ -7086,6 +7090,10 @@
 + limit forward audio check to 60sec]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Move%20cursor%20to%20previous%20phrase%20in%20items.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Navigation/mpl_Move%20cursor%20to%20previous%20phrase%20in%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Move edit cursor to first note of selected item.lua" type="script" desc="Move edit cursor to first note of selected item">
       <metadata>
@@ -7103,6 +7111,10 @@
       <version name="1.0" author="MPL" time="2023-04-02T10:13:42Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Select%20following%20phrase.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Navigation/mpl_Select%20following%20phrase.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set time selection from edit cursor to end of current region.lua" type="script" desc="Set time selection from edit cursor to end of current region">
@@ -7132,6 +7144,10 @@
       <version name="1.0" author="MPL" time="2021-11-10T19:22:08Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/200d56a4739f6b119c856974a874c47905fd92d8/Regions/mpl_Convert%20CUE%20file%20into%20markers%20(DDP%20formatted).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Regions/mpl_Convert%20CUE%20file%20into%20markers%20(DDP%20formatted).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Convert CUE file into markers.lua" type="script" desc="Convert CUE file into markers">
@@ -7170,29 +7186,13 @@
         <changelog><![CDATA[init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Regions/mpl_Shift%20regions%20and%20markers%20to%20edit%20cursor.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Regions/mpl_Shift%20regions%20and%20markers%20to%20edit%20cursor.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="Render">
-    <reapack name="mpl_Conditional bounce-in-place.lua" type="script" desc="Conditional bounce-in-place">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-14T19:31:36Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/845e8a390653fad013ea6e46d597d068b8d2ff8c/Render/mpl_Conditional%20bounce-in-place.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-03-11T01:55:07Z">
-        <changelog><![CDATA[# improved logic: render as new take, copy render to new track  or selected track if any  ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f75b24befef19252bb54e60a9c64891a7fdfd549/Render/mpl_Conditional%20bounce-in-place.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2023-01-15T12:40:46Z">
-        <changelog><![CDATA[# leave source take as active]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c31a95f8a04e2105b3954a5edc7d335fe68f71b/Render/mpl_Conditional%20bounce-in-place.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2023-01-15T12:44:45Z">
-        <changelog><![CDATA[# crop to active take on source item]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52baafe94fd527e4e32274e099bc93f45ab56228/Render/mpl_Conditional%20bounce-in-place.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Disable add rendered files to project after render.lua" type="script" desc="Disable add rendered files to project after render">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -7200,6 +7200,10 @@
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Disable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Disable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Enable add rendered files to project after render.lua" type="script" desc="Enable add rendered files to project after render">
@@ -7210,6 +7214,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Enable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Enable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Glue and Render selected items as seamless loops.lua" type="script" desc="Glue and Render selected items as seamless loops">
       <metadata>
@@ -7218,6 +7226,10 @@
       <version name="1.0" author="MPL" time="2020-05-01T13:10:07Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b06fa342b6d409a4b4e2f0156823e5d2d92ab86/Render/mpl_Glue%20and%20Render%20selected%20items%20as%20seamless%20loops.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Glue%20and%20Render%20selected%20items%20as%20seamless%20loops.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Render inversed midi.lua" type="script" desc="Render inversed midi">
@@ -7233,6 +7245,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20bounds%20to%20entire%20project.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20bounds%20to%20entire%20project.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render bounds to time selection.lua" type="script" desc="Set render bounds to time selection">
       <metadata>
@@ -7241,6 +7257,10 @@
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20bounds%20to%20time%20selection.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20bounds%20to%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render directory to 'Render' in project folder.lua" type="script" desc="Set render directory to 'Render' in project folder">
@@ -7251,6 +7271,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20project%20folder.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20project%20folder.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render directory to 'Render' in REAPER folder.lua" type="script" desc="Set render directory to 'Render' in REAPER folder">
       <metadata>
@@ -7259,6 +7283,10 @@
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20REAPER%20folder.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20REAPER%20folder.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render directory to desktop.lua" type="script" desc="Set render directory to desktop">
@@ -7278,6 +7306,10 @@
 + Add MacOS support]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60efdc164c60d5c1586d5580f465683abc31ea53/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render filename.lua" type="script" desc="Set render filename">
       <metadata>
@@ -7286,6 +7318,10 @@
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20filename.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20filename.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render format to FLAC.lua" type="script" desc="Set render format to FLAC">
@@ -7296,6 +7332,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20FLAC.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20FLAC.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render format to MP3 128kbps CBR (LAME).lua" type="script" desc="Set render format to MP3 128kbps CBR (LAME)">
       <metadata>
@@ -7305,14 +7345,22 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20MP3%20128kbps%20CBR%20(LAME).lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20MP3%20128kbps%20CBR%20(LAME).lua</source>
+      </version>
     </reapack>
-    <reapack name="mpl_Set render format to MP3 maximum bitrate and quality (LAME).lua" type="script" desc="Set render format to MP3 maximum bitrate and quality (LAME)">
+    <reapack name="mpl_Set render format to MP3 maximum bitrate and quality (LAME).lua" type="script" desc="Set render format to Video MP4 MJPEG">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20MP3%20maximum%20bitrate%20and%20quality%20(LAME).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20MP3%20maximum%20bitrate%20and%20quality%20(LAME).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render format to Video MP4 MJPEG.lua" type="script" desc="Set render format to Video MP4 MJPEG">
@@ -7323,6 +7371,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0b2335b696d39d230c895b329c97b1c4621e3d3c/Render/mpl_Set%20render%20format%20to%20Video%20MP4%20MJPEG.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20Video%20MP4%20MJPEG.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render format to WAV 16 bit.lua" type="script" desc="Set render format to WAV 16 bit">
       <metadata>
@@ -7331,6 +7383,10 @@
       <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20WAV%2016%20bit.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20WAV%2016%20bit.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render format to WAV 24 bit.lua" type="script" desc="Set render format to WAV 24 bit">
@@ -7341,6 +7397,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20WAV%2024%20bit.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20WAV%2024%20bit.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render format to WAV 32 bit.lua" type="script" desc="Set render format to WAV 32 bit">
       <metadata>
@@ -7349,6 +7409,10 @@
       <version name="1.0" author="MPL" time="2019-08-26T17:28:26Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0b2335b696d39d230c895b329c97b1c4621e3d3c/Render/mpl_Set%20render%20format%20to%20WAV%2032%20bit.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20format%20to%20WAV%2032%20bit.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render source to master.lua" type="script" desc="Set render source to master">
@@ -7359,6 +7423,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20source%20to%20master.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20source%20to%20master.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render source to selected items.lua" type="script" desc="Set render source to selected items">
       <metadata>
@@ -7368,6 +7436,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20source%20to%20selected%20items.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20source%20to%20selected%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render source to stems.lua" type="script" desc="Set render source to stems">
       <metadata>
@@ -7376,6 +7448,10 @@
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20source%20to%20stems.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-01T05:37:55Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7effb6ebeb7e6b9fec71a78f0a634c9c6a734b02/Render/mpl_Set%20render%20source%20to%20stems.lua</source>
       </version>
     </reapack>
   </category>
