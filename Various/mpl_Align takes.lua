@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix flickering at no reference
+--    # fix API requirement
 
 
 
@@ -18,7 +18,7 @@
   ]]
     
 --NOT reaper NOT gfx
-local vrs = 3.01
+local vrs = 3.03
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -28,7 +28,7 @@ local vrs = 3.01
   
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9'
+  ImGui = require 'imgui' '0.9.2'
   
   
   
@@ -198,6 +198,7 @@ for key in pairs(reaper) do _G[key]=reaper[key] end
 function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
 -------------------------------------------------------------------------------- 
 function UI.MAIN_PushStyle(key, value, value2)  
+  if not ctx then return end
   local iscol = key:match('Col_')~=nil
   local keyid = ImGui[key]
   if not iscol then 
@@ -312,7 +313,7 @@ function UI.MAIN_draw(open)
       --Constant: Col_SliderGrabActive
       UI.MAIN_PushStyle('Col_SliderGrab',UI.butBg_green, 0.4) 
       UI.MAIN_PushStyle('Col_Tab',UI.main_col, 0.37) 
-      UI.MAIN_PushStyle('Col_TabActive',UI.main_col, 1) 
+      --UI.MAIN_PushStyle('Col_TabActive',UI.main_col, 1) 
       UI.MAIN_PushStyle('Col_TabHovered',UI.main_col, 0.8) 
       --Constant: Col_TabUnfocused
       --'Col_TabUnfocusedActive
@@ -648,7 +649,7 @@ end
     function UI.draw_flow_tempcolor(release) 
       if not release then
         UI.MAIN_PushStyle('Col_Tab',UI.butBg_green, 0.37, true) 
-        UI.MAIN_PushStyle('Col_TabActive',UI.butBg_green, 1, true) 
+        --UI.MAIN_PushStyle('Col_TabActive',UI.butBg_green, 1, true) 
         UI.MAIN_PushStyle('Col_TabHovered',UI.butBg_green, 0.8, true) 
        else
         ImGui.PopStyleColor(ctx, 3)
