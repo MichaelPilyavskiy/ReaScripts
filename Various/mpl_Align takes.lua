@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 3.04
+-- @version 3.05
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix API requirement
+--    # fix error on missing data
 
 
 
@@ -18,7 +18,7 @@
   ]]
     
 --NOT reaper NOT gfx
-local vrs = 3.03
+local vrs = 3.05
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -715,8 +715,12 @@ end
 function UI.draw_flow_markdirty(t)
     -- aligntakes v3+
     if t.markdirty then 
-      if t.markdirty &1==1 then DATA.AT.refdata.dirty = true end
-      if t.markdirty &2==2 then DATA.AT.dubdata.dirty = true end
+      if t.markdirty &1==1 then 
+        if DATA.AT and DATA.AT.refdata then DATA.AT.refdata.dirty = true end
+      end
+      if t.markdirty &2==2 then 
+        if DATA.AT and DATA.AT.dubdata  then DATA.AT.dubdata.dirty = true end
+      end
     end
 end
 --------------------------------------------------------------------------------  
