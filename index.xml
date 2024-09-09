@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="26c13f92f46126c3d1eba4326c61ded5ffa817dd" name="MPL Scripts">
+<index version="1" commit="f3982972220049672bbab6dc9406fa19cd8a962b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6072,6 +6072,11 @@
 + add support for per-slave mode]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c17128e3b4636f8fec53223fddec9e8bedc97d7d/JSFX/MappingPanel_slave.jsfx</source>
       </version>
+      <version name="4.0" author="MPL" time="2024-09-09T20:44:26Z">
+        <changelog><![CDATA[# improve support for per-slave mode
+# revert use of 64 sliders]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3982972220049672bbab6dc9406fa19cd8a962b/JSFX/MappingPanel_slave.jsfx</source>
+      </version>
     </reapack>
   </category>
   <category name="Meta">
@@ -11762,6 +11767,19 @@ various fixes]]></changelog>
       <version name="3.04" author="MPL" time="2024-08-09T19:56:51Z">
         <changelog><![CDATA[# fix shifted graphs on non-1.0x scaling]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/397090989f650da661ceaddab25e4f269a897ad7/Various/mpl_Mapping%20Panel%20(background).lua</source>
+      </version>
+      <version name="4.0" author="MPL" time="2024-09-09T20:44:26Z">
+        <changelog><![CDATA[+ UI: Complete rebuild using ReaImGui
+# improve switching between project tabs
+# fix obeying rename checks
+# Change link mute logic: now it toggle active plink from plugin to slave JSFX
+# Change link remove logic: now it set active plink = 0, set effect to -1. Script validates link by source JSFX effect parameter
+# Remove master JSFX from master channel when switching to "Slave JSFX per track" mode, ask for remove
+# Add master JSFX from master channel when switching to "Master JSFX" mode
+# "Slave JSFX per track" mode: read/write standart offset/scale parameters
+# "Slave JSFX per track" mode: edit link params directly (quite clumsy but doesn`t really possible to build proper graph editing)
++ Mark excluded from randomization/variation]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3982972220049672bbab6dc9406fa19cd8a962b/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
