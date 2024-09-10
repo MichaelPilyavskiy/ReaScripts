@@ -1,25 +1,15 @@
 -- @description MappingPanel
--- @version 4.0
+-- @version 4.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    + UI: Complete rebuild using ReaImGui
---    # improve switching between project tabs
---    # fix obeying rename checks
---    # Change link mute logic: now it toggle active plink from plugin to slave JSFX
---    # Change link remove logic: now it set active plink = 0, set effect to -1. Script validates link by source JSFX effect parameter
---    # Remove master JSFX from master channel when switching to "Slave JSFX per track" mode, ask for remove
---    # Add master JSFX from master channel when switching to "Master JSFX" mode
---    # "Slave JSFX per track" mode: read/write standart offset/scale parameters
---    # "Slave JSFX per track" mode: edit link params directly (quite clumsy but doesn`t really possible to build proper graph editing)
---    + Mark excluded from randomization/variation
+--    # fix script width/height
 
 
 
-  local vrs = 4.0 
+  local vrs = 4.01
 
--- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN
   
   --[[ gmem map: 
   Master
@@ -69,7 +59,11 @@
            upd = true, 
            activetab = 0, -- !=1 knobs  1 menu  2 varilist 3 links 4 actions  
            knobscollapsed = 0, 
-           LTP={},
+           LTP={}, 
+           
+           viewport_posW2 = 640,
+           viewport_posH2 = 230, 
+           
            }
            
    -------------------------------------------------------------------------------- UI init variables
@@ -134,8 +128,7 @@
     
     if EXT.CONF_mode == 1 then
       --1-16 [float] knob values  
-        --if t.flags_mute == 1 then TrackFX_SetParam( tr, t.slave_jsfx_ID, t.slave_jsfx_paramID, t.slave_jsfx_param) end
-        
+        --if t.flags_mute == 1 then TrackFX_SetParam( tr, t.slave_jsfx_ID, t.slave_jsfx_paramID, t.slave_jsfx_param) end 
         
       local slaveJSFXlinksID = t.slaveJSFXlinksID
 
@@ -147,27 +140,7 @@
       end
       if t.set_scale then
         TrackFX_SetNamedConfigParm( tr, t.destfx_FXID, 'param.'..t.destfx_paramID..'.plink.scale', t.set_scale )
-      end
-      
-      --TrackFX_SetNamedConfigParm( tr, t.destfx_FXID, 'param.'..t.destfx_paramID..'.plink.offset', Y1 )
-      
-      --
-      
-      
-      --TrackFX_SetNamedConfigParm( tr, t.destfx_FXID, 'param.'..t.destfx_paramID..'.mod.baseline', Y1 )
-      
-      --[[
-      local angle = math.atan((Y2 - Y1) / (X2 - X1))
-      --
-      
-      if scale > 0 then
-        dx = Y1 / math.tan(angle)
-        offset = X1-dx
-        TrackFX_SetNamedConfigParm( tr, t.destfx_FXID, 'param.'..t.destfx_paramID..'.plink.offset', Y1 )
-      end
-      --offset baseline]]
-      
-      
+      end 
         
       --17-32 [int] to which master knob linked
         TrackFX_SetParam( tr, t.slave_jsfx_ID, t.slave_jsfx_paramID+16, 0)
@@ -912,7 +885,7 @@
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      ImGui.SetNextWindowSize(ctx, DATA.viewport_posW2, DATA.viewport_posH2, ImGui.Cond_Appearing)
       
       
     -- init UI 
@@ -1021,9 +994,7 @@
     DATA:Link_Extstate_Get()
     DATA:Link_Extstate_Validate() 
     
-    
     DATA.sel_knob = DATA:GetSelectedKnob()
-    
   end 
   -------------------------------------------------------------------------------- 
   function UI.MAIN_UIloop() 
@@ -1039,6 +1010,7 @@
     
     -- handle xy
     DATA:handleViewportXYWH()
+    
     -- data
     if UI.open then defer(UI.MAIN_UIloop) end
   end
