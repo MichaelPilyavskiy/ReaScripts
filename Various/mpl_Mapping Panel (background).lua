@@ -1,14 +1,15 @@
 -- @description MappingPanel
--- @version 4.01
+-- @version 4.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    # fix script width/height
+--    + allow to resize window
+--    # fix error at variation play
 
 
 
-  local vrs = 4.01
+  local vrs = 4.02
 
   
   --[[ gmem map: 
@@ -61,9 +62,6 @@
            knobscollapsed = 0, 
            LTP={}, 
            
-           viewport_posW2 = 640,
-           viewport_posH2 = 230, 
-           
            }
            
    -------------------------------------------------------------------------------- UI init variables
@@ -77,9 +75,11 @@
              -- mouse
                hoverdelay = 0.8,
                hoverdelayshort = 0.8,
+               
              -- size / offset
                spacingX = 4,
                spacingY = 3,
+               
              -- colors / alpha
                main_col = 0x7F7F7F, -- grey
                textcol = 0xFFFFFF,
@@ -87,10 +87,11 @@
                textcol_a_disabled = 0.5,
                but_hovered = 0x878787,
                windowBg = 0x303030,
-             -- size
+               
+             --[[ size
                main_butw = 80,
                main_buth = 50,
-               main_knobtxth = 36,
+               main_knobtxth = 36,]]
            }
       
       
@@ -817,7 +818,7 @@
       window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
       --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
       --window_flags = window_flags | ImGui.WindowFlags_NoMove()
-      window_flags = window_flags | ImGui.WindowFlags_NoResize
+      --window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
       --window_flags = window_flags | ImGui.WindowFlags_NoNav()
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
@@ -850,7 +851,8 @@
         ImGui.PushStyle('StyleVar_ScrollbarSize',10)
       -- size
         ImGui.PushStyle('StyleVar_GrabMinSize',20)
-        ImGui.PushStyle('StyleVar_WindowMinSize',UI.main_butw*9,(UI.main_buth*2 + UI.spacingY)*2 + UI.font1sz*2)
+        --ImGui.PushStyle('StyleVar_WindowMinSize',UI.main_butw*9,(UI.main_buth*2 + UI.spacingY)*2 + UI.font1sz*2)
+        ImGui.PushStyle('StyleVar_WindowMinSize',200,200)
       -- align
         ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
         ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
@@ -885,7 +887,7 @@
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, DATA.viewport_posW2, DATA.viewport_posH2, ImGui.Cond_Appearing)
+      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
     -- init UI 
@@ -897,11 +899,16 @@
         DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
         DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
         
+        
       -- calc stuff for childs
         UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
         local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
         local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
         UI.calc_itemH = calcitemh + frameh * 2
+        
+        UI.main_butw = (DATA.display_w_region- UI.spacingX*10) / 9
+        UI.main_buth = (DATA.display_h_region- UI.calc_itemH-UI.spacingY*5) / 4
+        UI.main_knobtxth = UI.main_buth*0.6
         
         UI.calc_knobW = math.ceil((DATA.display_w_region - UI.main_butw - UI.spacingX*11)/8)
         UI.calc_knobH = UI.main_buth*2 + UI.spacingY
@@ -1029,7 +1036,7 @@
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
     
-    
+    DATA.DPI = ImGui.GetWindowDpiScale( ctx )
     -- run loop
     defer(UI.MAIN_UIloop)
   end
@@ -1105,7 +1112,7 @@
       namew= math.floor(sliderW*0.8) 
       childW = sliderW
       nameh = sliderH
-      vsliderw = sliderW - namew
+      vsliderw = math.min(sliderW - namew, sliderH)
       vsliderh = sliderH
     end
     
@@ -1175,7 +1182,7 @@
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x00000000)
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive, 0x00000000)
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered, 0x00000000)
-        local retval, v = ImGui.VSliderDouble( ctx, sliderID,  vsliderw, vsliderh , paramval, 0, 1, '' )
+        local retval, v = ImGui.VSliderDouble( ctx, '##vsl'..sliderID,  vsliderw, vsliderh , paramval, 0, 1, '' )
         ImGui.PopStyleColor(ctx,5)
         
       -- slider: handle mouse state
@@ -1218,7 +1225,7 @@
           radius = math.floor(vsliderw / 2)
           radius_draw = math.floor(0.8 * radius) 
           center_x = posx_abs + namew + radius
-          center_y = posy_abs + radius
+          center_y = posy_abs +  radius
         end
         local ang_min = -210
         local ang_max = 30
@@ -1228,7 +1235,7 @@
         local radius_draw3 = radius_draw-math.floor(mindim*0.2)
         if iscollapsed then 
            radius_draw3 = radius_draw-math.floor(0.7 * radius)
-           radiusshift_y = 0
+           radiusshift_y = -math.floor(0.3 * radius)
         end
       -- arc
         ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
@@ -1717,15 +1724,19 @@
     ImGui.SetCursorPos( ctx, local_pos_x , local_pos_y)
     ImGui.Indent( ctx, UI.main_butw + UI.spacingX)
     
+    local but_rec_w = UI.calc_knobcollapsedH*2 
+    local but_varplay_w = UI.calc_knobcollapsedH
+    local but_var_w = UI.calc_knobcollapsedW*2-but_rec_w-but_varplay_w-UI.spacingY
+    
     for varID = 1, 8 do
       -- print
       local name = 'Variation '..varID
-      if ImGui.Button(ctx, 'rec##rec'..varID,UI.calc_knobcollapsedH*2,UI.calc_knobcollapsedH) then  DATA:Vari_Rec(varID)   end 
+      if ImGui.Button(ctx, 'rec##rec'..varID,but_rec_w,UI.calc_knobcollapsedH) then  DATA:Vari_Rec(varID)   end 
       ImGui.SameLine(ctx) 
       
       -- name
       if DATA.masterJSFX_variations_list[varID] and DATA.masterJSFX_variations_list[varID].name then name = DATA.masterJSFX_variations_list[varID].name end
-      ImGui.PushItemWidth( ctx, UI.calc_knobcollapsedW )
+      ImGui.PushItemWidth( ctx, but_var_w )
       local retval, buf = ImGui.InputText( ctx, '##varname'..varID, name, ImGui.InputTextFlags_EnterReturnsTrue )
       if retval == true then 
         DATA.masterJSFX_variations_list[varID].name = buf
@@ -1736,7 +1747,8 @@
       -- play
       local selected = DATA.masterJSFX_variations_list[varID] and DATA.masterJSFX_variations_list[varID].issel == 1 
       if selected  == true  then ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0xFFFFFF3F) end
-      if ImGui.ArrowButton( ctx, '##vdir'..varID, ImGui.Dir_Right ) then DATA:Vari_Play() end
+      ImGui.PushItemWidth( ctx, but_varplay_w )
+      if ImGui.ArrowButton( ctx, '##vdir'..varID, ImGui.Dir_Right ) then DATA:Vari_Play(varID) end
       if selected == true then ImGui.PopStyleColor(ctx) end
     end
     
@@ -1749,7 +1761,7 @@
     DATA:MasterJSFX_WriteSliders()
   end
   ---------------------------------------------------------------------  
-  function DATA:Vari_Play()  
+  function DATA:Vari_Play(varID)  
     -- set selected
       for i = 1, 8 do DATA.masterJSFX_variations_list[i].issel = 0 end 
       DATA.masterJSFX_variations_list[varID].issel = 1
@@ -1891,7 +1903,8 @@
       if DATA.knobscollapsed == 1 then
         col = math.floor((sliderID-1)/8)
         row = ((sliderID-1)%8)
-        curposX = local_pos_x + UI.main_butw*5  + UI.calc_knobcollapsedW*col+UI.spacingX*col
+        --curposX = local_pos_x + UI.main_butw*5  + UI.calc_knobcollapsedW *col+UI.spacingX*col
+        curposX = local_pos_x + UI.main_butw + UI.spacingX*2 + UI.calc_knobcollapsedW*2 + UI.spacingX + UI.calc_knobcollapsedW *col+UI.spacingX*col
         curposY = local_pos_y  + UI.calc_knobcollapsedH * row + UI.spacingY * row
       end
       ImGui.SetCursorPos( ctx, curposX, curposY)
