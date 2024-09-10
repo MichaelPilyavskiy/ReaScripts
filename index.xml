@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f3982972220049672bbab6dc9406fa19cd8a962b" name="MPL Scripts">
+<index version="1" commit="9450e08b285c7e99a6e4854e4623f5b14a623f6d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11780,6 +11780,10 @@ various fixes]]></changelog>
 # "Slave JSFX per track" mode: edit link params directly (quite clumsy but doesn`t really possible to build proper graph editing)
 + Mark excluded from randomization/variation]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3982972220049672bbab6dc9406fa19cd8a962b/Various/mpl_Mapping%20Panel%20(background).lua</source>
+      </version>
+      <version name="4.01" author="MPL" time="2024-09-10T04:36:23Z">
+        <changelog><![CDATA[# fix script width/height]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9450e08b285c7e99a6e4854e4623f5b14a623f6d/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
