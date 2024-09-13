@@ -1,5 +1,5 @@
 -- @description Change volume for item under mouse cursor (mousewheel)
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
@@ -8,7 +8,18 @@
   --NOT gfx NOT reaper
   
 
-  
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end
   ------------------------------------------------------------------------------------------------------
   function VF_GetItemTakeUnderMouseCursor()
     local screen_x, screen_y = GetMousePosition()
