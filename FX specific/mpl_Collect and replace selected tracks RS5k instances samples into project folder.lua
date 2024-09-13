@@ -1,9 +1,9 @@
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Collect and replace selected tracks RS5k instances samples into project folder
 -- @changelog
---    # VF independent
+--    # fix error
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -67,7 +67,14 @@
     
 
   end
-   
+   ---------------------------------------------------------------------------------------------------------------------
+   function VF_GetShortSmplName(path) 
+     local fn = path
+     fn = fn:gsub('%\\','/')
+     if fn then fn = fn:reverse():match('(.-)/') end
+     if fn then fn = fn:reverse() end
+     return fn
+   end  
   ---------------------------------------------------------------------
     if VF_CheckReaperVrs(5.95,true) then
       reaper.Undo_BeginBlock()

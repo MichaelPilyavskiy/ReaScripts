@@ -1,9 +1,9 @@
 -- @description Change pan for item under mouse cursor active take (mousewheel)
--- @version 1.02
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # fix lim error
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -39,9 +39,14 @@
     local take = GetActiveTake(item)
     if not take then return end
     local tkpan = GetMediaItemTakeInfo_Value( take, 'D_PAN' )
-    local tkpan_out = lim(tkpan + val*incr,-1,1)
+    local tkpan_out = VF_lim(tkpan + val*incr,-1,1)
     SetMediaItemTakeInfo_Value( take, 'D_PAN', tkpan_out )
     UpdateItemInProject( item )
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_lim(val, min,max) --local min,max 
+    if not min or not max then min, max = 0,1 end 
+    return math.max(min,  math.min(val, max) ) 
   end
 --------------------------------------------------------------------  
   if VF_CheckReaperVrs(5.95,true) then 
