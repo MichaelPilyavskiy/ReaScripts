@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7c620a78f65562cae41a438afb557700d21e0e7d" name="MPL Scripts">
+<index version="1" commit="6b2cea9ecb79c3967a303280af4c23adb1e3a3bc" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3210,6 +3210,10 @@
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2024-09-13T06:20:51Z">
+        <changelog><![CDATA[# fix error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b2cea9ecb79c3967a303280af4c23adb1e3a3bc/FX%20specific/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Convert RS5k MIDI item into source based audio items (drum mode).lua" type="script" desc="Convert RS5k MIDI item into source based audio items (drum mode)">
       <metadata>
@@ -5779,8 +5783,12 @@
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Change%20pan%20for%20item%20under%20mouse%20cursor%20active%20take%20(mousewheel).lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2024-09-13T06:20:51Z">
+        <changelog><![CDATA[# fix lim error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b2cea9ecb79c3967a303280af4c23adb1e3a3bc/Items%20Properties/mpl_Change%20pan%20for%20item%20under%20mouse%20cursor%20active%20take%20(mousewheel).lua</source>
+      </version>
     </reapack>
-    <reapack name="mpl_Change volume for item under mouse cursor (mousewheel).lua" type="script" desc="Change pan for item under mouse cursor active take (mousewheel)">
+    <reapack name="mpl_Change volume for item under mouse cursor (mousewheel).lua" type="script" desc="Change volume for item under mouse cursor (mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
@@ -5795,6 +5803,10 @@
       <version name="1.03" author="MPL" time="2024-08-31T20:39:28Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-09-13T06:20:51Z">
+        <changelog><![CDATA[# VF imndependent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b2cea9ecb79c3967a303280af4c23adb1e3a3bc/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create snap offset at maximum peak in first second of take.lua" type="script" desc="Create snap offset at maximum peak in first second of take">
