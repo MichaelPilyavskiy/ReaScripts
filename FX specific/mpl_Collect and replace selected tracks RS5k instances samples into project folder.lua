@@ -1,4 +1,4 @@
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Collect and replace selected tracks RS5k instances samples into project folder
@@ -68,7 +68,7 @@
 
   end
    ---------------------------------------------------------------------------------------------------------------------
-   function VF_GetShortSmplName(path) 
+   function GetShortSmplName(path) 
      local fn = path
      fn = fn:gsub('%\\','/')
      if fn then fn = fn:reverse():match('(.-)/') end
