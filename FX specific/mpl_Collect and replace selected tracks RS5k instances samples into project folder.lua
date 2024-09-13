@@ -1,4 +1,4 @@
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Collect and replace selected tracks RS5k instances samples into project folder
@@ -43,6 +43,14 @@
     if not retval2 or buf1~='Note range start' then return end
     return true, tr, fxnumber
   end
+  ---------------------------------------------------
+  function msg(s) 
+    if not s then return end 
+    if type(s) == 'boolean' then
+      if s then s = 'true' else  s = 'false' end
+    end
+    ShowConsoleMsg(s..'\n') 
+  end 
   ---------------------------------------------------------------------  
   function main()
     local proj_name = reaper.GetProjectName( 0, '' )
