@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="32098aa957bd4e69e7790fc1f90d19e08c748ff1" name="MPL Scripts">
+<index version="1" commit="9e5ac97105be465b71accb57489c77637d32c486" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3217,6 +3217,10 @@
       <version name="1.05" author="MPL" time="2024-09-13T06:28:29Z">
         <changelog><![CDATA[# fix error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32098aa957bd4e69e7790fc1f90d19e08c748ff1/FX%20specific/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2024-09-13T06:33:41Z">
+        <changelog><![CDATA[# fix error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e5ac97105be465b71accb57489c77637d32c486/FX%20specific/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Convert RS5k MIDI item into source based audio items (drum mode).lua" type="script" desc="Convert RS5k MIDI item into source based audio items (drum mode)">
