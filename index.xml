@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9e5ac97105be465b71accb57489c77637d32c486" name="MPL Scripts">
+<index version="1" commit="2e354863cf6b76bf5bf2cb98a0657a6eda558686" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5815,6 +5815,10 @@
       <version name="1.04" author="MPL" time="2024-09-13T06:20:51Z">
         <changelog><![CDATA[# VF imndependent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b2cea9ecb79c3967a303280af4c23adb1e3a3bc/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2024-09-13T20:12:56Z">
+        <changelog><![CDATA[# VF imndependent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e354863cf6b76bf5bf2cb98a0657a6eda558686/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create snap offset at maximum peak in first second of take.lua" type="script" desc="Create snap offset at maximum peak in first second of take">
