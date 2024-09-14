@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2e354863cf6b76bf5bf2cb98a0657a6eda558686" name="MPL Scripts">
+<index version="1" commit="e26e7c5e0ba616075b2cedd8a2d541f83c010e26" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6101,6 +6101,10 @@
 # revert use of 64 sliders]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3982972220049672bbab6dc9406fa19cd8a962b/JSFX/MappingPanel_slave.jsfx</source>
       </version>
+      <version name="4.01" author="MPL" time="2024-09-14T18:52:51Z">
+        <changelog><![CDATA[# revert slave sliders back]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/e26e7c5e0ba616075b2cedd8a2d541f83c010e26/JSFX/MappingPanel_slave.jsfx</source>
+      </version>
     </reapack>
   </category>
   <category name="Meta">
@@ -11813,6 +11817,24 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ allow to resize window
 # fix error at variation play]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c620a78f65562cae41a438afb557700d21e0e7d/Various/mpl_Mapping%20Panel%20(background).lua</source>
+      </version>
+      <version name="4.03" author="MPL" time="2024-09-14T18:52:51Z">
+        <changelog><![CDATA[# escape doesnt close window, instead close current popup
+# MB-based messages ported to ReaImGui
+# Context menu / Set macro color: ported to ReaImGui Color picker
+# Context menu / Set MIDI learn: use "Set last touched controller to last touched parameter" action
+# Context menu / Set MIDI learn: show / remove current MIDI learn
+# SlaveJSFX-per-track mode: link doesn`t work if not slave jfsx exist
+# SlaveJSFX-per-track mode: don`t show knobs in jsfx not available
+# SlaveJSFX-per-track mode: don`t ask for add JSFX
+# Master JSFX mode: don`t ask for add JSFX
+# remove message at clicking mapping panel as last touched
+# remove message "Item FX is not supported"
+# remove message at missing slave JSFX
+# remove message at removing link
++ Add Master JSFX to master at initialisation in Master JSFX mode
++ SlaveJSFX-per-track mode: Add Slave JSFX to master at macro select]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e26e7c5e0ba616075b2cedd8a2d541f83c010e26/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
