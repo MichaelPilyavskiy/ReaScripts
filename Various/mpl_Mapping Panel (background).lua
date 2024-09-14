@@ -1,17 +1,30 @@
 -- @description MappingPanel
--- @version 4.02
+-- @version 4.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    + allow to resize window
---    # fix error at variation play
+--    # escape doesnt close window, instead close current popup
+--    # MB-based messages ported to ReaImGui
+--    # Context menu / Set macro color: ported to ReaImGui Color picker
+--    # Context menu / Set MIDI learn: use "Set last touched controller to last touched parameter" action
+--    # Context menu / Set MIDI learn: show / remove current MIDI learn
+--    # SlaveJSFX-per-track mode: link doesn`t work if not slave jfsx exist
+--    # SlaveJSFX-per-track mode: don`t show knobs in jsfx not available
+--    # SlaveJSFX-per-track mode: don`t ask for add JSFX
+--    # Master JSFX mode: don`t ask for add JSFX
+--    # remove message at clicking mapping panel as last touched
+--    # remove message "Item FX is not supported"
+--    # remove message at missing slave JSFX
+--    # remove message at removing link
+--    + Add Master JSFX to master at initialisation in Master JSFX mode
+--    + SlaveJSFX-per-track mode: Add Slave JSFX to master at macro select
 
 
 
-  local vrs = 4.02
 
-  
+  local vrs = 4.03
+
   --[[ gmem map: 
   Master
   [slider / gmem] 1-16: knob values
@@ -67,7 +80,8 @@
    -------------------------------------------------------------------------------- UI init variables
    
    --local ctx
-     UI = {
+     UI = {    popups = {},
+     
              -- font
                font='Arial',
                font1sz=15,
@@ -96,7 +110,7 @@
       
       
       
-      
+   
       
   ------------------------------------------------------------------
   function DATA:SlaveJSFX_Write(t)
@@ -211,41 +225,40 @@
     return fx_new
   end 
   ------------------------------------------------------------------
-  function DATA:MasterJSFX_Validate_Add()
-    local ret = MB("MappingPanel master JSFX not found in current project. Add it to master track?", DATA.UI_name, 4)
-    if ret == 6 then 
+  function DATA:MasterJSFX_Validate_Add() 
+    if EXT.CONF_mode == 0 then
       local tr = GetMasterTrack(DATA.ReaProj,0)
       if tr then  
         reaper.PreventUIRefresh( 1 ) 
         local fx_new =  TrackFX_AddByName( tr, 'JS:MappingPanel_master.jsfx', false, -1000 ) 
         reaper.TrackFX_Show( tr, fx_new, 2 ) -- add and hide
-        reaper.PreventUIRefresh( -1 )
-        DATA:MasterJSFX_Validate_Find()
-        return true
+        reaper.PreventUIRefresh( -1 ) 
       end
-    end 
+    end
+    
+    if EXT.CONF_mode == 1 then
+      local tr = GetSelectedTrack(DATA.ReaProj,0)
+      if tr then  
+        reaper.PreventUIRefresh( 1 ) 
+        local fx_new =  TrackFX_AddByName( tr, 'JS:MappingPanel_slave.jsfx', false, -1000 ) 
+        reaper.TrackFX_Show( tr, fx_new, 2 ) -- add and hide
+        reaper.PreventUIRefresh( -1 ) 
+      end
+    end
   end 
   
-  ------------------------------------------------------------------
-  function DATA:MasterJSFX_Validate_UserInput()
-    if EXT.CONF_mode == 0 then
-      if not (DATA.masterJSFX_isvalid == true) then 
-        DATA:MasterJSFX_Validate_Add()
-        DATA:MasterJSFX_Validate_Find()
-      end 
-      if not (DATA.masterJSFX_isvalid == true) then 
-        MB('Error loading master JSFX', DATA.UI_name, 0) 
-        return
-      end
-      return true
-     else
-      return true
-    end 
-    
-  end
   ----------------------------------------------------------------------------------
   function DATA:Link_add(ignorelasttouched, tr_pass, fxnumber_pass, paramnumber_pass) local tr
-    if not DATA:MasterJSFX_Validate_UserInput()   then return end
+    if DATA.masterJSFX_isvalid ~= true  then 
+      DATA:MasterJSFX_Validate()
+      if DATA.masterJSFX_isvalid ~= true then 
+        DATA:MasterJSFX_Validate_Add() 
+        DATA:CollectData()
+      end 
+    end
+    
+    if DATA.masterJSFX_isvalid ~= true then return end
+    
     --local sel_knob = DATA:GetSelectedKnob() 
     local sel_knob = DATA.sel_knob
     if not sel_knob then return end
@@ -256,11 +269,29 @@
       retval, tracknumber, itemidx, takeidx, fxnumber, paramnumber = reaper.GetTouchedOrFocusedFX( 0 )
       if not retval then return end 
       local trid = tracknumber
-       tr = GetTrack(DATA.ReaProj,trid) 
-       if trid==-1 then tr = GetMasterTrack(DATA.ReaProj) end
-      if EXT.CONF_mode == 1 and tr ~= GetSelectedTrack(DATA.ReaProj,0)then  MB('You are in "slave JSFX per track" mode, only inside track links supported"', DATA.UI_name, 0)  return end
+      tr = GetTrack(DATA.ReaProj,trid) 
+      if trid==-1 then tr = GetMasterTrack(DATA.ReaProj) end
+       
+       
+       
+       
+      if EXT.CONF_mode == 1 and tr ~= GetSelectedTrack(DATA.ReaProj,0)then  
+      
+        UI.popups['Error_link'] = {
+          mode = 0,
+          trig = true,
+          captions_csv = 'It`s not possible to link from different track in slave-per-track mode',
+          func_setval = function(retval, retvals_csv)  
+            
+          end
+          }
+        return 
+      end
+      
+      
+      
       local itid = itemidx
-      if itid ~= -1 then MB('Item FX is not supported', DATA.UI_name, 0) return end  
+      if itid ~= -1 then return end
     end
     
     -- NOT lasttouched
@@ -273,7 +304,7 @@
     
     -- prevent utilities from link
       local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fxnumber, 'original_name' )
-      if fxname:match('MappingPanel') then  MB('Last touched FX should not be Mapping Panel utility', DATA.UI_name, 0) return end
+      if fxname:match('MappingPanel') then return end
     
     
     -- check if parameter already linked
@@ -291,7 +322,7 @@
       
     -- get slave fx/add
       local slavefx_id = DATA:SlaveJSFX_Validate(tr) 
-      if not slavefx_id then MB('Link is not added. Can`t find Mapping Panel slave JSFX.', DATA.UI_name, 0) return  end   
+      if not slavefx_id then  return  end   
     -- refresh last touched fx after slave jsfx possible adding 
       if not ignorelasttouched then
         retval, tracknumber, itemidx, takeidx, fxnumber, paramnumber = reaper.GetTouchedOrFocusedFX( 0 )
@@ -333,10 +364,22 @@
           end 
         end 
         ::skipcheck::
-        if not freeslider then MB('Can`t find free available slider', DATA.UI_name, 0) return  end
+        if not freeslider then 
+          UI.popups['Error_link'] = {
+            mode = 0,
+            trig = true,
+            captions_csv = 'Can`t find available slider',
+            func_setval = function(retval, retvals_csv)  
+              
+            end
+            }
+          return  
+        end
       end
       
-      if EXT.CONF_mode == 1 then freeslider = sel_knob-1 end
+      if EXT.CONF_mode == 1 then 
+        freeslider = sel_knob-1 
+      end
       
     -- link to that slider
       local prelinkedparamvalue = TrackFX_GetParamNormalized( tr, fxnumber, paramnumber)
@@ -378,6 +421,9 @@
           slave_paramnumber = paramnumber,
         }
       DATA:Link_Extstate_Set()
+      
+      
+    DATA:CollectData()
   end
   ------------------------------------------------------------------
   function DATA:MasterJSFX_WriteSliders(id0)
@@ -498,24 +544,6 @@
     
   end
   ------------------------------------------------------------------
-  function DATA:MasterJSFX_Validate()
-    local forceUIinit
-    -- if not exist // add if not exist
-      if not DATA.masterJSFX_tr then
-        local ret = DATA:MasterJSFX_Validate_Find()  
-      end
-     
-    -- if defined -------------
-      if DATA.masterJSFX_isvalid == true and DATA.masterJSFX_tr and DATA.masterJSFX_FXid then 
-        if reaper.ValidatePtr2( DATA.ReaProj, DATA.masterJSFX_tr, 'MediaTrack*') ~= true then 
-          local ret = DATA:MasterJSFX_Validate_Find()
-          return ret 
-        end
-      end
-    
-    return true
-  end 
-  ------------------------------------------------------------------
   function DATA:MasterJSFX_Remove()
     local tr = GetMasterTrack(DATA.ReaProj) 
     for fx = 1,  TrackFX_GetCount( tr ) do
@@ -527,7 +555,10 @@
     end 
   end
   ------------------------------------------------------------------
-  function DATA:MasterJSFX_Validate_Find()
+  function DATA:MasterJSFX_Validate()
+    
+    DATA.masterJSFX_isvalid = false
+    
     if EXT.CONF_mode == 0 then 
       for i = 0, CountTracks(DATA.ReaProj) do
         local tr = GetTrack(DATA.ReaProj,i-1)
@@ -535,11 +566,11 @@
         for fx = 1,  TrackFX_GetCount( tr ) do
           local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
           if fxname:match('MappingPanel_master') then
-            DATA.masterJSFX_isvalid = true 
             DATA.masterJSFX_trGUID = GetTrackGUID( tr )
             DATA.masterJSFX_tr = tr
-            DATA.masterJSFX_FXid = fx-1
-            return true
+            DATA.masterJSFX_FXid = fx-1 
+            DATA.masterJSFX_isvalid = true 
+            return
           end
         end
       end
@@ -551,11 +582,11 @@
       for fx = 1,  TrackFX_GetCount( tr ) do
         local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
         if fxname:match('MappingPanel_slave') then
-          DATA.masterJSFX_isvalid = true
           DATA.masterJSFX_trGUID = GetTrackGUID( tr )
           DATA.masterJSFX_tr = tr
-          DATA.masterJSFX_FXid = fx-1
-          return true
+          DATA.masterJSFX_FXid = fx-1 
+          DATA.masterJSFX_isvalid = true
+          return
         end
       end
     end
@@ -591,9 +622,25 @@
         end 
         
         local val = 0--gmem_read(i)
-        if DATA.masterJSFX_FXid then val = TrackFX_GetParamNormalized( extstate_tr, DATA.masterJSFX_FXid, i-1 ) end
+        local  ret, midi1, midi2
+        if DATA.masterJSFX_FXid then 
+          val = TrackFX_GetParamNormalized( extstate_tr, DATA.masterJSFX_FXid, i-1 ) 
+          
+          ret, midi1 = TrackFX_GetNamedConfigParm( extstate_tr, DATA.masterJSFX_FXid, 'param.'..(i-1)..'.learn.midi1')
+          ret, midi2 = TrackFX_GetNamedConfigParm( extstate_tr, DATA.masterJSFX_FXid, 'param.'..(i-1)..'.learn.midi2')
+          
+        end
         if val == -1 then val = 0 end
-        DATA.masterJSFX_sliders[i] = {val = val, name = name,col=col,scroll=scroll,flags=flags}
+        DATA.masterJSFX_sliders[i] = {
+          val = val, 
+          name = name,
+          col=col,
+          scroll=scroll,
+          flags=flags,
+          
+          midi1=tonumber(midi1),
+          midi2=tonumber(midi2),
+          }
       end
       
     -- variations list
@@ -925,13 +972,18 @@
         ImGui.PopStyle_var() 
         ImGui.PopStyle_col() 
       end 
-      ImGui.PopFont( ctx ) 
+      ImGui.PopFont( ctx )
       
-      -- shortcuts
-      if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
-      if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  VF_Action(40044) end
     
       return open
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_shortcuts()
+    if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then 
+      for key in pairs(UI.popups) do UI.popups[key].draw = false end
+      ImGui.CloseCurrentPopup( ctx ) 
+    end
+    if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  VF_Action(40044) end
   end
   ------------------------------------------------------------------------------------------------------
   function VF_Action(s, sectionID, ME )  
@@ -993,8 +1045,9 @@
   function DATA:CollectData()
     local ReaProj, projfn = reaper.EnumProjects( -1 )
     DATA.ReaProj = ReaProj 
-    local ret,forceUIinit = DATA:MasterJSFX_Validate()
-    if not ret then return end
+    
+    DATA:MasterJSFX_Validate()
+    
     DATA:CollectData_LTP()    
     DATA:MasterJSFX_ReadSliders()
     DATA:SlaveJSFX_Read()
@@ -1004,16 +1057,32 @@
     DATA.sel_knob = DATA:GetSelectedKnob()
   end 
   -------------------------------------------------------------------------------- 
+  function DATA:CollectData_eachloop()
+    local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
+    if retval1 ~= 0 and rawmsg and rawmsg:byte(1)&0xB0==0xB0 then 
+      DATA.last_inc_MIDI1 = rawmsg:byte(1)
+      DATA.last_inc_MIDI2 = rawmsg:byte(2)
+      
+      if rawmsg:byte(1)&0xB0==0xB0 then 
+        local id = rawmsg:byte(2)
+        local chan = rawmsg:byte(1)&0x0F
+        DATA.last_inc_MIDI1_str = 'CC '..id..' Chan '..chan
+      end
+    end
+  end
+  -------------------------------------------------------------------------------- 
   function UI.MAIN_UIloop() 
     DATA.clock = os.clock() 
     DATA:handleProjUpdates()
     DATA.flicker = math.abs(-1+(math.cos(math.pi*(DATA.clock%2)) + 1))
     
     if DATA.upd == true then DATA:CollectData() end 
+    DATA:CollectData_eachloop()
     DATA.upd = false
     
     -- draw UI
-    UI.open = UI.MAIN_styledefinition(true) 
+    UI.open = UI.MAIN_styledefinition(true)  
+    UI.MAIN_shortcuts()
     
     -- handle xy
     DATA:handleViewportXYWH()
@@ -1037,6 +1106,12 @@
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
     
     DATA.DPI = ImGui.GetWindowDpiScale( ctx )
+    
+    if EXT.CONF_mode == 0 then
+      DATA:MasterJSFX_Validate()
+      if DATA.masterJSFX_isvalid ~= true then DATA:MasterJSFX_Validate_Add() end 
+    end
+    
     -- run loop
     defer(UI.MAIN_UIloop)
   end
@@ -1098,8 +1173,10 @@
     local sliderID_key = sliderID..'##sl'..sliderID
     local posx_abs, posy_abs = ImGui.GetCursorScreenPos( ctx )
     
-    if DATA.masterJSFX_sliders[sliderID].flags&1==1 then name = name..'[R]' end
-    if DATA.masterJSFX_sliders[sliderID].flags&2==2 then name = name..'[V]' end
+    if DATA.masterJSFX_sliders and DATA.masterJSFX_sliders[sliderID] then 
+      if DATA.masterJSFX_sliders[sliderID].flags&1==1 then name = name..'[R]' end
+      if DATA.masterJSFX_sliders[sliderID].flags&2==2 then name = name..'[V]' end
+    end
     
     
     local mindim = math.min(sliderW,sliderH - UI.main_knobtxth)
@@ -1182,71 +1259,80 @@
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x00000000)
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive, 0x00000000)
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered, 0x00000000)
-        local retval, v = ImGui.VSliderDouble( ctx, '##vsl'..sliderID,  vsliderw, vsliderh , paramval, 0, 1, '' )
+        
+        if DATA.masterJSFX_isvalid == true then
+          local retval, v = ImGui.VSliderDouble( ctx, '##vsl'..sliderID,  vsliderw, vsliderh , paramval, 0, 1, '' )
+        end
         ImGui.PopStyleColor(ctx,5)
         
       -- slider: handle mouse state
-        if not temp then temp = {} end
-        if not temp[sliderID] then temp[sliderID] = {} end 
-        if  ImGui.IsItemActivated( ctx ) then 
-          temp[sliderID].latchstate = paramval 
-          app_func_onmouseclick(sliderID)
-          goto drawknob 
-        end 
-        if  ImGui.IsItemActive( ctx ) and temp[sliderID].latchstate then
-          local x, y = ImGui.GetMouseDragDelta( ctx )
-          local outval = temp[sliderID].latchstate - y/500
-          outval = math.max(0,math.min(outval,1))
-          local dx, dy = ImGui.GetMouseDelta( ctx )
-          if dy~=0 and app_func_onmousedrag then 
-            app_func_onmousedrag(sliderID, outval) 
+        if DATA.masterJSFX_isvalid == true then
+          if not temp then temp = {} end
+          if not temp[sliderID] then temp[sliderID] = {} end 
+          if  ImGui.IsItemActivated( ctx ) then 
+            temp[sliderID].latchstate = paramval 
+            app_func_onmouseclick(sliderID)
+            goto drawknob 
+          end 
+          if  ImGui.IsItemActive( ctx ) and temp[sliderID].latchstate then
+            local x, y = ImGui.GetMouseDragDelta( ctx )
+            local outval = temp[sliderID].latchstate - y/500
+            outval = math.max(0,math.min(outval,1))
+            local dx, dy = ImGui.GetMouseDelta( ctx )
+            if dy~=0 and app_func_onmousedrag then 
+              app_func_onmousedrag(sliderID, outval) 
+            end
+          end
+          if ImGui_IsItemDeactivated( ctx ) then
+            local x, y = ImGui.GetMouseDragDelta( ctx )
+            local outval = temp[sliderID].latchstate - y/500
+            outval = math.max(0,math.min(outval,1))
+            app_func_onmousedrag(sliderID, outval, true)
           end
         end
-        if ImGui_IsItemDeactivated( ctx ) then
-          local x, y = ImGui.GetMouseDragDelta( ctx )
-          local outval = temp[sliderID].latchstate - y/500
-          outval = math.max(0,math.min(outval,1))
-          app_func_onmousedrag(sliderID, outval, true)
-        end
+        
         
       ::drawknob::
       
-      -- draw stuff vars
-        local knob_handle = 0xc8edfa 
-        local col_rgba = 0xF0F0F0FF 
-        local thicknessIn = 3
-        local roundingIn = 0
-        local radius = math.floor(mindim/2)
-        local radius_draw = math.floor(0.85 * radius) 
-        local center_x = posx_abs + sliderW/2
-        local center_y = posy_abs + UI.main_knobtxth + ((sliderH - UI.main_knobtxth)/2)
-        local handlethickness = 2
-        if iscollapsed then 
-          radius = math.floor(vsliderw / 2)
-          radius_draw = math.floor(0.8 * radius) 
-          center_x = posx_abs + namew + radius
-          center_y = posy_abs +  radius
+        if DATA.masterJSFX_isvalid == true then
+          -- draw stuff vars
+            local knob_handle = 0xc8edfa 
+            local col_rgba = 0xF0F0F0FF 
+            local thicknessIn = 3
+            local roundingIn = 0
+            local radius = math.floor(mindim/2)
+            local radius_draw = math.floor(0.85 * radius) 
+            local center_x = posx_abs + sliderW/2
+            local center_y = posy_abs + UI.main_knobtxth + ((sliderH - UI.main_knobtxth)/2)
+            local handlethickness = 2
+            if iscollapsed then 
+              radius = math.floor(vsliderw / 2)
+              radius_draw = math.floor(0.8 * radius) 
+              center_x = posx_abs + namew + radius
+              center_y = posy_abs +  radius
+            end
+            local ang_min = -210
+            local ang_max = 30
+            local ang_val = ang_min + math.floor((ang_max - ang_min)*paramval)
+            local radiusshift_y = (radius_draw- radius)
+            local radius_draw2 = radius_draw-math.floor(0.1 * radius)
+            local radius_draw3 = radius_draw-math.floor(mindim*0.2)
+            if iscollapsed then 
+               radius_draw3 = radius_draw-math.floor(0.7 * radius)
+               radiusshift_y = -math.floor(0.3 * radius)
+            end
+          -- arc
+            ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
+            ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0x2F,  ImGui.DrawFlags_None,thicknessIn)
+            ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
+            if paramval > 0 then ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2) end
+          -- handle
+            ImGui.DrawList_PathClear(draw_list)
+            ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
+            ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
+            ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, handlethickness)
+          
         end
-        local ang_min = -210
-        local ang_max = 30
-        local ang_val = ang_min + math.floor((ang_max - ang_min)*paramval)
-        local radiusshift_y = (radius_draw- radius)
-        local radius_draw2 = radius_draw-math.floor(0.1 * radius)
-        local radius_draw3 = radius_draw-math.floor(mindim*0.2)
-        if iscollapsed then 
-           radius_draw3 = radius_draw-math.floor(0.7 * radius)
-           radiusshift_y = -math.floor(0.3 * radius)
-        end
-      -- arc
-        ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
-        ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0x2F,  ImGui.DrawFlags_None,thicknessIn)
-        ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
-        if paramval > 0 then ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2) end
-      -- handle
-        ImGui.DrawList_PathClear(draw_list)
-        ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
-        ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
-        ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, handlethickness)
       
       ImGui.EndChild( ctx )
     end
@@ -1263,6 +1349,9 @@
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff()  
     local local_pos_x, local_pos_y = ImGui.GetCursorPos( ctx )
+    
+    
+    
     --Menu
     if ImGui.Button(ctx, 'Menu',UI.main_butw,UI.main_buth) then 
       if DATA.activetab == 1 then 
@@ -1313,14 +1402,28 @@
     if DATA.activetab == 3 then UI.MAIN_drawstuff_links(local_pos_x, local_pos_y) end
     if DATA.activetab == 4 then UI.MAIN_drawstuff_actions(local_pos_x, local_pos_y) end
     
+    -- popups
+    for key in pairs(UI.popups) do
+      -- trig
+      if UI.popups[key] and UI.popups[key].trig == true then
+        UI.popups[key].trig = false
+        UI.popups[key].draw = true
+        ImGui.OpenPopup( ctx, key, ImGui.PopupFlags_NoOpenOverExistingPopup )
+      end
+      -- draw
+      if UI.popups[key] and UI.popups[key].draw == true then UI.GetUserInputMB_replica(UI.popups[key].mode or 1, key, DATA.UI_name, 1, UI.popups[key].captions_csv, UI.popups[key].func_getval, UI.popups[key].func_setval) end 
+    end
+    
+    
   end
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff_links(local_pos_x, local_pos_y) 
     ImGui.SetCursorPos( ctx, local_pos_x + UI.main_butw + UI.spacingX , local_pos_y)
     
-    if not DATA.masterJSFX_isvalid or (DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid == false)then return end
     local sel_knob = DATA.sel_knob
     if not sel_knob  then return end
+    
+    local masterJSFX_isvalid = DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid == true
     
     -- add link
     ImGui.BeginDisabled(ctx, true)
@@ -1484,11 +1587,8 @@
     
     -- remove
       if ImGui.Button(ctx, 'X##linkrem'..t.slaveJSFXlinksID, UI.calc_knobcollapsedH, UI.calc_knobcollapsedH) then
-        local ret = MB('Remove link?', DATA.UI_name, 4)
-        if ret == 6 then 
-          DATA:Link_remove(t)
-          DATA:SlaveJSFX_Read() 
-        end
+        DATA:Link_remove(t)
+        DATA:SlaveJSFX_Read() 
       end
       
       
@@ -1689,12 +1789,49 @@
   
   ---------------------------------------------------------------------  
   function DATA:Macro_Select(sliderID)
+    if EXT.CONF_mode == 1 then
+      DATA:MasterJSFX_Validate()
+      if DATA.masterJSFX_isvalid ~= true then DATA:MasterJSFX_Validate_Add() end 
+    end
+    
     local out = 2^(sliderID-1)
     if DATA.masterJSFX_slselectionmask ~= out then 
       DATA.masterJSFX_slselectionmask =  out
-      DATA:MasterJSFX_WriteSliders(sliderID)
-      DATA:SlaveJSFX_Read()
+      
+      
+      if DATA.masterJSFX_isvalid == true then
+        DATA:MasterJSFX_WriteSliders(sliderID)
+        DATA:SlaveJSFX_Read()
+      end
     end
+  end
+  ---------------------------------------------------------------------  
+  function DATA.Action_SetMIDILearn(clear) -- set las touched control to last touched param
+    local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
+    if not retval then return end
+    
+    local trid = tracknumber&0xFFFF
+    local itid = (tracknumber>>16)&0xFFFF
+    if itid > 0 then return end -- ignore item FX
+    local tr
+    if trid==0 then tr = GetMasterTrack(0) else tr = GetTrack(0,trid-1) end
+    if not tr then return end
+    
+    if clear == true then
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi1', 0)
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi2', 0)
+      return true
+    end
+    
+    local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
+    if retval1 == 0 then return end
+    midi2 = rawmsg:byte(2)
+    midi1 = rawmsg:byte(1)
+    
+    TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi1', midi1)
+    TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi2', midi2)
+    
+    return true
   end
   ---------------------------------------------------------------------  
   function DATA:Macro_Reset()
@@ -1774,39 +1911,121 @@
     -- upodate sliders
       DATA:MasterJSFX_WriteSliders()
   end
+  
+  
+  -------------------------------------------------------------------------------- 
+  function UI.GetUserInputMB_replica(mode, key, title, num_inputs, captions_csv, retvals_csv_returnfunc, retvals_csv_setfunc) 
+    local round = 4
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, round)
+    
+      -- draw content
+      -- (from reaimgui demo) Always center this window when appearing
+      local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
+      ImGui.SetNextWindowPos(ctx, center_x, center_y, ImGui.Cond_Appearing, 0.5, 0.5)
+      if ImGui.BeginPopupModal(ctx, key, nil, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border) then
+      
+        -- MB replika
+        if mode == 0 then
+          ImGui.Text(ctx, captions_csv)
+          ImGui.Separator(ctx) 
+        
+          if ImGui.Button(ctx, 'OK', 0, 0) then 
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end
+          
+          --[[ImGui.SetItemDefaultFocus(ctx)
+          ImGui.SameLine(ctx)
+          if ImGui.Button(ctx, 'Cancel', 120, 0) then 
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end]]
+        end
+        
+        -- GetUserInput replika
+        if mode == 1 then
+          ImGui.SameLine(ctx)
+          ImGui.SetKeyboardFocusHere( ctx )
+          local retval, buf = ImGui.InputText( ctx, captions_csv, retvals_csv_returnfunc(), ImGui.InputTextFlags_EnterReturnsTrue ) 
+          if retval then
+            retvals_csv_setfunc(retval, buf)
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end 
+        end
+        
+        ImGui.EndPopup(ctx)
+      end 
+    
+    
+    ImGui.PopStyleVar(ctx, 4)
+  end 
+  
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff_contextmenu_macro()  
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 1)
+  
+    
+    
     -- local sliderID = DATA,sel_knob  -- do not use because it doesn refresh knob immediately
-    local sliderID = DATA:GetSelectedKnob()
-    
+    local sliderID = DATA:GetSelectedKnob() 
     if not sliderID then return end
+    local valid = DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true-- or (EXT.CONF_mode == 1 and DATA.masterJSFX_tr and ValidatePtr(DATA.masterJSFX_tr,'MediaTrack*'))
+    local flagdis = ImGui.SelectableFlags_Disabled
+    if valid == true then flagdis = ImGui.SelectableFlags_None end
     
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 1)
     ImGui.SeparatorText(ctx,'Macro '.. sliderID) 
     
-    if ImGui.Selectable(ctx, 'Set macro name') then 
-      local retval, retvals_csv = reaper.GetUserInputs( DATA.UI_name, 1, ',extwidth=100', DATA.masterJSFX_sliders[sliderID].name )
-      if retval == true and not (retvals_csv:match('Macro %d+') and retvals_csv:match('Macro %d+') == retvals_csv)then
-        DATA.masterJSFX_sliders[sliderID].name = retvals_csv:gsub('|','')
-        DATA:MasterJSFX_WriteSliders(sliderID)
-      end 
-    end
+    
+    if ImGui.Selectable(ctx, 'Set macro name') then  
+      UI.popups['Set macro name'] = {
+        trig = true,
+        captions_csv = 'New macro name',
+        func_getval = function()  
+          local sliderID = DATA:GetSelectedKnob() 
+          if not (sliderID and DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].name) then return '' end
+          return DATA.masterJSFX_sliders[sliderID].name
+        end,
+        
+        func_setval = function(retval, retvals_csv)  
+          local sliderID = DATA:GetSelectedKnob() 
+          if retval == true and not (retvals_csv:match('Macro %d+') and retvals_csv:match('Macro %d+') == retvals_csv)then
+            DATA.masterJSFX_sliders[sliderID].name = retvals_csv:gsub('|','')
+            DATA:MasterJSFX_WriteSliders(sliderID)
+          end
+        end
+        }
+    end 
     
     if ImGui.Selectable(ctx, 'Reset macro name') then 
+      local sliderID = DATA:GetSelectedKnob() 
       DATA.masterJSFX_sliders[sliderID].name = 'Macro '..sliderID
       DATA:MasterJSFX_WriteSliders(sliderID)
     end
     
-    if ImGui.Selectable(ctx, 'Set macro color') then 
-      local retval, color = reaper.GR_SelectColor()
-      if not retval then return end
-      local r, g, b = reaper.ColorFromNative( color )
-      local outhex = '#'..string.format("%06X",  ColorToNative( b, g, r ))  
+    local col_RRGGBB = 0--0x1000000
+    if DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].col then
+      local str = DATA.masterJSFX_sliders[sliderID].col:gsub('#','')
+      local col = tonumber(str,16)
+      local b, g, r = ColorFromNative( col ) 
+      col_RRGGBB = (r<<16)|(g<<8)|b
+    end 
+    
+    local flags = ImGui.ColorEditFlags_None | ImGui.ColorEditFlags_NoOptions | ImGui.ColorEditFlags_NoSidePreview|ImGui.ColorEditFlags_NoLabel|ImGui.ColorEditFlags_NoInputs
+    ImGui.SetNextItemWidth( ctx, 150 )
+    local retval, col_rgba = ImGui.ColorPicker4( ctx, '##Set macro color', (col_RRGGBB<<8)|0xFF, flags  )
+    if retval then
+      local sliderID = DATA:GetSelectedKnob() 
+      local outhex = '#'..string.format("%06X", (col_rgba&0xFFFFFF00)>>8)  
       DATA.masterJSFX_sliders[sliderID].col = outhex
       DATA:MasterJSFX_WriteSliders(sliderID)
     end
     
     if ImGui.Selectable(ctx, 'Reset macro color') then 
+      local sliderID = DATA:GetSelectedKnob() 
       DATA.masterJSFX_sliders[sliderID].col = nil
       DATA:MasterJSFX_WriteSliders(sliderID)
     end
@@ -1826,56 +2045,68 @@
     end
     
     ImGui.SeparatorText(ctx,'Actions') 
-    
-    if ImGui.Selectable(ctx, 'Show/hide track envelope') then 
-      if not (DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true) then return end
+    if ImGui.Selectable(ctx, 'Show/hide track envelope',nil,flagdis) and valid == true then 
       local track = DATA.masterJSFX_tr
       SetMixerScroll( track )
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
       VF_Action(41142)--FX: Show/hide track envelope for last touched FX parameter
     end
     
-    if ImGui.Selectable(ctx, 'Arm track envelope') then 
-      if not (DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true) then return end
+    if ImGui.Selectable(ctx, 'Arm track envelope',nil,flagdis)and valid == true then 
       local track = DATA.masterJSFX_tr
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
       VF_Action(41984) --FX: Arm track envelope for last touched FX parameter
     end
 
-    if ImGui.Selectable(ctx, 'Toggle activate/bypass track envelope') then 
-      if not (DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true) then return end
+    if ImGui.Selectable(ctx, 'Toggle activate/bypass track envelope',nil,flagdis) and valid == true then 
       local track = DATA.masterJSFX_tr
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
       VF_Action(41983) --FX: Activate/bypass track envelope for last touched FX parameter
     end
     
-    
-    if ImGui.Selectable(ctx, 'Set MIDI learn') then 
-      if not (DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true) then return end
+    local control = '[no control touched]'
+    if DATA.last_inc_MIDI1_str then control = DATA.last_inc_MIDI1_str end 
+    if ImGui.Selectable(ctx, 'Set MIDI learn to: '..control,nil,flagdis) and valid == true then 
       local track = DATA.masterJSFX_tr
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-      VF_Action(41144) --FX: Set MIDI learn for last touched FX parameter
+      --VF_Action(41144) --FX: Set MIDI learn for last touched FX parameter]]
+      DATA.Action_SetMIDILearn()
     end
     
-    if ImGui.Selectable(ctx, 'Show parameter modulation/link') then 
-      if not (DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true) then return end
-      local track = DATA.masterJSFX_tr
+    local control  
+    if DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].midi1 and DATA.masterJSFX_sliders[sliderID].midi2 then 
+      if DATA.masterJSFX_sliders[sliderID].midi1&0xB0==0xB0 then 
+        local id = DATA.masterJSFX_sliders[sliderID].midi2
+        local chan = DATA.masterJSFX_sliders[sliderID].midi1&0x0F
+        control = 'Remove MIDI learn: '..'CC '..id..' Chan '..chan
+      end
+    end 
+    if control then
+      if ImGui.Selectable(ctx, control,nil,flagdis) and valid == true then 
+        local track = DATA.masterJSFX_tr
+        TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
+        --VF_Action(41144) --FX: Set MIDI learn for last touched FX parameter]]
+        DATA.Action_SetMIDILearn(true)
+      end
+    end
+    
+    if ImGui.Selectable(ctx, 'Show parameter modulation/link',nil,flagdis) and valid == true then 
+      local track = DATA.masterJSFX_tr  
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
       VF_Action(41143) --FX: Show parameter modulation/link for last touched FX parameter
     end
     
-    if ImGui.Selectable(ctx, 'Remove all links from this macro') then 
+    if ImGui.Selectable(ctx, 'Remove all links from this macro',nil,flagdis) then 
       for i = #DATA.slaveJSFXlinks,1,-1 do DATA:Link_remove(DATA.slaveJSFXlinks[i]) DATA:SlaveJSFX_Read()  end 
     end
+    
     
     ImGui.PopStyleVar(ctx, 1)
   end
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff_knobs(local_pos_x, local_pos_y)  
-    
     local app_func_onmouseclick = function(sliderID) 
                                     DATA:Macro_Select(sliderID) 
-                                    if not DATA:MasterJSFX_Validate_UserInput()   then return end
                                   end
     local app_func_onmousedrag =  function(sliderID, outval, ismajor) 
                                     DATA.masterJSFX_sliders[sliderID].val = outval
@@ -1895,7 +2126,7 @@
     
     for sliderID = 1, 16 do
       name = 'Macro '..sliderID
-      if DATA.masterJSFX_sliders[sliderID].name then name = DATA.masterJSFX_sliders[sliderID].name end
+      if DATA.masterJSFX_sliders and DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].name then name = DATA.masterJSFX_sliders[sliderID].name end
       row = math.floor((sliderID-1)/8)
       col = ((sliderID-1)%8)
       curposX = local_pos_x + UI.main_butw + UI.spacingX * (col+1) + UI.calc_knobW*col
@@ -1912,7 +2143,10 @@
       if DATA.masterJSFX_sliders and DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].val  then paramval = DATA.masterJSFX_sliders[sliderID].val end
       local selected = DATA.masterJSFX_slselectionmask and DATA.masterJSFX_slselectionmask&(1<<(sliderID-1)) == (1<<(sliderID-1))
       
-      local col = DATA.masterJSFX_sliders[sliderID].col
+      local col
+      if DATA.masterJSFX_sliders and DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].col then
+        col = DATA.masterJSFX_sliders[sliderID].col
+      end
       UI.draw_knob(sliderID, knobW, knobH, paramval, app_func_onmouseclick, app_func_onmousedrag, app_func_header, DATA.knobscollapsed == 1, selected, name, col) 
     end
   end 
@@ -2057,16 +2291,13 @@
       UI.draw_flow_COMBO({['key']='Mode',                                             ['extstr'] = 'CONF_mode',                   ['values'] = {[0]='Master JSFX', [1]='Slave JSFX per track'}, appfunc =
         function() 
           if EXT.CONF_mode == 1 then 
-            local ret = MB("MappingPanel master JSFX will be removed. Are you sure?", DATA.UI_name, 4)
-            if ret == 6 then 
-              DATA:MasterJSFX_Remove() 
-             else
-              EXT.CONF_mode = 0
-              EXT:save()
-            end
-          end 
-          if EXT.CONF_mode == 0 then if not DATA:MasterJSFX_Validate_Find() then DATA:MasterJSFX_Validate_Add() end end 
-        
+            DATA:MasterJSFX_Remove()
+            DATA:MasterJSFX_Validate()
+            if DATA.masterJSFX_isvalid ~= true then DATA:MasterJSFX_Validate_Add() end 
+          elseif EXT.CONF_mode == 0 then 
+            DATA:MasterJSFX_Validate()
+            if DATA.masterJSFX_isvalid ~= true then DATA:MasterJSFX_Validate_Add() end 
+          end  
         end
         
         }) 

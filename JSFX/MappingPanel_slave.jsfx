@@ -1,12 +1,11 @@
 desc:MappingPanel_slave
-version: 4.0
+version: 4.01
 author: MPL
 website: http://forum.cockos.com/showthread.php?t=188335
 about:
   JSFX for controlling parameters across tracks
 changelog:
-  # improve support for per-slave mode
-  # revert use of 64 sliders
+  # revert slave sliders back
 
 options:gmem=MappingPanel
 options:no_meter
