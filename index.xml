@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e26e7c5e0ba616075b2cedd8a2d541f83c010e26" name="MPL Scripts">
+<index version="1" commit="3a6a8813198324453c13369a1ba2b72e7780462a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11649,6 +11649,28 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2023-02-07T20:31:39Z">
         <changelog><![CDATA[+ Init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd8dc9e3b4a5a525d0261a0a65e5b161867ca988/Various/mpl_Item%20spacer.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for showing keyboard shortcuts\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-09-15T19:33:20Z">
+        <changelog><![CDATA[+ Triggering physical keyboard trigger key selection
++ Clicking virtual keyboard trigger key selection
++ Hovering virtual keyboard show tooltip with key bindings
++ Show keys assigned with some shortcut with another color
++ Respond to some modifiers (CMD, Option not yet available in ReaImGui API, Win is reverse engineered)
++ Allow to remove shortcuts
++ Do not show tooltip if tooltip key is current key]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a6a8813198324453c13369a1ba2b72e7780462a/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
