@@ -1,16 +1,15 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Triggering physical keyboard trigger key selection
---    + Clicking virtual keyboard trigger key selection
---    + Hovering virtual keyboard show tooltip with key bindings
---    + Show keys assigned with some shortcut with another color
---    + Respond to some modifiers (CMD, Option not yet available in ReaImGui API, Win is reverse engineered)
---    + Allow to remove shortcuts
---    + Do not show tooltip if tooltip key is current key
+--    # fix color setup / loading colors
+--    # fix error at remove non-existed binding
+--    # show remove button only if binding exists
+--    + Support sections (hide alt sections for now)
+
+
 
 
 --todo
@@ -18,7 +17,7 @@
 -- midi/osc learn
 
     
-local vrs = 1.0
+local vrs = 1.01
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -40,6 +39,7 @@ EXT = {
         viewport_posH = 300, 
         categoriescnt = 16,
         search = '',
+        section_ID = 0,
         
       }
 for i =1, EXT.categoriescnt do EXT['category'..i..'_color'] = '' end
@@ -74,8 +74,34 @@ DATA = {
           {name = 'Custom',           color = 0x4F3bFd, str='custom'},
           {name = 'Controller/Wheel', color = 0x08605f, str = 'OSC_only,MIDI_CC_relative,mousewheel'},
           {name = '3rd party',        color = 0xF03353, str='Script:,SWS,reapack'},
-          },
+        },
+        
+        sections ={
+          [0]='Main',
+          [100]='Main (alt recording)',
+          [32060]='MIDI Editor',
+          [32061]='MIDI Event List Editor',
+          [32062]='MIDI Inline Editor',
+          [32063]='Media Explorer',
+          --[[[1]='Main Alt 1',
+          [2]='Main Alt 2',
+          [3]='Main Alt 3',
+          [4]='Main Alt 4',
+          [5]='Main Alt 5',
+          [6]='Main Alt 6',
+          [7]='Main Alt 7',
+          [8]='Main Alt 8',
+          [9]='Main Alt 9',
+          [10]='Main Alt 10',
+          [11]='Main Alt 11',
+          [12]='Main Alt 12',
+          [13]='Main Alt 13',
+          [14]='Main Alt 14',
+          [15]='Main Alt 15',
+          [16]='Main Alt 16',]]
           
+        },
+        
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
@@ -160,12 +186,12 @@ function DATA:Init_GetColorByActionName(action_name)
 end
 -------------------------------------------------------------------------------- 
 function DATA:Init_kbDefinition_ActionList() 
-  local section_ID = DATA.section_ID
+  local section_ID = EXT.section_ID
   
   local maxactionscnt = 100000
   local retval, name
   for cmdID = 0, maxactionscnt do
-    local action_ID, action_name = kbd_enumerateActions( section_ID, cmdID )--Main=0, Main (alt recording)=100, MIDI Editor=32060, MIDI Event List Editor=32061, MIDI Inline Editor=32062, Media Explorer=32063
+    local action_ID, action_name = kbd_enumerateActions( section_ID, cmdID )
     if action_ID then
       local action_bindings = {}
       local shortcutscnt = CountActionShortcuts( section_ID, action_ID )
@@ -411,6 +437,12 @@ function UI.MAIN_calc()
     UI.calc_ActList_x = UI.calc_spacingX_wide + UI.calc_butW[1]*4 + UI.spacingX * 3
     UI.calc_ActList_y = UI.calc_KeyDetails_y
     UI.calc_ActList_w = UI.calc_KeyDetails_x - (UI.calc_KeyCategories_x + UI.calc_KeyCategories_w) - UI.calc_spacingX_wide
+  
+  -- combos
+    UI.calc_combo1_x =  UI.calc_butW[1] * 17 + UI.calc_spacingX_wide*3 + UI.spacingX * 16
+    UI.calc_combo1_y =  UI.calc_blockoffs_Y[1]
+    UI.calc_combo1_w =  UI.calc_butW[1] * 4+ UI.spacingX*3
+    UI.calc_combo1_h =  UI.calc_butH[1]
 end
 -------------------------------------------------------------------------------- 
 function DATA:SetSelectionFromReimGuiKey(reaimguikey)
@@ -530,9 +562,10 @@ function UI.draw_KeyCategories()
     for catID = 1, #DATA.category do  
       local retval, col_rgb = ImGui.ColorEdit3(ctx, '##cat'..catID, DATA.category[catID].color, ImGui.ColorEditFlags_None|ImGui.ColorEditFlags_NoInputs)
       if retval then
-        DATA.category[catID].col = col_rgb
-        EXT['category'..catID..'_col'] = col_rgb
+        DATA.category[catID].color = col_rgb
+        EXT['category'..catID..'_color'] = col_rgb
         EXT:save()
+        DATA:Init_LoadExtColors() 
       end
       if ImGui.IsItemDeactivatedAfterEdit( ctx ) then
         DATA:CollectData()
@@ -609,13 +642,18 @@ function UI.draw_KeyDetails(key_src0)
         -- remove + modifier
           ImGui.TableSetColumnIndex(ctx,0)
           ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,1,1)
-          if ImGui.Button(ctx, 'X##'..i) then
-            local binding = DATA.kb[key_src].bindings[modifiers[i].flags]
-            local section = binding.section_ID
-            local cmdID = binding.action_ID
-            local shortcutidx = binding.shortcutidx 
-            DeleteActionShortcut( section, cmdID, shortcutidx )
-            DATA.upd = true
+          local binding
+          if modifiers[i].flags and DATA.kb[key_src] and DATA.kb[key_src].bindings and DATA.kb[key_src].bindings[modifiers[i].flags] then 
+            bindings = DATA.kb[key_src].bindings[modifiers[i].flags]
+          end
+          if binding then 
+            if ImGui.Button(ctx, 'X##'..i) then
+              local section = binding.section_ID
+              local cmdID = binding.action_ID
+              local shortcutidx = binding.shortcutidx 
+              DeleteActionShortcut( section, cmdID, shortcutidx )
+              DATA.upd = true
+            end
           end
           ImGui.SameLine(ctx)
           ImGui.Selectable(ctx,modifiers[i].str)
@@ -991,13 +1029,17 @@ function DATA:Init_Search_ActionList()
   end
 end
 -------------------------------------------------------------------------------- 
+function DATA:Init_LoadExtColors() 
+  EXT:load() 
+  for i =1, EXT.categoriescnt do if EXT['category'..i..'_color'] and EXT['category'..i..'_color']~= '' then DATA.category[i].color = EXT['category'..i..'_color'] end end
+end
+-------------------------------------------------------------------------------- 
 function DATA:CollectData()
+  DATA:Init_LoadExtColors() 
   DATA:Init_kbDefinition_UI() 
   DATA:Init_kbDefinition_ActionList() 
   --DATA:Init_Search_ActionList() 
   
-  EXT:load() 
-  for i =1, EXT.categoriescnt do if EXT['category'..i..'_color'] and EXT['category'..i..'_color']~= '' then DATA.category[i].color = EXT['category'..i..'_color'] end end
   
   --[[ reset colors
     for i =1, EXT.categoriescnt do EXT['category'..i..'_col'] = '' end
@@ -1061,8 +1103,27 @@ function DATA:handleProjUpdates()
   local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true end DATA.upd_last_reaproj = reaproj
 end
 --------------------------------------------------------------------------------  
+function UI.draw_combo()
+  ImGui.SetCursorPos( ctx, UI.calc_combo1_x, UI.calc_combo1_y ) 
+  ImGui.SetNextItemWidth( ctx, UI.calc_combo1_w )
+  local preview = EXT.section_ID
+  local preview_str = DATA.sections[preview]
+  if ImGui.BeginCombo( ctx, '##section', preview_str, ImGui.ComboFlags_None ) then
+    for sectID in spairs(DATA.sections) do
+      local sectname = DATA.sections[sectID]
+      if ImGui.Selectable(ctx, sectname) then
+        EXT.section_ID = sectID
+        EXT:save()
+        DATA.upd = true
+      end
+    end
+    ImGui.EndCombo( ctx )
+  end
+end
+--------------------------------------------------------------------------------  
   function UI.draw()  
     UI.draw_keyb()   
+    UI.draw_combo() 
     UI.draw_KeyCategories() 
     --UI.draw_ActionList() 
     UI.draw_KeyDetails() 
