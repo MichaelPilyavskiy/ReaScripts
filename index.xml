@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3a6a8813198324453c13369a1ba2b72e7780462a" name="MPL Scripts">
+<index version="1" commit="5d31b65db00a75cbd5308b9e81474093396e7bb4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11671,6 +11671,13 @@ various fixes]]></changelog>
 + Allow to remove shortcuts
 + Do not show tooltip if tooltip key is current key]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a6a8813198324453c13369a1ba2b72e7780462a/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-09-16T20:50:13Z">
+        <changelog><![CDATA[# fix color setup / loading colors
+# fix error at remove non-existed binding
+# show remove button only if binding exists
++ Support sections (hide alt sections for now)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5d31b65db00a75cbd5308b9e81474093396e7bb4/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
