@@ -1,5 +1,5 @@
 -- @description Zoom horizontally, change grid relatively (mousewheel) 
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
@@ -17,6 +17,28 @@
       return true
     end
   end
+  -------------------------------------------------------------------
+    function VF2_GetMEZoom(take)
+      local Hzoom
+      if not take then return end
+      local item =  GetMediaItemTake_Item( take )
+      if not item then return end
+      local _, chunk = reaper.GetItemStateChunk( item, "", false )
+      
+      local active_take
+      for line in chunk:gmatch('[^\r\n]+') do
+        if line:match('GUID (.*)') then 
+           local testGUID = line:match('GUID (%{.*%})')--:gsub('[%{%}]','')
+           local testtake = GetMediaItemTakeByGUID( 0, testGUID )
+          if testtake and testtake == take then active_take = true end 
+        end
+        if active_take and line:match('CFGEDITVIEW') then 
+          Hzoom = line:match('CFGEDITVIEW [%-%.%d]+ ([%-%.%d]+)')
+          Hzoom=tonumber(Hzoom)
+          if Hzoom then return true, Hzoom end
+        end
+      end
+    end 
     ---------------------------------------------------
   function main()
     local ME  = MIDIEditor_GetActive()
