@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5d31b65db00a75cbd5308b9e81474093396e7bb4" name="MPL Scripts">
+<index version="1" commit="f739fd1e19a54b435be675fb4116fd5d717d6e62" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7107,6 +7107,10 @@
       <version name="1.01" author="MPL" time="2024-08-31T21:39:47Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-09-19T20:05:37Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f739fd1e19a54b435be675fb4116fd5d717d6e62/MIDI%20editor/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
