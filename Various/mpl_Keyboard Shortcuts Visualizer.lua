@@ -1,23 +1,23 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix color setup / loading colors
---    # fix error at remove non-existed binding
---    # show remove button only if binding exists
---    + Support sections (hide alt sections for now)
+--    # do not trigger tooltip for modifiers
+--    # do not trigger tooltip for empty keys
+--    # refresh keyboard on layout change
+--    + Add experimental AZERTY layout (experimental)
+--    # revert back alt layouts
 
 
 
 
 --todo
--- different sections
 -- midi/osc learn
 
     
-local vrs = 1.01
+local vrs = 1.02
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -40,6 +40,7 @@ EXT = {
         categoriescnt = 16,
         search = '',
         section_ID = 0,
+        layout = 0,
         
       }
 for i =1, EXT.categoriescnt do EXT['category'..i..'_color'] = '' end
@@ -52,6 +53,7 @@ DATA = {
         actions= {},
         section_ID = 0,
         selectedkey = '',
+        
         
         reapervisiblemodifiers_mapping = {
             ['Ctrl'] = ImGui.Mod_Ctrl,
@@ -83,7 +85,7 @@ DATA = {
           [32061]='MIDI Event List Editor',
           [32062]='MIDI Inline Editor',
           [32063]='Media Explorer',
-          --[[[1]='Main Alt 1',
+          [1]='Main Alt 1',
           [2]='Main Alt 2',
           [3]='Main Alt 3',
           [4]='Main Alt 4',
@@ -98,10 +100,15 @@ DATA = {
           [13]='Main Alt 13',
           [14]='Main Alt 14',
           [15]='Main Alt 15',
-          [16]='Main Alt 16',]]
+          [16]='Main Alt 16',
           
         },
         
+        layouts = {
+          [0] = 'QWERTY',
+          [1] = 'AZERTY (experimental)',
+          --[2] = 'MIDI',
+        }
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
@@ -213,7 +220,7 @@ function DATA:Init_kbDefinition_ActionList()
             local modkey_match
             for mod in pairs(DATA.reapervisiblemodifiers_mapping) do if key:match(mod) then modifierflags = modifierflags|DATA.reapervisiblemodifiers_mapping[mod] modkey_match = true end end --any of mod keys
             if not modkey_match then used_shortcuts_t.mainkey = key:gsub('Num plus','Num +') end
-          end
+          end 
          else
           used_shortcuts_t.mainkey = shortcut_str:gsub('Num plus','Num +')
         end 
@@ -221,7 +228,7 @@ function DATA:Init_kbDefinition_ActionList()
         used_shortcuts_t.modifierflags=modifierflags
         used_shortcuts_t.shortcutidx= shortcutidx-1
         used_shortcuts_t.color = DATA:Init_GetColorByActionName(used_shortcuts_t.action_name)  
-        DATA:Init_kbDefinition_firUItoActionList(used_shortcuts_t) 
+        DATA:Init_kbDefinition_fitUItoActionList(used_shortcuts_t)  
         action_bindings[#action_bindings+1] = used_shortcuts_t
       end
       
@@ -231,7 +238,7 @@ function DATA:Init_kbDefinition_ActionList()
   end
 end
 -------------------------------------------------------------------------------- 
-function  DATA:Init_kbDefinition_firUItoActionList(used_shortcuts_t)
+function  DATA:Init_kbDefinition_fitUItoActionList(used_shortcuts_t)
   if not (used_shortcuts_t and used_shortcuts_t.mainkey) then return end
   local mainkey = used_shortcuts_t.mainkey
   for key in pairs(DATA.kb) do
@@ -247,6 +254,10 @@ function  DATA:Init_kbDefinition_firUItoActionList(used_shortcuts_t)
       return
     end
   end 
+end
+-------------------------------------------------------------------------------- 
+function DATA:Init_kbDefinition_UII_MIDIOSC()
+    DATA.kb['CC'] = { block = 1, level = 1, pos = 1}
 end
 -------------------------------------------------------------------------------- 
 function  DATA:Init_kbDefinition_UI()
@@ -302,7 +313,13 @@ function  DATA:Init_kbDefinition_UI()
   -- lev3
   DATA.kb['Tab'] = { block = 1, level = 3, pos = 1,extw = 1.5,reaimguikey = ImGui.Key_Tab,    mainkey = 'Tab'   }
   DATA.kb.Q = { block = 1, level = 3, pos = 2.5,             reaimguikey = ImGui.Key_Q,       mainkey = 'Q'   }
+  if EXT.layout == 1 then
+    DATA.kb.Q = { block = 1, level = 4, pos = 3,             reaimguikey = ImGui.Key_Q,       mainkey = 'Q'   }
+  end
   DATA.kb.W = { block = 1, level = 3, pos = 3.5,             reaimguikey = ImGui.Key_W,       mainkey = 'W'  }
+  if EXT.layout == 1 then
+    DATA.kb.W = { block = 1, level = 5, pos = 3,             reaimguikey = ImGui.Key_W,       mainkey = 'W'  }
+  end
   DATA.kb.E = { block = 1, level = 3, pos = 4.5,             reaimguikey = ImGui.Key_E,       mainkey = 'E'  }
   DATA.kb.R = { block = 1, level = 3, pos = 5.5,             reaimguikey = ImGui.Key_R,       mainkey = 'R'  }
   DATA.kb.T = { block = 1, level = 3, pos = 6.5,             reaimguikey = ImGui.Key_T,       mainkey = 'T'  }
@@ -327,6 +344,9 @@ function  DATA:Init_kbDefinition_UI()
   -- lev3
   DATA.kb['Caps\nLock'] = { block = 1, level = 4, pos = 1,extw = 2,reaimguikey = ImGui.Key_CapsLock,disabled=true  }
   DATA.kb.A = { block = 1, level = 4, pos = 3,                reaimguikey = ImGui.Key_A,      mainkey = 'A'   }
+  if EXT.layout == 1 then
+    DATA.kb.A = { block = 1, level = 3, pos = 2.5,                reaimguikey = ImGui.Key_A,      mainkey = 'A'   }
+  end
   DATA.kb.S = { block = 1, level = 4, pos = 4,                reaimguikey = ImGui.Key_S,      mainkey = 'S'  }
   DATA.kb.D = { block = 1, level = 4, pos = 5,                reaimguikey = ImGui.Key_D,      mainkey = 'D'  }
   DATA.kb.F = { block = 1, level = 4, pos = 6,                reaimguikey = ImGui.Key_F,      mainkey = 'F'  }
@@ -336,6 +356,9 @@ function  DATA:Init_kbDefinition_UI()
   DATA.kb.K = { block = 1, level = 4, pos = 10,               reaimguikey = ImGui.Key_K,      mainkey = 'K'  }
   DATA.kb.L = { block = 1, level = 4, pos = 11,               reaimguikey = ImGui.Key_L,      mainkey = 'L'  }
   DATA.kb[';'] = { block = 1, level = 4, pos = 12,            reaimguikey = ImGui.Key_Semicolon,      mainkey = ';'  }
+  if EXT.layout == 1 then
+    DATA.kb[';'] = { block = 1, level = 5, pos = 10,            reaimguikey = ImGui.Key_Semicolon,      mainkey = ';'  }
+  end
   DATA.kb["'"] = { block = 1, level = 4, pos = 13,            reaimguikey = ImGui.Key_Apostrophe,      mainkey = "'"  }
   DATA.kb['Enter'] = { block = 1, level = 4, pos = 14,extw = 2,reaimguikey = ImGui.Key_Enter,      mainkey = 'Enter'    }
   
@@ -346,13 +369,22 @@ function  DATA:Init_kbDefinition_UI()
   -- lev4
   DATA.kb['Shift##Lshift'] = { block = 1, level = 5, pos = 1,extw = 2,reaimguikey = ImGui.Key_LeftShift, disabled = true   }
   DATA.kb.Z = { block = 1, level = 5, pos = 3,                reaimguikey = ImGui.Key_Z,      mainkey = 'Z'  }
+  if EXT.layout == 1 then
+    DATA.kb.Z = { block = 1, level = 3, pos = 3.5,             reaimguikey = ImGui.Key_Z,       mainkey = 'Z'  }
+  end
   DATA.kb.X = { block = 1, level = 5, pos = 4,                reaimguikey = ImGui.Key_X,      mainkey = 'X'   }
   DATA.kb.C = { block = 1, level = 5, pos = 5,                reaimguikey = ImGui.Key_C,      mainkey = 'C'   }
   DATA.kb.V = { block = 1, level = 5, pos = 6,                reaimguikey = ImGui.Key_V,      mainkey = 'V'   }
   DATA.kb.B = { block = 1, level = 5, pos = 7,                reaimguikey = ImGui.Key_B,      mainkey = 'B'   }
   DATA.kb.N = { block = 1, level = 5, pos = 8,                reaimguikey = ImGui.Key_N,      mainkey = 'N'   }
   DATA.kb.M = { block = 1, level = 5, pos = 9,                reaimguikey = ImGui.Key_M,      mainkey = 'M'   }
+  if EXT.layout == 1 then
+    DATA.kb.M = { block = 1, level = 4, pos = 12,                reaimguikey = ImGui.Key_M,      mainkey = 'M'   }
+  end
   DATA.kb['<'] = { block = 1, level = 5, pos = 10,            reaimguikey = ImGui.Key_Comma,  mainkey = ','   }
+  if EXT.layout == 1 then
+    DATA.kb['<'] = { block = 1, level = 5, pos = 9,            reaimguikey = ImGui.Key_Comma,  mainkey = ','   }
+  end
   DATA.kb['>'] = { block = 1, level = 5, pos = 11,            reaimguikey = ImGui.Key_Period, mainkey = '.'   }
   DATA.kb['?'] = { block = 1, level = 5, pos = 12,            reaimguikey = ImGui.Key_Slash,  mainkey = '/'  }
   DATA.kb['Shift##Rshift'] = { block = 1, level = 5, pos = 13,extw = 2,reaimguikey = ImGui.Key_RightShift, disabled = true   }
@@ -403,8 +435,8 @@ function UI.MAIN_calc()
   UI.calc_butW[4] = ((mainblockw- UI.spacingX*14) / 15 )
   UI.calc_butW[5] = ((mainblockw- UI.spacingX*13) / 14 )
   UI.calc_butW[6] = ((mainblockw- UI.spacingX*10) / 11 )
+
   --UI.calc_mainblockw=mainblockw
-    
   -- define y/h
   UI.calc_butH = {
     math.floor(UI.calc_butHref*0.8),
@@ -443,6 +475,12 @@ function UI.MAIN_calc()
     UI.calc_combo1_y =  UI.calc_blockoffs_Y[1]
     UI.calc_combo1_w =  UI.calc_butW[1] * 4+ UI.spacingX*3
     UI.calc_combo1_h =  UI.calc_butH[1]
+    
+    UI.calc_combo2_x =  UI.calc_butW[1] * 14 + UI.calc_spacingX_wide*2 + UI.spacingX * 13
+    UI.calc_combo2_y =  UI.calc_blockoffs_Y[1]
+    UI.calc_combo2_w =  UI.calc_butW[1] * 3+ UI.spacingX*2
+    UI.calc_combo2_h =  UI.calc_butH[1]
+    
 end
 -------------------------------------------------------------------------------- 
 function DATA:SetSelectionFromReimGuiKey(reaimguikey)
@@ -642,11 +680,11 @@ function UI.draw_KeyDetails(key_src0)
         -- remove + modifier
           ImGui.TableSetColumnIndex(ctx,0)
           ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,1,1)
-          local binding
+          local bindings
           if modifiers[i].flags and DATA.kb[key_src] and DATA.kb[key_src].bindings and DATA.kb[key_src].bindings[modifiers[i].flags] then 
             bindings = DATA.kb[key_src].bindings[modifiers[i].flags]
           end
-          if binding then 
+          if bindings then 
             if ImGui.Button(ctx, 'X##'..i) then
               local section = binding.section_ID
               local cmdID = binding.action_ID
@@ -704,10 +742,12 @@ function UI.draw_keyb()
     local pos =   DATA.kb[key].pos
     local extw =   DATA.kb[key].extw or 1
     local exth =   DATA.kb[key].exth or 1
-    local_pos_x = UI.calc_blockoffs_X[block] + (UI.calc_butW[level] * (pos-1)) + UI.spacingX*(pos-1)
+    local butW = UI.calc_butW[level] or UI.calc_butW[1]
+    local butH = UI.calc_butH[level] or UI.calc_butH[1]
+    local_pos_x = UI.calc_blockoffs_X[block] + (butW * (pos-1)) + UI.spacingX*(pos-1)
     local_pos_y = UI.calc_blockoffs_Y[level]
-    local butw = UI.calc_butW[level]*extw+(extw-1)*UI.spacingX
-    local buth = UI.calc_butH[level]*exth+(exth-1)*UI.spacingY
+    local butw = butW*extw+(extw-1)*UI.spacingX
+    local buth = butH*exth+(exth-1)*UI.spacingY
     if block == 2 or block == 3 then
       local_pos_x = UI.calc_blockoffs_X[block] + (UI.calc_butW[1] * (pos-1)) + UI.spacingX*(pos-1)
       butw = UI.calc_butW[1]*extw+(extw-1)*UI.spacingX
@@ -734,7 +774,7 @@ function UI.draw_keyb()
     end
     butx, buty = ImGui.GetItemRectMin(ctx)
     butx2, buty2 = ImGui.GetItemRectMax(ctx)
-    UI.draw_KeyDetails_tooltip(key)
+    if DATA.kb[key].disabled~= true and DATA.kb[key].bindings then UI.draw_KeyDetails_tooltip(key) end
     
     -- selection
     if DATA.selectedkey~= '' and DATA.selectedkey == key then
@@ -1035,8 +1075,13 @@ function DATA:Init_LoadExtColors()
 end
 -------------------------------------------------------------------------------- 
 function DATA:CollectData()
+  DATA.kb = {}
   DATA:Init_LoadExtColors() 
-  DATA:Init_kbDefinition_UI() 
+  if EXT.layout == 0 or EXT.layout == 1 then 
+    DATA:Init_kbDefinition_UI()
+   else
+    DATA:Init_kbDefinition_UII_MIDIOSC() 
+  end
   DATA:Init_kbDefinition_ActionList() 
   --DATA:Init_Search_ActionList() 
   
@@ -1119,6 +1164,23 @@ function UI.draw_combo()
     end
     ImGui.EndCombo( ctx )
   end
+  
+  ImGui.SetCursorPos( ctx, UI.calc_combo2_x, UI.calc_combo2_y ) 
+  ImGui.SetNextItemWidth( ctx, UI.calc_combo2_w )
+  local preview = EXT.layout
+  local preview_str = DATA.layouts[preview]
+  if ImGui.BeginCombo( ctx, '##layout', preview_str, ImGui.ComboFlags_None ) then
+    for layoutID in spairs(DATA.layouts) do
+      local layoutname = DATA.layouts[layoutID]
+      if ImGui.Selectable(ctx, layoutname) then
+        EXT.layout = layoutID
+        EXT:save()
+        DATA.upd = true
+      end
+    end
+    ImGui.EndCombo( ctx )
+  end
+  
 end
 --------------------------------------------------------------------------------  
   function UI.draw()  
