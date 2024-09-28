@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b3be37a85598e8272d92dedf02280cac96f5a909" name="MPL Scripts">
+<index version="1" commit="eed9c05cb5767d23a67c389fc3faf21c69734e58" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9540,6 +9540,13 @@ various fixes]]></changelog>
         <source main="main" file="mpl_Detect item tempo (share supposed beats as stretch markers).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/282e9a9c00189c818eaffd20fc17b4b062500622/Various/mpl_Detect%20item%20tempo.lua</source>
         <source main="main" file="mpl_Detect item tempo (share supposed beats as stretch markers, quantize to grid).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/282e9a9c00189c818eaffd20fc17b4b062500622/Various/mpl_Detect%20item%20tempo.lua</source>
         <source main="main" file="mpl_Detect item tempo (share supposed beats as tempo markers).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/282e9a9c00189c818eaffd20fc17b4b062500622/Various/mpl_Detect%20item%20tempo.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-09-28T08:22:47Z">
+        <changelog><![CDATA[# fix various errors]]></changelog>
+        <source main="main" file="mpl_Detect item tempo (share supposed beats as take markers).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eed9c05cb5767d23a67c389fc3faf21c69734e58/Various/mpl_Detect%20item%20tempo.lua</source>
+        <source main="main" file="mpl_Detect item tempo (share supposed beats as stretch markers).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eed9c05cb5767d23a67c389fc3faf21c69734e58/Various/mpl_Detect%20item%20tempo.lua</source>
+        <source main="main" file="mpl_Detect item tempo (share supposed beats as stretch markers, quantize to grid).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eed9c05cb5767d23a67c389fc3faf21c69734e58/Various/mpl_Detect%20item%20tempo.lua</source>
+        <source main="main" file="mpl_Detect item tempo (share supposed beats as tempo markers).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eed9c05cb5767d23a67c389fc3faf21c69734e58/Various/mpl_Detect%20item%20tempo.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Dump Retrospective Record log.lua" type="script" desc="Dump Retrospective Record log">
