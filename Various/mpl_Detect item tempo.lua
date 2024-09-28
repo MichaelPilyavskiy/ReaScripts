@@ -1,5 +1,5 @@
 -- @description Detect item tempo
--- @version 1.01
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=273168
 -- @provides
@@ -8,7 +8,7 @@
 --    [main] . > mpl_Detect item tempo (share supposed beats as stretch markers, quantize to grid).lua
 --    [main] . > mpl_Detect item tempo (share supposed beats as tempo markers).lua
 -- @changelog
---    # VF independent
+--    # fix various errors
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -23,7 +23,7 @@
     end
   end
 
-
+  
   DATA2 ={ 
             Median_weightptscnt = 8,
             TimeOut =5, 
@@ -112,6 +112,22 @@
     
     return out_t
   end
+  ---------------------------------------------------
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  
   --------------------------------------------------------------------  
   function DATA2:GetComplexDomainOnsetEnvelope(item) 
     local CDOE_blocks = {} 
@@ -133,8 +149,8 @@
     local id = 0
     
     local accessor = CreateTakeAudioAccessor( take )
-    DATA.CDOE_window = window
-    DATA.CDOE_len = seek_len
+    DATA2.CDOE_window = window 
+    DATA2.CDOE_len = seek_len
     
       local buft = {}
       local buftid = 0
@@ -274,7 +290,7 @@
     local E = {}
      
     -- convert t_in into points 
-    for i = 1, #t_in do if t_in[i] > 0 then E[#E+1] = {pos=(i-1)* DATA.CDOE_window, val = t_in[i]} end end  
+    for i = 1, #t_in do if t_in[i] > 0 then E[#E+1] = {pos=(i-1)* DATA2.CDOE_window, val = t_in[i]} end end  
     
     local clusters = DATA2:GetClusters(E, 1)
     
@@ -338,7 +354,7 @@
     local params = {
       is_takemarks = is_takemarks,                      
       is_stretchmarks = is_stretchmarks,                      
-      is_tempomarks = true,---is_tempomarks,                      
+      is_tempomarks = is_tempomarks,                      
       quantize = quantize,                      
                       }
     main(params)  
