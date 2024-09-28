@@ -1,7 +1,7 @@
--- @version 1.06
+-- @description Collect and replace selected tracks RS5k instances samples into project folder
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @description Collect and replace selected tracks RS5k instances samples into project folder
 -- @changelog
 --    # fix error
 
@@ -63,29 +63,31 @@
         if IsRS5K(tr, fx-1) then
           local retval, file_src = TrackFX_GetNamedConfigParm( tr, fx-1, 'FILE0' )
           file_src_sh = GetShortSmplName(file_src) 
-          file_dest = spls_path..file_src_sh
-          file_src = file_src:gsub('\\','/')
-          file_dest = file_dest:gsub('\\','/')
-          LuaCopyFile(file_src, file_dest)
-          msg(file_src..' -> '..file_dest)
-          TrackFX_SetNamedConfigParm( tr, fx-1, 'FILE0', file_dest)
+          if file_src_sh then
+            file_dest = spls_path..file_src_sh
+            file_src = file_src:gsub('\\','/')
+            file_dest = file_dest:gsub('\\','/')
+            LuaCopyFile(file_src, file_dest)
+            msg(file_src..' -> '..file_dest)
+            TrackFX_SetNamedConfigParm( tr, fx-1, 'FILE0', file_dest)
+          end
         end
       end
     end
     
 
   end
-   ---------------------------------------------------------------------------------------------------------------------
-   function GetShortSmplName(path) 
-     local fn = path
-     fn = fn:gsub('%\\','/')
-     if fn then fn = fn:reverse():match('(.-)/') end
-     if fn then fn = fn:reverse() end
-     return fn
-   end  
+  ---------------------------------------------------------------------------------------------------------------------
+  function GetShortSmplName(path) 
+   local fn = path
+   fn = fn:gsub('%\\','/')
+   if fn then fn = fn:reverse():match('(.-)/') end
+   if fn then fn = fn:reverse() end
+   return fn
+  end  
   ---------------------------------------------------------------------
-    if VF_CheckReaperVrs(5.95,true) then
-      reaper.Undo_BeginBlock()
-      main()
-      reaper.Undo_EndBlock(script_title, 1)
-    end  
+  if VF_CheckReaperVrs(5.95,true) then
+    reaper.Undo_BeginBlock()
+    main()
+    reaper.Undo_EndBlock(script_title, 1)
+  end  
