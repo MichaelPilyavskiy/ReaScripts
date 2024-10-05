@@ -1,19 +1,19 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # another AZERTY additions
+--    # fix remove binding
+--    + add dialog for removing shortcut
+--    + Add mpl_Keyboard Shortcuts Visualizer - layout.txt in the script path if not exist
+--    # various patches for support external mapping
 
 
 
-
---todo
--- midi/osc learn
 
     
-local vrs = 1.03
+local vrs = 1.04
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -23,7 +23,7 @@ local vrs = 1.03
   
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9.2'
+  ImGui = require 'imgui' '0.9.3'
   
   
   
@@ -37,6 +37,8 @@ EXT = {
         search = '',
         section_ID = 0,
         layout = 0,
+        extlayoutname = 'QWERTY',
+        dev_char = 0,
         
       }
 for i =1, EXT.categoriescnt do EXT['category'..i..'_color'] = '' end
@@ -111,7 +113,8 @@ DATA = {
 for key in pairs(reaper) do _G[key]=reaper[key] end 
 --local ctx
 -------------------------------------------------------------------------------- UI init variables
-  UI = {tempcoloring = {}}
+  UI = {  tempcoloring = {},
+          popups = {},}
 -- font  
   UI.font='Arial'
   UI.font1sz=15
@@ -256,265 +259,77 @@ function DATA:Init_kbDefinition_UI_MIDIOSC()
     DATA.kb['CC'] = { block = 1, level = 1, pos = 1}
 end
 -------------------------------------------------------------------------------- 
-function  DATA:Init_kbDefinition_UI_AZERTY()
-  -- lev1
-  DATA.kb.esc = { block = 1, level = 1, pos = 1,extw = 1.5, reaimguikey = ImGui.Key_Escape,   mainkey = 'ESC'  }
-  DATA.kb.F1 = { block = 1, level = 1, pos = 3,             reaimguikey = ImGui.Key_F1,       mainkey = 'F1' }
-  DATA.kb.F2 = { block = 1, level = 1, pos = 4,             reaimguikey = ImGui.Key_F2,       mainkey = 'F2'  }
-  DATA.kb.F3 = { block = 1, level = 1, pos = 5,             reaimguikey = ImGui.Key_F3,       mainkey = 'F3'  }
-  DATA.kb.F4 = { block = 1, level = 1, pos = 6,             reaimguikey = ImGui.Key_F4,       mainkey = 'F4'  }
-  DATA.kb.F5 = { block = 1, level = 1, pos = 7,             reaimguikey = ImGui.Key_F5,       mainkey = 'F5'  }
-  DATA.kb.F6 = { block = 1, level = 1, pos = 8,             reaimguikey = ImGui.Key_F6,       mainkey = 'F6'  }
-  DATA.kb.F7 = { block = 1, level = 1, pos = 9,             reaimguikey = ImGui.Key_F7,       mainkey = 'F7'  }
-  DATA.kb.F8 = { block = 1, level = 1, pos = 10,            reaimguikey = ImGui.Key_F8,       mainkey = 'F8'  }
-  DATA.kb.F9 = { block = 1, level = 1, pos = 11,            reaimguikey = ImGui.Key_F9,       mainkey = 'F9'  }
-  DATA.kb.F10 = { block = 1, level = 1, pos = 12,           reaimguikey = ImGui.Key_F10,      mainkey = 'F10'  }
-  DATA.kb.F11 = { block = 1, level = 1, pos = 13,           reaimguikey = ImGui.Key_F11,      mainkey = 'F11'  }
-  DATA.kb.F12 = { block = 1, level = 1, pos = 14,           reaimguikey = ImGui.Key_F12,      mainkey = 'F12'  }
-  
-  -- lev2
-  DATA.kb['~'] = { block = 1, level = 2, pos = 1,            reaimguikey = ImGui.Key_GraveAccent,           mainkey = '`'   }
-  DATA.kb['1'] = { block = 1, level = 2, pos = 2,            reaimguikey = ImGui.Key_1,      mainkey = '1'   }
-  DATA.kb['2'] = { block = 1, level = 2, pos = 3,            reaimguikey = ImGui.Key_2,      mainkey = '2'   }
-  DATA.kb['3'] = { block = 1, level = 2, pos = 4,            reaimguikey = ImGui.Key_3,      mainkey = '3'   }
-  DATA.kb['4'] = { block = 1, level = 2, pos = 5,            reaimguikey = ImGui.Key_4,      mainkey = '4'   }
-  DATA.kb['5'] = { block = 1, level = 2, pos = 6,            reaimguikey = ImGui.Key_5,      mainkey = '5'   }
-  DATA.kb['6'] = { block = 1, level = 2, pos = 7,            reaimguikey = ImGui.Key_6,      mainkey = '6'     }
-  DATA.kb['7'] = { block = 1, level = 2, pos = 8,            reaimguikey = ImGui.Key_7,      mainkey = '7'     }
-  DATA.kb['8'] = { block = 1, level = 2, pos = 9,            reaimguikey = ImGui.Key_8,      mainkey = '8'     }
-  DATA.kb['9'] = { block = 1, level = 2, pos = 10,           reaimguikey = ImGui.Key_9,      mainkey = '9'     }
-  DATA.kb['0'] = { block = 1, level = 2, pos = 11,           reaimguikey = ImGui.Key_0,      mainkey = '0'     }
-  DATA.kb['-'] = { block = 1, level = 2, pos = 12,           reaimguikey = ImGui.Key_Minus,  mainkey = '-'      }
-  DATA.kb['='] = { block = 1, level = 2, pos = 13,           reaimguikey = ImGui.Key_Equal,  mainkey = '='     }
-  DATA.kb['Back\nSpace'] = { block = 1, level = 2, pos = 14,extw = 2,reaimguikey = ImGui.Key_Backspace,mainkey = 'Backspace'     }
-  
-  DATA.kb.Insert = { block = 2, level = 2, pos = 1,          reaimguikey = ImGui.Key_Insert, mainkey = 'Insert'     }
-  DATA.kb.Home = { block = 2, level = 2, pos = 2,            reaimguikey = ImGui.Key_Home,   mainkey = 'Home'     }
-  DATA.kb['Page\nUp'] = { block = 2, level = 2, pos = 3,     reaimguikey = ImGui.Key_PageUp, mainkey = 'Page Up'     }
-  
-  DATA.kb['Num\nLock'] = { block = 3, level = 2, pos = 1,    reaimguikey = ImGui.Key_NumLock, disabled = true }
-  DATA.kb['/##Num/'] = { block = 3, level = 2, pos = 2,      reaimguikey = ImGui.Key_KeypadDivide, mainkey = 'Num /' }
-  DATA.kb['*##Num*'] = { block = 3, level = 2, pos = 3,      reaimguikey = ImGui.Key_KeypadMultiply, mainkey = 'Num *' }
-  DATA.kb['-##Num-'] = { block = 3, level = 2, pos = 4,      reaimguikey = ImGui.Key_KeypadSubtract, mainkey = 'Num -' }
-  
-  -- lev3
-  DATA.kb['Tab'] = { block = 1, level = 3, pos = 1,extw = 1.5,reaimguikey = ImGui.Key_Tab,    mainkey = 'Tab'   }
-  DATA.kb.A = { block = 1, level = 3, pos = 2.5,                reaimguikey = ImGui.Key_A,      mainkey = 'A'   }
-  DATA.kb.Z = { block = 1, level = 3, pos = 3.5,             reaimguikey = ImGui.Key_Z,       mainkey = 'Z'  }
-  DATA.kb.E = { block = 1, level = 3, pos = 4.5,             reaimguikey = ImGui.Key_E,       mainkey = 'E'  }
-  DATA.kb.R = { block = 1, level = 3, pos = 5.5,             reaimguikey = ImGui.Key_R,       mainkey = 'R'  }
-  DATA.kb.T = { block = 1, level = 3, pos = 6.5,             reaimguikey = ImGui.Key_T,       mainkey = 'T'  }
-  DATA.kb.Y = { block = 1, level = 3, pos = 7.5,             reaimguikey = ImGui.Key_Y,       mainkey = 'Y'  }
-  DATA.kb.U = { block = 1, level = 3, pos = 8.5,             reaimguikey = ImGui.Key_U,       mainkey = 'U'  }
-  DATA.kb.I = { block = 1, level = 3, pos = 9.5,             reaimguikey = ImGui.Key_I,       mainkey = 'I'  }
-  DATA.kb.O = { block = 1, level = 3, pos = 10.5,            reaimguikey = ImGui.Key_O,       mainkey = 'O'  }
-  DATA.kb.P = { block = 1, level = 3, pos = 11.5,            reaimguikey = ImGui.Key_P,       mainkey = 'P'  }
-  DATA.kb['^'] = { block = 1, level = 3, pos = 12.5,         reaimguikeyID = 94,       mainkey = '^'  }
-  DATA.kb['$'] = { block = 1, level = 3, pos = 13.5,         reaimguikeyID = 36,       mainkey = '$'  } 
-  DATA.kb['Enter'] = { block = 1, level = 3, pos = 14.5,extw = 2,reaimguikey = ImGui.Key_Enter,      mainkey = 'Enter'    }
-  
-  DATA.kb.Del = { block = 2, level = 3, pos = 1,             reaimguikey = ImGui.Key_Delete,  mainkey = 'Delete' }
-  DATA.kb.End = { block = 2, level = 3, pos = 2,             reaimguikey = ImGui.Key_End,     mainkey = 'End' }
-  DATA.kb['Page\nDown'] = { block = 2, level = 3, pos = 3,   reaimguikey = ImGui.Key_PageDown,mainkey = 'Page Down' }
-  
-  DATA.kb['7##Num7'] = { block = 3, level = 3, pos = 1,      reaimguikey = ImGui.Key_Keypad7, mainkey = 'Num 7'  }
-  DATA.kb['8##Num8'] = { block = 3, level = 3, pos = 2,      reaimguikey = ImGui.Key_Keypad8, mainkey = 'Num 8' }
-  DATA.kb['9##Num9'] = { block = 3, level = 3, pos = 3,      reaimguikey = ImGui.Key_Keypad9, mainkey = 'Num 9' }
-  DATA.kb['+##Num+'] = { block = 3, level = 3, pos = 4,exth = 2,reaimguikey = ImGui.Key_KeypadAdd, mainkey = 'Num +' }
-  
-  -- lev4
-  DATA.kb['Caps\nLock'] = { block = 1, level = 4, pos = 1,extw = 2,reaimguikey = ImGui.Key_CapsLock,disabled=true  }
-  
-  DATA.kb.Q = { block = 1, level = 4, pos = 3,                reaimguikey = ImGui.Key_Q,      mainkey = 'Q'   }
-  DATA.kb.S = { block = 1, level = 4, pos = 4,                reaimguikey = ImGui.Key_S,      mainkey = 'S'  }
-  DATA.kb.D = { block = 1, level = 4, pos = 5,                reaimguikey = ImGui.Key_D,      mainkey = 'D'  }
-  DATA.kb.F = { block = 1, level = 4, pos = 6,                reaimguikey = ImGui.Key_F,      mainkey = 'F'  }
-  DATA.kb.G = { block = 1, level = 4, pos = 7,                reaimguikey = ImGui.Key_G,      mainkey = 'G'  }
-  DATA.kb.H = { block = 1, level = 4, pos = 8,                reaimguikey = ImGui.Key_H,      mainkey = 'H'  }
-  DATA.kb.J = { block = 1, level = 4, pos = 9,                reaimguikey = ImGui.Key_J,      mainkey = 'J'  }
-  DATA.kb.K = { block = 1, level = 4, pos = 10,               reaimguikey = ImGui.Key_K,      mainkey = 'K'  }
-  DATA.kb.L = { block = 1, level = 4, pos = 11,               reaimguikey = ImGui.Key_L,      mainkey = 'L'  } 
-  DATA.kb.M = { block = 1, level = 4, pos = 12,               reaimguikey = ImGui.Key_M,      mainkey = 'M'   }
-  DATA.kb['ù'] = { block = 1, level = 4, pos = 13,            reaimguikeyID = 249,            mainkey = 'ù'   }
-  DATA.kb['*'] = { block = 1, level = 4, pos = 14,            reaimguikeyID = 42,             mainkey = '*'   }
-  
-  DATA.kb['4##Num4'] = { block = 3, level = 4, pos = 1,       reaimguikey = ImGui.Key_Keypad4,      mainkey = 'Num 4'    }
-  DATA.kb['5##Num5'] = { block = 3, level = 4, pos = 2,       reaimguikey = ImGui.Key_Keypad5,      mainkey = 'Num 5' }
-  DATA.kb['6##Num6'] = { block = 3, level = 4, pos = 3,       reaimguikey = ImGui.Key_Keypad6,      mainkey = 'Num 6' }
-  
-  
-  -- lev5
-  DATA.kb['Shift##Lshift'] = { block = 1, level = 5, pos = 1,reaimguikey = ImGui.Key_LeftShift, disabled = true   }
-  DATA.kb['<'] = { block = 1, level = 5, pos = 2,             reaimguikeyID = 60,             mainkey = '<'   }
-  DATA.kb.W = { block = 1, level = 5, pos = 3,                reaimguikey = ImGui.Key_W,      mainkey = 'W'  }
-  DATA.kb.X = { block = 1, level = 5, pos = 4,                reaimguikey = ImGui.Key_X,      mainkey = 'X'   }
-  DATA.kb.C = { block = 1, level = 5, pos = 5,                reaimguikey = ImGui.Key_C,      mainkey = 'C'   }
-  DATA.kb.V = { block = 1, level = 5, pos = 6,                reaimguikey = ImGui.Key_V,      mainkey = 'V'   }
-  DATA.kb.B = { block = 1, level = 5, pos = 7,                reaimguikey = ImGui.Key_B,      mainkey = 'B'   }
-  DATA.kb.N = { block = 1, level = 5, pos = 8,                reaimguikey = ImGui.Key_N,      mainkey = 'N'   }
-  DATA.kb[','] = { block = 1, level = 5, pos = 9,             reaimguikeyID = 44,             mainkey = ','   }
-  DATA.kb[';'] = { block = 1, level = 5, pos = 10,            reaimguikey = ImGui.Key_Semicolon,      mainkey = ';'  }
-  DATA.kb[':'] = { block = 1, level = 5, pos = 11,             reaimguikeyID = 58,             mainkey = ':'   }
-  DATA.kb['!'] = { block = 1, level = 5, pos = 12,             reaimguikeyID = 33,             mainkey = '!'   }
-  DATA.kb['Shift##Rshift'] = { block = 1, level = 5, pos = 13,extw=2,reaimguikey = ImGui.Key_RightShift, disabled = true   }
-  
-  DATA.kb['Up##ArrUp'] = { block = 2, level = 5, pos = 2,     reaimguikey = ImGui.Key_UpArrow,mainkey = 'Up' }
-  
-  DATA.kb['1##Num1'] = { block = 3, level = 5, pos = 1,       reaimguikey = ImGui.Key_Keypad1,      mainkey = 'Num 1'  }
-  DATA.kb['2##Num2'] = { block = 3, level = 5, pos = 2,       reaimguikey = ImGui.Key_Keypad2,      mainkey = 'Num 2'  }
-  DATA.kb['3##Num3'] = { block = 3, level = 5, pos = 3,       reaimguikey = ImGui.Key_Keypad3,      mainkey = 'Num 3'  }
-  DATA.kb['Enter##NumEnter'] = { block = 3, level = 5, pos = 4,exth = 2,reaimguikey = ImGui.Key_KeypadEnter,mainkey = 'Num Enter'  }
-  
-  -- lev6
-  DATA.kb['Ctrl##LCtrl'] = { block = 1, level = 6, pos = 1,extw = 1.5,   reaimguikey = ImGui.Key_LeftCtrl, disabled = true} 
-  DATA.kb['Alt'] = { block = 1, level = 6, pos = 2.5,           reaimguikey = ImGui.Key_LeftAlt, disabled = true  }
-  DATA.kb['Win'] = { block = 1, level = 6, pos = 3.5,           disabled = true}
-  DATA.kb['Option'] = { block = 1, level = 6, pos = 4.5,        disabled = true }
-  DATA.kb['Cmd'] = { block = 1, level = 6, pos = 5.5,           disabled = true}
-  DATA.kb['Space'] = { block = 1, level = 6, pos = 6.5,extw = 3,reaimguikey = ImGui.Key_Space,      mainkey = 'Space'  }
-  DATA.kb['Alt##Ralt'] = { block = 1, level = 6, pos = 9.5,    reaimguikey = ImGui.Key_RightAlt,   disabled = true  }
-  DATA.kb['Ctrl##RCtrl'] = { block = 1, level = 6, pos = 10.5,extw = 1.5,  reaimguikey = ImGui.Key_RightCtrl,  disabled = true}
-  
-  DATA.kb['Left##ArrLeft'] = { block = 2, level = 6, pos = 1, reaimguikey = ImGui.Key_LeftArrow,   mainkey = 'Left' }
-  DATA.kb['Down##ArrDown'] = { block = 2, level = 6, pos = 2, reaimguikey = ImGui.Key_DownArrow,   mainkey = 'Down' }
-  DATA.kb['Right##ArrRight'] = { block = 2, level = 6, pos = 3,reaimguikey = ImGui.Key_RightArrow, mainkey = 'Right' } 
-  
-  DATA.kb['0##Num0'] = { block = 3, level = 6, pos = 1, extw = 2,reaimguikey = ImGui.Key_Keypad0,  mainkey = 'Num 0'}
-  DATA.kb[',##NumDel'] = { block = 3, level = 6, pos = 3,   reaimguikey = ImGui.Key_KeypadDecimal, mainkey = 'Num Del' }
+function  DATA:Init_kbDefinition_UI()
+  local extlayoutname = EXT.extlayoutname
+  if not (DATA.extlayouts and extlayoutname and DATA.extlayouts[extlayoutname] and DATA.extlayouts[extlayoutname].BLOCKS) then return end
+  for block in pairs(DATA.extlayouts[extlayoutname].BLOCKS) do
+    if not DATA.extlayouts[extlayoutname].BLOCKS[block].LEVELS then goto nextlevel end
+    
+    for level in pairs(DATA.extlayouts[extlayoutname].BLOCKS[block].LEVELS) do 
+      local pos = 1
+      for keyID = 1, #DATA.extlayouts[extlayoutname].BLOCKS[block].LEVELS[level] do
+        local keyt = DATA.extlayouts[extlayoutname].BLOCKS[block].LEVELS[level][keyID]
+        local KBNAME = keyt.KBNAME
+        local EXTW = keyt.EXTW or 1
+        local EXTH = keyt.EXTH or 1
+        local BINDINGNAME = keyt.BINDINGNAME
+        
+        if BINDINGNAME:match('C%d+') then
+          local char = BINDINGNAME:match('C(%d+)')
+          if tonumber(char) and string.char(tonumber(char)) then BINDINGNAME = string.char(tonumber(char)) end
+        end
+        
+        local IMGUI = keyt.IMGUI
+        DATA.kb[KBNAME] = { 
+          block = block, 
+          level = level, 
+          pos = pos, 
+          extw = EXTW or 1,
+          exth = EXTH or 1,
+          mainkey = BINDINGNAME} 
+          
+        if IMGUI ~= 'dummy' and DATA.kb[KBNAME] then
+          if tonumber(IMGUI) then 
+            DATA.kb[KBNAME].reaimguikeyID = IMGUI 
+           else 
+            if ImGui[IMGUI] then DATA.kb[KBNAME].reaimguikey = ImGui[IMGUI] end
+          end  
+        end
+        
+        pos = pos + EXTW
+      end
+    end
+    ::nextlevel::
+  end
   
 end
--------------------------------------------------------------------------------- 
-function  DATA:Init_kbDefinition_UI_QWERTY()
-  -- lev1
-  DATA.kb.esc = { block = 1, level = 1, pos = 1,extw = 1.5, reaimguikey = ImGui.Key_Escape,   mainkey = 'ESC'  }
-  DATA.kb.F1 = { block = 1, level = 1, pos = 3,             reaimguikey = ImGui.Key_F1,       mainkey = 'F1' }
-  DATA.kb.F2 = { block = 1, level = 1, pos = 4,             reaimguikey = ImGui.Key_F2,       mainkey = 'F2'  }
-  DATA.kb.F3 = { block = 1, level = 1, pos = 5,             reaimguikey = ImGui.Key_F3,       mainkey = 'F3'  }
-  DATA.kb.F4 = { block = 1, level = 1, pos = 6,             reaimguikey = ImGui.Key_F4,       mainkey = 'F4'  }
-  DATA.kb.F5 = { block = 1, level = 1, pos = 7,             reaimguikey = ImGui.Key_F5,       mainkey = 'F5'  }
-  DATA.kb.F6 = { block = 1, level = 1, pos = 8,             reaimguikey = ImGui.Key_F6,       mainkey = 'F6'  }
-  DATA.kb.F7 = { block = 1, level = 1, pos = 9,             reaimguikey = ImGui.Key_F7,       mainkey = 'F7'  }
-  DATA.kb.F8 = { block = 1, level = 1, pos = 10,            reaimguikey = ImGui.Key_F8,       mainkey = 'F8'  }
-  DATA.kb.F9 = { block = 1, level = 1, pos = 11,            reaimguikey = ImGui.Key_F9,       mainkey = 'F9'  }
-  DATA.kb.F10 = { block = 1, level = 1, pos = 12,           reaimguikey = ImGui.Key_F10,      mainkey = 'F10'  }
-  DATA.kb.F11 = { block = 1, level = 1, pos = 13,           reaimguikey = ImGui.Key_F11,      mainkey = 'F11'  }
-  DATA.kb.F12 = { block = 1, level = 1, pos = 14,           reaimguikey = ImGui.Key_F12,      mainkey = 'F12'  }
+--------------------------------------------------------------------------------  
+function UI.MAIN_calc_layout() 
+  if not (UI.calc_butW and UI.calc_butW[1]) then return end
+  UI.calc_butW[2] = UI.calc_butW[1]
+  UI.calc_butW[3] = UI.calc_butW[1]
+  UI.calc_butW[4] = UI.calc_butW[1]
+  UI.calc_butW[5] = UI.calc_butW[1]
+  UI.calc_butW[6] = UI.calc_butW[1] 
   
-  --DATA.kb['PrtScr'] = { block = 2, level = 1, pos = 1,      reaimguikey = ImGui.Key_PrintScreen   }
-  --DATA.kb['Scroll\nLock'] = { block = 2, level = 1, pos = 2,reaimguikey = ImGui.Key_ScrollLock}
-  --DATA.kb['Pause'] = { block = 2, level = 1, pos = 3,       reaimguikey = ImGui.Key_Pause }
+  local extlayoutname = EXT.extlayoutname
+  if not (DATA.extlayouts and extlayoutname and DATA.extlayouts[extlayoutname] and DATA.extlayouts[extlayoutname].BLOCKS and DATA.extlayouts[extlayoutname].BLOCKS[1] and DATA.extlayouts[extlayoutname].BLOCKS[1].LEVELS) then return end
   
-  --[[DATA.kb.res2 = { block = 3, level = 1, pos = 1 }
-  DATA.kb.res3 = { block = 3, level = 1, pos = 2 }
-  DATA.kb.res4 = { block = 3, level = 1, pos = 3 }
-  DATA.kb.res5 = { block = 3, level = 1, pos = 4 }]]
-  
-  -- lev2
-  DATA.kb['~'] = { block = 1, level = 2, pos = 1,            reaimguikey = ImGui.Key_GraveAccent,           mainkey = '`'   }
-  DATA.kb['1'] = { block = 1, level = 2, pos = 2,            reaimguikey = ImGui.Key_1,      mainkey = '1'   }
-  DATA.kb['2'] = { block = 1, level = 2, pos = 3,            reaimguikey = ImGui.Key_2,      mainkey = '2'   }
-  DATA.kb['3'] = { block = 1, level = 2, pos = 4,            reaimguikey = ImGui.Key_3,      mainkey = '3'   }
-  DATA.kb['4'] = { block = 1, level = 2, pos = 5,            reaimguikey = ImGui.Key_4,      mainkey = '4'   }
-  DATA.kb['5'] = { block = 1, level = 2, pos = 6,            reaimguikey = ImGui.Key_5,      mainkey = '5'   }
-  DATA.kb['6'] = { block = 1, level = 2, pos = 7,            reaimguikey = ImGui.Key_6,      mainkey = '6'     }
-  DATA.kb['7'] = { block = 1, level = 2, pos = 8,            reaimguikey = ImGui.Key_7,      mainkey = '7'     }
-  DATA.kb['8'] = { block = 1, level = 2, pos = 9,            reaimguikey = ImGui.Key_8,      mainkey = '8'     }
-  DATA.kb['9'] = { block = 1, level = 2, pos = 10,           reaimguikey = ImGui.Key_9,      mainkey = '9'     }
-  DATA.kb['0'] = { block = 1, level = 2, pos = 11,           reaimguikey = ImGui.Key_0,      mainkey = '0'     }
-  DATA.kb['-'] = { block = 1, level = 2, pos = 12,           reaimguikey = ImGui.Key_Minus,  mainkey = '-'      }
-  DATA.kb['='] = { block = 1, level = 2, pos = 13,           reaimguikey = ImGui.Key_Equal,  mainkey = '='     }
-  DATA.kb['Back\nSpace'] = { block = 1, level = 2, pos = 14,extw = 2,reaimguikey = ImGui.Key_Backspace,mainkey = 'Backspace'     }
-  
-  DATA.kb.Insert = { block = 2, level = 2, pos = 1,          reaimguikey = ImGui.Key_Insert, mainkey = 'Insert'     }
-  DATA.kb.Home = { block = 2, level = 2, pos = 2,            reaimguikey = ImGui.Key_Home,   mainkey = 'Home'     }
-  DATA.kb['Page\nUp'] = { block = 2, level = 2, pos = 3,     reaimguikey = ImGui.Key_PageUp, mainkey = 'Page Up'     }
-  
-  DATA.kb['Num\nLock'] = { block = 3, level = 2, pos = 1,    reaimguikey = ImGui.Key_NumLock, disabled = true }
-  DATA.kb['/##Num/'] = { block = 3, level = 2, pos = 2,      reaimguikey = ImGui.Key_KeypadDivide, mainkey = 'Num /' }
-  DATA.kb['*##Num*'] = { block = 3, level = 2, pos = 3,      reaimguikey = ImGui.Key_KeypadMultiply, mainkey = 'Num *' }
-  DATA.kb['-##Num-'] = { block = 3, level = 2, pos = 4,      reaimguikey = ImGui.Key_KeypadSubtract, mainkey = 'Num -' }
-  
-  -- lev3
-  DATA.kb['Tab'] = { block = 1, level = 3, pos = 1,extw = 1.5,reaimguikey = ImGui.Key_Tab,    mainkey = 'Tab'   }
-  DATA.kb.Q = { block = 1, level = 3, pos = 2.5,             reaimguikey = ImGui.Key_Q,       mainkey = 'Q'   }
-  DATA.kb.W = { block = 1, level = 3, pos = 3.5,             reaimguikey = ImGui.Key_W,       mainkey = 'W'  }
-  DATA.kb.E = { block = 1, level = 3, pos = 4.5,             reaimguikey = ImGui.Key_E,       mainkey = 'E'  }
-  DATA.kb.R = { block = 1, level = 3, pos = 5.5,             reaimguikey = ImGui.Key_R,       mainkey = 'R'  }
-  DATA.kb.T = { block = 1, level = 3, pos = 6.5,             reaimguikey = ImGui.Key_T,       mainkey = 'T'  }
-  DATA.kb.Y = { block = 1, level = 3, pos = 7.5,             reaimguikey = ImGui.Key_Y,       mainkey = 'Y'  }
-  DATA.kb.U = { block = 1, level = 3, pos = 8.5,             reaimguikey = ImGui.Key_U,       mainkey = 'U'  }
-  DATA.kb.I = { block = 1, level = 3, pos = 9.5,             reaimguikey = ImGui.Key_I,       mainkey = 'I'  }
-  DATA.kb.O = { block = 1, level = 3, pos = 10.5,            reaimguikey = ImGui.Key_O,       mainkey = 'O'  }
-  DATA.kb.P = { block = 1, level = 3, pos = 11.5,            reaimguikey = ImGui.Key_P,       mainkey = 'P'  }
-  DATA.kb['['] = { block = 1, level = 3, pos = 12.5,         reaimguikey = ImGui.Key_LeftBracket,mainkey = '['  }
-  DATA.kb[']'] = { block = 1, level = 3, pos = 13.5,         reaimguikey = ImGui.Key_RightBracket,mainkey = ']'  } 
-  DATA.kb['\\'] = { block = 1, level = 3, pos = 14.5,        reaimguikey = ImGui.Key_Backslash, mainkey = '\\'  }
-  
-  DATA.kb.Del = { block = 2, level = 3, pos = 1,             reaimguikey = ImGui.Key_Delete,  mainkey = 'Delete' }
-  DATA.kb.End = { block = 2, level = 3, pos = 2,             reaimguikey = ImGui.Key_End,     mainkey = 'End' }
-  DATA.kb['Page\nDown'] = { block = 2, level = 3, pos = 3,   reaimguikey = ImGui.Key_PageDown,mainkey = 'Page Down' }
-  
-  DATA.kb['7##Num7'] = { block = 3, level = 3, pos = 1,      reaimguikey = ImGui.Key_Keypad7, mainkey = 'Num 7'  }
-  DATA.kb['8##Num8'] = { block = 3, level = 3, pos = 2,      reaimguikey = ImGui.Key_Keypad8, mainkey = 'Num 8' }
-  DATA.kb['9##Num9'] = { block = 3, level = 3, pos = 3,      reaimguikey = ImGui.Key_Keypad9, mainkey = 'Num 9' }
-  DATA.kb['+##Num+'] = { block = 3, level = 3, pos = 4,exth = 2,reaimguikey = ImGui.Key_KeypadAdd, mainkey = 'Num +' }
-  
-  -- lev4
-  DATA.kb['Caps\nLock'] = { block = 1, level = 4, pos = 1,extw = 2,reaimguikey = ImGui.Key_CapsLock,disabled=true  }
-  DATA.kb.A = { block = 1, level = 4, pos = 3,                reaimguikey = ImGui.Key_A,      mainkey = 'A'   }
-  DATA.kb.S = { block = 1, level = 4, pos = 4,                reaimguikey = ImGui.Key_S,      mainkey = 'S'  }
-  DATA.kb.D = { block = 1, level = 4, pos = 5,                reaimguikey = ImGui.Key_D,      mainkey = 'D'  }
-  DATA.kb.F = { block = 1, level = 4, pos = 6,                reaimguikey = ImGui.Key_F,      mainkey = 'F'  }
-  DATA.kb.G = { block = 1, level = 4, pos = 7,                reaimguikey = ImGui.Key_G,      mainkey = 'G'  }
-  DATA.kb.H = { block = 1, level = 4, pos = 8,                reaimguikey = ImGui.Key_H,      mainkey = 'H'  }
-  DATA.kb.J = { block = 1, level = 4, pos = 9,                reaimguikey = ImGui.Key_J,      mainkey = 'J'  }
-  DATA.kb.K = { block = 1, level = 4, pos = 10,               reaimguikey = ImGui.Key_K,      mainkey = 'K'  }
-  DATA.kb.L = { block = 1, level = 4, pos = 11,               reaimguikey = ImGui.Key_L,      mainkey = 'L'  }
-  DATA.kb[';'] = { block = 1, level = 4, pos = 12,            reaimguikey = ImGui.Key_Semicolon,      mainkey = ';'  }
-  DATA.kb["'"] = { block = 1, level = 4, pos = 13,            reaimguikey = ImGui.Key_Apostrophe,      mainkey = "'"  }
-  DATA.kb['Enter'] = { block = 1, level = 4, pos = 14,extw = 2,reaimguikey = ImGui.Key_Enter,      mainkey = 'Enter'    }
-  
-  DATA.kb['4##Num4'] = { block = 3, level = 4, pos = 1,       reaimguikey = ImGui.Key_Keypad4,      mainkey = 'Num 4'    }
-  DATA.kb['5##Num5'] = { block = 3, level = 4, pos = 2,       reaimguikey = ImGui.Key_Keypad5,      mainkey = 'Num 5' }
-  DATA.kb['6##Num6'] = { block = 3, level = 4, pos = 3,       reaimguikey = ImGui.Key_Keypad6,      mainkey = 'Num 6' }
-  
-  -- lev5
-  DATA.kb['Shift##Lshift'] = { block = 1, level = 5, pos = 1,extw = 2,reaimguikey = ImGui.Key_LeftShift, disabled = true   }
-  DATA.kb.Z = { block = 1, level = 5, pos = 3,                reaimguikey = ImGui.Key_Z,      mainkey = 'Z'  }
-  DATA.kb.X = { block = 1, level = 5, pos = 4,                reaimguikey = ImGui.Key_X,      mainkey = 'X'   }
-  DATA.kb.C = { block = 1, level = 5, pos = 5,                reaimguikey = ImGui.Key_C,      mainkey = 'C'   }
-  DATA.kb.V = { block = 1, level = 5, pos = 6,                reaimguikey = ImGui.Key_V,      mainkey = 'V'   }
-  DATA.kb.B = { block = 1, level = 5, pos = 7,                reaimguikey = ImGui.Key_B,      mainkey = 'B'   }
-  DATA.kb.N = { block = 1, level = 5, pos = 8,                reaimguikey = ImGui.Key_N,      mainkey = 'N'   }
-  DATA.kb.M = { block = 1, level = 5, pos = 9,                reaimguikey = ImGui.Key_M,      mainkey = 'M'   }
-  DATA.kb['<'] = { block = 1, level = 5, pos = 10,            reaimguikey = ImGui.Key_Comma,  mainkey = ','   }
-  DATA.kb['>'] = { block = 1, level = 5, pos = 11,            reaimguikey = ImGui.Key_Period, mainkey = '.'   }
-  DATA.kb['?'] = { block = 1, level = 5, pos = 12,            reaimguikey = ImGui.Key_Slash,  mainkey = '/'  }
-  DATA.kb['Shift##Rshift'] = { block = 1, level = 5, pos = 13,extw = 2,reaimguikey = ImGui.Key_RightShift, disabled = true   }
-  
-  DATA.kb['Up##ArrUp'] = { block = 2, level = 5, pos = 2,     reaimguikey = ImGui.Key_UpArrow,mainkey = 'Up' }
-  
-  DATA.kb['1##Num1'] = { block = 3, level = 5, pos = 1,       reaimguikey = ImGui.Key_Keypad1,      mainkey = 'Num 1'  }
-  DATA.kb['2##Num2'] = { block = 3, level = 5, pos = 2,       reaimguikey = ImGui.Key_Keypad2,      mainkey = 'Num 2'  }
-  DATA.kb['3##Num3'] = { block = 3, level = 5, pos = 3,       reaimguikey = ImGui.Key_Keypad3,      mainkey = 'Num 3'  }
-  DATA.kb['Enter##NumEnter'] = { block = 3, level = 5, pos = 4,exth = 2,reaimguikey = ImGui.Key_KeypadEnter,mainkey = 'Num Enter'  }
-  
-  -- lev6
-  DATA.kb['Ctrl##LCtrl'] = { block = 1, level = 6, pos = 1,extw = 1.5,   reaimguikey = ImGui.Key_LeftCtrl, disabled = true} 
-  DATA.kb['Alt'] = { block = 1, level = 6, pos = 2.5,           reaimguikey = ImGui.Key_LeftAlt, disabled = true  }
-  DATA.kb['Win'] = { block = 1, level = 6, pos = 3.5,           disabled = true}
-  DATA.kb['Option'] = { block = 1, level = 6, pos = 4.5,        disabled = true }
-  DATA.kb['Cmd'] = { block = 1, level = 6, pos = 5.5,           disabled = true}
-  DATA.kb['Space'] = { block = 1, level = 6, pos = 6.5,extw = 3,reaimguikey = ImGui.Key_Space,      mainkey = 'Space'  }
-  DATA.kb['Alt##Ralt'] = { block = 1, level = 6, pos = 9.5,    reaimguikey = ImGui.Key_RightAlt,   disabled = true  }
-  DATA.kb['Ctrl##RCtrl'] = { block = 1, level = 6, pos = 10.5,extw = 1.5,  reaimguikey = ImGui.Key_RightCtrl,  disabled = true}
-  
-  DATA.kb['Left##ArrLeft'] = { block = 2, level = 6, pos = 1, reaimguikey = ImGui.Key_LeftArrow,   mainkey = 'Left' }
-  DATA.kb['Down##ArrDown'] = { block = 2, level = 6, pos = 2, reaimguikey = ImGui.Key_DownArrow,   mainkey = 'Down' }
-  DATA.kb['Right##ArrRight'] = { block = 2, level = 6, pos = 3,reaimguikey = ImGui.Key_RightArrow, mainkey = 'Right' } 
-  
-  DATA.kb['0##Num0'] = { block = 3, level = 6, pos = 1, extw = 2,reaimguikey = ImGui.Key_Keypad0,  mainkey = 'Num 0'}
-  DATA.kb[',##NumDel'] = { block = 3, level = 6, pos = 3,   reaimguikey = ImGui.Key_KeypadDecimal, mainkey = 'Num Del' }
+  -- 2nd level
+  for level = 2, 6 do
+    if DATA.extlayouts[extlayoutname].BLOCKS[1].LEVELS[level] then
+      local but_cnt = #DATA.extlayouts[extlayoutname].BLOCKS[1].LEVELS[level]
+      local but_cnt_ext = 0
+      for keyID = 1, but_cnt do
+        local EXTW = 1
+        if DATA.extlayouts[extlayoutname].BLOCKS[1].LEVELS[level][keyID].EXTW then EXTW = DATA.extlayouts[extlayoutname].BLOCKS[1].LEVELS[level][keyID].EXTW end
+        but_cnt_ext = but_cnt_ext + 1*EXTW 
+      end
+      local xspacing = UI.spacingX*(but_cnt-1)
+      UI.calc_butW[level] = ((UI.calc_mainblockw - xspacing) / but_cnt_ext )
+    end
+  end
+  UI.cachedlayoutsize = true
 end
 --------------------------------------------------------------------------------  
 function UI.MAIN_calc() 
@@ -523,30 +338,18 @@ function UI.MAIN_calc()
   UI.calc_spacingX_wide = UI.spacingX * 4
   UI.calc_spacingY_wide = UI.spacingY * 4
   
-  UI.calc_butW = {}
+  if not UI.calc_butW then UI.calc_butW = {} end
   UI.calc_blockoffs_X= {}
-  
-  UI.calc_butW[1] = math.floor((DATA.display_w - UI.calc_spacingX_wide*4 - UI.spacingX*18)/21) 
+   
+  UI.calc_butW[1] = math.floor((DATA.display_w - UI.calc_spacingX_wide*4 - UI.spacingX*17)/20) 
   UI.calc_blockoffs_X[1] = UI.calc_spacingX_wide
-  UI.calc_blockoffs_X[2] = UI.calc_spacingX_wide*2 + UI.calc_butW[1]*14 + UI.spacingX*13
-  UI.calc_blockoffs_X[3] = UI.calc_spacingX_wide*3 + UI.calc_butW[1]*17 + UI.spacingX*16
+  UI.calc_blockoffs_X[2] = UI.calc_spacingX_wide*2 + UI.calc_butW[1]*13 + UI.spacingX*12
+  UI.calc_blockoffs_X[3] = UI.calc_spacingX_wide*3 + UI.calc_butW[1]*16 + UI.spacingX*15 
+  UI.calc_mainblockw = UI.calc_blockoffs_X[2] - UI.calc_blockoffs_X[1] - UI.calc_spacingX_wide 
   
-  -- define async but w
-  local mainblockw = UI.calc_blockoffs_X[2] - UI.calc_blockoffs_X[1] - UI.calc_spacingX_wide 
-  UI.calc_butW[2] = ((mainblockw- UI.spacingX*14) / 15 )
-  UI.calc_butW[3] = ((mainblockw- UI.spacingX*13.5) / 14.5 )
-  if EXT.layout == 1 then
-    UI.calc_butW[3] = ((mainblockw- UI.spacingX*14.5) / 15.5 )
-  end
-  UI.calc_butW[4] = ((mainblockw- UI.spacingX*14) / 15 )
-  if EXT.layout == 1 then
-    UI.calc_butW[4] = ((mainblockw- UI.spacingX*13) / 14 )
-  end
-  UI.calc_butW[5] = ((mainblockw- UI.spacingX*13) / 14 )
-  UI.calc_butW[6] = ((mainblockw- UI.spacingX*10) / 11 )
-
-  --UI.calc_mainblockw=mainblockw
+  if not UI.cachedlayoutsize then UI.MAIN_calc_layout()  end
   -- define y/h
+  
   UI.calc_butH = {
     math.floor(UI.calc_butHref*0.8),
     math.floor(UI.calc_butHref*1.2),
@@ -555,6 +358,7 @@ function UI.MAIN_calc()
     UI.calc_butHref,
     UI.calc_butHref,
     }
+    
   UI.calc_blockoffs_Y= {
     UI.calc_itemH+UI.spacingY,
     UI.calc_itemH+UI.spacingY*2+ UI.calc_butH[1] + UI.calc_spacingY_wide,
@@ -580,12 +384,12 @@ function UI.MAIN_calc()
     UI.calc_ActList_w = UI.calc_KeyDetails_x - (UI.calc_KeyCategories_x + UI.calc_KeyCategories_w) - UI.calc_spacingX_wide
   
   -- combos
-    UI.calc_combo1_x =  UI.calc_butW[1] * 17 + UI.calc_spacingX_wide*3 + UI.spacingX * 16
+    UI.calc_combo1_x =  UI.calc_blockoffs_X[3]
     UI.calc_combo1_y =  UI.calc_blockoffs_Y[1]
     UI.calc_combo1_w =  UI.calc_butW[1] * 4+ UI.spacingX*3
     UI.calc_combo1_h =  UI.calc_butH[1]
     
-    UI.calc_combo2_x =  UI.calc_butW[1] * 14 + UI.calc_spacingX_wide*2 + UI.spacingX * 13
+    UI.calc_combo2_x =  UI.calc_blockoffs_X[2]
     UI.calc_combo2_y =  UI.calc_blockoffs_Y[1]
     UI.calc_combo2_w =  UI.calc_butW[1] * 3+ UI.spacingX*2
     UI.calc_combo2_h =  UI.calc_butH[1]
@@ -751,7 +555,7 @@ function UI.draw_KeyDetails(key_src0)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,5,2)
     if ImGui.BeginMenuBar( ctx ) then
       if ImGui.BeginMenu(ctx, 'Key details ['..DATA.selectedkey..']:') then
-      
+        --ImGui_MenuItem( ctx, 'Key details ['..DATA.selectedkey..']:')
         --ImGui.SeparatorText(ctx, 'Actions')
         
         ImGui.EndMenu(ctx)
@@ -802,11 +606,22 @@ function UI.draw_KeyDetails(key_src0)
           end
           if bindings then 
             if ImGui.Button(ctx, 'X##'..i) then
-              local section = binding.section_ID
-              local cmdID = binding.action_ID
-              local shortcutidx = binding.shortcutidx 
-              DeleteActionShortcut( section, cmdID, shortcutidx )
-              DATA.upd = true
+              
+              UI.popups['Remove shortcut'] = {
+                mode = 0,
+                trig = true,
+                captions_csv = 'Remove current shortcut?',
+                func_setval = function(retval, retvals_csv)  
+                  local section = bindings.section_ID
+                  local cmdID = bindings.action_ID
+                  local shortcutidx = bindings.shortcutidx 
+                  DeleteActionShortcut( section, cmdID, shortcutidx )
+                  DATA.upd = true
+                end
+                }
+                
+                
+              
             end
           end
           ImGui.SameLine(ctx)
@@ -850,9 +665,9 @@ function UI.draw_keyb()
   ImGui.Button(ctx, 'test',UI.calc_mainblockw,20)
   ]]
   
-  -- shor character
-  if EXT.layout ==1 then
-    ImGui.SetCursorPos( ctx, 5, UI.calc_blockoffs_Y[2]-15 )
+  -- show character
+  if EXT.dev_char ==1 then
+    ImGui.SetCursorPos( ctx, 10, 50 )
     ImGui.PushFont(ctx, DATA.font1) 
     local rv, c = ImGui.GetInputQueueCharacter(ctx, 0)
     if DATA.input_char_hex then ImGui.Text(ctx,DATA.input_char..': '..DATA.input_char_hex) end
@@ -861,7 +676,8 @@ function UI.draw_keyb()
   
   ImGui.PushFont(ctx, DATA.font2) 
   local local_pos_x, local_pos_y
-  for key in pairs(DATA.kb) do
+  for key in pairs(DATA.kb) do 
+    if key:match('dummy') then goto nextkey end
     local block = DATA.kb[key].block
     local level = DATA.kb[key].level
     local pos =   DATA.kb[key].pos
@@ -869,7 +685,7 @@ function UI.draw_keyb()
     local exth =   DATA.kb[key].exth or 1
     local butW = UI.calc_butW[level] or UI.calc_butW[1]
     local butH = UI.calc_butH[level] or UI.calc_butH[1]
-    local_pos_x = UI.calc_blockoffs_X[block] + (butW * (pos-1)) + UI.spacingX*(pos-1)
+    local_pos_x = math.floor(UI.calc_blockoffs_X[block] + (butW * (pos-1)) + UI.spacingX*(pos-1))
     local_pos_y = UI.calc_blockoffs_Y[level]
     local butw = butW*extw+(extw-1)*UI.spacingX
     local buth = butH*exth+(exth-1)*UI.spacingY
@@ -894,7 +710,12 @@ function UI.draw_keyb()
     
     -- actually key
     local butx,buty,butx2,buty2=0,0,0,0
-    if ImGui.Button(ctx, key,butw,buth) then
+    local key_name = key:gsub('\\n','\n')
+    if key_name:match('C%d+') then
+      local char = key_name:match('C(%d+)')
+      if tonumber(char) and string.char(tonumber(char)) then key_name = string.char(tonumber(char)) end
+    end
+    if ImGui.Button(ctx, key_name,butw,buth) then
       DATA.selectedkey = key
     end
     butx, buty = ImGui.GetItemRectMin(ctx)
@@ -909,6 +730,7 @@ function UI.draw_keyb()
     
     ImGui.EndDisabled(ctx)
     ImGui.PopStyleColor(ctx, 3)
+    ::nextkey::
   end
   ImGui.PopFont(ctx)
 end
@@ -932,12 +754,23 @@ function UI.draw_keyb_definecolor(kbt)
 end
 -------------------------------------------------------------------------------- 
 function UI.draw_keyb_handleKBpress(keyt) 
-  if not keyt.reaimguikey then return end
-  keyt.state_pressed = false
-  if ImGui.IsKeyDown( ctx, keyt.reaimguikey ) then keyt.state_pressed = true end
+  if not (keyt.reaimguikey or keyt.reaimguikeyID) then return end
+  if keyt.reaimguikey then keyt.state_pressed = false end
+  if keyt.reaimguikey and ImGui.IsKeyDown( ctx, keyt.reaimguikey ) then keyt.state_pressed = true end
+  if keyt.reaimguikeyID then
+    local curstate = keyt.reaimguikeyID == DATA.input_char
+    if curstate == true and keyt.state_pressed ~= true then 
+      DATA:SetSelectionFromReimGuiKey(keyt.reaimguikey)
+    end
+    if curstate == false and keyt.state_pressed ==true  then 
+      DATA:SetSelectionFromReimGuiKey(keyt.reaimguikey)
+      keyt.state_releaseTS = os.clock() 
+    end
+    keyt.state_pressed = curstate
+  end
   
   -- handle smooth UI release 
-  if ImGui.IsKeyReleased( ctx, keyt.reaimguikey ) then 
+  if keyt.reaimguikey and ImGui.IsKeyReleased( ctx, keyt.reaimguikey ) then 
     DATA:SetSelectionFromReimGuiKey(keyt.reaimguikey)
     keyt.state_releaseTS = os.clock() 
   end
@@ -1129,9 +962,82 @@ function UI.MAIN_draw(open)
     end 
     ImGui.PopFont( ctx ) 
     --if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
-  
+    
+    
+    -- popups
+    for key in pairs(UI.popups) do
+      -- trig
+      if UI.popups[key] and UI.popups[key].trig == true then
+        UI.popups[key].trig = false
+        UI.popups[key].draw = true
+        ImGui.OpenPopup( ctx, key, ImGui.PopupFlags_NoOpenOverExistingPopup )
+      end
+      -- draw
+      if UI.popups[key] and UI.popups[key].draw == true then UI.GetUserInputMB_replica(UI.popups[key].mode or 1, key, DATA.UI_name, 1, UI.popups[key].captions_csv, UI.popups[key].func_getval, UI.popups[key].func_setval) end 
+    end
+    
+    
     return open
 end
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_shortcuts()
+    if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then 
+      for key in pairs(UI.popups) do UI.popups[key].draw = false end
+      ImGui.CloseCurrentPopup( ctx ) 
+    end
+   -- if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  VF_Action(40044) end
+  end  
+  -------------------------------------------------------------------------------- 
+  function UI.GetUserInputMB_replica(mode, key, title, num_inputs, captions_csv, retvals_csv_returnfunc, retvals_csv_setfunc) 
+    local round = 4
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, round)
+    
+      -- draw content
+      -- (from reaimgui demo) Always center this window when appearing
+      local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
+      ImGui.SetNextWindowPos(ctx, center_x, center_y, ImGui.Cond_Appearing, 0.5, 0.5)
+      if ImGui.BeginPopupModal(ctx, key, ImGui.ChildFlags_FrameStyle, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border|ImGui.WindowFlags_TopMost) then
+      
+        -- MB replika
+        if mode == 0 then
+          ImGui.Text(ctx, captions_csv)
+          ImGui.Separator(ctx) 
+        
+          if ImGui.Button(ctx, 'OK', 0, 0) then 
+            UI.popups[key].draw = false
+            if retvals_csv_setfunc then retvals_csv_setfunc(retval, buf) end
+            ImGui.CloseCurrentPopup(ctx) 
+          end
+          
+          ImGui.SetItemDefaultFocus(ctx)
+          ImGui.SameLine(ctx)
+          if ImGui.Button(ctx, 'Cancel', 120, 0) then 
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end
+        end
+        
+        -- GetUserInput replika
+        if mode == 1 then
+          ImGui.SameLine(ctx)
+          ImGui.SetKeyboardFocusHere( ctx )
+          local retval, buf = ImGui.InputText( ctx, captions_csv, retvals_csv_returnfunc(), ImGui.InputTextFlags_EnterReturnsTrue ) 
+          if retval then
+            retvals_csv_setfunc(retval, buf)
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end 
+        end
+        
+        ImGui.EndPopup(ctx)
+      end 
+    
+    
+    ImGui.PopStyleVar(ctx, 4)
+  end 
   --------------------------------------------------------------------------------  
   function UI.MAIN_PopStyle(ctx, cnt, cnt2)
     if cnt then 
@@ -1207,16 +1113,19 @@ end
 function DATA:CollectData()
   DATA.kb = {}
   DATA:Init_LoadExtColors() 
-  if EXT.layout == 0 then 
-    DATA:Init_kbDefinition_UI_QWERTY()
+  DATA:Init_kbDefinition_UI()
+  
+  --[[if EXT.layout == 0 then 
+    
    elseif EXT.layout == 1 then 
     DATA:Init_kbDefinition_UI_AZERTY()
    elseif EXT.layout == 2 then 
     DATA:Init_kbDefinition_UI_MIDIOSC() 
-  end
+  end]]
   DATA:Init_kbDefinition_ActionList() 
   --DATA:Init_Search_ActionList() 
   
+  UI.MAIN_calc_layout() 
   
   --[[ reset colors
     for i =1, EXT.categoriescnt do EXT['category'..i..'_col'] = '' end
@@ -1283,6 +1192,8 @@ end
 function UI.draw_combo()
   ImGui.SetCursorPos( ctx, UI.calc_combo1_x, UI.calc_combo1_y ) 
   ImGui.SetNextItemWidth( ctx, UI.calc_combo1_w )
+  
+  -- current section
   local preview = EXT.section_ID
   local preview_str = DATA.sections[preview]
   if ImGui.BeginCombo( ctx, '##section', preview_str, ImGui.ComboFlags_None ) then
@@ -1297,20 +1208,31 @@ function UI.draw_combo()
     ImGui.EndCombo( ctx )
   end
   
+  -- ext layout
   ImGui.SetCursorPos( ctx, UI.calc_combo2_x, UI.calc_combo2_y ) 
   ImGui.SetNextItemWidth( ctx, UI.calc_combo2_w )
-  local preview = EXT.layout
-  local preview_str = DATA.layouts[preview]
+  local preview_str = EXT.extlayoutname
   if ImGui.BeginCombo( ctx, '##layout', preview_str, ImGui.ComboFlags_None ) then
-    for layoutID in spairs(DATA.layouts) do
-      local layoutname = DATA.layouts[layoutID]
+    for layout in spairs(DATA.extlayouts) do
+      local layoutname = layout
       if ImGui.Selectable(ctx, layoutname) then
-        EXT.layout = layoutID
+        EXT.extlayoutname = layoutname
         EXT:save()
         DATA.upd = true
       end
     end
-    ImGui.EndCombo( ctx )
+    
+    local retval, v = ImGui.Checkbox( ctx, 'dev_char', EXT.dev_char == 1 )
+    if retval then
+      local val = 0
+      if v == true then val = 1 end
+      EXT.dev_char =val
+      EXT:save()
+      DATA.upd = true
+    end
+    
+    
+    ImGui.EndCombo( ctx ) 
   end
   
 end
@@ -1349,7 +1271,316 @@ function VF_CopyTable(orig)--http://lua-users.org/wiki/CopyTable
     return copy
 end 
 ----------------------------------------------------------------------------------------- 
-function main() 
+function DATA:ValidateLayouts(filename)
+  DATA.extlayouts = {}
+  local layouts_fp = filename:gsub('%.lua',' - layout.txt')
+  
+  local content = DATA:ValidateLayouts_Init(layouts_fp) 
+  
+  
+  --[[local f = io.open(layouts_fp, 'rb') 
+  if f then 
+    content = f:read('a')
+    f:close()
+   else
+    content = DATA:ValidateLayouts_Init(layouts_fp)
+  end ]]
+  if not content then return end
+  
+  
+  -- parse  
+  local id=0
+  for layout in content:gmatch('<LAYOUT(.-)ENDLAYOUT>') do
+    local name if layout:match('NAME (.-)') then name = layout:match('NAME (.-)[\r\n]') end
+    if name then
+      id = id + 1
+      DATA.extlayouts[name] = {ID=id, BLOCKS={}}
+      for line in layout:gmatch('[^\r\n]+') do
+        if line:match('KEY') then
+          local              KBNAME, BLOCK, LEVEL, IMGUI, BINDINGNAME, EXTW, EXTH = line:match('KEY KBNAME (.-) BLOCK (%d+) LEVEL (%d+) IMGUI (.-) BINDINGNAME ([%a%d%p%s]+) EXTW ([%d%.]+) EXTH ([%d%.]+)')
+          if not KBNAME then KBNAME, BLOCK, LEVEL, IMGUI, BINDINGNAME, EXTH =       line:match('KEY KBNAME (.-) BLOCK (%d+) LEVEL (%d+) IMGUI (.-) BINDINGNAME ([%a%d%p%s]+) EXTH ([%d%.]+)') end
+          if not KBNAME then KBNAME, BLOCK, LEVEL, IMGUI, BINDINGNAME, EXTW =       line:match('KEY KBNAME (.-) BLOCK (%d+) LEVEL (%d+) IMGUI (.-) BINDINGNAME ([%a%d%p%s]+) EXTW ([%d%.]+)') end
+          if not KBNAME then KBNAME, BLOCK, LEVEL, IMGUI, BINDINGNAME =             line:match('KEY KBNAME (.-) BLOCK (%d+) LEVEL (%d+) IMGUI (.-) BINDINGNAME ([%a%d%p%s]+)') end 
+          
+          BLOCK = tonumber(BLOCK) or BLOCK
+          LEVEL = tonumber(LEVEL) or LEVEL
+          if not DATA.extlayouts[name].BLOCKS[BLOCK] then DATA.extlayouts[name].BLOCKS[BLOCK] = {} end
+          if not DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS then DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS = {} end
+          if not DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] then DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] = {} end 
+          
+          local id = #DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] +1
+          DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL][id] = {
+            KBNAME=KBNAME,
+            IMGUI=tonumber(IMGUI) or IMGUI, 
+            BINDINGNAME=BINDINGNAME,
+            EXTW=EXTW,
+            EXTH=EXTH,
+          }
+        end 
+      end
+    end
+  end
+  
+end
+----------------------------------------------------------------------------------------- 
+function DATA:ValidateLayouts_Init(layouts_fp)
+  local content = [[
+<LAYOUT
+  NAME QWERTY
+  KEY KBNAME Esc BLOCK 1 LEVEL 1 IMGUI Key_Escape BINDINGNAME ESC
+  KEY KBNAME F1 BLOCK 1 LEVEL 1 IMGUI Key_F1 BINDINGNAME F1
+  KEY KBNAME F2 BLOCK 1 LEVEL 1 IMGUI Key_F2 BINDINGNAME F2
+  KEY KBNAME F3 BLOCK 1 LEVEL 1 IMGUI Key_F3 BINDINGNAME F3
+  KEY KBNAME F4 BLOCK 1 LEVEL 1 IMGUI Key_F4 BINDINGNAME F4
+  KEY KBNAME F5 BLOCK 1 LEVEL 1 IMGUI Key_F5 BINDINGNAME F5
+  KEY KBNAME F6 BLOCK 1 LEVEL 1 IMGUI Key_F6 BINDINGNAME F6
+  KEY KBNAME F7 BLOCK 1 LEVEL 1 IMGUI Key_F7 BINDINGNAME F7
+  KEY KBNAME F8 BLOCK 1 LEVEL 1 IMGUI Key_F8 BINDINGNAME F8
+  KEY KBNAME F9 BLOCK 1 LEVEL 1 IMGUI Key_F9 BINDINGNAME F9
+  KEY KBNAME F10 BLOCK 1 LEVEL 1 IMGUI Key_F10 BINDINGNAME F10
+  KEY KBNAME F11 BLOCK 1 LEVEL 1 IMGUI Key_F11 BINDINGNAME F11
+  KEY KBNAME F12 BLOCK 1 LEVEL 1 IMGUI Key_F12 BINDINGNAME F12
+  
+  KEY KBNAME ~ BLOCK 1 LEVEL 2 IMGUI Key_GraveAccent BINDINGNAME `
+  KEY KBNAME 1 BLOCK 1 LEVEL 2 IMGUI Key_1 BINDINGNAME 1
+  KEY KBNAME 2 BLOCK 1 LEVEL 2 IMGUI Key_2 BINDINGNAME 2
+  KEY KBNAME 3 BLOCK 1 LEVEL 2 IMGUI Key_3 BINDINGNAME 3
+  KEY KBNAME 4 BLOCK 1 LEVEL 2 IMGUI Key_4 BINDINGNAME 4
+  KEY KBNAME 5 BLOCK 1 LEVEL 2 IMGUI Key_5 BINDINGNAME 5
+  KEY KBNAME 6 BLOCK 1 LEVEL 2 IMGUI Key_6 BINDINGNAME 6
+  KEY KBNAME 7 BLOCK 1 LEVEL 2 IMGUI Key_7 BINDINGNAME 7
+  KEY KBNAME 8 BLOCK 1 LEVEL 2 IMGUI Key_8 BINDINGNAME 8
+  KEY KBNAME 9 BLOCK 1 LEVEL 2 IMGUI Key_9 BINDINGNAME 9
+  KEY KBNAME 0 BLOCK 1 LEVEL 2 IMGUI Key_0 BINDINGNAME 0
+  KEY KBNAME BackSpace BLOCK 1 LEVEL 2 IMGUI Key_Backspace BINDINGNAME Backspace EXTW 2
+  
+  KEY KBNAME Insert BLOCK 2 LEVEL 2 IMGUI Key_Insert BINDINGNAME Insert
+  KEY KBNAME Home BLOCK 2 LEVEL 2 IMGUI Key_Home BINDINGNAME Home
+  KEY KBNAME Page\nUp BLOCK 2 LEVEL 2 IMGUI Key_PageUp BINDINGNAME Page Up
+  
+  KEY KBNAME Num\nLock BLOCK 3 LEVEL 2 IMGUI Key_NumLock BINDINGNAME Num Lock
+  KEY KBNAME /##Num/ BLOCK 3 LEVEL 2 IMGUI Key_KeypadDivide BINDINGNAME Num /
+  KEY KBNAME *##Num* BLOCK 3 LEVEL 2 IMGUI Key_KeypadMultiply BINDINGNAME Num *
+  KEY KBNAME -##Num- BLOCK 3 LEVEL 2 IMGUI Key_KeypadSubtract BINDINGNAME Num -
+  
+  KEY KBNAME Tab BLOCK 1 LEVEL 3 IMGUI Key_Tab BINDINGNAME Tab EXTW 1.5
+  KEY KBNAME Q BLOCK 1 LEVEL 3 IMGUI Key_Q BINDINGNAME Q
+  KEY KBNAME W BLOCK 1 LEVEL 3 IMGUI Key_W BINDINGNAME W
+  KEY KBNAME E BLOCK 1 LEVEL 3 IMGUI Key_E BINDINGNAME E
+  KEY KBNAME R BLOCK 1 LEVEL 3 IMGUI Key_R BINDINGNAME R
+  KEY KBNAME T BLOCK 1 LEVEL 3 IMGUI Key_T BINDINGNAME T
+  KEY KBNAME Y BLOCK 1 LEVEL 3 IMGUI Key_Y BINDINGNAME Y
+  KEY KBNAME U BLOCK 1 LEVEL 3 IMGUI Key_U BINDINGNAME U
+  KEY KBNAME I BLOCK 1 LEVEL 3 IMGUI Key_I BINDINGNAME I
+  KEY KBNAME O BLOCK 1 LEVEL 3 IMGUI Key_O BINDINGNAME O
+  KEY KBNAME P BLOCK 1 LEVEL 3 IMGUI Key_P BINDINGNAME P
+  KEY KBNAME [ BLOCK 1 LEVEL 3 IMGUI Key_LeftBracket BINDINGNAME [
+  KEY KBNAME ] BLOCK 1 LEVEL 3 IMGUI Key_RightBracket BINDINGNAME ]
+  KEY KBNAME \ BLOCK 1 LEVEL 3 IMGUI Key_Backslash BINDINGNAME \
+  
+  KEY KBNAME Del BLOCK 2 LEVEL 3 IMGUI Key_Delete BINDINGNAME Delete
+  KEY KBNAME End BLOCK 2 LEVEL 3 IMGUI Key_End BINDINGNAME End
+  KEY KBNAME Page\nDown BLOCK 2 LEVEL 3 IMGUI Key_PageDown BINDINGNAME Page Down
+  
+  KEY KBNAME 7##Num7 BLOCK 3 LEVEL 3 IMGUI Key_Keypad7 BINDINGNAME Num 7
+  KEY KBNAME 8##Num8 BLOCK 3 LEVEL 3 IMGUI Key_Keypad8 BINDINGNAME Num 8
+  KEY KBNAME 9##Num9 BLOCK 3 LEVEL 3 IMGUI Key_Keypad9 BINDINGNAME Num 9
+  KEY KBNAME +##Num+ BLOCK 3 LEVEL 3 IMGUI Key_KeypadAdd BINDINGNAME Num + EXTH 2
+  
+  KEY KBNAME Caps\nLock BLOCK 1 LEVEL 4 IMGUI Key_CapsLock BINDINGNAME Caps Lock EXTW 2
+  KEY KBNAME A BLOCK 1 LEVEL 4 IMGUI Key_A BINDINGNAME A
+  KEY KBNAME S BLOCK 1 LEVEL 4 IMGUI Key_S BINDINGNAME S
+  KEY KBNAME D BLOCK 1 LEVEL 4 IMGUI Key_D BINDINGNAME D
+  KEY KBNAME F BLOCK 1 LEVEL 4 IMGUI Key_F BINDINGNAME F
+  KEY KBNAME G BLOCK 1 LEVEL 4 IMGUI Key_G BINDINGNAME G
+  KEY KBNAME H BLOCK 1 LEVEL 4 IMGUI Key_H BINDINGNAME H
+  KEY KBNAME J BLOCK 1 LEVEL 4 IMGUI Key_J BINDINGNAME J
+  KEY KBNAME K BLOCK 1 LEVEL 4 IMGUI Key_K BINDINGNAME K
+  KEY KBNAME L BLOCK 1 LEVEL 4 IMGUI Key_L BINDINGNAME L
+  KEY KBNAME ; BLOCK 1 LEVEL 4 IMGUI Key_Semicolon BINDINGNAME ;
+  KEY KBNAME ' BLOCK 1 LEVEL 4 IMGUI Key_Apostrophe BINDINGNAME '
+  KEY KBNAME Enter BLOCK 1 LEVEL 4 IMGUI Key_Enter BINDINGNAME Enter EXTW 2
+  
+  KEY KBNAME 4##Num4 BLOCK 3 LEVEL 4 IMGUI Key_Keypad4 BINDINGNAME Num 4
+  KEY KBNAME 5##Num5 BLOCK 3 LEVEL 4 IMGUI Key_Keypad5 BINDINGNAME Num 5
+  KEY KBNAME 6##Num6 BLOCK 3 LEVEL 4 IMGUI Key_Keypad6 BINDINGNAME Num 6
+  
+  KEY KBNAME Shift##Lshift BLOCK 1 LEVEL 5 IMGUI Key_LeftShift BINDINGNAME Shift EXTW 2
+  KEY KBNAME Z BLOCK 1 LEVEL 5 IMGUI Key_Z BINDINGNAME Z
+  KEY KBNAME X BLOCK 1 LEVEL 5 IMGUI Key_X BINDINGNAME X
+  KEY KBNAME C BLOCK 1 LEVEL 5 IMGUI Key_C BINDINGNAME C
+  KEY KBNAME V BLOCK 1 LEVEL 5 IMGUI Key_V BINDINGNAME V
+  KEY KBNAME B BLOCK 1 LEVEL 5 IMGUI Key_B BINDINGNAME B
+  KEY KBNAME N BLOCK 1 LEVEL 5 IMGUI Key_N BINDINGNAME N
+  KEY KBNAME M BLOCK 1 LEVEL 5 IMGUI Key_M BINDINGNAME M
+  KEY KBNAME < BLOCK 1 LEVEL 5 IMGUI Key_Comma BINDINGNAME ,
+  KEY KBNAME > BLOCK 1 LEVEL 5 IMGUI Key_Period BINDINGNAME .
+  KEY KBNAME ? BLOCK 1 LEVEL 5 IMGUI Key_Slash BINDINGNAME ?
+  KEY KBNAME Shift##Rshift BLOCK 1 LEVEL 5 IMGUI Key_RightShift BINDINGNAME Shift EXTW 2
+  
+  KEY KBNAME dummy BLOCK 2 LEVEL 5 IMGUI dummy BINDINGNAME dummy
+  KEY KBNAME Up##ArrUp BLOCK 2 LEVEL 5 IMGUI Key_UpArrow BINDINGNAME Up
+  
+  KEY KBNAME 1##Num1 BLOCK 3 LEVEL 5 IMGUI Key_Keypad1 BINDINGNAME Num 1
+  KEY KBNAME 2##Num2 BLOCK 3 LEVEL 5 IMGUI Key_Keypad2 BINDINGNAME Num 2
+  KEY KBNAME 3##Num3 BLOCK 3 LEVEL 5 IMGUI Key_Keypad3 BINDINGNAME Num 3
+  KEY KBNAME Enter##NumEnter BLOCK 3 LEVEL 5 IMGUI Key_KeypadEnter BINDINGNAME Num Enter EXTH 2
+  
+  KEY KBNAME Ctrl##LCtrl BLOCK 1 LEVEL 6 IMGUI Key_LeftCtrl BINDINGNAME Ctrl
+  KEY KBNAME Alt BLOCK 1 LEVEL 6 IMGUI Key_LeftAlt BINDINGNAME Alt  
+  KEY KBNAME Win\nL Super##Win BLOCK 1 LEVEL 6 IMGUI Key_LeftSuper BINDINGNAME Win
+  KEY KBNAME Win\nR Super##WinRight BLOCK 1 LEVEL 6 IMGUI Key_RightSuper BINDINGNAME Win
+  KEY KBNAME App\nBack BLOCK 1 LEVEL 6 IMGUI Key_AppBack BINDINGNAME Browser Back
+  KEY KBNAME App\nForward BLOCK 1 LEVEL 6 IMGUI Key_AppForward BINDINGNAME Browser Forward
+  KEY KBNAME Space BLOCK 1 LEVEL 6 IMGUI Key_Space BINDINGNAME Space EXTW 2
+  
+  KEY KBNAME Left##ArrLeft BLOCK 2 LEVEL 6 IMGUI Key_LeftArrow BINDINGNAME Left
+  KEY KBNAME Down##ArrDown BLOCK 2 LEVEL 6 IMGUI Key_DownArrow BINDINGNAME Down
+  KEY KBNAME Right##ArrRight BLOCK 2 LEVEL 6 IMGUI Key_RightArrow BINDINGNAME Right
+  
+  KEY KBNAME 0##Num0 BLOCK 3 LEVEL 6 IMGUI Key_Keypad0 BINDINGNAME Num 0  EXTW 2
+  KEY KBNAME ,##NumDel BLOCK 3 LEVEL 6 IMGUI Key_KeypadDecimal BINDINGNAME Num Del 
+ENDLAYOUT>  
+
+
+
+
+<LAYOUT
+  NAME AZERTY
+  KEY KBNAME Esc BLOCK 1 LEVEL 1 IMGUI Key_Escape BINDINGNAME ESC
+  KEY KBNAME F1 BLOCK 1 LEVEL 1 IMGUI Key_F1 BINDINGNAME F1
+  KEY KBNAME F2 BLOCK 1 LEVEL 1 IMGUI Key_F2 BINDINGNAME F2
+  KEY KBNAME F3 BLOCK 1 LEVEL 1 IMGUI Key_F3 BINDINGNAME F3
+  KEY KBNAME F4 BLOCK 1 LEVEL 1 IMGUI Key_F4 BINDINGNAME F4
+  KEY KBNAME F5 BLOCK 1 LEVEL 1 IMGUI Key_F5 BINDINGNAME F5
+  KEY KBNAME F6 BLOCK 1 LEVEL 1 IMGUI Key_F6 BINDINGNAME F6
+  KEY KBNAME F7 BLOCK 1 LEVEL 1 IMGUI Key_F7 BINDINGNAME F7
+  KEY KBNAME F8 BLOCK 1 LEVEL 1 IMGUI Key_F8 BINDINGNAME F8
+  KEY KBNAME F9 BLOCK 1 LEVEL 1 IMGUI Key_F9 BINDINGNAME F9
+  KEY KBNAME F10 BLOCK 1 LEVEL 1 IMGUI Key_F10 BINDINGNAME F10
+  KEY KBNAME F11 BLOCK 1 LEVEL 1 IMGUI Key_F11 BINDINGNAME F11
+  KEY KBNAME F12 BLOCK 1 LEVEL 1 IMGUI Key_F12 BINDINGNAME F12
+  
+  KEY KBNAME ~ BLOCK 1 LEVEL 2 IMGUI Key_GraveAccent BINDINGNAME `
+  KEY KBNAME 1 BLOCK 1 LEVEL 2 IMGUI Key_1 BINDINGNAME 1
+  KEY KBNAME 2 BLOCK 1 LEVEL 2 IMGUI Key_2 BINDINGNAME 2
+  KEY KBNAME 3 BLOCK 1 LEVEL 2 IMGUI Key_3 BINDINGNAME 3
+  KEY KBNAME 4 BLOCK 1 LEVEL 2 IMGUI Key_4 BINDINGNAME 4
+  KEY KBNAME 5 BLOCK 1 LEVEL 2 IMGUI Key_5 BINDINGNAME 5
+  KEY KBNAME 6 BLOCK 1 LEVEL 2 IMGUI Key_6 BINDINGNAME 6
+  KEY KBNAME 7 BLOCK 1 LEVEL 2 IMGUI Key_7 BINDINGNAME 7
+  KEY KBNAME 8 BLOCK 1 LEVEL 2 IMGUI Key_8 BINDINGNAME 8
+  KEY KBNAME 9 BLOCK 1 LEVEL 2 IMGUI Key_9 BINDINGNAME 9
+  KEY KBNAME 0 BLOCK 1 LEVEL 2 IMGUI Key_0 BINDINGNAME 0
+  KEY KBNAME BackSpace BLOCK 1 LEVEL 2 IMGUI Key_Backspace BINDINGNAME Backspace EXTW 2
+  
+  KEY KBNAME Insert BLOCK 2 LEVEL 2 IMGUI Key_Insert BINDINGNAME Insert
+  KEY KBNAME Home BLOCK 2 LEVEL 2 IMGUI Key_Home BINDINGNAME Home
+  KEY KBNAME PG\nPRÈC BLOCK 2 LEVEL 2 IMGUI Key_PageUp BINDINGNAME PG.PRÈC
+  
+  KEY KBNAME Num\nLock BLOCK 3 LEVEL 2 IMGUI Key_NumLock BINDINGNAME Num Lock
+  KEY KBNAME /##Num/ BLOCK 3 LEVEL 2 IMGUI Key_KeypadDivide BINDINGNAME Num /
+  KEY KBNAME *##Num* BLOCK 3 LEVEL 2 IMGUI Key_KeypadMultiply BINDINGNAME Num *
+  KEY KBNAME -##Num- BLOCK 3 LEVEL 2 IMGUI Key_KeypadSubtract BINDINGNAME Num -
+  
+  KEY KBNAME Tab BLOCK 1 LEVEL 3 IMGUI Key_Tab BINDINGNAME Tab EXTW 1.5
+  KEY KBNAME A BLOCK 1 LEVEL 3 IMGUI Key_A BINDINGNAME A
+  KEY KBNAME Z BLOCK 1 LEVEL 3 IMGUI Key_Z BINDINGNAME Z
+  KEY KBNAME E BLOCK 1 LEVEL 3 IMGUI Key_E BINDINGNAME E
+  KEY KBNAME R BLOCK 1 LEVEL 3 IMGUI Key_R BINDINGNAME R
+  KEY KBNAME T BLOCK 1 LEVEL 3 IMGUI Key_T BINDINGNAME T
+  KEY KBNAME Y BLOCK 1 LEVEL 3 IMGUI Key_Y BINDINGNAME Y
+  KEY KBNAME U BLOCK 1 LEVEL 3 IMGUI Key_U BINDINGNAME U
+  KEY KBNAME I BLOCK 1 LEVEL 3 IMGUI Key_I BINDINGNAME I
+  KEY KBNAME O BLOCK 1 LEVEL 3 IMGUI Key_O BINDINGNAME O
+  KEY KBNAME P BLOCK 1 LEVEL 3 IMGUI Key_P BINDINGNAME P
+  KEY KBNAME ^ BLOCK 1 LEVEL 3 IMGUI 94 BINDINGNAME ^
+  KEY KBNAME $ BLOCK 1 LEVEL 3 IMGUI 36 BINDINGNAME $
+  
+  KEY KBNAME Del BLOCK 2 LEVEL 3 IMGUI Key_Delete BINDINGNAME Delete
+  KEY KBNAME End BLOCK 2 LEVEL 3 IMGUI Key_End BINDINGNAME End
+  KEY KBNAME PG\nSUIV BLOCK 2 LEVEL 3 IMGUI Key_PageDown BINDINGNAME PG.SUIV
+  
+  KEY KBNAME 7##Num7 BLOCK 3 LEVEL 3 IMGUI Key_Keypad7 BINDINGNAME Num 7
+  KEY KBNAME 8##Num8 BLOCK 3 LEVEL 3 IMGUI Key_Keypad8 BINDINGNAME Num 8
+  KEY KBNAME 9##Num9 BLOCK 3 LEVEL 3 IMGUI Key_Keypad9 BINDINGNAME Num 9
+  KEY KBNAME +##Num+ BLOCK 3 LEVEL 3 IMGUI Key_KeypadAdd BINDINGNAME Num + EXTH 2
+  
+  KEY KBNAME Caps\nLock BLOCK 1 LEVEL 4 IMGUI Key_CapsLock BINDINGNAME Caps Lock EXTW 2
+  
+  
+  KEY KBNAME Q BLOCK 1 LEVEL 4 IMGUI Key_Q BINDINGNAME Q
+  KEY KBNAME S BLOCK 1 LEVEL 4 IMGUI Key_S BINDINGNAME S
+  KEY KBNAME D BLOCK 1 LEVEL 4 IMGUI Key_D BINDINGNAME D
+  KEY KBNAME F BLOCK 1 LEVEL 4 IMGUI Key_F BINDINGNAME F
+  KEY KBNAME G BLOCK 1 LEVEL 4 IMGUI Key_G BINDINGNAME G
+  KEY KBNAME H BLOCK 1 LEVEL 4 IMGUI Key_H BINDINGNAME H
+  KEY KBNAME J BLOCK 1 LEVEL 4 IMGUI Key_J BINDINGNAME J
+  KEY KBNAME K BLOCK 1 LEVEL 4 IMGUI Key_K BINDINGNAME K
+  KEY KBNAME L BLOCK 1 LEVEL 4 IMGUI Key_L BINDINGNAME L 
+  KEY KBNAME M BLOCK 1 LEVEL 4 IMGUI Key_M BINDINGNAME M 
+  KEY KBNAME C249 BLOCK 1 LEVEL 4 IMGUI 24 BINDINGNAME C249
+  KEY KBNAME * BLOCK 1 LEVEL 4 IMGUI 24 BINDINGNAME *
+  KEY KBNAME Enter BLOCK 1 LEVEL 4 IMGUI Key_Enter BINDINGNAME Enter EXTW 2
+  
+  KEY KBNAME 4##Num4 BLOCK 3 LEVEL 4 IMGUI Key_Keypad4 BINDINGNAME Num 4
+  KEY KBNAME 5##Num5 BLOCK 3 LEVEL 4 IMGUI Key_Keypad5 BINDINGNAME Num 5
+  KEY KBNAME 6##Num6 BLOCK 3 LEVEL 4 IMGUI Key_Keypad6 BINDINGNAME Num 6
+  
+  KEY KBNAME Shift##Lshift BLOCK 1 LEVEL 5 IMGUI Key_LeftShift BINDINGNAME Shift EXTW 2 
+  KEY KBNAME W BLOCK 1 LEVEL 5 IMGUI Key_W BINDINGNAME W
+  KEY KBNAME X BLOCK 1 LEVEL 5 IMGUI Key_X BINDINGNAME X
+  KEY KBNAME C BLOCK 1 LEVEL 5 IMGUI Key_C BINDINGNAME C
+  KEY KBNAME V BLOCK 1 LEVEL 5 IMGUI Key_V BINDINGNAME V
+  KEY KBNAME B BLOCK 1 LEVEL 5 IMGUI Key_B BINDINGNAME B
+  KEY KBNAME N BLOCK 1 LEVEL 5 IMGUI Key_N BINDINGNAME N
+  KEY KBNAME , BLOCK 1 LEVEL 5 IMGUI Key_Comma BINDINGNAME ,
+  KEY KBNAME ; BLOCK 1 LEVEL 5 IMGUI Key_Semicolon BINDINGNAME ;
+  KEY KBNAME : BLOCK 1 LEVEL 5 IMGUI 58 BINDINGNAME :
+  KEY KBNAME ! BLOCK 1 LEVEL 5 IMGUI 33 BINDINGNAME !
+  
+  KEY KBNAME Shift##Rshift BLOCK 1 LEVEL 5 IMGUI Key_RightShift BINDINGNAME Shift EXTW 2
+  
+  KEY KBNAME dummy BLOCK 2 LEVEL 5 IMGUI dummy BINDINGNAME dummy
+  KEY KBNAME Up##ArrUp BLOCK 2 LEVEL 5 IMGUI Key_UpArrow BINDINGNAME Up
+  
+  KEY KBNAME 1##Num1 BLOCK 3 LEVEL 5 IMGUI Key_Keypad1 BINDINGNAME Num 1
+  KEY KBNAME 2##Num2 BLOCK 3 LEVEL 5 IMGUI Key_Keypad2 BINDINGNAME Num 2
+  KEY KBNAME 3##Num3 BLOCK 3 LEVEL 5 IMGUI Key_Keypad3 BINDINGNAME Num 3
+  KEY KBNAME Enter##NumEnter BLOCK 3 LEVEL 5 IMGUI Key_KeypadEnter BINDINGNAME Num Enter EXTH 2
+  
+  KEY KBNAME Ctrl##LCtrl BLOCK 1 LEVEL 6 IMGUI Key_LeftCtrl BINDINGNAME Ctrl
+  KEY KBNAME Alt BLOCK 1 LEVEL 6 IMGUI Key_LeftAlt BINDINGNAME Alt  
+  KEY KBNAME Win\nL Super##Win BLOCK 1 LEVEL 6 IMGUI Key_LeftSuper BINDINGNAME Win
+  KEY KBNAME Win\nR Super##WinRight BLOCK 1 LEVEL 6 IMGUI Key_RightSuper BINDINGNAME Win
+  KEY KBNAME App\nBack BLOCK 1 LEVEL 6 IMGUI Key_AppBack BINDINGNAME Browser Back
+  KEY KBNAME App\nForward BLOCK 1 LEVEL 6 IMGUI Key_AppForward BINDINGNAME Browser Forward
+  KEY KBNAME Space BLOCK 1 LEVEL 6 IMGUI Key_Space BINDINGNAME Space
+  
+  KEY KBNAME Left##ArrLeft BLOCK 2 LEVEL 6 IMGUI Key_LeftArrow BINDINGNAME Left
+  KEY KBNAME Down##ArrDown BLOCK 2 LEVEL 6 IMGUI Key_DownArrow BINDINGNAME Down
+  KEY KBNAME Right##ArrRight BLOCK 2 LEVEL 6 IMGUI Key_RightArrow BINDINGNAME Right
+  
+  KEY KBNAME 0##Num0 BLOCK 3 LEVEL 6 IMGUI Key_Keypad0 BINDINGNAME Num 0  EXTW 2
+  KEY KBNAME ,##NumDel BLOCK 3 LEVEL 6 IMGUI Key_KeypadDecimal BINDINGNAME Num Del 
+  
+  
+  
+ENDLAYOUT>   
+]]
+
+  local f = io.open(layouts_fp, 'wb')
+  if f then 
+    f:write(content)
+    f:close()
+  end
+  
+  return content
+end
+----------------------------------------------------------------------------------------- 
+function main()
+  local is_new_value,filename,sectionID,cmdID,mode,resolution,val,contextstr = reaper.get_action_context()
+  DATA:ValidateLayouts(filename) 
   EXT_defaults = VF_CopyTable(EXT)
   UI.MAIN() 
 end  
