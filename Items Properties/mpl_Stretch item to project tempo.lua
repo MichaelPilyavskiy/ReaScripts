@@ -1,9 +1,9 @@
 -- @description Stretch item to project tempo
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # ask before stretch
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -486,8 +486,8 @@
   
   -------------------------------------------------------------------- 
   function DATA2:ExtractTempoCorrelation(beatmarks)
-    local q_sz = 500
-    local max_tempo = 250
+    local q_sz = 200
+    local max_tempo = 200
     local sz = #beatmarks
     local corr_sz = max_tempo*q_sz
     local tempo_corellation = {} for i = 1, corr_sz do tempo_corellation[i] = 0 end
@@ -530,20 +530,24 @@
       if not take or TakeIsMIDI(take ) then return end 
        tempo_bpm = DATA2:GetItemTempo(item)
       if tempo_bpm then
-        local  master_tempo = Master_GetTempo()
-        local rate =  master_tempo / tempo_bpm
-        if rate  < 0.6 then 
-          tempo_bpm = tempo_bpm /2 
-         elseif rate  > 1.4 then 
-          tempo_bpm = tempo_bpm *2 
+      
+        local ret = MB('Stretch item with tempo '..tempo_bpm..'?','Stretch to tempo',3 )
+        if ret == 6 then 
+          local  master_tempo = Master_GetTempo()
+          local rate =  master_tempo / tempo_bpm
+          if rate  < 0.6 then 
+            tempo_bpm = tempo_bpm /2 
+           elseif rate  > 1.4 then 
+            tempo_bpm = tempo_bpm *2 
+          end
+          local rate =  master_tempo / tempo_bpm
+          local cur_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+          SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE', cur_rate *rate  )
+          SetMediaItemInfo_Value( item, 'D_LENGTH',DATA2.item_len/rate  )
+          reaper.UpdateArrange()
+          reaper.Undo_BeginBlock2( 0 )
+          reaper.Undo_EndBlock2( 0, 'Stretch item to tempo', 0xFFFFFFFF )
         end
-        local rate =  master_tempo / tempo_bpm
-        local cur_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
-        SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE', cur_rate *rate  )
-        SetMediaItemInfo_Value( item, 'D_LENGTH',DATA2.item_len/rate  )
-        reaper.UpdateArrange()
-        reaper.Undo_BeginBlock2( 0 )
-        reaper.Undo_EndBlock2( 0, 'Stretch item to tempo', 0xFFFFFFFF )
       end
   end 
   if VF_CheckReaperVrs(6.68,true)  then main() end
