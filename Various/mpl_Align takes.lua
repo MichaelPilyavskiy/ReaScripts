@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 3.05
+-- @version 3.06
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix error on missing data
+--    # fix ReaImGui API version requirement
 
 
 
@@ -16,9 +16,11 @@
       * v0.23 (2016-01-25) Split from Warping tool
       * v0.01 (2015-09-01) Alignment / Warping / Tempomatching tool idea
   ]]
+  
+  
     
 --NOT reaper NOT gfx
-local vrs = 3.05
+local vrs = 3.06
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -28,7 +30,7 @@ local vrs = 3.05
   
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9.2'
+  ImGui = require 'imgui' '0.9.3'
   
   
   
@@ -196,6 +198,7 @@ for key in pairs(reaper) do _G[key]=reaper[key] end
 
 
 function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
+
 -------------------------------------------------------------------------------- 
 function UI.MAIN_PushStyle(key, value, value2)  
   if not ctx then return end
