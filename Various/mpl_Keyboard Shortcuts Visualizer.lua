@@ -1,19 +1,16 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix remove binding
---    + add dialog for removing shortcut
---    + Add mpl_Keyboard Shortcuts Visualizer - layout.txt in the script path if not exist
---    # various patches for support external mapping
+--    # fix rewrite mapping
 
 
 
 
     
-local vrs = 1.04
+local vrs = 1.05
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -1275,16 +1272,16 @@ function DATA:ValidateLayouts(filename)
   DATA.extlayouts = {}
   local layouts_fp = filename:gsub('%.lua',' - layout.txt')
   
-  local content = DATA:ValidateLayouts_Init(layouts_fp) 
+  --local content = DATA:ValidateLayouts_Init(layouts_fp) 
   
   
-  --[[local f = io.open(layouts_fp, 'rb') 
+  local f = io.open(layouts_fp, 'rb') 
   if f then 
     content = f:read('a')
     f:close()
    else
     content = DATA:ValidateLayouts_Init(layouts_fp)
-  end ]]
+  end
   if not content then return end
   
   
