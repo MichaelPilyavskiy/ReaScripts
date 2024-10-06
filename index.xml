@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67c1bf7b53578b1d310382d6dc9f9158bc05c3f3" name="MPL Scripts">
+<index version="1" commit="64758cd9f713b98e5f000e58fb6fb8400e43db59" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11720,6 +11720,10 @@ various fixes]]></changelog>
 + Add mpl_Keyboard Shortcuts Visualizer - layout.txt in the script path if not exist
 # various patches for support external mapping]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4aa6577cceef638c8777928683883bfe7cf3a4e6/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2024-10-06T05:54:55Z">
+        <changelog><![CDATA[# fix rewrite mapping]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64758cd9f713b98e5f000e58fb6fb8400e43db59/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
