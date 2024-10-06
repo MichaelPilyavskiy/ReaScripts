@@ -1,5 +1,5 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -10,7 +10,7 @@
 
 
     
-local vrs = 1.05
+local vrs = 1.06
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -238,7 +238,7 @@ function  DATA:Init_kbDefinition_fitUItoActionList(used_shortcuts_t)
   if not (used_shortcuts_t and used_shortcuts_t.mainkey) then return end
   local mainkey = used_shortcuts_t.mainkey
   for key in pairs(DATA.kb) do
-    if DATA.kb[key].mainkey and DATA.kb[key].mainkey == mainkey then
+    if DATA.kb[key].mainkey and DATA.kb[key].mainkey:lower() == mainkey:lower() then
       if not DATA.kb[key].bindings then DATA.kb[key].bindings = {} end
       local bindingID = used_shortcuts_t.modifierflags 
       
@@ -1516,7 +1516,7 @@ ENDLAYOUT>
   KEY KBNAME K BLOCK 1 LEVEL 4 IMGUI Key_K BINDINGNAME K
   KEY KBNAME L BLOCK 1 LEVEL 4 IMGUI Key_L BINDINGNAME L 
   KEY KBNAME M BLOCK 1 LEVEL 4 IMGUI Key_M BINDINGNAME M 
-  KEY KBNAME C249 BLOCK 1 LEVEL 4 IMGUI 24 BINDINGNAME C249
+  KEY KBNAME C195 BLOCK 1 LEVEL 4 IMGUI 195 BINDINGNAME C195
   KEY KBNAME * BLOCK 1 LEVEL 4 IMGUI 24 BINDINGNAME *
   KEY KBNAME Enter BLOCK 1 LEVEL 4 IMGUI Key_Enter BINDINGNAME Enter EXTW 2
   
