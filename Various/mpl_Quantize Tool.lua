@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.20
+-- @version 3.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # fix targets / items / obey snap offset
+--    # fix SWS grooves path
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.20
+    DATA.extstate.version = 3.21
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -816,7 +816,7 @@
   function DATA2:GetAnchorPoints_pattern()  
     if DATA.extstate.CONF_ref_grid&16 == 16 then 
       local name = DATA.extstate.CONF_ref_pattern_name
-      local fp =  GetResourcePath()..'/Grooves/'..name..'.rgt'
+      local fp =  GetResourcePath()..'/Data/Grooves/'..name..'.rgt'
       local f = io.open(fp, 'r')
       local content
       if f then 
@@ -2060,7 +2060,7 @@
     
     -- SWS
       local readoutw_extwSWSgr = 300
-      local f_table = GUI_swsgroovesmenu_GetListedFile(GetResourcePath()..'/Grooves/')
+      local f_table = GUI_swsgroovesmenu_GetListedFile(GetResourcePath()..'/Data/Grooves/')
       local SWSgr = {}
       for i = 1 , #f_table do 
         if f_table[i]:match('%.rgt') then
