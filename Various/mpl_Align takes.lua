@@ -1,5 +1,5 @@
 -- @description Align Takes
--- @version 3.06
+-- @version 3.07
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -20,7 +20,7 @@
   
     
 --NOT reaper NOT gfx
-local vrs = 3.06
+local vrs = 3.07
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -344,6 +344,7 @@ function UI.MAIN_draw(open)
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
+    
     local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
@@ -367,7 +368,9 @@ function UI.MAIN_draw(open)
      else
       ImGui.PopStyleVar(ctx, UI.pushcnt)
       ImGui.PopStyleColor(ctx, UI.pushcnt2) 
+      ImGui.End(ctx)
     end 
+    
     ImGui.PopFont( ctx ) 
     if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
   
@@ -570,9 +573,16 @@ end
       for tid in pairs(DATA.presets.user) do
         if DATA.presets.user[tid]  then 
           local name = DATA.presets.user[tid].CONF_NAME
-          ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5) if ImGui_Button( ctx, 'X##presclose'..tid, UI.main_butclosew, 0 ) then DATA.PRESET_RemoveUserPreset(tid) DATA.PRESET_GetExtStatePresets() end ImGui.PopStyleVar(ctx) 
+          ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5) 
+          if ImGui_Button( ctx, 'X##presclose'..tid, UI.main_butclosew, 0 ) then 
+            DATA.PRESET_RemoveUserPreset(tid) 
+            DATA.PRESET_GetExtStatePresets() 
+          end 
+          ImGui.PopStyleVar(ctx) 
           ImGui.SameLine(ctx)
-          if ImGui_Button( ctx, name..'##pres'..tid, but_w, 0 ) then DATA.PRESET_ApplyPreset(DATA.presets.user[tid]) end
+          if ImGui_Button( ctx, name..'##pres'..tid, but_w, 0 ) then 
+            DATA.PRESET_ApplyPreset(DATA.presets.user[tid]) 
+          end
           ImGui.SetItemTooltip(ctx, name)  
         end
       end
@@ -655,8 +665,8 @@ end
         --UI.MAIN_PushStyle('Col_TabActive',UI.butBg_green, 1, true) 
         UI.MAIN_PushStyle('Col_TabHovered',UI.butBg_green, 0.8, true) 
        else
-        ImGui.PopStyleColor(ctx, 3)
-        UI.pushcnt2 = UI.pushcnt2 - 3
+        ImGui.PopStyleColor(ctx, 2)
+        UI.pushcnt2 = UI.pushcnt2 - 2
       end
     end
     
