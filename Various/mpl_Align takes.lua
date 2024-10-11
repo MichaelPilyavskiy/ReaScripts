@@ -1,5 +1,5 @@
 -- @description Align Takes
--- @version 3.07
+-- @version 3.08
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -20,7 +20,7 @@
   
     
 --NOT reaper NOT gfx
-local vrs = 3.07
+local vrs = 3.08
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -401,6 +401,14 @@ function UI.MAINloop()
   
   -- handle xy
   DATA:handleViewportXYWH()
+  
+  if DATA.sched then
+    if EXT.CONF_initflags&1==1 then DATA.f01_GetReferenceTake() end 
+    if EXT.CONF_initflags&2==2 then DATA.f02_GetDubTake(EXT.CONF_initflags&1==1) end 
+    DATA.sched = nil
+  end
+  
+  
   -- data
   if UI.open then defer(UI.MAINloop) end
 end
@@ -422,9 +430,9 @@ function UI.MAIN()
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
   
-  
-  if EXT.CONF_initflags&1==1 then DATA.f01_GetReferenceTake() end 
-  if EXT.CONF_initflags&2==2 then DATA.f02_GetDubTake(EXT.CONF_initflags&1==1) end 
+  DATA.sched = EXT.CONF_initflags
+  --if EXT.CONF_initflags&1==1 then DATA.f01_GetReferenceTake() end 
+  --if EXT.CONF_initflags&2==2 then DATA.f02_GetDubTake(EXT.CONF_initflags&1==1) end 
   
   -- run loop
   defer(UI.MAINloop)
@@ -827,7 +835,9 @@ function UI.draw_flow_00data_dub(showonlyone)
           local srcid = DATA.AT.dubdata[dubID].output_srcdest[i].src
           local id = math.ceil((srcid / sz) * UI.plotW)
           --dubdata_points[id] = 1
-          dubdata_points[id+1] = 1
+          if id + 1 < UI.plotW then
+            dubdata_points[id+1] = 1
+          end
         end
       end 
       
