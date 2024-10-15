@@ -1,16 +1,16 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix rewrite mapping
+--    # test patch for Mac users
 
 
 
 
     
-local vrs = 1.06
+local vrs = 1.07
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -22,7 +22,7 @@ local vrs = 1.06
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.9.3'
   
-  
+  ismac = reaper.GetOS():match('Win')==nil
   
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
@@ -105,7 +105,13 @@ DATA = {
           --[2] = 'MIDI',
         }
         }
-        
+if ismac ==true then   
+  DATA.reapervisiblemodifiers_mapping = {
+      ['Ctrl'] = ImGui.Mod_Super,
+      ['Command'] = ImGui.Mod_Ctrl,
+      ['Option'] = ImGui.Mod_Alt,
+    }
+end
 -------------------------------------------------------------------------------- INIT UI locals
 for key in pairs(reaper) do _G[key]=reaper[key] end 
 --local ctx
@@ -446,9 +452,25 @@ function UI.draw_KeyDetails_tooltip(key_src)
       {str = 'Shift+Alt+Win', flags = Shift_flag|Alt_flag|Win_flag},
       {str = 'Ctrl+Alt+Win', flags = Ctrl_flag|Alt_flag|Win_flag},
       {str = 'Shift+Ctrl+Alt+Win', flags = Shift_flag|Ctrl_flag|Alt_flag|Win_flag},
-      
-      
       }
+    
+    if ismac == true then
+      Command_flag = DATA.reapervisiblemodifiers_mapping.Command
+      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
+      Option_flag = DATA.reapervisiblemodifiers_mapping.Option
+      
+      
+      modifiers = {
+        {str = '-', flags = 0},
+        {str = 'Command', flags = Command_flag},
+        {str = 'Ctrl', flags = Ctrl_flag},
+        {str = 'Command+Ctrl', flags = Command_flag|Ctrl_flag},
+        {str = 'Option', flags = Option_flag},
+        {str = 'Command+Option', flags = Command_flag|Option_flag},
+        {str = 'Ctrl+Option', flags = Ctrl_flag|Option_flag},
+        {str = 'Command+Ctrl+Option', flags = Command_flag|Ctrl_flag|Option_flag},
+        }
+    end
     
     for i = 1 , #modifiers do
       if DATA.kb[key_src].bindings and DATA.kb[key_src].bindings[modifiers[i].flags] then
@@ -551,12 +573,13 @@ function UI.draw_KeyDetails(key_src0)
     
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,5,2)
     if ImGui.BeginMenuBar( ctx ) then
-      if ImGui.BeginMenu(ctx, 'Key details ['..DATA.selectedkey..']:') then
+      ImGui.Text(ctx,'Key details ['..(DATA.selectedkey:match('(.-)##') or DATA.selectedkey )..']:')
+      --[[if ImGui.BeginMenu(ctx, 'Key details ['..DATA.selectedkey..']:') then
         --ImGui_MenuItem( ctx, 'Key details ['..DATA.selectedkey..']:')
         --ImGui.SeparatorText(ctx, 'Actions')
         
         ImGui.EndMenu(ctx)
-      end
+      end]]
       ImGui.EndMenuBar( ctx ) 
     end
     
@@ -587,6 +610,26 @@ function UI.draw_KeyDetails(key_src0)
       
       
       }
+      
+    if ismac == true then
+      Command_flag = DATA.reapervisiblemodifiers_mapping.Command
+      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
+      Option_flag = DATA.reapervisiblemodifiers_mapping.Option
+      
+      
+      modifiers = {
+        {str = '-', flags = 0},
+        {str = 'Command', flags = Command_flag},
+        {str = 'Ctrl', flags = Ctrl_flag},
+        {str = 'Command+Ctrl', flags = Command_flag|Ctrl_flag},
+        {str = 'Option', flags = Option_flag},
+        {str = 'Command+Option', flags = Command_flag|Option_flag},
+        {str = 'Ctrl+Option', flags = Ctrl_flag|Option_flag},
+        {str = 'Command+Ctrl+Option', flags = Command_flag|Ctrl_flag|Option_flag},
+        }
+    end
+    
+    
     if ImGui.BeginTable(ctx, 'currentkeytable', 2, ImGui.TableFlags_None|ImGui.TableFlags_BordersInnerV, 0, 0, 0) then 
       ImGui.TableSetupColumn(ctx, 'Modifier', ImGui.TableColumnFlags_None|ImGui.TableColumnFlags_WidthFixed, 100, 0)
       ImGui.TableSetupColumn(ctx, 'Command', ImGui.TableColumnFlags_None|ImGui.TableColumnFlags_WidthStretch, 0.65, 1)
@@ -710,7 +753,7 @@ function UI.draw_keyb()
     local key_name = key:gsub('\\n','\n')
     if key_name:match('C%d+') then
       local char = key_name:match('C(%d+)')
-      if tonumber(char) and string.char(tonumber(char)) then key_name = string.char(tonumber(char)) end
+      if tonumber(char) and string.char(tonumber(char)) then key_name = utf8.char(tonumber(char)) end
     end
     if ImGui.Button(ctx, key_name,butw,buth) then
       DATA.selectedkey = key
