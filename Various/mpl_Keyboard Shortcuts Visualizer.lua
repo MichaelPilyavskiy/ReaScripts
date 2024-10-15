@@ -1,16 +1,16 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # test patch for Mac users
+--    # test2 patch for Mac users
 
 
 
 
     
-local vrs = 1.07
+local vrs = 1.08
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -22,7 +22,8 @@ local vrs = 1.07
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.9.3'
   
-  ismac = reaper.GetOS():match('Win')==nil
+  local OS = reaper.GetOS()
+  ismac = OS:match('Win')==nil
   
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
@@ -107,9 +108,9 @@ DATA = {
         }
 if ismac ==true then   
   DATA.reapervisiblemodifiers_mapping = {
-      ['Ctrl'] = ImGui.Mod_Super,
-      ['Command'] = ImGui.Mod_Ctrl,
-      ['Option'] = ImGui.Mod_Alt,
+      ['Shift'] = ImGui.Mod_Super,
+      ['Cmd'] = ImGui.Mod_Ctrl,
+      ['Opt'] = ImGui.Mod_Alt,
     }
 end
 -------------------------------------------------------------------------------- INIT UI locals
@@ -429,12 +430,16 @@ function UI.draw_KeyDetails_tooltip(key_src)
   if ImGui.BeginItemTooltip(ctx) then
     
     
-    local Shift_flag = DATA.reapervisiblemodifiers_mapping.Shift
-    local Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
-    local Alt_flag = DATA.reapervisiblemodifiers_mapping.Alt
-    local Win_flag = DATA.reapervisiblemodifiers_mapping.Win
+    local modifiers, Shift_flag, Ctrl_flag, Alt_flag, Win_flag
     
-    local modifiers = {
+    if ismac ~= true then
+        
+      Shift_flag = DATA.reapervisiblemodifiers_mapping.Shift
+      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
+      Alt_flag = DATA.reapervisiblemodifiers_mapping.Alt
+      Win_flag = DATA.reapervisiblemodifiers_mapping.Win
+    
+      modifiers = {
       {str = '-', flags = 0},
       {str = 'Shift', flags = Shift_flag},
       {str = 'Ctrl', flags = Ctrl_flag},
@@ -452,23 +457,23 @@ function UI.draw_KeyDetails_tooltip(key_src)
       {str = 'Shift+Alt+Win', flags = Shift_flag|Alt_flag|Win_flag},
       {str = 'Ctrl+Alt+Win', flags = Ctrl_flag|Alt_flag|Win_flag},
       {str = 'Shift+Ctrl+Alt+Win', flags = Shift_flag|Ctrl_flag|Alt_flag|Win_flag},
+      
+      
       }
-    
-    if ismac == true then
-      Command_flag = DATA.reapervisiblemodifiers_mapping.Command
-      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
-      Option_flag = DATA.reapervisiblemodifiers_mapping.Option
-      
-      
+     else
+      Command_flag = DATA.reapervisiblemodifiers_mapping.Cmd
+      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Shift
+      Option_flag = DATA.reapervisiblemodifiers_mapping.Opt
+       
       modifiers = {
         {str = '-', flags = 0},
-        {str = 'Command', flags = Command_flag},
-        {str = 'Ctrl', flags = Ctrl_flag},
-        {str = 'Command+Ctrl', flags = Command_flag|Ctrl_flag},
-        {str = 'Option', flags = Option_flag},
-        {str = 'Command+Option', flags = Command_flag|Option_flag},
-        {str = 'Ctrl+Option', flags = Ctrl_flag|Option_flag},
-        {str = 'Command+Ctrl+Option', flags = Command_flag|Ctrl_flag|Option_flag},
+        {str = 'Cmd', flags = Command_flag},
+        {str = 'Shift', flags = Ctrl_flag},
+        {str = 'Cmd+Shift', flags = Command_flag|Ctrl_flag},
+        {str = 'Opt', flags = Option_flag},
+        {str = 'Cmd+Opt', flags = Command_flag|Option_flag},
+        {str = 'Shift+Opt', flags = Ctrl_flag|Option_flag},
+        {str = 'Cmd+Shift+Opt', flags = Command_flag|Ctrl_flag|Option_flag},
         }
     end
     
@@ -584,12 +589,17 @@ function UI.draw_KeyDetails(key_src0)
     end
     
     ImGui.PushFont(ctx, DATA.font3) 
-    local Shift_flag = DATA.reapervisiblemodifiers_mapping.Shift
-    local Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
-    local Alt_flag = DATA.reapervisiblemodifiers_mapping.Alt
-    local Win_flag = DATA.reapervisiblemodifiers_mapping.Win
     
-    local modifiers = {
+    local modifiers, Shift_flag, Ctrl_flag, Alt_flag, Win_flag
+    
+    if ismac ~= true then
+        
+      Shift_flag = DATA.reapervisiblemodifiers_mapping.Shift
+      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
+      Alt_flag = DATA.reapervisiblemodifiers_mapping.Alt
+      Win_flag = DATA.reapervisiblemodifiers_mapping.Win
+    
+      modifiers = {
       {str = '-', flags = 0},
       {str = 'Shift', flags = Shift_flag},
       {str = 'Ctrl', flags = Ctrl_flag},
@@ -610,22 +620,20 @@ function UI.draw_KeyDetails(key_src0)
       
       
       }
-      
-    if ismac == true then
-      Command_flag = DATA.reapervisiblemodifiers_mapping.Command
-      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Ctrl
-      Option_flag = DATA.reapervisiblemodifiers_mapping.Option
-      
-      
+     else
+      Command_flag = DATA.reapervisiblemodifiers_mapping.Cmd
+      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Shift
+      Option_flag = DATA.reapervisiblemodifiers_mapping.Opt
+       
       modifiers = {
         {str = '-', flags = 0},
-        {str = 'Command', flags = Command_flag},
-        {str = 'Ctrl', flags = Ctrl_flag},
-        {str = 'Command+Ctrl', flags = Command_flag|Ctrl_flag},
-        {str = 'Option', flags = Option_flag},
-        {str = 'Command+Option', flags = Command_flag|Option_flag},
-        {str = 'Ctrl+Option', flags = Ctrl_flag|Option_flag},
-        {str = 'Command+Ctrl+Option', flags = Command_flag|Ctrl_flag|Option_flag},
+        {str = 'Cmd', flags = Command_flag},
+        {str = 'Shift', flags = Ctrl_flag},
+        {str = 'Cmd+Shift', flags = Command_flag|Ctrl_flag},
+        {str = 'Opt', flags = Option_flag},
+        {str = 'Cmd+Opt', flags = Command_flag|Option_flag},
+        {str = 'Shift+Opt', flags = Ctrl_flag|Option_flag},
+        {str = 'Cmd+Shift+Opt', flags = Command_flag|Ctrl_flag|Option_flag},
         }
     end
     
