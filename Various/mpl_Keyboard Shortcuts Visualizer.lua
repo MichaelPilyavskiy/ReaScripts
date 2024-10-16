@@ -1,16 +1,16 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # test2 patch for Mac users
+--    # test3 patch for Mac users
 
 
 
 
     
-local vrs = 1.08
+local vrs = 1.09
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -55,7 +55,7 @@ DATA = {
             ['Ctrl'] = ImGui.Mod_Ctrl,
             ['Alt'] = ImGui.Mod_Alt,
             ['Shift'] = ImGui.Mod_Shift,
-            ['Win'] = 1<<15, -- reversed, didn`t found this one from ReaImGui API
+            ['Win'] = ImGui.Mod_Super, 
           },
           
         category={
@@ -107,10 +107,12 @@ DATA = {
         }
         }
 if ismac ==true then   
-  DATA.reapervisiblemodifiers_mapping = {
-      ['Shift'] = ImGui.Mod_Super,
+  DATA.reapervisiblemodifiers_mapping = { 
       ['Cmd'] = ImGui.Mod_Ctrl,
       ['Opt'] = ImGui.Mod_Alt,
+      ['Shift'] = ImGui.Mod_Shift,
+      ['Control'] = ImGui.Mod_Super,
+      
     }
 end
 -------------------------------------------------------------------------------- INIT UI locals
@@ -462,18 +464,32 @@ function UI.draw_KeyDetails_tooltip(key_src)
       }
      else
       Command_flag = DATA.reapervisiblemodifiers_mapping.Cmd
-      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Shift
+      Shift_flag = DATA.reapervisiblemodifiers_mapping.Shift
       Option_flag = DATA.reapervisiblemodifiers_mapping.Opt
+      Control_flag = DATA.reapervisiblemodifiers_mapping.Control
        
       modifiers = {
         {str = '-', flags = 0},
         {str = 'Cmd', flags = Command_flag},
-        {str = 'Shift', flags = Ctrl_flag},
-        {str = 'Cmd+Shift', flags = Command_flag|Ctrl_flag},
+        {str = 'Shift', flags = Shift_flag},
         {str = 'Opt', flags = Option_flag},
+        {str = 'Control', flags = Control_flag},
+        
+        {str = 'Cmd+Shift', flags = Command_flag|Shift_flag},
         {str = 'Cmd+Opt', flags = Command_flag|Option_flag},
-        {str = 'Shift+Opt', flags = Ctrl_flag|Option_flag},
-        {str = 'Cmd+Shift+Opt', flags = Command_flag|Ctrl_flag|Option_flag},
+        {str = 'Cmd+Control', flags = Command_flag|Control_flag},
+        
+        {str = 'Shift+Opt', flags = Shift_flag|Option_flag},
+        {str = 'Shift+Control', flags = Shift_flag|Control_flag},
+        
+        {str = 'Opt+Control', flags = Option_flag|Control_flag},
+        
+        {str = 'Cmd+Shift+Opt', flags = Command_flag|Shift_flag|Option_flag},
+        {str = 'Cmd+Shift+Control', flags = Command_flag|Shift_flag|Control_flag},
+        {str = 'Cmd+Opt+Control', flags = Command_flag|Option_flag|Control_flag},
+        
+        {str = 'Shift+Opt+Control', flags = Shift_flag|Option_flag|Control_flag},
+        {str = 'Cmd+Shift+Opt+Control', flags = Command_flag|Shift_flag|Option_flag|Control_flag},
         }
     end
     
@@ -622,18 +638,32 @@ function UI.draw_KeyDetails(key_src0)
       }
      else
       Command_flag = DATA.reapervisiblemodifiers_mapping.Cmd
-      Ctrl_flag = DATA.reapervisiblemodifiers_mapping.Shift
+      Shift_flag = DATA.reapervisiblemodifiers_mapping.Shift
       Option_flag = DATA.reapervisiblemodifiers_mapping.Opt
+      Control_flag = DATA.reapervisiblemodifiers_mapping.Control
        
       modifiers = {
         {str = '-', flags = 0},
         {str = 'Cmd', flags = Command_flag},
-        {str = 'Shift', flags = Ctrl_flag},
-        {str = 'Cmd+Shift', flags = Command_flag|Ctrl_flag},
+        {str = 'Shift', flags = Shift_flag},
         {str = 'Opt', flags = Option_flag},
+        {str = 'Control', flags = Control_flag},
+        
+        {str = 'Cmd+Shift', flags = Command_flag|Shift_flag},
         {str = 'Cmd+Opt', flags = Command_flag|Option_flag},
-        {str = 'Shift+Opt', flags = Ctrl_flag|Option_flag},
-        {str = 'Cmd+Shift+Opt', flags = Command_flag|Ctrl_flag|Option_flag},
+        {str = 'Cmd+Control', flags = Command_flag|Control_flag},
+        
+        {str = 'Shift+Opt', flags = Shift_flag|Option_flag},
+        {str = 'Shift+Control', flags = Shift_flag|Control_flag},
+        
+        {str = 'Opt+Control', flags = Option_flag|Control_flag},
+        
+        {str = 'Cmd+Shift+Opt', flags = Command_flag|Shift_flag|Option_flag},
+        {str = 'Cmd+Shift+Control', flags = Command_flag|Shift_flag|Control_flag},
+        {str = 'Cmd+Opt+Control', flags = Command_flag|Option_flag|Control_flag},
+        
+        {str = 'Shift+Opt+Control', flags = Shift_flag|Option_flag|Control_flag},
+        {str = 'Cmd+Shift+Opt+Control', flags = Command_flag|Shift_flag|Option_flag|Control_flag},
         }
     end
     
