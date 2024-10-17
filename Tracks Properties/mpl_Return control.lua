@@ -1,10 +1,10 @@
 -- @description Return control
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Right click on Select enters edit destination track name
+--    + Right click on slider enters edit destination track name
 --    + Support #fx wildcard in track name edit field
 --    + Support #preset wildcard in track name edit field
 
@@ -19,7 +19,7 @@
 
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension 0.9+','',0) end
   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  local ImGui = require 'imgui' '0.9'
+  local ImGui = require 'imgui' '0.9.3'
   
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
@@ -207,7 +207,7 @@ function UI.MAIN_draw(open)
     UI.MAIN_PushStyle(ImGui.Col_SliderGrabActive,UI.butBg_green, 1, true) 
     --Constant: Col_SliderGrabActive
     UI.MAIN_PushStyle(ImGui.Col_Tab,UI.main_col, 0.37, true) 
-    UI.MAIN_PushStyle(ImGui.Col_TabActive,UI.main_col, 1, true) 
+    --UI.MAIN_PushStyle(ImGui.Col_TabActive,UI.main_col, 1, true) 
     UI.MAIN_PushStyle(ImGui.Col_TabHovered,UI.main_col, 0.8, true) 
     --Constant: Col_TabUnfocused
     --ImGui.Col_TabUnfocusedActive
@@ -574,8 +574,6 @@ function UI.draw_send(send_t)
       reaper.SetOnlyTrackSelected( send_t.ptr)
       Action(40913)
     end 
-    if ImGui.IsItemHovered( ctx ) then DATA.selectnavigated = true end
-    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right) then send_t.rename_input_mode = true end
     
     -- readout
     --if send_t.D_VOLdb > -6 and send_t.D_VOLdb < 6 then step, step2 = 0.5, 0.2 end
@@ -601,7 +599,9 @@ function UI.draw_send(send_t)
     local sliderW, sliderH = ImGui.GetItemRectSize(ctx)
     if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx) 
     if send_t.rename_input_mode == true then ImGui.EndDisabled( ctx) end
-
+    if ImGui.IsItemHovered( ctx ) then DATA.slidernavigated = true end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right) then send_t.rename_input_mode = true end
+    
     -- name edit field
     if send_t.rename_input_mode == true then
       ImGui.SetCursorPos(ctx, curposX, curposY)
@@ -733,9 +733,9 @@ function UI.draw()
     return 
   end
   local sendcnt= #DATA.available_sends
-  DATA.selectnavigated = false
+  DATA.slidernavigated = false
   for i = 1, sendcnt do  UI.draw_send(DATA.available_sends[i])  end 
-  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) and not DATA.selectnavigated then 
+  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) and not DATA.slidernavigated then 
     DATA.find_plugin = {enabled = true} 
   end
   
