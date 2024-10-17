@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0137fddfffaeb748d85a5a87b01f8ab40442b793" name="MPL Scripts">
+<index version="1" commit="d53b0db7f8172793c4d1c71aca06794ae71f9be4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8645,6 +8645,12 @@ various fixes]]></changelog>
 + Support #fx wildcard in track name edit field
 + Support #preset wildcard in track name edit field]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0137fddfffaeb748d85a5a87b01f8ab40442b793/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
+      <version name="1.11" author="MPL" time="2024-10-17T06:13:26Z">
+        <changelog><![CDATA[+ Right click on slider enters edit destination track name
++ Support #fx wildcard in track name edit field
++ Support #preset wildcard in track name edit field]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d53b0db7f8172793c4d1c71aca06794ae71f9be4/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
