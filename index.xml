@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a62360493bfa4373a23af7d7261c311fe822cbbf" name="MPL Scripts">
+<index version="1" commit="0137fddfffaeb748d85a5a87b01f8ab40442b793" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8640,6 +8640,12 @@ various fixes]]></changelog>
         <changelog><![CDATA[# improve reducing fx names]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b38ba03bff662008c2a75f35619d5d3d3608ef1b/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
+      <version name="1.10" author="MPL" time="2024-10-17T06:07:00Z">
+        <changelog><![CDATA[+ Right click on Select enters edit destination track name
++ Support #fx wildcard in track name edit field
++ Support #preset wildcard in track name edit field]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0137fddfffaeb748d85a5a87b01f8ab40442b793/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
       <metadata>
@@ -8823,6 +8829,12 @@ various fixes]]></changelog>
       <version name="1.23" author="MPL" time="2024-07-23T19:04:02Z">
         <changelog><![CDATA[# improve workaround for touch mode]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc6d9e9d079c20dfbc2d7fcb1b5982d147e5e03c/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
+      <version name="1.24" author="MPL" time="2024-10-17T06:07:00Z">
+        <changelog><![CDATA[+ Right click on slider enter edit destination track name
++ Support #fx wildcard in track name edit field
++ Support #preset wildcard in track name edit field]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0137fddfffaeb748d85a5a87b01f8ab40442b793/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
