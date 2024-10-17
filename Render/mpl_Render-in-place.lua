@@ -1,17 +1,18 @@
 -- @description Render-in-place
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + init
+--    # fix error on enabled master fx
+--    # reset secondary format on rendering pieces
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.0
+local vrs = 1.01
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -389,8 +390,10 @@ function  DATA:Render_Glue()
         -- disable solo for dest track 
         SetMediaTrackInfo_Value( DATA.rend.destinationtrptr, 'I_SOLO',0) 
         -- restore master fx 
-        local mastertr = reaper.GetMasterTrack(project) 
-        SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled )  
+        if EXT.CONF_enablemasterfx&1==1 then
+          local mastertr = reaper.GetMasterTrack(project) 
+          SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled ) 
+        end
         -- insert glue render
         local t = {
           outputfp = DATA.rend_temp.glue_outputfp,
@@ -1225,6 +1228,7 @@ function DATA:Render_CurrentConfig_SetGlobalParams()
   end
   local out_str = '' for i = 1, #form_conf do if not form_conf[i] then form_conf[i] = 0 end out_str = out_str..tostring(form_conf[i]):char() end
   GetSetProjectInfo_String(0, 'RENDER_FORMAT', base64_enc('evaw'..out_str), true)
+  GetSetProjectInfo_String(0, 'RENDER_FORMAT2', '', true) -- reset secondary format
 end
 -------------------------------------------------------------------------------
 function DATA:Render()
