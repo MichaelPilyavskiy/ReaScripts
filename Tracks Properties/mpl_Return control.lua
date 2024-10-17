@@ -1,12 +1,10 @@
 -- @description Return control
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Right click on slider enters edit destination track name
---    + Support #fx wildcard in track name edit field
---    + Support #preset wildcard in track name edit field
+--    # fix hidden slider steal cursor focus
 
 
     
@@ -593,14 +591,16 @@ function UI.draw_send(send_t)
     ImGui.SetNextItemWidth( ctx, slider_w )
     
     -- slider
-    if send_t.rename_input_mode == true then ImGui.BeginDisabled( ctx, true )  end 
-    local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.GUID, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
-    local sliderX, sliderY = ImGui.GetItemRectMin(ctx)
-    local sliderW, sliderH = ImGui.GetItemRectSize(ctx)
-    if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx) 
-    if send_t.rename_input_mode == true then ImGui.EndDisabled( ctx) end
-    if ImGui.IsItemHovered( ctx ) then DATA.slidernavigated = true end
-    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right) then send_t.rename_input_mode = true end
+    local sliderX, sliderY, sliderW, sliderH = 0,0,slider_w,UI.calc_itemH
+    if send_t.rename_input_mode ~= true then --ImGui.BeginDisabled( ctx, true )  end 
+      local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.GUID, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
+      sliderX, sliderY = ImGui.GetItemRectMin(ctx)
+      sliderW, sliderH = ImGui.GetItemRectSize(ctx)
+      if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx) 
+      --if send_t.rename_input_mode == true then ImGui.EndDisabled( ctx) end
+      if ImGui.IsItemHovered( ctx ) then DATA.slidernavigated = true end
+      if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right) then send_t.rename_input_mode = true end
+    end
     
     -- name edit field
     if send_t.rename_input_mode == true then
