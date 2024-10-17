@@ -1,10 +1,12 @@
 -- @description Return control
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # improve reducing fx names
+--    + Right click on Select enters edit destination track name
+--    + Support #fx wildcard in track name edit field
+--    + Support #preset wildcard in track name edit field
 
 
     
@@ -518,7 +520,16 @@ end
     if val > 1 then val = 1 end
     return VF_lim(val, 0.0001, 1)
   end
-  
+  --------------------------------------------------
+  function VF_GetTrackByGUID(giv_guid, reaproj)
+    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
+    for i = 1, CountTracks(reaproj or 0) do
+      local tr = GetTrack(reaproj or 0,i-1)
+      --local GUID = reaper.GetTrackGUID( tr )
+      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
+    end
+  end
 --------------------------------------------------------------------------------  
 function UI.draw_send(send_t)  
   --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
@@ -562,17 +573,19 @@ function UI.draw_send(send_t)
     if ret then 
       reaper.SetOnlyTrackSelected( send_t.ptr)
       Action(40913)
-    end
+    end 
+    if ImGui.IsItemHovered( ctx ) then DATA.selectnavigated = true end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right) then send_t.rename_input_mode = true end
     
+    -- readout
+    --if send_t.D_VOLdb > -6 and send_t.D_VOLdb < 6 then step, step2 = 0.5, 0.2 end
     ImGui.SetNextItemWidth( ctx, ctrlw*3+UI.calc_xoffset*3 )
     local step, step2 = 0.5, 0.2
-    --if send_t.D_VOLdb > -6 and send_t.D_VOLdb < 6 then step, step2 = 0.5, 0.2 end
     local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui.InputTextFlags_CharsDecimal|ImGui.InputTextFlags_EnterReturnsTrue ) 
     if retval then 
       v = VF_lim(v, -150,12)
       DATA.Send_params_set(send_t, {vol_dB=v}) 
-    end
-    
+    end 
     ImGui.PopFont(ctx) 
     
     
@@ -580,14 +593,53 @@ function UI.draw_send(send_t)
     ImGui.SetCursorPos(ctx, curposX, curposY)
     local curposXabs, curposYabs = ImGui.GetCursorScreenPos(ctx)
     ImGui.SetNextItemWidth( ctx, slider_w )
+    
+    -- slider
+    if send_t.rename_input_mode == true then ImGui.BeginDisabled( ctx, true )  end 
     local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.GUID, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
     local sliderX, sliderY = ImGui.GetItemRectMin(ctx)
     local sliderW, sliderH = ImGui.GetItemRectSize(ctx)
-    if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx)
+    if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx) 
+    if send_t.rename_input_mode == true then ImGui.EndDisabled( ctx) end
+
+    -- name edit field
+    if send_t.rename_input_mode == true then
+      ImGui.SetCursorPos(ctx, curposX, curposY)
+      ImGui.SetKeyboardFocusHere( ctx, 0 )
+      local retval, buf = ImGui.InputText( ctx, '##renametrdest'..send_t.GUID, send_t.name, ImGui.InputTextFlags_EnterReturnsTrue|ImGui.InputTextFlags_AutoSelectAll )
+      if retval then
+        local tr = VF_GetTrackByGUID(send_t.GUID)
+        if tr then 
+          if buf:lower():match('#fx') then
+            local retfx, fxname0 = reaper.TrackFX_GetFXName( tr, 0 )
+            if retfx then
+              local fxname = VF_ReduceFXname(fxname0)
+              if fxname: match('[%a%d]+%:%s(.*)') then fxname = fxname: match('[%a%d]+%:%s(.*)') end
+              buf = buf:gsub('#fx', fxname)
+            end
+          end
+          
+          if buf:lower():match('#preset') then
+            local retpres, presetname = reaper.TrackFX_GetPreset( tr, 0 )
+            if retpres then
+              buf = buf:gsub('#preset', presetname)
+            end
+          end
+          
+          
+          
+          GetSetMediaTrackInfo_String( tr, 'P_NAME', buf, true ) 
+        end
+        send_t.rename_input_mode = nil
+        DATA.upd = true
+      end
+    end
     
+    -- txt name
     --ImGui.Text(ctx, send_t.D_VOLdb_format ) 
     ImGui.SetCursorPos(ctx, curposX, curposY)
-    ImGui.Indent(ctx) ImGui.Text(ctx, send_t.name) 
+    ImGui.Indent(ctx) 
+    if not send_t.rename_input_mode then ImGui.Text(ctx, send_t.name) end
     
     ImGui.SetCursorPos(ctx, curposX, curposY)
     if send_t.peaksrms_scaled then
@@ -681,8 +733,11 @@ function UI.draw()
     return 
   end
   local sendcnt= #DATA.available_sends
+  DATA.selectnavigated = false
   for i = 1, sendcnt do  UI.draw_send(DATA.available_sends[i])  end 
-  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) then DATA.find_plugin = {enabled = true} end
+  if reaper.ImGui_IsMouseClicked( ctx,  ImGui.MouseButton_Right, 1 ) and not DATA.selectnavigated then 
+    DATA.find_plugin = {enabled = true} 
+  end
   
 end
 -------------------------------------------------------------------------------- 

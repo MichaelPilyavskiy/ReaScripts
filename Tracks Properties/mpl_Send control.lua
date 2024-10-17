@@ -1,10 +1,12 @@
 -- @description Send control
--- @version 1.23
+-- @version 1.24
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # improve workaround for touch mode
+--    + Right click on slider enter edit destination track name
+--    + Support #fx wildcard in track name edit field
+--    + Support #preset wildcard in track name edit field
 
 
 
@@ -684,7 +686,9 @@ function UI.draw_send(send_t, id)
     if send_t.I_SENDMODE==0 then txt = 'PostFader' set = 3 else set = 0 end  
     
     
-    local ret = ImGui.Button( ctx, txt..'##sm1'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
+    local ret = ImGui.Button( ctx, txt..'##sm1'..send_t.sendidx, butw*2, but_h ) 
+    UI.draw_unsetbuttoncolor() 
+    UI.SameLine(ctx)
     if ret then DATA.Send_params_set(send_t,{mode= set}) end
     --[[if send_t.I_SENDMODE==1 then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end  
     local ret = ImGui.Button( ctx, 'PreFX##sm2'..send_t.sendidx, butw*2, but_h ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
@@ -696,9 +700,7 @@ function UI.draw_send(send_t, id)
     if ret then 
       local destGUID = send_t.destGUID
       local tr = VF_GetTrackByGUID(destGUID)
-      if ValidatePtr(tr, 'MediaTrack*') then 
-        TrackFX_Show( tr, 0, 1 )
-      end
+      if ValidatePtr(tr, 'MediaTrack*') then  TrackFX_Show( tr, 0, 1 ) end
         
     end
     
@@ -722,7 +724,40 @@ function UI.draw_send(send_t, id)
     ImGui.PopFont(ctx) 
     local curposX, curposY = ImGui.GetCursorPos(ctx)
     ImGui.SetNextItemWidth( ctx, slider_w )
-    local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
+    local retval, v
+    if not send_t.rename_input_mode then 
+      retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.sendidx, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
+     else
+      reaper.ImGui_SetKeyboardFocusHere( ctx, 0 )
+      local retval, buf = reaper.ImGui_InputText( ctx, '##renametrdest'..send_t.sendidx, send_t.desttrname, ImGui.InputTextFlags_EnterReturnsTrue|ImGui.InputTextFlags_AutoSelectAll )
+      if retval then
+        local tr = VF_GetTrackByGUID(send_t.destGUID)
+        if tr then
+        
+          if buf:lower():match('#fx') then
+            local retfx, fxname0 = reaper.TrackFX_GetFXName( tr, 0 )
+            if retfx then
+              local fxname = VF_ReduceFXname(fxname0)
+              if fxname: match('[%a%d]+%:%s(.*)') then fxname = fxname: match('[%a%d]+%:%s(.*)') end
+              buf = buf:gsub('#fx', fxname)
+            end
+          end
+          
+          if buf:lower():match('#preset') then
+            local retpres, presetname = reaper.TrackFX_GetPreset( tr, 0 )
+            if retpres then
+              buf = buf:gsub('#preset', presetname)
+            end
+          end
+          
+          
+          
+          GetSetMediaTrackInfo_String( tr, 'P_NAME', buf, true ) 
+        end
+        send_t.rename_input_mode = nil
+        DATA.upd = true
+      end
+    end
     -- touch woraround
     UI.draw_send_touchworkaround(send_t)
     if ImGui_IsItemHovered( ctx ) then
@@ -740,7 +775,9 @@ function UI.draw_send(send_t, id)
         DATA.Send_params_set(send_t, {vol_dB=send_t.D_VOLdb+dir*step})
       end
     end
-    
+    if ImGui_IsItemClicked( ctx, ImGui.MouseButton_Right )then
+      send_t.rename_input_mode = true
+    end
     
     
     if retval then 
@@ -751,7 +788,10 @@ function UI.draw_send(send_t, id)
     
     DATA.activetouch = ImGui.IsItemActive( ctx )
     ImGui.SetCursorPos(ctx, curposX, curposY)
-    ImGui.Indent(ctx) ImGui.Text(ctx, send_t.desttrname) 
+    ImGui.Indent(ctx) 
+    if not send_t.rename_input_mode then 
+      ImGui.Text(ctx, send_t.desttrname) 
+    end
     ImGui.EndChild( ctx )
   end
   --ImGui.PopStyleColor(ctx, 1) UI.pushcnt2=UI.pushcnt2-1
