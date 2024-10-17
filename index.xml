@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c8d76f956aa2edab886e4998da94037224a4a375" name="MPL Scripts">
+<index version="1" commit="a94d2b748a97dcd39412be7b0acc7cce39f818c2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7323,6 +7323,11 @@
       <version name="1.0" author="MPL" time="2024-10-16T18:44:36Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a62360493bfa4373a23af7d7261c311fe822cbbf/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2024-10-17T20:45:03Z">
+        <changelog><![CDATA[# fix error on enabled master fx
+# reset secondary format on rendering pieces]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a94d2b748a97dcd39412be7b0acc7cce39f818c2/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
