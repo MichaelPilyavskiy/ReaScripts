@@ -1,18 +1,19 @@
 -- @description Render-in-place
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # fix error on enabled master fx
---    # reset secondary format on rendering pieces
+--    + Enable sends / Render sends separately
+--    # Disable glue if Render sends separately is ON
+--    + Add settings for second track
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.01
+local vrs = 1.02
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -53,6 +54,7 @@ EXT = {
         
         -- dest track
         newtrackname = 'render',
+        newtrackname2 = 'sends render',
         
         -- postproc
         CONF_glue = 0,
@@ -318,7 +320,7 @@ function UI.MAINloop()
   if DATA.upd == true then  DATA:CollectData()  end 
   DATA.upd = false 
   DATA:Render_Queue() 
-  DATA:Render_Glue() 
+  if EXT.CONF_unmutesends&2~=2 then DATA:Render_Glue()  end
   
   -- draw UI
   UI.open = UI.MAIN_draw(true) 
@@ -338,16 +340,6 @@ end
       if stringNeedBig  == itemGUID then return item end
     end
   end 
---[[------------------------------------------------------------------------------ 
-function  DATA:Render_Glue_SelectOutputPieces()  
-  local project = DATA.rend_temp.project
-  SelectAllMediaItems( project, false )
-  for i = 1, #DATA.rend.pieces do  
-    local itemGUID = DATA.rend.pieces[i].itemGUID
-    local item = VF_GetMediaItemByGUID(project, itemGUID)
-    SetMediaItemSelected( item, true )
-  end
-end]]
 -------------------------------------------------------------------------------- 
 function  DATA:Render_Glue() 
   local project = DATA.rend_temp.project
@@ -431,15 +423,12 @@ function DATA:Render_Finish()
   DATA.upd = true -- trigger resfresh
   DATA:Render_CurrentConfig_Restore() 
   Main_OnCommandEx( 40047, 0, project ) -- Peaks: Build any missing peaks 
-  --Undo_BeginBlock2( project )  
-  --Undo_EndBlock2( project, 'Render-in-place', 0xFFFFFFFF ) 
   Undo_OnStateChange2( project, 'MPL Render-in-place' )
 end
 -------------------------------------------------------------------------------- 
 function UI.SameLine(ctx) ImGui.SameLine(ctx) end
 -------------------------------------------------------------------------------- 
-function UI.MAIN()
-  
+function UI.MAIN() 
   -- imgUI init
   ctx = ImGui.CreateContext(DATA.UI_name) 
   -- fonts
@@ -659,6 +648,11 @@ function UI.draw_settings()
   -- src track prepare
   ImGui.SeparatorText(ctx, 'Preparation')
   if reaper.ImGui_Checkbox(ctx, 'Enable sends',EXT.CONF_unmutesends&1==1) then EXT.CONF_unmutesends = EXT.CONF_unmutesends~1 EXT:save() end  ImGui.SetItemTooltip(ctx, 'Unmute destination sends before render')
+  if EXT.CONF_unmutesends&1==1 then
+    ImGui.Indent(ctx, UI.indent) 
+    if reaper.ImGui_Checkbox(ctx, 'Render sends separately',EXT.CONF_unmutesends&2==2) then EXT.CONF_unmutesends = EXT.CONF_unmutesends~2 EXT:save() end  
+    ImGui.Unindent(ctx, UI.indent)
+  end
   if reaper.ImGui_Checkbox(ctx, 'Enable master FX',EXT.CONF_enablemasterfx&1==1) then EXT.CONF_enablemasterfx = EXT.CONF_enablemasterfx~1 EXT:save() end
   
   
@@ -730,14 +724,25 @@ function UI.draw_settings()
     -- Postprocessing
     ImGui.SeparatorText(ctx, 'Postprocessing') 
     -- glue
-    if reaper.ImGui_Checkbox(ctx, 'Glue',EXT.CONF_glue&1==1) then EXT.CONF_glue = EXT.CONF_glue~1 EXT:save() end   ImGui.SetItemTooltip(ctx, 'Glue result + remove temp renders from disk')
+    if EXT.CONF_unmutesends&2==2 then ImGui.BeginDisabled( ctx, true ) end
+    if reaper.ImGui_Checkbox(ctx, 'Glue',EXT.CONF_glue&1==1) then EXT.CONF_glue = EXT.CONF_glue~1 EXT:save() end   ImGui.SetItemTooltip(ctx, 'Glue result + remove temp renders from disk. Not available for render sends separately.')
+    if EXT.CONF_unmutesends&2==2 then ImGui.EndDisabled( ctx ) end
     -- tr name
-    UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Track name') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx)
+    UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Track 1 name') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx)
     ImGui.SetNextItemWidth( ctx, UI.combo_w ) 
     ImGui.SetCursorPosX( ctx, comb_sel_x )
     local ret, buf = ImGui.InputText(ctx,'##trcustname',EXT.newtrackname)
     if ret and buf then  
       EXT.newtrackname = buf:gsub('[%/%\\%:%*%?%<%>%|%"]', '') 
+      EXT:save() 
+    end  
+    -- tr name
+    UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Track 2 name') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx)
+    ImGui.SetNextItemWidth( ctx, UI.combo_w ) 
+    ImGui.SetCursorPosX( ctx, comb_sel_x )
+    local ret, buf = ImGui.InputText(ctx,'##trcustname2',EXT.newtrackname2)
+    if ret and buf then  
+      EXT.newtrackname2 = buf:gsub('[%/%\\%:%*%?%<%>%|%"]', '') 
       EXT:save() 
     end  
   
@@ -1011,13 +1016,15 @@ function DATA:CollectData_GetSelectedItems()
 end
 -------------------------------------------------------------------------------
 function DATA:CollectData_GetTrackSelection()
+  
+  local project = DATA.rend_temp.project
+  
   if EXT.CONF_source&4~=4 then return end -- do not collect if not set in source  
   
   
   if EXT.CONF_source&8==8 and DATA.rend_temp.cnt_RA > 0 then return end
   if EXT.CONF_source&16==16 and DATA.rend_temp.cnt_items > 0 then return end
   
-  local project = DATA.rend_temp.project
   local boundary_st, boundary_end = reaper.GetSet_LoopTimeRange2( project, false, false ,0, 0, false ) 
   local cntseltracks = CountSelectedTracks( project )
   local cntselitems = 0
@@ -1057,44 +1064,97 @@ function DATA:Render_GetFileOutput()
   return outputpath,outputfile,outputfp
 end
 -------------------------------------------------------------------------------
-function DATA:Render_Piece(t) 
+function DATA:Render_Piece_State_StoreAndSet(t) 
+  local project = DATA.rend_temp.project  
+  local cur_tr = VF_GetMediaTrackByGUID(project, t.trGUID)
+  if not cur_tr then return end
+  
+  
+  DATA.rend_temp.solostate = {}
+  DATA.rend_temp.mutestate = {}
+  DATA.rend_temp.sends = {}
+  local trcnt = reaper.CountTracks( project )
+  DATA.rend_temp.trcnt = trcnt
+  
+  
+  -- store sends
+  for sendidx = 1, GetTrackNumSends( cur_tr, 0 ) do
+    DATA.rend_temp.sends[sendidx] = {
+      ['B_MUTE'] = reaper.GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' ),
+    }
+  end
+  
+  -- store solo/mute
+  for i = 1, DATA.rend_temp.trcnt do 
+    local tr = GetTrack(0,i-1)
+    local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false)
+    DATA.rend_temp.solostate[trGUID] = GetMediaTrackInfo_Value( tr, 'I_SOLO' ) 
+    SetMediaTrackInfo_Value( tr, 'I_SOLO', 0) 
+    DATA.rend_temp.mutestate[trGUID] = GetMediaTrackInfo_Value( tr, 'B_MUTE' ) 
+    SetMediaTrackInfo_Value( tr, 'B_MUTE', 1) 
+  end
+  
+  -- disable master fx
+    if EXT.CONF_enablemasterfx&1==1 then
+      local mastertr = reaper.GetMasterTrack(project) 
+      DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
+      SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
+    end
+   
+ -- mute track
+    SetMediaTrackInfo_Value( cur_tr, 'B_MUTE', 0  )
+    if EXT.CONF_unmutesends&1==1 then
+    
+      if EXT.CONF_unmutesends&2~=2 then -- render separately
+        local cntsends = GetTrackNumSends( cur_tr, 0 ) for sendidx = 1, cntsends do local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' ) SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  ) end -- enable sends
+       else
+        if not (t.options_sendonly and t.options_sendonly==true) then
+          local cntsends = GetTrackNumSends( cur_tr, 0 ) for sendidx = 1, cntsends do local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' ) SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  ) end -- enable sends
+          DATA.rend_temp.B_MAINSEND = GetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND' )
+          SetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND',0 )
+        end 
+      end
+      
+   end
+     
+end
+-------------------------------------------------------------------------------
+function DATA:Render_Piece_State_Restore(t) 
   local project = DATA.rend_temp.project
   
+  local cur_tr = VF_GetMediaTrackByGUID(project, t.trGUID)
+  if not cur_tr then return end
   
-  -- handle states
-  if t.state == 1 then -- render action was triggered
-    local playstate = GetPlayStateEx( project )
-    if playstate&1==1 then -- is rendering
-      return -- leave state =1 s othe following not being processed 
-     else -- rendering is finished
-      
- 
-      
-      -- restore tracks solo/mute state
-        local GUID_map = {} for i= 1, CountTracks(project) do local tr = GetTrack(0,i-1 ) local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false) GUID_map[trGUID] = tr end -- cache pointers
-        for trGUID in pairs(DATA.rend_temp.solostate) do  
-          local tr = GUID_map[trGUID]
-          SetMediaTrackInfo_Value( tr, 'I_SOLO',DATA.rend_temp.solostate[trGUID]) 
-          SetMediaTrackInfo_Value( tr, 'B_MUTE',DATA.rend_temp.mutestate[trGUID]) 
-        end 
-      -- restore master fx 
-        if EXT.CONF_enablemasterfx&1==1 then
-          local mastertr = reaper.GetMasterTrack(project) 
-          SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled )  
-        end
-      -- insert media
-        DATA:Render_InsertMedia(t)  
-      -- set state as processed
-        t.state = 2
-      -- exit
-        return
-        
-    end
-   elseif t.state == 2 then -- already processed
-    return
-  end
+  -- restore main send
+    if DATA.rend_temp.B_MAINSEND then SetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND', DATA.rend_temp.B_MAINSEND ) end
     
-  -- set render parameters
+  -- restore sends
+    for sendidx = 1, GetTrackNumSends( cur_tr, 0 ) do
+      reaper.SetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE', DATA.rend_temp.sends[sendidx].B_MUTE )
+    end
+  
+  -- cache pointers
+    local GUID_map = {} for i= 1, CountTracks(project) do 
+      local tr = GetTrack(0,i-1 ) 
+      local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false) 
+      GUID_map[trGUID] = tr 
+    end 
+  -- restore solo/mute
+    for trGUID in pairs(DATA.rend_temp.solostate) do  
+      local tr = GUID_map[trGUID]
+      SetMediaTrackInfo_Value( tr, 'I_SOLO',DATA.rend_temp.solostate[trGUID]) 
+      SetMediaTrackInfo_Value( tr, 'B_MUTE',DATA.rend_temp.mutestate[trGUID]) 
+    end 
+      
+  -- restore master fx 
+    if EXT.CONF_enablemasterfx&1==1 then
+      local mastertr = reaper.GetMasterTrack(project) 
+      SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled )  
+    end  
+    
+end
+-------------------------------------------------------------------------------
+function DATA:Render_Piece_SetRenderConfig(t) 
     local outputpath,outputfile,outputfp = DATA:Render_GetFileOutput()
     t.outputfp = outputfp 
     GetSetProjectInfo( project, 'RENDER_CHANNELS', 2, true ) -- chan cnt
@@ -1105,46 +1165,36 @@ function DATA:Render_Piece(t)
     --[[
     extstate_val = 'test'
     GetSetProjectInfo_String( project, 'RENDER_METADATA', 'ID3:TXXX:ExtState|'..extstate_val, true) -- retval, buf = reaper.GetMediaFileMetadata( mediaSource, identifier )
-    ]]
-    
-  -- store tracks solo/mute state
-    DATA.rend_temp.solostate = {}
-    DATA.rend_temp.mutestate = {}
-    local trcnt = reaper.CountTracks( project )
-    DATA.rend_temp.trcnt = trcnt
-    for i = 1, DATA.rend_temp.trcnt do 
-      local tr = GetTrack(0,i-1)
-      local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false)
-      DATA.rend_temp.solostate[trGUID] = GetMediaTrackInfo_Value( tr, 'I_SOLO' ) 
-      SetMediaTrackInfo_Value( tr, 'I_SOLO', 0) 
-      DATA.rend_temp.mutestate[trGUID] = GetMediaTrackInfo_Value( tr, 'B_MUTE' ) 
-      SetMediaTrackInfo_Value( tr, 'B_MUTE', 1) 
-    end
-    
-  -- mute track
-    local cur_tr = VF_GetMediaTrackByGUID(project, t.trGUID)
-    SetMediaTrackInfo_Value( cur_tr, 'B_MUTE', 0  )
-    if EXT.CONF_unmutesends&1==1 then
-      local cntsends = GetTrackNumSends( cur_tr, 0 )
-      for sendidx = 1, cntsends do
-        local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' )
-        SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  )
+    ]]  
+end
+-------------------------------------------------------------------------------
+function DATA:Render_Piece(t) 
+  local project = DATA.rend_temp.project 
+  
+  -- handle state
+  if t.state == 1 then -- render action was triggered
+    local playstate = GetPlayStateEx( project )
+    if playstate&1==1 then -- is rendering
+      return -- leave state =1 s othe following not being processed 
+     else -- rendering is finished
+      DATA:Render_Piece_State_Restore(t) 
+      if EXT.CONF_unmutesends&2~=2 then
+        DATA:Render_InsertMedia(t)
+       else
+        DATA:Render_InsertMedia(t,not (t.options_track2 and t.options_track2==true)) -- should be vice verse but it works
       end
+      t.state = 2-- set state as processed
+      return 
     end
-    
-    
-  -- disable master fx
-    if EXT.CONF_enablemasterfx&1==1 then
-      local mastertr = reaper.GetMasterTrack(project) 
-      DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
-      SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
-    end
-    
-  -- render --------------------------------------------------------------------------------------------------------------------
-    Main_OnCommandEx( 42230, 0, project ) -- File: Render project, using the most recent render settings, auto-close render dialog
+   elseif t.state == 2 then -- already processed
+    return
+  end
   
-    t.state = 1
-  
+  -- first time run
+  DATA:Render_Piece_SetRenderConfig(t) 
+  DATA:Render_Piece_State_StoreAndSet(t) 
+  Main_OnCommandEx( 42230, 0, project ) -- File: Render project, using the most recent render settings, auto-close render dialog
+  t.state = 1
   
 end
 ------------------------------------------------------------------------------------------------------  
@@ -1153,6 +1203,21 @@ function VF_GetMediaTrackByGUID(optional_proj, GUID)
   for i= 1, CountTracks(optional_proj0) do tr = GetTrack(0,i-1 )if reaper.GetTrackGUID( tr ) == GUID then return tr end end
   local mast = reaper.GetMasterTrack( optional_proj0 ) if reaper.GetTrackGUID( mast ) == GUID then return mast end
 end  
+---------------------------------------------------
+function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[CopyTable(orig_key)] = CopyTable(orig_value)
+        end
+        setmetatable(copy, CopyTable(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
 -------------------------------------------------------------------------------  
 function DATA:CollectData() 
   if DATA.rend_temp.schedule_glue == true or DATA.rend_temp.schedule == true then return end -- exit if is in progress
@@ -1161,25 +1226,39 @@ function DATA:CollectData()
   DATA.rend_temp.cnt_RA = 0
   DATA.rend_temp.cnt_items = 0
   DATA.rend_temp.cnt_tracks = 0
+  DATA.rend_temp.needsecond_track = nil
   
   DATA.rend.pieces = {}
   DATA:CollectData_GetRazorAreas()
   DATA:CollectData_GetSelectedItems()
   DATA:CollectData_GetTrackSelection()
   
-  if DATA.rend.pieces[1] and DATA.rend.pieces[1].trGUID then 
-    DATA.rend.firsttrGUID = DATA.rend.pieces[1].trGUID 
-  end
+  if DATA.rend.pieces[1] and DATA.rend.pieces[1].trGUID then DATA.rend.firsttrGUID = DATA.rend.pieces[1].trGUID end
   
-  for i = 1, #DATA.rend.pieces do
+  local cntpieces = #DATA.rend.pieces
+  for i = 1, cntpieces do
     DATA.rend.boundary_st = math.min(DATA.rend.boundary_st or math.huge, DATA.rend.pieces[i].boundary_st)
     DATA.rend.boundary_end = math.max(DATA.rend.boundary_end or 0, DATA.rend.pieces[i].boundary_end)
+    local t = DATA.rend.pieces[i]
+    t.idx= i
+    local cur_tr = VF_GetMediaTrackByGUID(project, t.trGUID)
+    
+    if EXT.CONF_unmutesends&2==2 and GetTrackNumSends( cur_tr, 0 )>0 then
+      t.has_sends = true
+      DATA.rend_temp.needsecond_track = true
+      local newID = #DATA.rend.pieces + 1
+      DATA.rend.pieces[newID] = CopyTable(t)
+      t.idx= newID
+      DATA.rend.pieces[newID].options_sendonly = true
+      DATA.rend.pieces[newID].options_track2 = true
+    end
   end 
 end
 -------------------------------------------------------------------------------
 function DATA:Render_AddTrack() 
   local project = DATA.rend_temp.project
   if not DATA.rend.firsttrGUID then return end
+  
   local firsttr = VF_GetMediaTrackByGUID(project, DATA.rend.firsttrGUID)
   local tracknum = GetMediaTrackInfo_Value( firsttr, 'IP_TRACKNUMBER')
   if tracknum < 1 then return end
@@ -1190,6 +1269,17 @@ function DATA:Render_AddTrack()
   DATA.rend.destinationtrptr = tr
   DATA.rend.destinationtrID = tracknum
   GetSetMediaTrackInfo_String(tr,'P_NAME',EXT.newtrackname,1) 
+  
+  if DATA.rend_temp.needsecond_track == true then
+    InsertTrackInProject( 0, tracknum+1, 0 )
+    local tr = GetTrack(0,tracknum+1)
+    local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false)
+    DATA.rend.destinationtrGUID2 = trGUID 
+    DATA.rend.destinationtrptr2 = tr
+    DATA.rend.destinationtrID2 = tracknum+1
+    GetSetMediaTrackInfo_String(tr,'P_NAME',EXT.newtrackname2,1) 
+  end
+  
   return true
 end
 -------------------------------------------------------------------------------
@@ -1238,8 +1328,7 @@ function DATA:Render()
   
   PreventUIRefresh( 1 )
   DATA:Render_CurrentConfig_Store()
-  DATA:Render_CurrentConfig_SetGlobalParams()
-  
+  DATA:Render_CurrentConfig_SetGlobalParams() 
   
   DATA.rend_temp.schedule = true -- start waiting 
   DATA.rend_temp.transportstopTS = nil -- reset TS
@@ -1265,24 +1354,24 @@ function DATA:Render_Queue()
   end
 end
 -------------------------------------------------------------------------------
-function DATA:Render_InsertMedia(t) 
-  if not DATA.rend.destinationtrID then return end
-  
+function DATA:Render_InsertMedia(t, secondtrack) 
+  if not DATA.rend.destinationtrID then return end 
   local project = DATA.rend_temp.project
-  
   local src = PCM_Source_CreateFromFile( t.outputfp )
-  local new_item = AddMediaItemToTrack( DATA.rend.destinationtrptr )
+  local new_item
+  if secondtrack ~= true then  
+    new_item = AddMediaItemToTrack( DATA.rend.destinationtrptr )
+   else 
+    new_item = AddMediaItemToTrack( DATA.rend.destinationtrptr2 )
+  end
   local new_take = AddTakeToMediaItem( new_item )
   SetMediaItemTake_Source( new_take, src )
   SetMediaItemInfo_Value( new_item, 'D_POSITION', t.boundary_st )
   local outlen = t.boundary_end - t.boundary_st
-  if DATA.rend_temp.tail_len and EXT.CONF_extendtotail == 1 then 
-    outlen = outlen + DATA.rend_temp.tail_len
-  end
+  if DATA.rend_temp.tail_len and EXT.CONF_extendtotail == 1 then outlen = outlen + DATA.rend_temp.tail_len end
   SetMediaItemInfo_Value( new_item, 'D_LENGTH',  outlen )
   PCM_Source_BuildPeaks( src, 0 )
-  reaper.UpdateItemInProject( new_item )
-  
+  reaper.UpdateItemInProject( new_item ) 
   local retval, itemGUID = reaper.GetSetMediaItemInfo_String( new_item, 'GUID', '', false )
   t.itemGUID = itemGUID
 end
