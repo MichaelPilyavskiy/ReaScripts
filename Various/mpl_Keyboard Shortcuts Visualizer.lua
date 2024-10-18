@@ -1,16 +1,14 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # test3 patch for Mac users
-
-
+--    # moved combos above categories
 
 
     
-local vrs = 1.09
+local vrs = 1.10
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -543,7 +541,7 @@ end
 -------------------------------------------------------------------------------- 
 function UI.draw_KeyCategories()
   local indent = 7
-  ImGui.SetCursorPos( ctx, UI.calc_KeyCategories_x, UI.calc_KeyCategories_y ) 
+  ImGui.SetCursorPos( ctx, UI.calc_KeyCategories_x, UI.calc_KeyCategories_y + UI.calc_itemH*2+UI.spacingY*2 ) 
     
   if ImGui.BeginChild( ctx, 'categories', UI.calc_KeyCategories_w, 0, ImGui.ChildFlags_None|ImGui.ChildFlags_Border, ImGui.WindowFlags_None|ImGui.WindowFlags_MenuBar ) then
     
@@ -1268,8 +1266,10 @@ function DATA:handleProjUpdates()
 end
 --------------------------------------------------------------------------------  
 function UI.draw_combo()
-  ImGui.SetCursorPos( ctx, UI.calc_combo1_x, UI.calc_combo1_y ) 
-  ImGui.SetNextItemWidth( ctx, UI.calc_combo1_w )
+  --ImGui.SetCursorPos( ctx, UI.calc_combo1_x, UI.calc_combo1_y ) 
+  ImGui.SetCursorPos( ctx, UI.calc_KeyCategories_x, UI.calc_KeyCategories_y )
+  --ImGui.SetNextItemWidth( ctx, UI.calc_combo1_w )
+  ImGui.SetNextItemWidth( ctx,UI.calc_KeyCategories_w )
   
   -- current section
   local preview = EXT.section_ID
@@ -1287,8 +1287,10 @@ function UI.draw_combo()
   end
   
   -- ext layout
-  ImGui.SetCursorPos( ctx, UI.calc_combo2_x, UI.calc_combo2_y ) 
-  ImGui.SetNextItemWidth( ctx, UI.calc_combo2_w )
+  --ImGui.SetCursorPos( ctx, UI.calc_combo2_x, UI.calc_combo2_y ) 
+    ImGui.SetCursorPos( ctx, UI.calc_KeyCategories_x, UI.calc_KeyCategories_y + UI.calc_itemH +UI.spacingY)
+  --ImGui.SetNextItemWidth( ctx, UI.calc_combo2_w )
+  ImGui.SetNextItemWidth( ctx,UI.calc_KeyCategories_w )
   local preview_str = EXT.extlayoutname
   if ImGui.BeginCombo( ctx, '##layout', preview_str, ImGui.ComboFlags_None ) then
     for layout in spairs(DATA.extlayouts) do
