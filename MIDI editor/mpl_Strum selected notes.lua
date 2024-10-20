@@ -1,5 +1,5 @@
 -- @description Strum selected notes
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @about Shift selected notes positions by user defined PPQ amount
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -65,6 +65,17 @@
         offs = offs + math.abs(tickoffs)
       end
     MIDI_Sort( take ) 
+  end
+  ---------------------------------------------------
+  function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+    if order then table.sort(keys, function(a,b) return order(t, a, b) end)  else  table.sort(keys) end
+    local i = 0
+    return function()
+              i = i + 1
+              if keys[i] then return keys[i], t[keys[i]] end
+           end
   end
   --------------------------------------------------------------------  
   if VF_CheckReaperVrs(5.975,true) then 
