@@ -1,20 +1,17 @@
 -- @description Render-in-place
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Postprocessing / Share at fixed lanes
---    + Postprocessing / Make parent to first piece track
---    + Postprocessing / Mute sources
---    + Preparations / Enable childrens for parent track
+--    + Postprocessing / Disable source track FX
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.04
+local vrs = 1.05
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -65,6 +62,7 @@ EXT = {
         CONF_makenewtrparent = 0,
         CONF_mutesrctrack = 0,
         CONF_mutesrcitem = 0,
+        CONF_disabletrfx = 0,
         
         
       }
@@ -475,7 +473,10 @@ function DATA:Render_Finish()
         if item and reaper.ValidatePtr2(project, item, 'MediaItem*') then SetMediaItemInfo_Value( item, 'B_MUTE',1 ) end
       end
     end
-    
+    if EXT.CONF_disabletrfx&1==1 then
+      local firsttr = VF_GetMediaTrackByGUID(project, DATA.rend.firsttrGUID)
+      SetMediaTrackInfo_Value( firsttr, 'I_FXEN', 0 ) 
+    end
   -- share resulted media as fixed laned on new track
     if EXT.CONF_lanes&1==1 and EXT.CONF_unmutesends&2~=2 then DATA:Render_Finish_ShareLanes() end
   
@@ -838,6 +839,7 @@ function UI.draw_settings()
     if ImGui.Checkbox(ctx, 'Make parent to the first piece track',EXT.CONF_makenewtrparent&1==1) then EXT.CONF_makenewtrparent = EXT.CONF_makenewtrparent~1 EXT:save() end ImGui.SetItemTooltip(ctx, 'For some reason not refresh track list correctly immediately".')
     if ImGui.Checkbox(ctx, 'Mute source track',EXT.CONF_mutesrctrack&1==1) then EXT.CONF_mutesrctrack = EXT.CONF_mutesrctrack~1 EXT:save() end 
     if ImGui.Checkbox(ctx, 'Mute source item',EXT.CONF_mutesrcitem&1==1) then EXT.CONF_mutesrcitem = EXT.CONF_mutesrcitem~1 EXT:save() end 
+    if ImGui.Checkbox(ctx, 'Disable source track FX',EXT.CONF_disabletrfx&1==1) then EXT.CONF_disabletrfx = EXT.CONF_disabletrfx~1 EXT:save() end 
   
   
   
