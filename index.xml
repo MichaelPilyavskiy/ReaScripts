@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f60d7671961834b3f4d158ef94d2256caac5b67d" name="MPL Scripts">
+<index version="1" commit="5154511f4488107d7b14491f6732250333e59d30" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7346,6 +7346,13 @@
 + Preparation / Enable track FX / Trat XXi as instrument instead plugins categorized as insttruments by REAPER
 + Preparation / Enable track FX / All FX  or FX after instrument if any]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f60d7671961834b3f4d158ef94d2256caac5b67d/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-10-24T20:30:46Z">
+        <changelog><![CDATA[+ Postprocessing / Share at fixed lanes
++ Postprocessing / Make parent to first piece track
++ Postprocessing / Mute sources
++ Preparations / Enable childrens for parent track]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5154511f4488107d7b14491f6732250333e59d30/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
