@@ -1,5 +1,5 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -8,7 +8,7 @@
 
 
     
-local vrs = 1.10
+local vrs = 1.11
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -889,7 +889,7 @@ function UI.MAIN_draw(open)
     --window_flags = window_flags | ImGui.WindowFlags_NoNav()
     --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
     window_flags = window_flags | ImGui.WindowFlags_NoDocking
-    window_flags = window_flags | ImGui.WindowFlags_TopMost
+    --window_flags = window_flags | ImGui.WindowFlags_TopMost
     window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
     --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings() end
     --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
