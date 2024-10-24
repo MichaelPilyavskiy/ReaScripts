@@ -1,19 +1,21 @@
 -- @description Render-in-place
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Enable sends / Render sends separately
---    # Disable glue if Render sends separately is ON
---    + Add settings for second track
+--    + Preparation / Enable track FX
+--    + Preparation / Enable track FX / FX before instrument (MIDI plugins for ex.)
+--    + Preparation / Enable track FX / Instrument FX
+--    + Preparation / Enable track FX / Trat XXi as instrument instead plugins categorized as insttruments by REAPER
+--    + Preparation / Enable track FX / All FX  or FX after instrument if any
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.02
+local vrs = 1.03
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -21,7 +23,7 @@ local vrs = 1.02
   local ImGui
   
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
-  package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+  package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.9.3'
   
   
@@ -42,6 +44,7 @@ EXT = {
         -- source track
         CONF_unmutesends = 0,
         CONF_enablemasterfx = 0,
+        CONF_trackfxenabled = 1|2|4|8|16,--2 instrument -- 4 before instrument -- 8 after instrument -- 16 treat XXi as instrument
         
         -- render props / format 
         CONF_tail = 0, -- 0 off 1 bars 2 seconds
@@ -589,7 +592,7 @@ function UI.draw_preset()
   local preview = EXT.CONF_name 
   if ImGui.BeginCombo(ctx, '##Preset', preview, ImGui.ComboFlags_HeightLargest) then 
     if ImGui.Button(ctx, 'Restore defaults') then DATA.PRESET_RestoreDefaults() end
-    local retval, buf = reaper.ImGui_InputText( ctx, '##presname', DATA.preset_name )
+    local retval, buf = ImGui.InputText( ctx, '##presname', DATA.preset_name )
     if retval then DATA.preset_name = buf end
     ImGui.SameLine(ctx)
     if ImGui.Button(ctx, 'Save current') then 
@@ -630,30 +633,44 @@ function UI.draw_settings()
   local comb_sel_x = DATA.display_w-UI.combo_w-UI.spacingX_wind*2-DATA.display_scrollbarw-UI.spacingX*2
   local comb_sel_x2 = DATA.display_w-UI.combo_w2-UI.spacingX_wind*2-DATA.display_scrollbarw-UI.spacingX*2
   local project = DATA.rend_temp.project
-  if reaper.ImGui_BeginChild( ctx, '##settings',nil,nil,reaper.ImGui_ChildFlags_Border()) then
+  if ImGui.BeginChild( ctx, '##settings',nil,nil,ImGui.ChildFlags_Border) then
   
   
   -- Source
   ImGui.SeparatorText(ctx, 'Source')   
-  if reaper.ImGui_Checkbox(ctx, 'Razor areas ('..(DATA.rend_temp.cnt_RA or 0)..')',EXT.CONF_source&1==1) then EXT.CONF_source = EXT.CONF_source~1 EXT:save() end
-  if reaper.ImGui_Checkbox(ctx, 'Selected items ('..(DATA.rend_temp.cnt_items or 0)..')',EXT.CONF_source&2==2) then EXT.CONF_source = EXT.CONF_source~2 EXT:save() end  
-  if reaper.ImGui_Checkbox(ctx, 'Track time selection ('..(DATA.rend_temp.cnt_tracks or 0)..')',EXT.CONF_source&4==4) then EXT.CONF_source = EXT.CONF_source~4 EXT:save() end
+  if ImGui.Checkbox(ctx, 'Razor areas ('..(DATA.rend_temp.cnt_RA or 0)..')',EXT.CONF_source&1==1) then EXT.CONF_source = EXT.CONF_source~1 EXT:save() end
+  if ImGui.Checkbox(ctx, 'Selected items ('..(DATA.rend_temp.cnt_items or 0)..')',EXT.CONF_source&2==2) then EXT.CONF_source = EXT.CONF_source~2 EXT:save() end  
+  if ImGui.Checkbox(ctx, 'Track time selection ('..(DATA.rend_temp.cnt_tracks or 0)..')',EXT.CONF_source&4==4) then EXT.CONF_source = EXT.CONF_source~4 EXT:save() end
   if EXT.CONF_source&4==4 then 
     ImGui.Indent(ctx, UI.indent) 
-    if reaper.ImGui_Checkbox(ctx, 'If no razor areas presented',EXT.CONF_source&8==8) then EXT.CONF_source = EXT.CONF_source~8 EXT:save() end  
-    if reaper.ImGui_Checkbox(ctx, 'If no selected items presented',EXT.CONF_source&16==16) then EXT.CONF_source = EXT.CONF_source~16 EXT:save() end  
+    if ImGui.Checkbox(ctx, 'If no razor areas presented',EXT.CONF_source&8==8) then EXT.CONF_source = EXT.CONF_source~8 EXT:save() end  
+    if ImGui.Checkbox(ctx, 'If no selected items presented',EXT.CONF_source&16==16) then EXT.CONF_source = EXT.CONF_source~16 EXT:save() end  
     ImGui.Unindent(ctx, UI.indent)
   end  
   
   -- src track prepare
   ImGui.SeparatorText(ctx, 'Preparation')
-  if reaper.ImGui_Checkbox(ctx, 'Enable sends',EXT.CONF_unmutesends&1==1) then EXT.CONF_unmutesends = EXT.CONF_unmutesends~1 EXT:save() end  ImGui.SetItemTooltip(ctx, 'Unmute destination sends before render')
+  if ImGui.Checkbox(ctx, 'Enable sends',EXT.CONF_unmutesends&1==1) then EXT.CONF_unmutesends = EXT.CONF_unmutesends~1 EXT:save() end  ImGui.SetItemTooltip(ctx, 'Unmute destination sends before render')
   if EXT.CONF_unmutesends&1==1 then
     ImGui.Indent(ctx, UI.indent) 
-    if reaper.ImGui_Checkbox(ctx, 'Render sends separately',EXT.CONF_unmutesends&2==2) then EXT.CONF_unmutesends = EXT.CONF_unmutesends~2 EXT:save() end  
+    if ImGui.Checkbox(ctx, 'Render sends separately',EXT.CONF_unmutesends&2==2) then EXT.CONF_unmutesends = EXT.CONF_unmutesends~2 EXT:save() end  
     ImGui.Unindent(ctx, UI.indent)
   end
-  if reaper.ImGui_Checkbox(ctx, 'Enable master FX',EXT.CONF_enablemasterfx&1==1) then EXT.CONF_enablemasterfx = EXT.CONF_enablemasterfx~1 EXT:save() end
+  if ImGui.Checkbox(ctx, 'Enable master FX',EXT.CONF_enablemasterfx&1==1) then EXT.CONF_enablemasterfx = EXT.CONF_enablemasterfx~1 EXT:save() end
+  
+  if ImGui.Checkbox(ctx, 'Enable track FX',EXT.CONF_trackfxenabled&1==1) then EXT.CONF_trackfxenabled = EXT.CONF_trackfxenabled~1 EXT:save() end
+  if EXT.CONF_trackfxenabled&1==1 then
+    ImGui.Indent(ctx, UI.indent) 
+    if ImGui.Checkbox(ctx, 'FX before instrument',EXT.CONF_trackfxenabled&4==4) then EXT.CONF_trackfxenabled = EXT.CONF_trackfxenabled~4 EXT:save() end
+    if ImGui.Checkbox(ctx, 'Instrument FX',EXT.CONF_trackfxenabled&2==2) then EXT.CONF_trackfxenabled = EXT.CONF_trackfxenabled~2 EXT:save() end
+    if EXT.CONF_trackfxenabled&2==2 then 
+      ImGui.Indent(ctx, UI.indent) 
+      if ImGui.Checkbox(ctx, 'Treat XXi as instrument',EXT.CONF_trackfxenabled&16==16) then EXT.CONF_trackfxenabled = EXT.CONF_trackfxenabled~16 EXT:save() end
+      ImGui.Unindent(ctx, UI.indent)
+    end
+    if ImGui.Checkbox(ctx, 'All FX / FX after instrument',EXT.CONF_trackfxenabled&8==8) then EXT.CONF_trackfxenabled = EXT.CONF_trackfxenabled~8 EXT:save() end
+    ImGui.Unindent(ctx, UI.indent)
+  end
   
   
   -- Properties
@@ -677,7 +694,7 @@ function UI.draw_settings()
         EXT.CONF_tail_len = tonumber(buf)
         EXT:save()
       end
-      if reaper.ImGui_Checkbox(ctx, 'Extend rendered media for tail',EXT.CONF_extendtotail&1==1) then EXT.CONF_extendtotail = EXT.CONF_extendtotail~1 EXT:save() end 
+      if ImGui.Checkbox(ctx, 'Extend rendered media for tail',EXT.CONF_extendtotail&1==1) then EXT.CONF_extendtotail = EXT.CONF_extendtotail~1 EXT:save() end 
     end
   -- bitdepth
     UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Bit depth') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx) 
@@ -725,7 +742,7 @@ function UI.draw_settings()
     ImGui.SeparatorText(ctx, 'Postprocessing') 
     -- glue
     if EXT.CONF_unmutesends&2==2 then ImGui.BeginDisabled( ctx, true ) end
-    if reaper.ImGui_Checkbox(ctx, 'Glue',EXT.CONF_glue&1==1) then EXT.CONF_glue = EXT.CONF_glue~1 EXT:save() end   ImGui.SetItemTooltip(ctx, 'Glue result + remove temp renders from disk. Not available for render sends separately.')
+    if ImGui.Checkbox(ctx, 'Glue',EXT.CONF_glue&1==1) then EXT.CONF_glue = EXT.CONF_glue~1 EXT:save() end   ImGui.SetItemTooltip(ctx, 'Glue result + remove temp renders from disk. Not available for render sends separately.')
     if EXT.CONF_unmutesends&2==2 then ImGui.EndDisabled( ctx ) end
     -- tr name
     UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Track 1 name') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx)
@@ -750,11 +767,11 @@ function UI.draw_settings()
     --[[ Source event settings
       
     ImGui.SeparatorText(ctx, 'Source events')  
-    if reaper.ImGui_Checkbox(ctx, 'Mute items under razor',EXT.CONF_source_flags&1==1) then EXT.CONF_source_flags = EXT.CONF_source_flags~1 EXT:save() end
-    if reaper.ImGui_Checkbox(ctx, 'Mute selected items',EXT.CONF_source_flags&2==2) then EXT.CONF_source_flags = EXT.CONF_source_flags~2 EXT:save() end
-    if reaper.ImGui_Checkbox(ctx, 'Mute selected tracks',EXT.CONF_source_flags&4==4) then EXT.CONF_source_flags = EXT.CONF_source_flags~4 EXT:save() end
+    if ImGui.Checkbox(ctx, 'Mute items under razor',EXT.CONF_source_flags&1==1) then EXT.CONF_source_flags = EXT.CONF_source_flags~1 EXT:save() end
+    if ImGui.Checkbox(ctx, 'Mute selected items',EXT.CONF_source_flags&2==2) then EXT.CONF_source_flags = EXT.CONF_source_flags~2 EXT:save() end
+    if ImGui.Checkbox(ctx, 'Mute selected tracks',EXT.CONF_source_flags&4==4) then EXT.CONF_source_flags = EXT.CONF_source_flags~4 EXT:save() end
     ]]
-    reaper.ImGui_EndChild( ctx )
+    ImGui.EndChild( ctx )
   end
   
 end
@@ -1060,22 +1077,23 @@ function DATA:Render_GetFileOutput()
     local msec = math.floor(1000*(reaper.time_precise()%1))
     outputfile = 'mixdown'..os.date('%d%m%y_%H%M%S') ..msec
     outputfp = outputpath..'/'..outputfile..'.wav'
-  end
+  end  
   return outputpath,outputfile,outputfp
 end
 -------------------------------------------------------------------------------
 function DATA:Render_Piece_State_StoreAndSet(t) 
   local project = DATA.rend_temp.project  
   local cur_tr = VF_GetMediaTrackByGUID(project, t.trGUID)
-  if not cur_tr then return end
-  
+  if not cur_tr then return end 
   
   DATA.rend_temp.solostate = {}
   DATA.rend_temp.mutestate = {}
   DATA.rend_temp.sends = {}
-  local trcnt = reaper.CountTracks( project )
-  DATA.rend_temp.trcnt = trcnt
+  DATA.rend_temp.fx = {}
+  DATA.rend_temp.fx_instrumentID = nil
   
+  local trcnt = CountTracks( project )
+  DATA.rend_temp.trcnt = trcnt
   
   -- store sends
   for sendidx = 1, GetTrackNumSends( cur_tr, 0 ) do
@@ -1084,10 +1102,36 @@ function DATA:Render_Piece_State_StoreAndSet(t)
     }
   end
   
+  -- store FX bypass states
+  local instrID = TrackFX_GetInstrument( cur_tr )
+  for fxidx = 1, TrackFX_GetCount( cur_tr ) do
+    local bypass_param = TrackFX_GetParamFromIdent( cur_tr, fxidx-1, ':bypass' )
+    local val = TrackFX_GetParam( cur_tr, fxidx-1, bypass_param )
+    local retval, buf = TrackFX_GetFXName( cur_tr, fxidx-1, '' ) 
+    local isinstrument = instrID == fxidx-1
+    if EXT.CONF_trackfxenabled&16==16 then isinstrument = buf:match('.-i%: ')~= nil end 
+    if not DATA.rend_temp.fx_instrumentID and isinstrument == true then DATA.rend_temp.fx_instrumentID = fxidx - 1 end  
+    DATA.rend_temp.fx[fxidx] = {
+      ['bypass'] = val,
+      ['bypass_id'] = bypass_param,
+      ['isinstrument'] = isinstrument,
+    }
+  end
+  
+  
+  if EXT.CONF_trackfxenabled&1==1 then
+    for fxidx = 1, #DATA.rend_temp.fx do
+      if EXT.CONF_trackfxenabled&4==0 and DATA.rend_temp.fx_instrumentID and fxidx-1 < DATA.rend_temp.fx_instrumentID then TrackFX_SetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id, 1 ) end  -- enable bypass for FX before instrument
+      if EXT.CONF_trackfxenabled&2==0 and DATA.rend_temp.fx[fxidx].isinstrument == true then TrackFX_SetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id, 1 ) end -- enable bypass for instrument
+      if EXT.CONF_trackfxenabled&8==0 and ((DATA.rend_temp.fx_instrumentID and fxidx-1 > DATA.rend_temp.fx_instrumentID) or not DATA.rend_temp.fx_instrumentID) then TrackFX_SetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id, 1 ) end  -- enable bypass for FX after  instrument // ALL FX if no instrument found
+      --CONF_trackfxenabled = 1|2|4|8|16,--2 instrument -- 4 before instrument -- 8 after instrument -- 16 treat XXi as instrument
+    end 
+  end 
+  
   -- store solo/mute
   for i = 1, DATA.rend_temp.trcnt do 
     local tr = GetTrack(0,i-1)
-    local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false)
+    local retval, trGUID = GetSetMediaTrackInfo_String( tr, 'GUID','',false)
     DATA.rend_temp.solostate[trGUID] = GetMediaTrackInfo_Value( tr, 'I_SOLO' ) 
     SetMediaTrackInfo_Value( tr, 'I_SOLO', 0) 
     DATA.rend_temp.mutestate[trGUID] = GetMediaTrackInfo_Value( tr, 'B_MUTE' ) 
@@ -1096,7 +1140,7 @@ function DATA:Render_Piece_State_StoreAndSet(t)
   
   -- disable master fx
     if EXT.CONF_enablemasterfx&1==1 then
-      local mastertr = reaper.GetMasterTrack(project) 
+      local mastertr = GetMasterTrack(project) 
       DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
       SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
     end
@@ -1130,7 +1174,12 @@ function DATA:Render_Piece_State_Restore(t)
     
   -- restore sends
     for sendidx = 1, GetTrackNumSends( cur_tr, 0 ) do
-      reaper.SetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE', DATA.rend_temp.sends[sendidx].B_MUTE )
+      reaper.SetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'B_MUTE', DATA.rend_temp.sends[sendidx].B_MUTE )
+    end
+    
+  -- restore FX bypass states
+    for fxidx = 1, TrackFX_GetCount( cur_tr ) do
+      TrackFX_SetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id, DATA.rend_temp.fx[fxidx].bypass )
     end
   
   -- cache pointers
@@ -1151,7 +1200,8 @@ function DATA:Render_Piece_State_Restore(t)
       local mastertr = reaper.GetMasterTrack(project) 
       SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled )  
     end  
-    
+  
+  
 end
 -------------------------------------------------------------------------------
 function DATA:Render_Piece_SetRenderConfig(t) 
@@ -1286,9 +1336,9 @@ end
 function DATA:Render_CurrentConfig_SetGlobalParams()
   local project = DATA.rend_temp.project
   
-  GetSetProjectInfo( project, 'RENDER_SETTINGS', 0|512, true ) -- master mix | &512 embed metadata if format supports
+  GetSetProjectInfo( project, 'RENDER_SETTINGS', 0|512, true ) -- master mix | &512 embed metadata if format su pports
   GetSetProjectInfo( project, 'RENDER_BOUNDSFLAG', 0, true ) -- custom time bounds
-  GetSetProjectInfo( project, 'RENDER_SRATE', 0, true ) -- project sample rate  
+  --GetSetProjectInfo( project, 'RENDER_SRATE', 0, true ) -- project sample rate  
   
   if EXT.CONF_tail == 0 then 
     GetSetProjectInfo( project, 'RENDER_TAILFLAG', 0, true )
