@@ -1,5 +1,5 @@
 -- @description Strum selected notes
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @about Shift selected notes positions by user defined PPQ amount
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -35,19 +35,23 @@
     
     -- collect chord data
       local notes = {}
-      local first_note_pos 
+      --local first_note_pos 
       local _, notecnt = reaper.MIDI_CountEvts( take )
       
       for i = 1, notecnt do
         local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, i-1 )
-        if i==1 then first_note_pos = startppqpos end
         if selected then --and math.abs(startppqpos - first_note_pos ) < noteshift*2 then
+          
+          if not first_note_pos then first_note_pos = startppqpos end
           notes[pitch] = {
                               muted=muted,
                               startppqpos=startppqpos,
                               endppqpos=endppqpos,
                               chan=chan,
-                              vel=vel}
+                              vel=vel,
+                              len = endppqpos-startppqpos,
+                              
+                              }
               
         end
       end
@@ -57,11 +61,10 @@
         local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, i-1 ) 
         if selected then  MIDI_DeleteNote( take, i-1 ) end
       end
-      
     -- re add 
       local offs = 0
-      for pitch in spairs(notes, function(t,a,b) if tickoffs < 0 then return b > a else return b < a end end ) do
-        MIDI_InsertNote( take, true, notes[pitch].muted, first_note_pos+offs, notes[pitch].endppqpos+offs,notes[pitch].chan, pitch, notes[pitch].vel, true )
+      for pitch in spairs(notes, function(t,a,b) if tickoffs > 0 then return b > a else return b < a end end ) do
+        MIDI_InsertNote( take, true, notes[pitch].muted, first_note_pos+offs, first_note_pos+offs + notes[pitch].len,notes[pitch].chan, pitch, notes[pitch].vel, true )
         offs = offs + math.abs(tickoffs)
       end
     MIDI_Sort( take ) 
