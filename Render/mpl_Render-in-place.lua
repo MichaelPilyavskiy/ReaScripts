@@ -1,17 +1,17 @@
 -- @description Render-in-place
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Postprocessing / Disable source track FX
+--    # Change the behaviour around Mute/Solo store/restore
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.05
+local vrs = 1.06
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -734,7 +734,7 @@ function UI.draw_settings()
     if ImGui.Checkbox(ctx, 'All FX / FX after instrument',EXT.CONF_trackfxenabled&8==8) then EXT.CONF_trackfxenabled = EXT.CONF_trackfxenabled~8 EXT:save() end
     ImGui.Unindent(ctx, UI.indent)
   end
-  if ImGui.Checkbox(ctx, 'Enable childrens for parent track',EXT.CONF_enablechildrens&1==1) then EXT.CONF_enablechildrens = EXT.CONF_enablechildrens~1 EXT:save() end
+  --if ImGui.Checkbox(ctx, 'Enable childrens for parent track',EXT.CONF_enablechildrens&1==1) then EXT.CONF_enablechildrens = EXT.CONF_enablechildrens~1 EXT:save() end
   
   
   
@@ -1059,6 +1059,7 @@ function DATA:CollectData_GetRazorAreas()
   for i = 1, cnttracks do
     local tr = GetTrack(project,i-1) 
     local retval, trGUID = GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+    local retval, P_NAME = GetSetMediaTrackInfo_String( tr, 'P_NAME', '', false )
     local retval, razorStr = GetSetMediaTrackInfo_String( tr, 'P_RAZOREDITS', '', false )
     if retval then 
     
@@ -1068,6 +1069,7 @@ function DATA:CollectData_GetRazorAreas()
           DATA.rend_temp.cnt_RA = DATA.rend_temp.cnt_RA + 1
           DATA.rend.pieces[#DATA.rend.pieces + 1] = 
             { trGUID = trGUID,
+              P_NAME = P_NAME,
               boundary_st = razorLeft,
               boundary_end = razorRight,
               mode = 1,
@@ -1176,13 +1178,6 @@ function DATA:Render_Piece_State_StoreAndSet(t)
   local trcnt = CountTracks( project )
   DATA.rend_temp.trcnt = trcnt
   
-  -- store sends
-  for sendidx = 1, GetTrackNumSends( cur_tr, 0 ) do
-    DATA.rend_temp.sends[sendidx] = {
-      ['B_MUTE'] = reaper.GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' ),
-    }
-  end
-  
   -- store FX bypass states
   local instrID = TrackFX_GetInstrument( cur_tr )
   for fxidx = 1, TrackFX_GetCount( cur_tr ) do
@@ -1199,7 +1194,6 @@ function DATA:Render_Piece_State_StoreAndSet(t)
     }
   end
   
-  
   -- FX
     if EXT.CONF_trackfxenabled&1==1 then
       for fxidx = 1, #DATA.rend_temp.fx do
@@ -1209,8 +1203,23 @@ function DATA:Render_Piece_State_StoreAndSet(t)
         --CONF_trackfxenabled = 1|2|4|8|16,--2 instrument -- 4 before instrument -- 8 after instrument -- 16 treat XXi as instrument
       end 
     end 
+    
+  -- disable master fx
+    if EXT.CONF_enablemasterfx&1==1 then
+      local mastertr = GetMasterTrack(project) 
+      DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
+      SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
+    end
   
-  -- store solo/mute
+  -- store sends
+  for sendidx = 1, GetTrackNumSends( cur_tr, 0 ) do
+    DATA.rend_temp.sends[sendidx] = {
+      ['B_MUTE'] = reaper.GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' ),
+    }
+  end
+  
+  SetMediaTrackInfo_Value( cur_tr, 'I_SOLO', 1  ) -- unmute source
+  --[[ store solo/mute
     for i = 1, DATA.rend_temp.trcnt do 
       local tr = GetTrack(0,i-1)
       local retval, trGUID = GetSetMediaTrackInfo_String( tr, 'GUID','',false)
@@ -1220,24 +1229,43 @@ function DATA:Render_Piece_State_StoreAndSet(t)
       SetMediaTrackInfo_Value( tr, 'B_MUTE', 1) 
     end
   
-  -- disable master fx
-    if EXT.CONF_enablemasterfx&1==1 then
-      local mastertr = GetMasterTrack(project) 
-      DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
-      SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
-    end
    
   -- mute track
-    SetMediaTrackInfo_Value( cur_tr, 'B_MUTE', 0  )
+    SetMediaTrackInfo_Value( cur_tr, 'B_MUTE', 0  ) -- unmute source
+    if GetParentTrack( cur_tr ) then
+      local par = cur_tr
+      local par0
+      for i = 1, 10 do
+        par0 = GetParentTrack( par )
+        if par0 then
+          SetMediaTrackInfo_Value( par0, 'B_MUTE', 0  ) -- unmute par
+          par1 = par0
+         else 
+          break
+        end
+      end
+    end
     if EXT.CONF_unmutesends&1==1 then 
      if EXT.CONF_unmutesends&2~=2 then -- render separately
-       local cntsends = GetTrackNumSends( cur_tr, 0 ) for sendidx = 1, cntsends do local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' ) SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  ) end -- enable sends
+     
+       local cntsends = GetTrackNumSends( cur_tr, 0 ) 
+        for sendidx = 1, cntsends do -- enable sends
+          local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' ) 
+          SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  ) 
+        end 
+        
       else
+      
        if not (t.options_sendonly and t.options_sendonly==true) then
-         local cntsends = GetTrackNumSends( cur_tr, 0 ) for sendidx = 1, cntsends do local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' ) SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  ) end -- enable sends
+          local cntsends = GetTrackNumSends( cur_tr, 0 ) 
+          for sendidx = 1, cntsends do -- enable sends
+            local P_DESTTRACK = GetTrackSendInfo_Value( cur_tr, 0, sendidx-1, 'P_DESTTRACK' ) 
+            SetMediaTrackInfo_Value( P_DESTTRACK, 'B_MUTE', 0  ) 
+          end 
          DATA.rend_temp.B_MAINSEND = GetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND' )
          SetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND',0 )
        end 
+       
      end 
     end 
    
@@ -1250,7 +1278,7 @@ function DATA:Render_Piece_State_StoreAndSet(t)
           SetMediaTrackInfo_Value( tr, 'B_MUTE', 0  )
         end
       end
-    end
+    end]]
    
      
 end
@@ -1280,12 +1308,14 @@ function DATA:Render_Piece_State_Restore(t)
       local retval, trGUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID','',false) 
       GUID_map[trGUID] = tr 
     end 
-  -- restore solo/mute
+    
+  SetMediaTrackInfo_Value( cur_tr, 'I_SOLO', 0 )
+  --[[ restore solo/mute
     for trGUID in pairs(DATA.rend_temp.solostate) do  
       local tr = GUID_map[trGUID]
       SetMediaTrackInfo_Value( tr, 'I_SOLO',DATA.rend_temp.solostate[trGUID]) 
       SetMediaTrackInfo_Value( tr, 'B_MUTE',DATA.rend_temp.mutestate[trGUID]) 
-    end 
+    end ]]
       
   -- restore master fx 
     if EXT.CONF_enablemasterfx&1==1 then
