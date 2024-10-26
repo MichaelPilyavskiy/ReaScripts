@@ -1,21 +1,21 @@
 -- @description Render-in-place
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # Change the behaviour around Mute/Solo store/restore
+--    # require reaper 7.18+
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.06
+local vrs = 1.07
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
-  if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end 
+  if app_vrs < 7.18 then return reaper.MB('This script require REAPER 7.18+','',0) end 
   local ImGui
   
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
