@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="06497e704d725d8ea5324d690386d36796317b92" name="MPL Scripts">
+<index version="1" commit="35a4fcf31a9892ddc00438b1a10b226c5e9bde00" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7361,6 +7361,10 @@
       <version name="1.05" author="MPL" time="2024-10-24T20:38:50Z">
         <changelog><![CDATA[+ Postprocessing / Disable source track FX]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0123221cd83c6f0697c2e4764ff5023b022eb107/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2024-10-26T09:09:59Z">
+        <changelog><![CDATA[# Change the behaviour around Mute/Solo store/restore]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/35a4fcf31a9892ddc00438b1a10b226c5e9bde00/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
