@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="060bdd0d0419850105a29babb3c08900c4158a93" name="MPL Scripts">
+<index version="1" commit="7927e92a8636b3d99f2c5775eceb2e6f9d16b7a2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12026,6 +12026,10 @@ various fixes]]></changelog>
 + Add Master JSFX to master at initialisation in Master JSFX mode
 + SlaveJSFX-per-track mode: Add Slave JSFX to master at macro select]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e26e7c5e0ba616075b2cedd8a2d541f83c010e26/Various/mpl_Mapping%20Panel%20(background).lua</source>
+      </version>
+      <version name="4.04" author="MPL" time="2024-10-29T19:15:26Z">
+        <changelog><![CDATA[# еуые зфеср ащк вщслук]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7927e92a8636b3d99f2c5775eceb2e6f9d16b7a2/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
