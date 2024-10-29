@@ -1,29 +1,15 @@
 -- @description MappingPanel
--- @version 4.03
+-- @version 4.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    # escape doesnt close window, instead close current popup
---    # MB-based messages ported to ReaImGui
---    # Context menu / Set macro color: ported to ReaImGui Color picker
---    # Context menu / Set MIDI learn: use "Set last touched controller to last touched parameter" action
---    # Context menu / Set MIDI learn: show / remove current MIDI learn
---    # SlaveJSFX-per-track mode: link doesn`t work if not slave jfsx exist
---    # SlaveJSFX-per-track mode: don`t show knobs in jsfx not available
---    # SlaveJSFX-per-track mode: don`t ask for add JSFX
---    # Master JSFX mode: don`t ask for add JSFX
---    # remove message at clicking mapping panel as last touched
---    # remove message "Item FX is not supported"
---    # remove message at missing slave JSFX
---    # remove message at removing link
---    + Add Master JSFX to master at initialisation in Master JSFX mode
---    + SlaveJSFX-per-track mode: Add Slave JSFX to master at macro select
+--    # еуые зфеср ащк вщслук
 
 
 
 
-  local vrs = 4.03
+  local vrs = 4.04
 
   --[[ gmem map: 
   Master
@@ -57,6 +43,7 @@
            viewport_posY = 10,
            viewport_posW = 640,
            viewport_posH = 400, 
+           viewport_dock = 0, 
            
            CONF_setslaveparamtomaster = 1,
            CONF_randstrength = 1,
@@ -870,7 +857,7 @@
       --window_flags = window_flags | ImGui.WindowFlags_NoNav()
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
       --window_flags = window_flags | ImGui.WindowFlags_NoDocking
-      window_flags = window_flags | ImGui.WindowFlags_TopMost
+      --window_flags = window_flags | ImGui.WindowFlags_TopMost
       window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
       --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings()
       --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
@@ -932,10 +919,10 @@
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
-      local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+      local x, y, w, h, dock =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH,EXT.viewport_dock
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
-      
+      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing) 
+      ImGui.SetNextWindowDockID( ctx, EXT.viewport_dock, ImGui.Cond_Appearing )
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
@@ -944,8 +931,8 @@
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
         DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
+        DATA.display_dock = ImGui.GetWindowDockID( ctx )
         DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
-        
         
       -- calc stuff for childs
         UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
@@ -1146,10 +1133,14 @@
     if not DATA.display_w_last then DATA.display_w_last = DATA.display_w end
     if not DATA.display_h_last then DATA.display_h_last = DATA.display_h end
     
+    if not DATA.display_dock_last then DATA.display_dock_last = DATA.display_dock  end
+    
+    
     if  DATA.display_x_last~= DATA.display_x 
       or DATA.display_y_last~= DATA.display_y 
       or DATA.display_w_last~= DATA.display_w 
       or DATA.display_h_last~= DATA.display_h 
+      or DATA.display_dock_last~= DATA.display_dock 
       then 
       DATA.display_schedule_save = os.clock() 
     end
@@ -1158,6 +1149,7 @@
       EXT.viewport_posY = DATA.display_y
       EXT.viewport_posW = DATA.display_w
       EXT.viewport_posH = DATA.display_h
+      EXT.viewport_dock = DATA.display_dock
       EXT:save() 
       DATA.display_schedule_save = nil 
     end
@@ -1165,6 +1157,7 @@
     DATA.display_y_last = DATA.display_y
     DATA.display_w_last = DATA.display_w
     DATA.display_h_last = DATA.display_h
+    DATA.display_dock_last = DATA.display_dock
   end
   -------------------------------------------------------------------------------- 
   function UI.draw_knob(sliderID, sliderW,  sliderH, paramval, app_func_onmouseclick, app_func_onmousedrag, app_func_header, iscollapsed, selected, name, col) 
