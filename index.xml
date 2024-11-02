@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7927e92a8636b3d99f2c5775eceb2e6f9d16b7a2" name="MPL Scripts">
+<index version="1" commit="0c5bce3a6376038c4b021672352c90361575b1fc" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -48,6 +48,24 @@
       <version name="1.01" author="MPL" time="2017-12-19T17:48:16Z">
         <changelog><![CDATA[# support track volume and pan envelopes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9c1a6b7054783de9bc6a8a9c9edf731d54dc1e6/Automation%20Items/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Load automation item.lua" type="script" desc="Load automation item">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-11-02T20:20:36Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main" file="mpl_Load automation item 1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 2.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 7.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 8.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 9.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
+        <source main="main" file="mpl_Load automation item 10.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5bce3a6376038c4b021672352c90361575b1fc/Automation%20Items/mpl_Load%20automation%20item.lua</source>
       </version>
     </reapack>
   </category>
