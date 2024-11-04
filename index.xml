@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0c5bce3a6376038c4b021672352c90361575b1fc" name="MPL Scripts">
+<index version="1" commit="4e998e591e7fe0db30f6329b3db0b8b8e17c1c24" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3455,6 +3455,10 @@
       <version name="1.03" author="MPL" time="2024-08-18T11:43:05Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b5e4bc2f9cd0a5a2ac6f4166f5907200c625e59e/FX%20specific/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-11-04T04:33:15Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4e998e591e7fe0db30f6329b3db0b8b8e17c1c24/FX%20specific/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export RS5k sample into item on same track.lua" type="script" desc="Export RS5k sample into item on same track">
