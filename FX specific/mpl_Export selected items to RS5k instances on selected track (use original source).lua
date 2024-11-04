@@ -1,5 +1,5 @@
 -- @description Export selected items to RS5k instances on selected track (use original source)
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
@@ -22,6 +22,28 @@
   
   local scr_title = 'Export selected items to RS5k instances on selected track (use original source)'
   --NOT gfx NOT reaper
+  -------------------------------------------------------------------------------   
+  function ExportSelItemsToRs5k_FormMIDItake_data()
+    local MIDI = {}
+    -- check for same track/get items info
+      local item = reaper.GetSelectedMediaItem(0,0)
+      if not item then return end
+      MIDI.it_pos = reaper.GetMediaItemInfo_Value( item, 'D_POSITION' )
+      MIDI.it_end_pos = MIDI.it_pos + 0.1
+      local proceed_MIDI = true
+      local it_tr0 = reaper.GetMediaItemTrack( item )
+      for i = 1, reaper.CountSelectedMediaItems(0) do
+        local item = reaper.GetSelectedMediaItem(0,i-1)
+        local it_pos = reaper.GetMediaItemInfo_Value( item, 'D_POSITION' )
+        local it_len = reaper.GetMediaItemInfo_Value( item, 'D_LENGTH' )
+        MIDI[#MIDI+1] = {pos=it_pos, end_pos = it_pos+it_len}
+        MIDI.it_end_pos = it_pos + it_len
+        local it_tr = reaper.GetMediaItemTrack( item )
+        if it_tr ~= it_tr0 then proceed_MIDI = false break end
+      end
+      
+    return proceed_MIDI, MIDI
+  end
  --------------------------------------------------------------------
   function main()
     
