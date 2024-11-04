@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4e998e591e7fe0db30f6329b3db0b8b8e17c1c24" name="MPL Scripts">
+<index version="1" commit="4ac2501e920c454e4953369488306cda2d25dae2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3531,6 +3531,10 @@
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
       </version>
+      <version name="1.05" author="MPL" time="2024-11-04T05:20:45Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ac2501e920c454e4953369488306cda2d25dae2/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (use original source, wait for input).lua" type="script" desc="Export selected items to RS5k instances on selected track (use original source, wait for input)">
       <metadata>
@@ -3543,6 +3547,10 @@
       <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source,%20wait%20for%20input).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-11-04T05:20:45Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ac2501e920c454e4953369488306cda2d25dae2/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source,%20wait%20for%20input).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
@@ -3569,6 +3577,10 @@
       <version name="1.01" author="MPL" time="2024-08-18T20:08:10Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79c35d79146480d8c247d0be9b776ca78f77ce5c/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track%20(use%20original%20source).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-11-04T05:20:45Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ac2501e920c454e4953369488306cda2d25dae2/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track%20(use%20original%20source).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to single RS5k instance on selected track.lua" type="script" desc="Export selected items to single RS5k instance on selected track">
