@@ -1,4 +1,4 @@
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Explode selected track RS5k instances to new tracks
@@ -17,13 +17,24 @@
       return true
     end
   end
-
+  ---------------------------------------------------
+  function VF_ReduceFXname(s)
+    local s_out = s:match('[%:%/%s]+(.*)')
+    if not s_out then return s end
+    s_out = s_out:gsub('%(.-%)','') 
+    --if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
+    local pat_js = '.*[%/](.*)'
+    if s_out:match(pat_js) then s_out = s_out:match(pat_js) end  
+    if not s_out then return s else 
+      if s_out ~= '' then return s_out else return s end
+    end
+  end
  ------------------------------------------------------------------------  
   function RenameTrAsFirstInstance(track)
     local fx_count =  TrackFX_GetCount(track)
     if fx_count >= 1 then
       local retval, fx_name =  TrackFX_GetFXName(track, 0, '')
-      reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', MPL_ReduceFXname(fx_name), true)
+      reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', VF_ReduceFXname(fx_name), true)
     end
   end
   ------------------------------------------------------------------------
