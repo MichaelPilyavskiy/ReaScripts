@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 4.01
+-- @version 4.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -2890,7 +2890,7 @@ end
   function DATA:Execute_Align_MIDI_sub(take_t, take) 
     local val1 = DATA.val1 or 0
     local val2 = DATA.val2 or 0
-    if not take then return end
+    if not take and reaper.TakeIsMIDI(take) then return end
     local str_per_msg  = ''
     local ppq_cur = 0
     for i = 1, #take_t do
@@ -2934,8 +2934,10 @@ end
         end   
         
        else
-        str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
-        ppq_cur = ppq_cur+ out_offs
+        if t and t.flags and t.msg1 then
+          str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
+          ppq_cur = ppq_cur+ out_offs
+        end
       end
       
     end
@@ -2951,8 +2953,10 @@ end
     local takes_t = {}
     for i = 1 , #DATA.src do
       local t = DATA.src[i]
-      if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
-      takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = VF_CopyTable(t)
+      if t.GUID then
+        if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
+        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = VF_CopyTable(t)
+      end
     end  
     -- loop takes
     for GUID in pairs(takes_t) do
