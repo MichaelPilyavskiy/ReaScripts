@@ -1,11 +1,10 @@
 -- @description QuantizeTool
--- @version 4.0
+-- @version 4.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Ported to ReaImGui
---    # prevent using NF_AnalyzeMediaItemPeakAndRMS if not available
+--    # fix small corner cases
 
 
 
@@ -18,7 +17,7 @@
   
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9.3.1'
+  ImGui = require 'imgui' '0.9.3.2'
   
   
 -------------------------------------------------------------------------------- init external defaults 
@@ -470,8 +469,11 @@ function UI.SameLine(ctx) ImGui.SameLine(ctx) end
 function UI.MAIN()
   
   EXT:load() 
+  if EXT.CONF_act_initcatchref&1==1 then DATA:GetAnchorPoints() end
+  if EXT.CONF_act_initcatchsrc&1==1 then DATA:GetTargets() end
   -- imgUI init
   ctx = ImGui.CreateContext(DATA.UI_name) 
+  
   -- fonts
   DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
   DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
@@ -480,8 +482,6 @@ function UI.MAIN()
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
   
-  if EXT.CONF_act_initcatchref&1==1 then DATA:GetAnchorPoints() end
-  if EXT.CONF_act_initcatchsrc&1==1 then DATA:GetTargets() end
   
   -- run loop
   defer(UI.MAINloop)
@@ -761,7 +761,7 @@ function UI.MAIN_shortcuts()
   if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  reaper.Main_OnCommand(40044,0) end
 end
 --------------------------------------------------------------------------------  
-function UI.draw()  
+function UI.draw() 
   UI.draw_preset() 
   
   ImGui.SameLine(ctx)
@@ -2073,6 +2073,9 @@ end
       
     end
   end
+  ------------------------------------------------------------------------------------------------------
+  function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+  
   ---------------------------------------------------------------------- 
   function DATA:GetAnchorPoints_TempoMarkers()
     local  cnt = CountTempoTimeSigMarkers( 0 )
