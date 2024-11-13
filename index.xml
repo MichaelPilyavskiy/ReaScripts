@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bc19fcdf39bb66c262d0a96777d6c8b3d9e8a332" name="MPL Scripts">
+<index version="1" commit="a12d61793ef6a9cf541b296691ba019b4f4d1a83" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5881,6 +5881,22 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21b5bcf46d6f2a36b9d98ca4b2c63916faa86a6f/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Item ADSR.lua" type="script" desc="Item ADSR">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for manipulating ADSR of selected items\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-11-13T10:14:12Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40bf7337046643c12de87779d5e8c70a138cc05d/Items%20Properties/mpl_Item%20ADSR.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Mute item under mouse cursor.lua" type="script" desc="Mute item under mouse cursor">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -7403,6 +7419,11 @@
       <version name="1.07" author="MPL" time="2024-10-26T10:25:59Z">
         <changelog><![CDATA[# require reaper 7.18+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c352898039f3021462ea7397b9bb824254bb34fb/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2024-11-13T11:29:22Z">
+        <changelog><![CDATA[# use solo-in-place + play around "Render sends separately" logic
+# restore all the render fields]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a12d61793ef6a9cf541b296691ba019b4f4d1a83/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
