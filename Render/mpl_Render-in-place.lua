@@ -1,17 +1,18 @@
 -- @description Render-in-place
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # require reaper 7.18+
+--    # use solo-in-place + play around "Render sends separately" logic
+--    # restore all the render fields
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.07
+local vrs = 1.08
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1041,7 +1042,47 @@ function DATA:Render_CurrentConfig_Store()
   local project = DATA.rend_temp.project
   local retval, RENDER_FORMAT = GetSetProjectInfo_String( project, 'RENDER_FORMAT', '', false )
   local retval, RENDER_FORMAT2 = GetSetProjectInfo_String( project, 'RENDER_FORMAT2', '', false )
-  DATA.rend_temp = {RENDER_FORMAT=RENDER_FORMAT,RENDER_FORMAT2=RENDER_FORMAT2} 
+  
+  local RENDER_SETTINGS = GetSetProjectInfo( project, 'RENDER_SETTINGS', 0, false )
+  local RENDER_BOUNDSFLAG = GetSetProjectInfo( project, 'RENDER_BOUNDSFLAG', 0, false )
+  local RENDER_SRATE = GetSetProjectInfo( project, 'RENDER_SRATE', 0, false )
+  local RENDER_TAILFLAG = GetSetProjectInfo( project, 'RENDER_TAILFLAG', 0, false )
+  local RENDER_TAILMS = GetSetProjectInfo( project, 'RENDER_TAILMS', 0, false )
+  local RENDER_ADDTOPROJ = GetSetProjectInfo( project, 'RENDER_ADDTOPROJ', 0, false )
+  local RENDER_NORMALIZE = GetSetProjectInfo( project, 'RENDER_NORMALIZE', 0, false )
+  local RENDER_FADEOUT = GetSetProjectInfo( project, 'RENDER_FADEOUT', 0, false )
+  
+  local RENDER_CHANNELS = GetSetProjectInfo( project, 'RENDER_CHANNELS', 0, false )
+  local RENDER_STARTPOS = GetSetProjectInfo( project, 'RENDER_STARTPOS', 0, false )
+  local RENDER_ENDPOS = GetSetProjectInfo( project, 'RENDER_ENDPOS', 0, false )
+  
+  local retval, RENDER_FILE = GetSetProjectInfo_String( project, 'RENDER_FILE', '', false )
+  local retval, RENDER_PATTERN = GetSetProjectInfo_String( project, 'RENDER_PATTERN', '', false )
+  
+  
+  
+  DATA.rend_temp = {
+    RENDER_FORMAT=RENDER_FORMAT,
+    RENDER_FORMAT2=RENDER_FORMAT2,
+    
+    RENDER_SETTINGS=RENDER_SETTINGS,
+    RENDER_BOUNDSFLAG=RENDER_BOUNDSFLAG,
+    RENDER_SRATE=RENDER_SRATE,
+    RENDER_TAILFLAG=RENDER_TAILFLAG,
+    RENDER_TAILMS=RENDER_TAILMS,
+    RENDER_ADDTOPROJ=RENDER_ADDTOPROJ,
+    RENDER_NORMALIZE=RENDER_NORMALIZE,
+    RENDER_FADEOUT=RENDER_FADEOUT,
+    
+    RENDER_CHANNELS=RENDER_CHANNELS,
+    RENDER_STARTPOS=RENDER_STARTPOS,
+    RENDER_ENDPOS=RENDER_ENDPOS,
+    
+    RENDER_FILE=RENDER_FILE,
+    RENDER_PATTERN=RENDER_PATTERN,
+    
+    
+    } 
 end
 -------------------------------------------------------------------------------
 function DATA:Render_CurrentConfig_Restore()
@@ -1049,6 +1090,25 @@ function DATA:Render_CurrentConfig_Restore()
   if not DATA.rend_temp.RENDER_FORMAT then return end
   GetSetProjectInfo_String( project, 'RENDER_FORMAT', DATA.rend_temp.RENDER_FORMAT, true )
   GetSetProjectInfo_String( project, 'RENDER_FORMAT2', DATA.rend_temp.RENDER_FORMAT2, true )
+  
+  
+  GetSetProjectInfo( project, 'RENDER_SETTINGS', DATA.rend_temp.RENDER_SETTINGS, true )
+  GetSetProjectInfo( project, 'RENDER_BOUNDSFLAG', DATA.rend_temp.RENDER_BOUNDSFLAG, true )
+  GetSetProjectInfo( project, 'RENDER_SRATE', DATA.rend_temp.RENDER_SRATE, true )
+  GetSetProjectInfo( project, 'RENDER_TAILFLAG', DATA.rend_temp.RENDER_TAILFLAG, true )
+  GetSetProjectInfo( project, 'RENDER_TAILMS', DATA.rend_temp.RENDER_TAILMS, true )
+  GetSetProjectInfo( project, 'RENDER_ADDTOPROJ', DATA.rend_temp.RENDER_ADDTOPROJ, true )
+  GetSetProjectInfo( project, 'RENDER_NORMALIZE', DATA.rend_temp.RENDER_NORMALIZE, true )
+  GetSetProjectInfo( project, 'RENDER_FADEOUT', DATA.rend_temp.RENDER_FADEOUT, true )
+  
+  GetSetProjectInfo( project, 'RENDER_CHANNELS', DATA.rend_temp.RENDER_CHANNELS, true )
+  GetSetProjectInfo( project, 'RENDER_STARTPOS', DATA.rend_temp.RENDER_STARTPOS, true )
+  GetSetProjectInfo( project, 'RENDER_ENDPOS', DATA.rend_temp.RENDER_ENDPOS, true )
+  
+  
+  GetSetProjectInfo_String( project, 'RENDER_FILE', DATA.rend_temp.RENDER_FILE, true )
+  GetSetProjectInfo_String( project, 'RENDER_PATTERN', DATA.rend_temp.RENDER_PATTERN, true )
+  
 end 
 -------------------------------------------------------------------------------
 function DATA:CollectData_GetRazorAreas() 
@@ -1218,7 +1278,28 @@ function DATA:Render_Piece_State_StoreAndSet(t)
     }
   end
   
-  SetMediaTrackInfo_Value( cur_tr, 'I_SOLO', 1  ) -- unmute source
+  if EXT.CONF_unmutesends&1==1 then 
+    SetMediaTrackInfo_Value( cur_tr, 'I_SOLO', 2  ) -- unmute source
+    
+    if EXT.CONF_unmutesends&2==2 then -- render separately 
+      if (t.options_sendonly and t.options_sendonly==true) then
+        -- disable main track, enable only send
+        SetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND',0 )
+       else
+        -- dry
+        SetMediaTrackInfo_Value( cur_tr, 'I_SOLO', 1  ) -- in place
+      end
+    end
+    
+   else 
+    SetMediaTrackInfo_Value( cur_tr, 'I_SOLO', 1  ) -- in place
+  end
+  
+   
+  
+  
+  
+  
   --[[ store solo/mute
     for i = 1, DATA.rend_temp.trcnt do 
       local tr = GetTrack(0,i-1)
@@ -1268,7 +1349,7 @@ function DATA:Render_Piece_State_StoreAndSet(t)
        
      end 
     end 
-   
+   ]]
   -- enable childrens
     if EXT.CONF_enablechildrens&1==1 then
       for i = 1, DATA.rend_temp.trcnt do 
@@ -1278,7 +1359,7 @@ function DATA:Render_Piece_State_StoreAndSet(t)
           SetMediaTrackInfo_Value( tr, 'B_MUTE', 0  )
         end
       end
-    end]]
+    end
    
      
 end
@@ -1353,7 +1434,7 @@ function DATA:Render_Piece(t)
       if EXT.CONF_unmutesends&2~=2 then
         DATA:Render_InsertMedia(t)
        else
-        DATA:Render_InsertMedia(t,not (t.options_track2 and t.options_track2==true)) -- should be vice verse but it works
+        DATA:Render_InsertMedia(t,(t.options_track2 and t.options_track2==true)) -- should be vice verse but it works
       end
       t.state = 2-- set state as processed
       return 
