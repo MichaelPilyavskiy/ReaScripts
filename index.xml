@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="856391bfa9d38298d8922c7f04e568b3d882380f" name="MPL Scripts">
+<index version="1" commit="bbb82eda39ceb29f5b75df34e40f742f058e1fd5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8967,6 +8967,10 @@ various fixes]]></changelog>
 + Support #fx wildcard in track name edit field
 + Support #preset wildcard in track name edit field]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0137fddfffaeb748d85a5a87b01f8ab40442b793/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
+      <version name="1.25" author="MPL" time="2024-11-15T07:34:59Z">
+        <changelog><![CDATA[+ fix collision of right click to rename destination and main menu]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bbb82eda39ceb29f5b75df34e40f742f058e1fd5/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
