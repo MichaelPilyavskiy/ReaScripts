@@ -1,10 +1,11 @@
 -- @description Tempo versions
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + init
+--    # update items that have auto stretch at tempo changes on version load
+--    + Allow to import/export from/to text file
 
 
 
@@ -316,9 +317,39 @@ end
     end
   end
 -------------------------------------------------------------------------------- 
-function DATA:ExtState_Set()  
+function DATA:ExtState_Set(save_to_file)  
   local outstr = table.save(DATA.versions )
-  SetProjExtState( -1, DATA.ES_key, 'DATA', outstr )
+  if not save_to_file then
+    SetProjExtState( -1, DATA.ES_key, 'DATA', outstr )
+   else
+    local fp = GetProjectPath()..'/TempoVersions/'
+    local filename = os.date():gsub('%p','_')..'.tempoversion'
+    reaper.RecursiveCreateDirectory(fp,0)
+    local f = io.open(fp..'/'..filename, 'wb')
+    if f then f:write(outstr) f:close() MB('Backup is written into '..fp..'/'..filename, 'Export tempo versions', 0)end
+  end
+end
+-------------------------------------------------------------------------------- 
+function DATA:ExtState_Get(from_file)  
+  if not from_file then 
+    retval, content = reaper.GetProjExtState( -1, DATA.ES_key, 'DATA' )
+    DATA.versions = table.load(content) or {}
+   else
+    local fp = GetProjectPath()..'/TempoVersions/'
+    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(fp, 'Load tempo versions', 'tempoversion' )
+    if retval then
+      local f = io.open(filenameNeed4096,'rb')
+      if f then 
+        local content = f:read('a')
+        f:close()
+        
+        if content and content ~= '' then 
+          DATA.versions = table.load(content) or {}
+        end
+      end
+    end
+  end
+  
 end
 -------------------------------------------------------------------------------- 
 function DATA:ExtState_GetActiveName()  
@@ -333,16 +364,15 @@ function DATA:ExtState_Apply(id)
     local envdata = DATA.versions[id].envdata
     DATA:Envelope_Set(envdata) 
     DATA:ExtState_Set() 
-end
--------------------------------------------------------------------------------- 
-function DATA:ExtState_Get()  
-  local retval, val = reaper.GetProjExtState( -1, DATA.ES_key, 'DATA' )
-  DATA.versions = table.load(val) or {}
+    
+  -- update timeline
+    reaper.SetTempoTimeSigMarker( -1, -1, reaper.GetProjectLength( -1 ), -1, -1, 120, 4, 4, true )
+    reaper.DeleteTempoTimeSigMarker( -1, reaper.CountTempoTimeSigMarkers( -1 )-1 )
+    reaper.UpdateTimeline()
 end
 -------------------------------------------------------------------------------- 
 function DATA:CollectData() 
   DATA.versions = {
-   -- [1] = {name = 'current', GUID = reaper.genGuid()},
     }
   DATA:ExtState_Get() 
 end
@@ -625,8 +655,13 @@ function UI.draw_versions()
     end
   end
   
+  ImGui.SameLine(ctx)
+  ImGui.Dummy(ctx, 20,0)
+  ImGui.SameLine(ctx)
   
-  
+  if ImGui.Button(ctx, 'Export all') then DATA:ExtState_Set(true) end
+  ImGui.SameLine(ctx)
+  if ImGui.Button(ctx, 'Import all') then DATA:ExtState_Get(true) end
 end
 -------------------------------------------------------------------------------- 
 function DATA:Envelope_Set(envdata)
