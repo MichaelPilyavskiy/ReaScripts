@@ -1,12 +1,10 @@
 -- @description Send control
--- @version 1.24
+-- @version 1.25
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + Right click on slider enter edit destination track name
---    + Support #fx wildcard in track name edit field
---    + Support #preset wildcard in track name edit field
+--    + fix collision of right click to rename destination and main menu
 
 
 
@@ -755,6 +753,7 @@ function UI.draw_send(send_t, id)
           GetSetMediaTrackInfo_String( tr, 'P_NAME', buf, true ) 
         end
         send_t.rename_input_mode = nil
+        DATA.rename_input_mode = nil
         DATA.upd = true
       end
     end
@@ -777,6 +776,7 @@ function UI.draw_send(send_t, id)
     end
     if ImGui_IsItemClicked( ctx, ImGui.MouseButton_Right )then
       send_t.rename_input_mode = true
+      DATA.rename_input_mode = true
     end
     
     
@@ -927,7 +927,7 @@ function UI.draw()
   
   if not (DATA.available_sends and #DATA.available_sends>0) then return end
   
-  if  ImGui.IsMouseClicked( ctx,  ImGui.MouseButton_Right, false ) then ImGui.OpenPopup(ctx, 'sendspopup') end
+  if  ImGui.IsMouseClicked( ctx,  ImGui.MouseButton_Right, false ) and DATA.rename_input_mode~= true then ImGui.OpenPopup(ctx, 'sendspopup') end
   
   ImGui.SameLine(ctx)
   --ImGui.Text(ctx, '<None>')
