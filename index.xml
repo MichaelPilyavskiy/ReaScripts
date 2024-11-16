@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bbb82eda39ceb29f5b75df34e40f742f058e1fd5" name="MPL Scripts">
+<index version="1" commit="b663dc9e3f54698fe81ab5fbaca1171e6d8b836e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7424,6 +7424,20 @@
         <changelog><![CDATA[# use solo-in-place + play around "Render sends separately" logic
 # restore all the render fields]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a12d61793ef6a9cf541b296691ba019b4f4d1a83/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.09" author="MPL" time="2024-11-16T13:56:03Z">
+        <changelog><![CDATA[+ Postprocessing overhaul
++ Postprocessing / Destination: Same track
++ Postprocessing / Destination / Same track / New take to item if possible
++ Postprocessing / Destination / Same track / New take to item if possible
++ Source / Sel.item: add option to exclude if items are catched by razor areas
++ Postprocessing: do not mute track if rendering to the same track
++ Postprocessing: do not mute item if rendering to the same item take
++ Postprocessing / Same track / Lane: improve sharing logic, forbidden for common track
++ Postprocessing / Same track / Lane: set first lane play exclusively
++ Postprocessing / Common or new track: allow to change position
++ Postprocessing: support #trname wildcard for taking source track name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b663dc9e3f54698fe81ab5fbaca1171e6d8b836e/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
