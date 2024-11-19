@@ -1,11 +1,10 @@
 -- @description Tempo versions
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # update items that have auto stretch at tempo changes on version load
---    + Allow to import/export from/to text file
+--    + Show timestamps
 
 
 
@@ -317,7 +316,8 @@ end
     end
   end
 -------------------------------------------------------------------------------- 
-function DATA:ExtState_Set(save_to_file)  
+function DATA:ExtState_Set(save_to_file) 
+  
   local outstr = table.save(DATA.versions )
   if not save_to_file then
     SetProjExtState( -1, DATA.ES_key, 'DATA', outstr )
@@ -593,6 +593,14 @@ function UI.draw_versions()
       if not DATA.versions[i] then goto skipnextversion end
       local name = DATA.versions[i].name or '[untitled]'
       if ImGui.Selectable( ctx, name..'##vrs'..i, DATA.versions[i].active==1, ImGui.SelectableFlags_None, 0, select_hsz ) then DATA:ExtState_Apply(i) end 
+      
+      if DATA.versions[i].TS_created then
+        ImGui.SameLine(ctx)
+        ImGui.BeginDisabled(ctx,true)
+        ImGui.Text(ctx, DATA.versions[i].TS_created)
+        ImGui.EndDisabled(ctx)
+      end
+      
       ::skipnextversion::
     end
     
@@ -683,7 +691,7 @@ function DATA:SaveVersion()
   local id = #DATA.versions+1
   local new_name = DATA.version_name
   if new_name == '' then new_name = 'Version '..id end
-  DATA.versions[id] = {name = new_name, envdata = envdata}
+  DATA.versions[id] = {name = new_name, envdata = envdata, TS_created = os.date()}
   return id
 end
 -------------------------------------------------------------------------------- 
