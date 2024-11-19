@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b663dc9e3f54698fe81ab5fbaca1171e6d8b836e" name="MPL Scripts">
+<index version="1" commit="6761bccdbb279ab2f0a0cda3d595f6323a229c86" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7438,6 +7438,11 @@
 + Postprocessing / Common or new track: allow to change position
 + Postprocessing: support #trname wildcard for taking source track name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b663dc9e3f54698fe81ab5fbaca1171e6d8b836e/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.10" author="MPL" time="2024-11-19T15:43:21Z">
+        <changelog><![CDATA[+ Source / Sel.item: Ignore if at least one razor area exists
+# improved sharing to fixed lanes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6761bccdbb279ab2f0a0cda3d595f6323a229c86/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
