@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6761bccdbb279ab2f0a0cda3d595f6323a229c86" name="MPL Scripts">
+<index version="1" commit="2804257689d4b2c1912bd1ed5854292819f59b35" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8106,6 +8106,10 @@
         <changelog><![CDATA[# update items that have auto stretch at tempo changes on version load
 + Allow to import/export from/to text file]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/856391bfa9d38298d8922c7f04e568b3d882380f/Tempo/mpl_Tempo%20versions.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-11-19T17:37:07Z">
+        <changelog><![CDATA[+ Show timestamps]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2804257689d4b2c1912bd1ed5854292819f59b35/Tempo/mpl_Tempo%20versions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle gradually transition for tempo marker before edit cursor.lua" type="script" desc="Toggle gradually transition for tempo marker before edit cursor">
