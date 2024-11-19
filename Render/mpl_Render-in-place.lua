@@ -1,20 +1,11 @@
 -- @description Render-in-place
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Postprocessing overhaul
---    + Postprocessing / Destination: Same track
---    + Postprocessing / Destination / Same track / New take to item if possible
---    + Postprocessing / Destination / Same track / New take to item if possible
---    + Source / Sel.item: add option to exclude if items are catched by razor areas
---    + Postprocessing: do not mute track if rendering to the same track
---    + Postprocessing: do not mute item if rendering to the same item take
---    + Postprocessing / Same track / Lane: improve sharing logic, forbidden for common track
---    + Postprocessing / Same track / Lane: set first lane play exclusively
---    + Postprocessing / Common or new track: allow to change position
---    + Postprocessing: support #trname wildcard for taking source track name
+--    + Source / Sel.item: Ignore if at least one razor area exists
+--    # improved sharing to fixed lanes
 
 
 
@@ -24,7 +15,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.09
+local vrs = 1.10
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -48,15 +39,16 @@ EXT = {
         CONF_name = 'default',
         
         -- src
-        CONF_source = 1|2|4|8|16|32, 
+        CONF_source = 1|2|4|8|16, 
         --[[
           -- &1 razor areas 
           -- &2 items 
           -- &4 track at selection 
           -- &8 track if no RA 
           -- &16 track if no items 
-          -- &32 ignore selected items if they are already catched by RA
         ]]
+        CONF_source_itemflags = 1|2, --&1 ignore selected items if they are already catched by RA -- &2 ignore if RA exist
+        
         -- preparations
         CONF_solomode = 2,
         CONF_unmutesends = 0,
@@ -699,7 +691,8 @@ function UI.draw_tab_source()
     if ImGui.Checkbox(ctx, 'Selected items ('..(DATA.rend_temp.cnt_items or 0)..')',EXT.CONF_source&2==2) then EXT.CONF_source = EXT.CONF_source~2 EXT:save() end  
     if EXT.CONF_source&2==2 then 
       ImGui.Indent(ctx, UI.indent) 
-      if ImGui.Checkbox(ctx, 'If items aren`t catched by razor areas',EXT.CONF_source&32==32) then EXT.CONF_source = EXT.CONF_source~32 EXT:save() end   
+      if ImGui.Checkbox(ctx, 'If items aren`t catched by razor areas',EXT.CONF_source_itemflags&1==1) then EXT.CONF_source_itemflags = EXT.CONF_source_itemflags~1 EXT:save() end   
+      if ImGui.Checkbox(ctx, 'Ignore if at least one razor area exists',EXT.CONF_source_itemflags&2==2) then EXT.CONF_source_itemflags = EXT.CONF_source_itemflags~2 EXT:save() end   
       ImGui.Unindent(ctx, UI.indent)
     end  
     if ImGui.Checkbox(ctx, 'Track time selection ('..(DATA.rend_temp.cnt_tracks or 0)..')',EXT.CONF_source&4==4) then EXT.CONF_source = EXT.CONF_source~4 EXT:save() end
@@ -1235,6 +1228,7 @@ end
 -------------------------------------------------------------------------------
 function DATA:CollectData_GetSelectedItems()
   if EXT.CONF_source&2~=2 then return end -- do not collect if not set in source  
+  if EXT.CONF_source_itemflags&2==2 and DATA.rend_temp.cnt_RA > 0 then return end
   
   local project = DATA.rend_temp.project
   local it_cnt = CountMediaItems( project )
@@ -1249,7 +1243,7 @@ function DATA:CollectData_GetSelectedItems()
       local retval, itemGUID = GetSetMediaItemInfo_String( item, 'GUID', '', false )
       
       local ownedbyrazor = DATA.rend_temp.itemGUID_ownedbyrazor and DATA.rend_temp.itemGUID_ownedbyrazor[itemGUID] -- check if already taken by RE
-      if EXT.CONF_source&32~=32 or (EXT.CONF_source&32==32 and ownedbyrazor ~= true) then
+      if EXT.CONF_source_itemflags&1~=1 or (EXT.CONF_source_itemflags&1==1 and ownedbyrazor ~= true) then
         DATA.rend_temp.cnt_items = DATA.rend_temp.cnt_items + 1
         
         DATA.rend.pieces[#DATA.rend.pieces + 1] = 
@@ -1775,20 +1769,22 @@ function DATA:Render_InsertMedia(t)
   
   -- define lane
     if EXT.CONF_destination == 1 and EXT.CONF_destination_sametr==2 then  -- same track to lanes
-      local I_FREEMODE = GetMediaTrackInfo_Value( dest_tr, 'I_FREEMODE') -- enable fixed lanes 
-      SetMediaTrackInfo_Value( dest_tr, 'I_FREEMODE', 2 ) -- enable fixed lanes  
-      SetMediaTrackInfo_Value( tr, 'C_ALLLANESPLAY', 0 )  -- all lanes play
-      SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:0', 1 )  -- 
-      UpdateTimeline()  
+      local I_FREEMODE = GetMediaTrackInfo_Value( dest_tr, 'I_FREEMODE') 
       --local C_LANESETTINGS = GetMediaTrackInfo_Value( tr, 'C_LANESETTINGS')  if C_LANESETTINGS &1==1 then SetMediaTrackInfo_Value( tr, 'C_LANESETTINGS', C_LANESETTINGS~1)   end
-      if I_FREEMODE ~= 2 then
+      if I_FREEMODE ~= 2 then 
+        SetMediaTrackInfo_Value( dest_tr, 'I_FREEMODE', 2 ) -- enable fixed lanes   
         local I_NUMFIXEDLANES = GetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES') 
         SetMediaItemInfo_Value( new_item, 'I_FIXEDLANE',I_NUMFIXEDLANES-1)
-       else
+        UpdateTimeline()  
+       else 
         local I_NUMFIXEDLANES = GetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES') 
         SetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES',I_NUMFIXEDLANES+1) 
         SetMediaItemInfo_Value( new_item, 'I_FIXEDLANE',I_NUMFIXEDLANES)
-      end
+        UpdateTimeline()  
+      end 
+      
+      SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:0', 1 ) 
+      SetMediaTrackInfo_Value( tr, 'C_ALLLANESPLAY', 0 )  -- all lanes play
     end
   
   -- make new render track parent to source
