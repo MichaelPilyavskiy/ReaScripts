@@ -1,938 +1,898 @@
 ﻿-- @description Stretch marker guard
--- @version 1.02
+-- @version 1.03
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=165672
+-- @about Script for protecting area around stretch markers
 -- @changelog
---    # remove SWS dependency
+--    + Ported to ReaImGui
+--    # uses specially namedd take markers to define source point of the central stretch markers
 
---[[  full changelog
---    1.1  // 23.09.2016
---      + Acion: Remove all non-1x stretch markers from selected takes
---    1.0  // 13.09.2016
---     official release
---    0.23 // 04.09.2016
---      # global offset = 0.1s by default (enough?)
---      + alt+click = set 0 value
---      # rename (removed 'symmetric')
---      + independent LR transient zone
---      + 'get' and 'restore' buttons
---      + warning
---    0.1 // 03.09.2016
---      + init alpha
-]]
+
+
+
+
+--------------------------------------------------------------------------------  init globals
+  for key in pairs(reaper) do _G[key]=reaper[key] end 
+  app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
+  if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end 
+  local ImGui
+  
+  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+  package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+  ImGui = require 'imgui' '0.9.3.2'
   
   
-  
-  
-  local vrs = 1.02
-  local name = 'MPL Stretch marker guard'
-  ------------------------------------------------------------------  
-  function GetExtState(default, key)
-    val = reaper.GetExtState( name, key )
-    if val == '' or not tonumber(val )then 
-      reaper.SetExtState( name, key, default, true )
-      return default
-     else 
-      return tonumber(val)
-    end
-  end  
-  ------------------------------------------------------------------   
-  function SetExtState(val, key)
-    if val and key then 
-      reaper.SetExtState( name, key, val, true )
-    end
-  end    
-  ------------------------------------------------------------------  
-  function math_q(val, pow)
-    if val then return  math.floor(val * 10^pow)/ 10^pow end
-  end
-  ------------------------------------------------------------------  
-  function ENGINE_GetSM()
-    SM_t = {}
-    local cnt_items = reaper.CountSelectedMediaItems(0)
-    for i = 1, cnt_items do
-      local item = reaper.GetSelectedMediaItem( 0, i-1 )
-      if not item then return end
-      local take = reaper.GetActiveTake(item)
-      local takerate =  reaper.GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )     
-      local retval, take_guid = reaper.GetSetMediaItemTakeInfo_String( take, 'GUID', '', false )
-      --local take_guid = reaper.BR_GetMediaItemTakeGUID( take )
-      local item_len = reaper.GetMediaItemInfo_Value( item, 'D_LENGTH' )
-      if not reaper.TakeIsMIDI(take) then
-        DGO = data_global_offset / takerate
-        SM_t[take_guid] = {}
-        for i = 1, reaper.GetTakeNumStretchMarkers( take ) do
-          local _, sm_pos, sm_srcpos = reaper.GetTakeStretchMarker( take, i -1 )              
-          if sm_pos >= 0 and math_q(sm_pos, 5) <= math_q(item_len, 5) then 
-              SM_t[take_guid][#SM_t[take_guid]+1] = 
-                {pos = sm_pos/takerate, 
-                 srcpos = sm_srcpos/takerate, 
-                 slope = reaper.GetTakeStretchMarkerSlope( take, i -1  )
-              } 
-          end
-        end
-      end
-    end
-  end
-  ------------------------------------------------------------------  
-  function ENGINE_RemoveSMExceptEdges(take,takerate)
-    if not take then return end
-    local item =  reaper.GetMediaItemTake_Item( take )
-    local item_len = reaper.GetMediaItemInfo_Value( item, 'D_LENGTH' )
-    for i = reaper.GetTakeNumStretchMarkers( take ),1,-1 do
-      local _, sm_pos = reaper.GetTakeStretchMarker( take, i -1 )  
-      if sm_pos > 0 and math_q(sm_pos, 5) < math_q(item_len, 5) then 
-        reaper.DeleteTakeStretchMarkers( take, i-1 )
-       --else
-        --exists_edges = true
-      end
-    end
-    reaper.SetTakeStretchMarker( take, -1, 0)
-    reaper.SetTakeStretchMarker( take, -1, item_len)
-    ---if not exists_edges then
-    --end
-  end
-  ------------------------------------------------------------------      
-  function msg(s) if s then reaper.ShowConsoleMsg(s..'\n') end end
-  -------------------------------------------------------------------- 
-  function ENGINE_InsertSMFromRawT(raw_t,takerate)  
-    if not raw_t and #raw_t < 3 then return end
-    for i = 2, #raw_t - 1 do      
-      local sm_pos = reaper.SetTakeStretchMarker( take, -1, raw_t[i].pos*takerate, raw_t[i].srcpos*takerate)
-      reaper.SetTakeStretchMarkerSlope( take, sm_pos, raw_t[i].slope )             
-    end  
-  end
-  --------------------------------------------------------------------    
-  function ENGINE_FormSM_RAW(t, val_t, takerate, item_pos,timesel_st,timesel_end)
-    
-    local pair
-    local global_offs1, global_offs2 = 0,0
-    if not t then return end    
-    if not val_t then return end      
-    local SM_t_raw = {}
-    local minSM_distance = (data_safety_distance) / takerate
-    for sm_idx = 1, #t do      
-      local offs1 = data_global_offset * val_t.L
-      local offs2 = data_global_offset * val_t.R
-      local srcpos =  t[sm_idx].srcpos
-      local pos = t[sm_idx].pos  
-      local slope = t[sm_idx].slope      
-      if sm_idx == 1 then
-        SM_t_raw[#SM_t_raw+1] = {pos = t[sm_idx].pos,srcpos = t[sm_idx].srcpos, slope = t[sm_idx].slope }
-        last_src = srcpos
-       elseif sm_idx < #t then
-       
-       
-        if data_perform_TS == 1 then 
-          if pos + item_pos > timesel_st and pos + item_pos < timesel_end then 
-            goto perform 
-           else 
-            goto skip 
-          end
-        end
+-------------------------------------------------------------------------------- init external defaults 
+EXT = {
+        viewport_posX = 0,
+        viewport_posY = 0,
+        viewport_posW = 600,
+        viewport_posH = 480,
         
+        preset_base64_user = '',
+        update_presets = 1, -- grab presets ONCE from old version
         
-        ::perform::
-        --------------------------------------------------------
-        -- LEFT
-        if srcpos - last_src > minSM_distance then
-          -- check if offset out of min distance
-          if srcpos - offs1 / takerate < last_src + minSM_distance then
-            offs1 = srcpos - (last_src + minSM_distance)
-          end
-          -- insert sm
-          SM_t_raw[#SM_t_raw+1] = {pos = pos - offs1, 
-                                   srcpos = srcpos - offs1 / takerate, 
-                                   slope = 0 }
-          global_offs1 = math.max (offs1, global_offs1)
-        end
-        --------------------------------------------------------
-        -- CENTER
-        SM_t_raw[#SM_t_raw+1] = {pos = pos ,
-                                 srcpos = srcpos,
-                                 slope = 0 }         
-        last_src = srcpos
-        --------------------------------------------------------
-        -- RIGHT
-        local next_srcpos =  t[sm_idx+1].srcpos
-        if next_srcpos - srcpos > minSM_distance then
-          -- check if offset out of min distance
-          if srcpos + offs2 / takerate > next_srcpos - minSM_distance then
-            offs2 = next_srcpos - minSM_distance - srcpos
-          end
-          -- insert sm
-          SM_t_raw[#SM_t_raw+1] = { pos = pos + offs2, 
-                                    srcpos = srcpos + offs2 / takerate, 
-                                    slope = slope }          
-          last_src = srcpos + offs2 / takerate    
-          global_offs2 = math.max (offs2, global_offs2)
-         else
-          SM_t_raw[#SM_t_raw].slope = slope
-        end
+        UI_compactmode =1,
+        UI_appatchange = 0,
         
-        --------------------------------------------------------
-       else -- last id
-        SM_t_raw[#SM_t_raw+1] = {pos = pos, srcpos = srcpos, slope = 0 }
-        last_src = srcpos  
-      end
-      
-      ::skip::
-      if data_perform_TS == 1 then
-        SM_t_raw[#SM_t_raw+1] = {pos = pos, srcpos = srcpos, slope = 0 }
-        last_src = srcpos        
-      end
-      
-      -- neg SM protection
-      for i = 2, #SM_t_raw - 1 do
-        if SM_t_raw[i].srcpos < SM_t_raw[i-1].srcpos then
-          local diff = SM_t_raw[i-1].srcpos - SM_t_raw[i].srcpos
-          SM_t_raw[i].srcpos = SM_t_raw[i].srcpos + (diff + data_safety_distance)/takerate
-          SM_t_raw[i].pos = SM_t_raw[i].pos + diff + data_safety_distance
-        end
-      end
-    end
-    return SM_t_raw, global_offs1, global_offs2
-  end          
-  --------------------------------------------------------------------   
-  function ENGINE_ApplyTransientProtect(val_t)  
-    if not SM_t then return end
-    for key in pairs(SM_t) do
-      take =  reaper.GetMediaItemTakeByGUID( 0, key )
-      timesel_st, timesel_end = reaper.GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
-      if take then
-        local takerate =  reaper.GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )  
-        ENGINE_RemoveSMExceptEdges(take, takerate)
-        local item =  reaper.GetMediaItemTake_Item( take )
-        local item_len = reaper.GetMediaItemInfo_Value( item, 'D_LENGTH' )    
-        local item_pos = reaper.GetMediaItemInfo_Value( item, 'D_POSITION' )     
-        raw_t, offs1_max, offs2_max = ENGINE_FormSM_RAW(SM_t[key], val_t, takerate, item_pos,timesel_st, timesel_end)
-        ENGINE_InsertSMFromRawT(raw_t, takerate)
-        reaper.UpdateItemInProject( item )
-      end
-    end
-    return true
-  end
------------------------------------------------------------------------   
-  function DEFINE_GUI_vars()
-      local gui = {
-                  aa = 1,
-                  mode = 3,
-                  fontname = 'Calibri',
-                  fontsize = 18}
-     
-        if OS == "OSX32" or OS == "OSX64" then gui.fontsize = gui.fontsize - 7 end
-        gui.fontsize_textb = gui.fontsize - 1
-      
-      gui.color = {['back'] = '51 51 51',
-                    ['back2'] = '51 63 56',
-                    ['black'] = '0 0 0',
-                    ['green'] = '102 255 102',
-                    ['blue'] = '127 204 255',
-                    ['white'] = '255 255 255',
-                    ['red'] = '204 76 51',
-                    ['green_dark'] = '102 153 102',
-                    ['yellow'] = '200 200 0',
-                    ['pink'] = '200 150 200',
-                  }    
-    return gui    
-  end  
-  --------------------------------------------------------------------
-  function DEFINE_Objects()
-    local offs = 10
-    local num_b = 3
---    local
-    
-    local obj = {}
-      obj.main_w = 420
-      obj.main_h = 80
-      
-      -- main ----------------------------------
-        obj.get_b = {name = 'Get',
-                      x = offs,
-                      y = offs,
-                      w = 70,
-                      h = (obj.main_h - offs*2)/2 - offs/4
-                      }
-        obj.res_b = {name = 'Reset',
-                      x = offs,
-                      y = offs + (obj.main_h - offs*2)/2 + offs/4,
-                      w = 50,
-                      h = (obj.main_h - offs*2)/2 - offs/4
-                      }      
-        obj.res_b2 = {name = '▼',
-                      x = obj.res_b.x+ obj.res_b.w ,
-                      y = offs + (obj.main_h - offs*2)/2 + offs/4,
-                      w = 20,
-                      h = (obj.main_h - offs*2)/2 - offs/4
-                      }                                    
-        obj.slider = {name = 'slider',
-                      x = obj.get_b.x +obj.get_b.w+ offs,
-                      y =offs,
-                      w = 290,---gfx.w - offs * (num_b+1) - but_w*2,
-                      h = obj.main_h - offs*2,
-                      manualw = 30,
-                      line_h = 3}
-      
-      nav_b_w = gfx.w - obj.slider.x - obj.slider.w - offs*2              
-      -- settings
-        text_h = 22
-        text_w = obj.main_w - nav_b_w - offs*3
-        obj.GO_b = {  name = 'Max offset: '..data_global_offset..'s',
-                      x = offs,
-                      y = obj.main_h + offs/2 + 1,
-                      w = text_w,
-                      h = text_h ,
-                      val = data_global_offset ,
-                      max_val = 0.5   
-                    }
-        obj.SD_b = {  name = 'Safety distance: '..data_safety_distance..'s',
-                      x = offs,
-                      y = obj.main_h + offs/2 + text_h + 2,
-                      w = text_w,
-                      h = text_h,
-                      val =     data_safety_distance ,
-                      max_val = 0.1  
-                    }        
-        obj.PTS_b = {  name = 'Perform only SM at time selection',
-                      val = data_perform_TS,
-                      x = offs,
-                      y = obj.main_h + offs/2 + text_h*2 + 3,
-                      w = text_w,
-                      h = text_h,
-                      is_checkbox = true     
-                    }    
-      --  about
-        --[[obj.ab_SC_b = {  name = 'Follow MPL at SoundCloud',
-                      x = offs,
-                      y = obj.main_h*2 + offs/2 + 1,
-                      w = text_w,
-                      h = text_h   ,
-                      col = 'white'  
-                    }   ]]
-        obj.ab_VK_b = {  name = 'Follow MPL at VK',
-                      x = offs,
-                      y = obj.main_h*2 + offs/2 + text_h + 2,
-                      w = text_w,
-                      h = text_h ,
-                      col = 'white'     
-                    }    
-        --[[obj.ab_PP_b = {  name = 'Donate MPL if you like it ;)',
-                      x = offs,
-                      y = obj.main_h*2 + offs/2 + text_h*2 + 3,
-                      w = text_w,
-                      h = text_h  ,
-                      col = 'green'    
-                    }                                      
-                    ]]
-                                                             
-      -- com ---------------------------------------          
-        obj.ch_scr = {name = '▼',
-                      x = obj.slider.x+obj.slider.w+ offs,
-                      y = offs + (obj.main_h - offs*2)/2 + offs/4,
-                      w = nav_b_w,
-                      h = (obj.main_h - offs*2)/2 - offs/4
-                      }  
-        obj.ch_scr2 = {name = '▲',
-                      x = obj.slider.x+obj.slider.w+ offs,
-                      y = offs,
-                      w = nav_b_w,
-                      h = (obj.main_h - offs*2)/2 - offs/4
-                      }                                       
-    return obj
-  end
------------------------------------------------------------------------    
-  function F_Get_SSV(s)
-    local t = {}
-    for i in s:gmatch("[%d%.]+") do 
-      t[#t+1] = tonumber(i) / 255
-    end
-    gfx.r, gfx.g, gfx.b = t[1], t[2], t[3]
-    return t[1], t[2], t[3]
-  end
-  ------------------------------------------------------------------   
-  function GUI_slider(obj, obj_t, gui, val_t)
-    gfx.mode = 0
-    local val1, val2 =val_t.L^2 , val_t.R^2
-    if val1 == nil then val1 = 0 end
-    if val2 == nil then val2 = 0 end
-    local alpha_mult = 1.8
-    -- define xywh
-      local x,y,w,h = obj_t.x, obj_t.y, obj_t.w, obj_t.h
-    -- frame
-      gfx.a = 0.05
-      F_Get_SSV(gui.color.white, true)
-      F_gfx_rect(x,y,w,h)     
-    -- center line
-      gfx.a = 1
-      gfx.blit(5, 1, 0, --backgr
-               0,0,w, obj.slider.line_h,
-               x+w/2,y+h/2 - 1,w/2, obj.slider.line_h, 0,0   )   
-      gfx.blit(5, 1, math.rad(180), --backgr
-               0,0,w, obj.slider.line_h,
-               x,y+h/2 - 1,w/2, obj.slider.line_h, 0,0   )                       
-    --[[ blit grad   
-      local handle_w = 30  
-      local x_offs = x + (w - handle_w) * val1   
-      gfx.a = 1
-      man_x = x + w/2 - w/2 * val1 
-      man_w = w/2 - man_x + x
-      man_w = math.abs(man_w) + w/2 * val2
-      gfx.blit(4, 1, 0, --backgr
-          0,0,obj.slider.manualw, obj.slider.h,
-          man_x,y, man_w, obj.slider.h, 0,0)]]  
-    -- manual
-      gfx.a = 3
-      gfx.blit(4, 1, 0, --backgr
-               0,0,obj.slider.manualw, obj.slider.h,
-               x + w/2 - val1 * w/2,y, x + w/2 - (x + w/2 - val1 * w/2) + 1, obj.slider.h, 0,0)
-      gfx.blit(4, 1, 0, --backgr
-               0,0,obj.slider.manualw, obj.slider.h,
-               x + w/2, y, val2*w/2, obj.slider.h, 0,0   )            
-    -- grid
-      local steps = 20
-      local cust_h_dif = 4
-      F_Get_SSV(gui.color.white, true)
-      for i = x, x+w, w/steps  do
-        cust_h = (i-x) * steps / w
-        if cust_h > steps/2 then cust_h = steps - cust_h end
-        gfx.a = cust_h / steps
-        if (cust_h / steps) ~= 0.5 then -- ignore center
-          if cust_h % 2 == 1 then  cust_h = cust_h - cust_h_dif end
-            gfx.line(i, y + h/2 + cust_h,
-                   i, y + h/2 - cust_h)
-                   --gfx.drawstr(math.floor(cust_h)..' ')
-        end
-      end      
-    -- draw sm
-      F_Get_SSV(gui.color.blue, true)
-      gfx.a = 0.6
-      gfx.line(x+w/2, y+1,x+w/2, y+h-1)
-      local pol_side = 5
-      gfx.triangle(x+w/2 - pol_side,y + h/2,
-                    x+w/2,y + h/2- pol_side,
-                    x+w/2 + pol_side,y + h/2,
-                    x+w/2,y + h/2 + pol_side)
-                    
-    --text
-      gfx.setfont(1, gui.fontname, font)
-      gfx.a = 1
-      F_Get_SSV(gui.color.blue, true)
-      local txt_offs = 5
-      if not offs1_max then offs1_max = 0 end
-      if not offs2_max then offs2_max = 0 end
-      
-    -- text val1
-      local val1_txt = math.floor(offs1_max*1000)
-      if val1_txt < 10 then
-        val1_txt = math.floor(offs1_max*1000000)..'μs'
-       else
-        val1_txt = val1_txt..'ms'
-      end
-      local measurestrname = gfx.measurestr(val1_txt)
-      local x0 = x + txt_offs
-      local y0 = y
-      gfx.x, gfx.y = x0,y0 
-      gfx.drawstr(val1_txt)      
-    -- text val2  
-      local val2_txt = math.floor(offs2_max*1000)
-      if val2_txt < 10 then
-        val2_txt = math.floor(offs2_max*1000000)..'μs'
-       else
-        val2_txt = val2_txt..'ms'
-      end      
-      local measurestrname = gfx.measurestr(val2_txt)
-      local x0 = x + w - measurestrname - txt_offs
-      local y0 = y
-      gfx.x, gfx.y = x0,y0 
-      gfx.drawstr(val2_txt) 
-      
-    --[[ txt count    
-      if SM_t and #SM_t > 0 then
-        gfx.a = 1
-        local x0 = 10 --x
-        local y0 = 20 --y + h/2 - gfx.h
-        gfx.x, gfx.y = x0,y0 
-        gfx.drawstr(' stretch markers') 
-      end]]
+        -- global
+        CONF_name = 'default',
+
+        safety_distance = 0.005,
+        max_offset = 0.2,
+        perform_TS = 1, -- ==1 perfrom only at time selection
+      }
+-------------------------------------------------------------------------------- INIT data
+DATA = {
+        ES_key = 'MPL_SMGuard',
+        UI_name = 'Stretch marker guard', 
+        upd = true, 
+        preset_name = 'untitled', -- for inputtext
+        presets_factory = {
+          --['Align items to edit cursor'] = 'CkNPTkZfTkFNRT1BbGlnbiBpdGVtcyB0byBlZGl0IGN1cnNvcgpDT05GX2FjdF9hY3Rpb249MQpDT05GX2FjdF9hbGlnbmRpcj0xCkNPTkZfYWN0X2NhdGNocmVmdGltZXNlbD0wCkNPTkZfYWN0X2NhdGNoc3JjdGltZXNlbD0wCkNPTkZfYWN0X2luaXRhcHA9MApDT05GX2FjdF9pbml0Y2F0Y2hyZWY9MQpDT05GX2FjdF9pbml0Y2F0Y2hzcmM9MQpDT05GX2NvbnZlcnRub3Rlb252ZWwwdG9ub3Rlb2ZmPTAKQ09ORl9lbnZzdGVwcz0wCkNPTkZfZXhjbHdpdGhpbj0wCkNPTkZfaW5jbHdpdGhpbj0wCkNPTkZfaW5pdGF0bW91c2Vwb3M9MApDT05GX2l0ZXJhdGlvbmxpbT0zMDAwMApDT05GX29mZnNldD0wLjUKQ09ORl9yZWZfZWRpdGN1cj0xCkNPTkZfcmVmX2VudnBvaW50cz0wCkNPTkZfcmVmX2VudnBvaW50c2ZsYWdzPTEKQ09ORl9yZWZfZ3JpZD0wCkNPTkZfcmVmX2dyaWRfc3c9MApDT05GX3JlZl9ncmlkX3ZhbD0wLjUKQ09ORl9yZWZfbWFya2VyPTAKQ09ORl9yZWZfbWlkaT0wCkNPTkZfcmVmX21pZGlfbXNnZmxhZz0xCkNPTkZfcmVmX21pZGlmbGFncz0xCkNPTkZfcmVmX3BhdHRlcm49MApDT05GX3JlZl9wYXR0ZXJuX2dlbnNyYz0xCkNPTkZfcmVmX3BhdHRlcm5fbGVuMj04CkNPTkZfcmVmX3BhdHRlcm5fbmFtZT1sYXN0X3RvdWNoZWQKQ09ORl9yZWZfc2VsaXRlbXM9MApDT05GX3JlZl9zZWxpdGVtc192YWx1ZT0wCkNPTkZfcmVmX3N0cm1hcmtlcnM9MApDT05GX3JlZl90aW1lbWFya2VyPTAKQ09ORl9zcmNfZW52cG9pbnRzPTAKQ09ORl9zcmNfZW52cG9pbnRzZmxhZz0xCkNPTkZfc3JjX2VudnBvaW50c2ZsYWdzPTEKQ09ORl9zcmNfbWlkaT0wCkNPTkZfc3JjX21pZGlfbXNnZmxhZz01CkNPTkZfc3JjX21pZGlmbGFncz0xCkNPTkZfc3JjX3Bvc2l0aW9ucz0xCkNPTkZfc3JjX3NlbGl0ZW1zPTEKQ09ORl9zcmNfc2VsaXRlbXNmbGFnPTEKQ09ORl9zcmNfc3RybWFya2Vycz0w',
+          },
+        presets = {
+          factory= {},
+          user= {}, 
+          },
           
-  end
-  -----------------------------------------------------------------------    
-  function F_gfx_rect(x,y,w,h)
-    gfx.x, gfx.y = x,y
-    gfx.line(x, y, x+w, y)
-    gfx.line(x+w, y+1, x+w, y+h - 1)
-    gfx.line(x+w, y+h,x, y+h)
-    gfx.line(x, y+h-1,x, y+1)
-  end
-  -----------------------------------------------------------------------         
-  function GUI_textbut(obj, gui, obj_t)
-    if not obj_t then return end
-    local x,y,w,h = obj_t.x, obj_t.y, obj_t.w, obj_t.h
-    -- frame
-      gfx.a = 0.05
-      F_Get_SSV(gui.color.white, true)
-      F_gfx_rect(x,y,w,h) 
-    -- back
-      gfx.a = 0.7 
-      gfx.blit(3, 1, 0, --backgr
-        0,0,obj.main_w,obj.main_h,
-        x,y,w,h, 0,0)
-    -- text
-      local text = obj_t.name
-      if obj_t.is_checkbox then
-        if obj_t.val == 1 then text = '☑ '..text else text = '☐ '..text end
-      end
-      gfx.setfont(1, gui.fontname, gui.fontsize_textb)
-      gfx.a = 1
-      if  obj_t.max_val and obj_t.val >  obj_t.max_val  then 
-        F_Get_SSV(gui.color.red, true)
-        text = text..' (whooa that`s too much)'
-       else
-        F_Get_SSV(gui.color.blue, true)
-      end
-      if obj_t.col then F_Get_SSV(gui.color[ obj_t.col ] , true) end
-      local measurestrname = gfx.measurestr(text)
-      local x0 = x + (w - measurestrname)/2
-      local y0 = y + (h - gfx.texth)/2 +1
-      gfx.x, gfx.y = x0,y0 
-      gfx.drawstr(text) 
-      
-  end  
-  -----------------------------------------------------------------------         
-  function GUI_button(obj, gui, obj_t, cust_alpha)
-    local x,y,w,h = obj_t.x, obj_t.y, obj_t.w, obj_t.h
-    -- frame
-      gfx.a = 0.1
-      F_Get_SSV(gui.color.white, true)
-      F_gfx_rect(x,y,w,h)
-      
-    -- back
-      if cust_alpha then gfx.a = cust_alpha else gfx.a = 0.5 end
-        gfx.blit(3, 1, math.rad(180), --backgr
-        0,0,obj.main_w,obj.main_h/2,
-        x,y,w,h+1, 0,0)
+        valL = 0,
+        valR = 0,
+        takes = {}
+        }
         
-    -- text
-      gfx.setfont(1, gui.fontname, gui.fontsize)
-      local measurestrname = gfx.measurestr(obj_t.name)
-      local x0 = x + (w - measurestrname)/2 + 1
-      local y0 = y + (h - gfx.texth)/2 
-      
-      gfx.a = 0.9
-      F_Get_SSV(gui.color.black, true)
-      gfx.x, gfx.y = x0+1,y0 +2
-      gfx.drawstr(obj_t.name)
-      gfx.a = 1
-      F_Get_SSV(gui.color.green, true)
-      gfx.x, gfx.y = x0,y0 
-      gfx.drawstr(obj_t.name)
-      
- 
-  end   
-------------------------------------------------------------------  
-  function GUI_draw(obj, gui)         local buf_dest
-    gfx.mode = 1 -- additive mode
-    local time_flow =1--sec
-    local add_pix_per_loop = 10
+        
+-------------------------------------------------------------------------------- UI init variables
+UI = {}
+  
+  UI.popups = {}
+-- font  
+  UI.font='Arial'
+  UI.font1sz=15
+  UI.font2sz=14
+  UI.font3sz=12
+-- style
+  UI.pushcnt = 0
+  UI.pushcnt2 = 0
+-- size / offset
+  UI.spacingX = 4
+  UI.spacingY = 3
+-- mouse
+  UI.hoverdelay = 0.8
+  UI.hoverdelayshort = 0.8
+-- colors 
+  UI.main_col = 0x7F7F7F -- grey
+  UI.textcol = 0xFFFFFF
+  UI.but_hovered = 0x878787
+  UI.windowBg = 0x303030
+-- alpha
+  UI.textcol_a_enabled = 1
+  UI.textcol_a_disabled = 0.5
+  
+  UI.knob_handle = 0xc8edfa
+  UI.default_data_col_adv = '#00ff00' -- green
+  UI.default_data_col_adv2 = '#e61919 ' -- red
+
+  UI.indent = 20
+  UI.knob_resY = 150
+  
+  
+  UI.ctrl_w = 300
+  UI.ctrl_h = 30
+
+
+
+
+
+
+function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
+  -------------------------------------------------------------------------------- 
+  function UI.GetUserInputMB_replica(mode, key, title, num_inputs, captions_csv, retvals_csv_returnfunc, retvals_csv_setfunc) 
+    local round = 4
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, round)
     
-    -- DRAW static buffers
-    if update_gfx_onstart then  
-      -- buf3 -- buttons back gradient      
-      -- buf4 -- slider  
-      -- buf5 -- cent line scale
-      -- buf3 -- buttons back gradient    
-        gfx.dest = 3
-        gfx.setimgdim(3, -1, -1)  
-        gfx.setimgdim(3, obj.main_w,obj.main_h)  
-        gfx.a = 1
-        local r,g,b,a = 0.9,0.9,1,0.6
-        gfx.x, gfx.y = 0,0
-        local drdx = 0.00001
-        local drdy = 0
-        local dgdx = 0.0001
-        local dgdy = 0.0003     
-        local dbdx = 0.00002
-        local dbdy = 0
-        local dadx = 0.0003
-        local dady = 0.0004       
-        gfx.gradrect(0,0,obj.main_w,obj.main_h, 
-                        r,g,b,a, 
-                        drdx, dgdx, dbdx, dadx, 
-                        drdy, dgdy, dbdy, dady)     
-      -- buf4 -- slider                   
-        gfx.dest = 4
-        gfx.setimgdim(4, -1, -1)  
-        gfx.setimgdim(4, obj.slider.manualw, obj.slider.h)
-        gfx.a = 1
-        gfx.blit(3, 1, math.rad(180), --backgr
-                  0,0,obj.main_w,obj.main_h,
-                  -2,0,obj.slider.manualw/2+2, obj.slider.h, 0,0)
-        gfx.blit(3, 1, math.rad(0), --backgr
-                 0,0,obj.main_w,obj.main_h,
-              obj.slider.manualw/2,0,obj.slider.manualw/2, obj.slider.h, 0,0)
-      --buf5 -- cent line
-        gfx.dest = 5
-        gfx.setimgdim(5, -1, -1)  
-        gfx.setimgdim(5, obj.slider.w, obj.slider.line_h)      
-        local r,g,b = F_Get_SSV(gui.color.green, true)
-        gfx.gradrect(0, 0, obj.slider.w, obj.slider.line_h, 
-          r,g,b,0.9, 
-          0.006,--drdx, 
-          0,--dgdx, 
-          0,--dbdx, 
-          -0.001,--dadx, 
-          0,--drdy, 
-          0,--dgdy, 
-          0,--dbdy, 
-          -0.002)--dady )                    
-      update_gfx_onstart = nil
-    end
-    
+      -- draw content
+      -- (from reaimgui demo) Always center this window when appearing
+      local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
+      ImGui.SetNextWindowPos(ctx, center_x, center_y, ImGui.Cond_Appearing, 0.5, 0.5)
+      if ImGui.BeginPopupModal(ctx, key, nil, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border) then
       
-    -- Store Com Buffer
-      if update_gfx then  
-        if not alpha_change_dir then alpha_change_dir = 1 end
-        alpha_change_dir = math.abs(alpha_change_dir - 1)  
-        run_change0 = clock       
-        if alpha_change_dir == 0 then buf_dest = 10 else buf_dest = 11 end -- if 0 #10 is next
-        gfx.dest = buf_dest
-        gfx.a = 1
-        gfx.setimgdim(buf_dest, -1, -1)  
-        gfx.setimgdim(buf_dest, obj.main_w,obj.main_h*3) 
-          --===========================================
-          -- pg1
-          GUI_slider(obj, obj.slider, gui, data.str_val)
-          GUI_button(obj, gui, obj.get_b)
-          GUI_button(obj, gui, obj.res_b)
-          GUI_button(obj, gui, obj.res_b2)
-          -- pg2
-          GUI_textbut(obj, gui, obj.GO_b, false)
-          GUI_textbut(obj, gui, obj.SD_b)
-          GUI_textbut(obj, gui, obj.PTS_b, true)  
-          -- pg3
-          GUI_textbut(obj, gui, obj.ab_SC_b)  
-          GUI_textbut(obj, gui, obj.ab_VK_b)   
-          GUI_textbut(obj, gui, obj.ab_PP_b)     
-          --===========================================
-          --[[ debug split       
-          F_Get_SSV(gui.color.green, true)
-          gfx.a = 1
-          gfx.line(0,obj.main_h,obj.main_w, obj.main_h) 
-          gfx.x, gfx.y = 5, obj.main_h +5
-          gfx.drawstr('1')
-          gfx.line(0,obj.main_h*2,obj.main_w, obj.main_h*2)
-          gfx.x, gfx.y = 5, obj.main_h *2+5
-          gfx.drawstr('2') ]]   
-          --===========================================      
-        update_gfx = false
-      end
-      
-    --  Define smooth changes 
-      if run_change0 then
-        if clock - run_change0 < time_flow then 
-          alpha_change = F_limit((clock - run_change0)/time_flow  + 0.2, 0,1)
+        -- MB replika
+        if mode == 0 then
+          ImGui.Text(ctx, captions_csv)
+          ImGui.Separator(ctx) 
+        
+          if ImGui.Button(ctx, 'OK', 0, 0) then 
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end
+          
+          --[[ImGui.SetItemDefaultFocus(ctx)
+          ImGui.SameLine(ctx)
+          if ImGui.Button(ctx, 'Cancel', 120, 0) then 
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end]]
         end
-      end
-      
-    -- Define page offset
-      if not H_offs then H_offs = 0  end
-      if ch_screen then
-        H_offs = H_offs + ch_screen_move * add_pix_per_loop
-        if ch_screen_move > 0 and H_offs > obj.main_h * ch_screen_num then 
-          ch_screen = nil 
-          H_offs =  obj.main_h * ch_screen_num
-         elseif ch_screen_move < 0 and H_offs < obj.main_h * ch_screen_num then
-          ch_screen = nil 
-          H_offs =  obj.main_h * ch_screen_num
+        
+        -- GetUserInput replika
+        if mode == 1 then
+          ImGui.SameLine(ctx)
+          ImGui.SetKeyboardFocusHere( ctx )
+          local retval, buf = ImGui.InputText( ctx, captions_csv, retvals_csv_returnfunc(), ImGui.InputTextFlags_EnterReturnsTrue ) 
+          if retval then
+            retvals_csv_setfunc(retval, buf)
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end 
         end
-      end
-      
-    -- Draw Common buffer
-      gfx.dest = -1
-      gfx.x,gfx.y = 0,0
-      F_Get_SSV(gui.color.back, true)
-      gfx.a = 1
-      gfx.rect(0,0,gfx.w,gfx.w, 1)
-      gfx.mode = 1
-      -- smooth com
-        local buf1, buf2
-        if alpha_change_dir == 0 then buf1 = 10 buf2 = 11 else buf1 = 11 buf2 = 10  end
-        local a1 = alpha_change
-        local a2 = math.abs(alpha_change - 1)
-        gfx.a = a1
-        gfx.blit(buf1, 1, 0,
-            0,0,  obj.main_w,obj.main_h*3,
-            0,-H_offs,  obj.main_w,obj.main_h*3, 0,0)
-        gfx.a = a2
-        gfx.blit(buf2, 1, 0, 
-            0,0,  obj.main_w,obj.main_h*3,
-            0,-H_offs,  obj.main_w,obj.main_h*3, 0,0)           
+        
+        ImGui.EndPopup(ctx)
+      end 
     
-    -- navigation
-      
-      GUI_button(obj, gui, obj.ch_scr, 0.1)
-      GUI_button(obj, gui, obj.ch_scr2, 0.1)
-      
-    gfx.update()
-  end
- ----------------------------------------------------------------------- 
-  function F_limit(val,min,max)
-      if val == nil or min == nil or max == nil then return end
-      local val_out = val
-      if val < min then val_out = min end
-      if val > max then val_out = max end
-      return val_out
-    end 
------------------------------------------------------------------------ 
-  function MOUSE_match(b, offs)
-    if not b then return end
-    local mouse_y_match = b.y
-    local mouse_h_match = b.y+b.h
-    if offs then 
-      mouse_y_match = mouse_y_match - offs 
-      mouse_h_match = mouse_y_match+b.h
-    end
-    if mouse.mx > b.x and mouse.mx < b.x+b.w and mouse.my > mouse_y_match and mouse.my < mouse_h_match then return true end 
+    
+    ImGui.PopStyleVar(ctx, 4)
   end 
------------------------------------------------------------------------  
-  function MOUSE_Click(mouse, xywh_table)
-    if MOUSE_match(xywh_table) and mouse.LMB_state and not mouse.last_LMB_state then return true end
-  end
-  -----------------------------------------------------------------------     
-  function MOUSE_button (xywh, offs)
-    if MOUSE_match(xywh, offs) and mouse.LMB_state and not mouse.last_LMB_state then return true end
-  end  
-  -----------------------------------------------------------------------           
-  function MOUSE_slider (obj)
-    local val
-    ret_pow = 1.5
-    if MOUSE_match(obj) and (mouse.LMB_state or mouse.RMB_state) then 
-      if mouse.mx < obj.x + obj.w/2 then
-        if mouse.Alt_state then return true , 1, 0 
-         else mouse.last_obj = obj.name end
-       else
-        if mouse.Alt_state then return true , 2, 0 
-         else mouse.last_obj = obj.name..'2' end
-      end
-    end
-    
-    if not mouse.Alt_state then 
-      if (mouse.last_obj == obj.name or mouse.last_obj == obj.name..'2') and mouse.RMB_state then     
-        val = math.abs(F_limit((mouse.mx - obj.x)/obj.w, 0,1) * 2 - 1 )^ret_pow
-        return true , 3, math_q(val, 5)
-      end
+  
+-------------------------------------------------------------------------------- 
+function UI.MAIN_PushStyle(key, value, value2)  
+  local iscol = key:match('Col_')~=nil
+  local keyid = ImGui[key]
+  if not iscol then 
+    ImGui.PushStyleVar(ctx, keyid, value, value2)
+    UI.pushcnt = UI.pushcnt + 1
+  else 
+    ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
+    UI.pushcnt2 = UI.pushcnt2 + 1
+  end 
+end
+-------------------------------------------------------------------------------- 
+function UI.MAIN_draw(open) 
+  local w_min = 250
+  local h_min = 80
+  -- window_flags
+    local window_flags = ImGui.WindowFlags_None
+    --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
+    window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
+    --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
+    --window_flags = window_flags | ImGui.WindowFlags_NoMove()
+    window_flags = window_flags | ImGui.WindowFlags_NoResize
+    window_flags = window_flags | ImGui.WindowFlags_NoCollapse
+    --window_flags = window_flags | ImGui.WindowFlags_NoNav()
+    --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
+    window_flags = window_flags | ImGui.WindowFlags_NoDocking
+    --window_flags = window_flags | ImGui.WindowFlags_TopMost
+    window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
+    --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings() end
+    --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
+    --open = false -- disable the close button
+  
+  
+    -- set style
+      UI.pushcnt = 0
+      UI.pushcnt2 = 0
+    -- rounding
+      UI.MAIN_PushStyle('StyleVar_FrameRounding',5)  
+      UI.MAIN_PushStyle('StyleVar_GrabRounding',5)  
+      UI.MAIN_PushStyle('StyleVar_WindowRounding',10)  
+      UI.MAIN_PushStyle('StyleVar_ChildRounding',5)  
+      UI.MAIN_PushStyle('StyleVar_PopupRounding',0)  
+      UI.MAIN_PushStyle('StyleVar_ScrollbarRounding',9)  
+      UI.MAIN_PushStyle('StyleVar_TabRounding',4)   
+    -- Borders
+      UI.MAIN_PushStyle('StyleVar_WindowBorderSize',0)  
+      UI.MAIN_PushStyle('StyleVar_FrameBorderSize',0) 
+    -- spacing
+      UI.MAIN_PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
+      UI.MAIN_PushStyle('StyleVar_FramePadding',5,5) 
+      UI.MAIN_PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
+      UI.MAIN_PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
+      UI.MAIN_PushStyle('StyleVar_ItemInnerSpacing',4,0)
+      UI.MAIN_PushStyle('StyleVar_IndentSpacing',20)
+      UI.MAIN_PushStyle('StyleVar_ScrollbarSize',20)
+    -- size
+      UI.MAIN_PushStyle('StyleVar_GrabMinSize',30)
+      UI.MAIN_PushStyle('StyleVar_WindowMinSize',w_min,h_min)
+    -- align
+      UI.MAIN_PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
+      UI.MAIN_PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
+      --UI.MAIN_PushStyle('StyleVar_SelectableTextAlign,0,0 )
+      --UI.MAIN_PushStyle('StyleVar_SeparatorTextAlign,0,0.5 )
+      --UI.MAIN_PushStyle('StyleVar_SeparatorTextPadding,20,3 )
+      --UI.MAIN_PushStyle('StyleVar_SeparatorTextBorderSize,3 )
+    -- alpha
+      UI.MAIN_PushStyle('StyleVar_Alpha',0.98)
+      --UI.MAIN_PushStyle('StyleVar_DisabledAlpha,0.6 ) 
+      UI.MAIN_PushStyle('Col_Border',UI.main_col, 0.3)
+    -- colors
+      --UI.MAIN_PushStyle('Col_BorderShadow(),0xFFFFFF, 1)
+      UI.MAIN_PushStyle('Col_Button',UI.main_col, 0.3) 
+      UI.MAIN_PushStyle('Col_ButtonActive',UI.main_col, 1) 
+      UI.MAIN_PushStyle('Col_ButtonHovered',UI.but_hovered, 0.8)
+      --UI.MAIN_PushStyle('Col_CheckMark(),UI.main_col, 0, true)
+      --UI.MAIN_PushStyle('Col_ChildBg(),UI.main_col, 0, true)
+      --UI.MAIN_PushStyle('Col_ChildBg(),UI.main_col, 0, true) 
       
-      if mouse.last_obj == obj.name then 
-        val = math.abs(F_limit((mouse.mx - obj.x)/obj.w, 0,1) * 2 - 1 )^ret_pow
-        return true , 1, math_q(val, 5)
-       elseif mouse.last_obj == obj.name..'2' then
-        val = ((F_limit((mouse.mx - obj.x)/obj.w, 0,1) - 0.5) * 2)^ret_pow
-        return true , 2, math_q(val, 5)
-      end
-    end
-    
-  end
-  -----------------------------------------------------------------------   
-  function ENGINE_remove_non1()
-    reaper.Undo_BeginBlock() 
-    for i = 1, reaper.CountSelectedMediaItems(0) do
-      local item = reaper.GetSelectedMediaItem(0,i-1) 
-      if not item then return end
-      local take = reaper.GetActiveTake(item)
-      if not take or reaper.TakeIsMIDI(take) then return end
-      local t = {}
-      for i = 2, reaper.GetTakeNumStretchMarkers( take ) do
-        local _, pos, srcpos = reaper.GetTakeStretchMarker( take, i-1 )
-        local _, pos2, srcpos2 = reaper.GetTakeStretchMarker( take, i-2 )      
-        local val = math.floor(100*(0.005+(srcpos2 - srcpos ) / (pos2-pos)))/100
-        t[#t+1] = val
-      end
       
-      for i =reaper.GetTakeNumStretchMarkers( take )-1, 1, -1 do
-        if (t[i-1] == 1.0 and t[i] == 1.0 and t[i+1] ~= 1.0) then 
-          reaper.DeleteTakeStretchMarkers( take, i ) 
-         elseif  (t[i-1] ~= 1.0 and t[i] == 1.0 and t[i+1] == 1.0) then 
-          reaper.DeleteTakeStretchMarkers( take, i-1 ) 
-        end
+      --Constant: Col_DockingEmptyBg
+      --Constant: Col_DockingPreview
+      --Constant: Col_DragDropTarget 
+      UI.MAIN_PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
+      UI.MAIN_PushStyle('Col_FrameBg',0x1F1F1F, 0.7)
+      UI.MAIN_PushStyle('Col_FrameBgActive',UI.main_col, .6)
+      UI.MAIN_PushStyle('Col_FrameBgHovered',UI.main_col, 0.7)
+      UI.MAIN_PushStyle('Col_Header',UI.main_col, 0.5) 
+      UI.MAIN_PushStyle('Col_HeaderActive',UI.main_col, 1) 
+      UI.MAIN_PushStyle('Col_HeaderHovered',UI.main_col, 0.98) 
+      --Constant: Col_MenuBarBg
+      --Constant: Col_ModalWindowDimBg
+      --Constant: Col_NavHighlight
+      --Constant: Col_NavWindowingDimBg
+      --Constant: Col_NavWindowingHighlight
+      --Constant: Col_PlotHistogram
+      --Constant: Col_PlotHistogramHovered
+      --Constant: Col_PlotLines
+      --Constant: Col_PlotLinesHovered 
+      UI.MAIN_PushStyle('Col_PopupBg',0x303030, 0.9) 
+      UI.MAIN_PushStyle('Col_ResizeGrip',UI.main_col, 1) 
+      --Constant: Col_ResizeGripActive 
+      UI.MAIN_PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
+      --Constant: Col_ScrollbarBg
+      --Constant: Col_ScrollbarGrab
+      --Constant: Col_ScrollbarGrabActive
+      --Constant: Col_ScrollbarGrabHovered
+      --Constant: Col_Separator
+      --Constant: Col_SeparatorActive
+      --Constant: Col_SeparatorHovered
+      --Constant: Col_SliderGrab
+      --Constant: Col_SliderGrabActive
+      UI.MAIN_PushStyle('Col_Tab',UI.main_col, 0.37) 
+      --UI.MAIN_PushStyle('Col_TabActive',UI.main_col, 1) 
+      UI.MAIN_PushStyle('Col_TabHovered',UI.main_col, 0.8) 
+      --Constant: Col_TabUnfocused
+      --'Col_TabUnfocusedActive
+      --UI.MAIN_PushStyle('Col_TabUnfocusedActive(),UI.main_col, 0.8, true)
+      --Constant: Col_TableBorderLight
+      --Constant: Col_TableBorderStrong
+      --Constant: Col_TableHeaderBg
+      --Constant: Col_TableRowBg
+      --Constant: Col_TableRowBgAlt
+      UI.MAIN_PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
+      --Constant: Col_TextDisabled
+      --Constant: Col_TextSelectedBg
+      UI.MAIN_PushStyle('Col_TitleBg',UI.main_col, 0.7) 
+      UI.MAIN_PushStyle('Col_TitleBgActive',UI.main_col, 0.95) 
+      --Constant: Col_TitleBgCollapsed 
+      UI.MAIN_PushStyle('Col_WindowBg',UI.windowBg, 1)
+    
+  -- We specify a default position/size in case there's no data in the .ini file.
+    local main_viewport = ImGui.GetMainViewport(ctx)
+    local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+    ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+    --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+    local fixedw = 400
+    local fixedh = 160
+    ImGui.SetNextWindowSize(ctx, fixedw, fixedh, ImGui.Cond_Always)
+    
+  -- init UI 
+    ImGui.PushFont(ctx, DATA.font1) 
+    local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+    if rv then
+      local Viewport = ImGui.GetWindowViewport(ctx)
+      DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
+      DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
+      DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
+      
+    -- calc stuff for childs
+      UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
+      local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
+      local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
+      UI.calc_itemH = calcitemh + frameh * 2
+      UI.calc_childH = math.floor(DATA.display_h_region - UI.calc_yoffset*6 - UI.calc_itemH*2)/3
+      UI.calc_mainbut = DATA.display_w_region - UI.calc_xoffset*2
+      
+    -- draw stuff
+      UI.draw()
+      ImGui.Dummy(ctx,0,0) 
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2) 
+      ImGui.End(ctx)
+     else
+      ImGui.PopStyleVar(ctx, UI.pushcnt)
+      ImGui.PopStyleColor(ctx, UI.pushcnt2) 
+    end 
+    ImGui.PopFont( ctx ) 
+    if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
+  
+    return open
+end
+  --------------------------------------------------------------------------------  
+  function UI.MAIN_PopStyle(ctx, cnt, cnt2)
+    if cnt then 
+      ImGui.PopStyleVar(ctx,cnt)
+      UI.pushcnt = UI.pushcnt -cnt
+    end
+    if cnt2 then
+      ImGui.PopStyleColor(ctx,cnt2)
+      UI.pushcnt2 = UI.pushcnt2 -cnt2
+    end
+  end
+-------------------------------------------------------------------------------- 
+function DATA:handleProjUpdates()
+  local SCC =  GetProjectStateChangeCount( 0 ) if (DATA.upd_lastSCC and DATA.upd_lastSCC~=SCC ) then DATA.upd = true end  DATA.upd_lastSCC = SCC
+  local editcurpos =  GetCursorPosition()  if (DATA.upd_last_editcurpos and DATA.upd_last_editcurpos~=editcurpos ) then DATA.upd = true end DATA.upd_last_editcurpos=editcurpos 
+  local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true end DATA.upd_last_reaproj = reaproj
+end  
+-------------------------------------------------------------------------------- 
+function DATA:CollectData(take)
+  if take then 
+    local retval, takeGUID = reaper.GetSetMediaItemTakeInfo_String( take, 'GUID', '', false ) 
+    local cnt = reaper.GetNumTakeMarkers( take )
+    for idx = cnt, 1, -1 do 
+      local srcpos, name, color = reaper.GetTakeMarker( take, idx -1)
+      if name:match('str_mark') then
+        if not DATA.takes[takeGUID] then DATA.takes[takeGUID] = {} end
+        DATA.takes[takeGUID][idx]={srcpos=srcpos,pos=tonumber(name:match('str_mark(.*)'))}
       end
     end
-    reaper.UpdateArrange()
-    reaper.Undo_EndBlock("Remove all non-1x stretch markers from selected items", 0)
+    return
   end
   
-  -----------------------------------------------------------------------         
-  function MOUSE_get(obj)
-    mouse.mx = gfx.mouse_x
-    mouse.my = gfx.mouse_y
-    mouse.LMB_state = gfx.mouse_cap&1 == 1 
-    mouse.RMB_state = gfx.mouse_cap&2 == 2 
-    mouse.MMB_state = gfx.mouse_cap&64 == 64
-    mouse.LMB_state_doubleclick = false
-    mouse.Ctrl_LMB_state = gfx.mouse_cap&5 == 5 
-    mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
-    mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
-    mouse.wheel = gfx.mouse_wheel
-    if mouse.last_wheel then mouse.wheel_trig = (mouse.wheel - mouse.last_wheel) end
+  
+  local cnt_items = CountMediaItems(-1)
+  for it = 1, cnt_items do
+    local item = GetMediaItem( 0, it-1 )
+    if not IsMediaItemSelected(item) then goto nextitem end
+    local take = GetActiveTake(item)
+    if TakeIsMIDI(take) then goto nextitem end
     
-
-    if MOUSE_button (obj.ch_scr) then 
-      ch_screen = true
-      ch_screen_num = F_limit(ch_screen_num + 1, 0, 2)
-      ch_screen_move = 1
-    end    
-
-    if MOUSE_button (obj.ch_scr2) then 
-      ch_screen = true
-      ch_screen_num = F_limit(ch_screen_num - 1, 0, 2)
-      ch_screen_move = -1
-    end     
-    
-    -- MAIN W
-    if ch_screen_num == 0 then
-      -- GET
-      if MOUSE_button (obj.get_b) then 
-        ENGINE_GetSM() 
-        data = {str_val = {L = 0, R = 0}}
-        update_gfx = true
-      end
-      --RES
-      if MOUSE_button (obj.res_b) then 
-        app = ENGINE_ApplyTransientProtect({L = 0, R = 0})
-        update_gfx = true
-      end
-      --RES2
-      if MOUSE_button (obj.res_b2) then
-        gfx.x, gfx.y =  mouse.mx, mouse.my
-        local ret = gfx.showmenu('mpl_Remove all non-1x stretch markers from selected takes')
-        if ret == 1 then ENGINE_remove_non1() end
-      end
-      -- SLIDE
-      local ret, typeval, val = MOUSE_slider (obj.slider)
-      if val and val < 0.01 then val = 0 end        
-      local key
-      if ret then 
-        if typeval == 3 then -- sym
-          data.str_val = {L = val,R = val} -- for GUI slider
-         elseif typeval == 1 then key = 'L'
-         elseif typeval == 2 then key = 'R'
-        end
-        if key then data.str_val[key] = val end  -- for GUI slider
-        app = ENGINE_ApplyTransientProtect(data.str_val)
-        update_gfx = true
+    local retval, takeGUID = reaper.GetSetMediaItemTakeInfo_String( take, 'GUID', '', false ) 
+    local cnt = reaper.GetNumTakeMarkers( take )
+    for idx = cnt, 1, -1 do 
+      local srcpos, name, color = reaper.GetTakeMarker( take, idx -1)
+      if name:match('str_mark') then
+        if not DATA.takes[takeGUID] then DATA.takes[takeGUID] = {} end
+        DATA.takes[takeGUID][idx]={srcpos=srcpos,pos=tonumber(name:match('str_mark(.*)'))}
       end
     end
     
-    if ch_screen_num == 1 then
-      -- GlobOffset
-      if MOUSE_button(obj.GO_b, gfx.h * ch_screen_num) then        
-        local retval, dgo = reaper.GetUserInputs( name, 1, 'Maximum offset', data_global_offset )
-        local dgo = dgo:gsub('%,','.')
-        if retval and tonumber(dgo) then
-          data_global_offset = tonumber(dgo)
-          SetExtState(data_global_offset, 'glof')  
-          update_gfx = true
+    ::nextitem::
+  end
+  
+end
+-------------------------------------------------------------------------------- 
+function UI.MAINloop() 
+  DATA.clock = os.clock() 
+  DATA:handleProjUpdates()
+  
+  if DATA.upd == true then  DATA:CollectData()  end 
+  DATA.upd = false
+  
+  UI.open = UI.MAIN_draw(true) 
+  
+  UI.MAIN_shortcuts()
+  if UI.open then defer(UI.MAINloop) end
+end
+-------------------------------------------------------------------------------- 
+function UI.SameLine(ctx) ImGui.SameLine(ctx) end
+-------------------------------------------------------------------------------- 
+function UI.MAIN()
+  
+  EXT:load() 
+  -- imgUI init
+  ctx = ImGui.CreateContext(DATA.UI_name) 
+  -- fonts
+  DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
+  DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
+  DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
+  -- config
+  ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
+  ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
+  
+  
+  -- run loop
+  defer(UI.MAINloop)
+end
+-------------------------------------------------------------------------------- 
+function EXT:save() 
+  if not DATA.ES_key then return end 
+  for key in pairs(EXT) do 
+    if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
+      SetExtState( DATA.ES_key, key, EXT[key], true  ) 
+    end 
+  end 
+  EXT:load()
+end
+-------------------------------------------------------------------------------- 
+function EXT:load() 
+  if not DATA.ES_key then return end
+  for key in pairs(EXT) do 
+    if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
+      if HasExtState( DATA.ES_key, key ) then 
+        local val = GetExtState( DATA.ES_key, key ) 
+        EXT[key] = tonumber(val) or val 
+      end 
+    end  
+  end 
+  DATA.upd = true
+end
+-----------------------------------------------------------------------------------------
+function VF_CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[VF_CopyTable(orig_key)] = VF_CopyTable(orig_value)
         end
-      end
-      -- SafeDist
-      if MOUSE_button(obj.SD_b, gfx.h * ch_screen_num) then        
-        local retval, sdist  = reaper.GetUserInputs( name, 1, 'Safety distance', data_safety_distance )
-        local sdist = sdist:gsub('%,','.')
-        if retval and tonumber(sdist) then
-          data_safety_distance = tonumber(sdist)
-          SetExtState(data_safety_distance, 'sadist')  
-          update_gfx = true
+        setmetatable(copy, VF_CopyTable(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+--------------------------------------------------------------------------------  
+function main() 
+  EXT_defaults = VF_CopyTable(EXT)
+  EXT:load()  
+  DATA.PRESET_GetExtStatePresets()
+  UI.MAIN() 
+end
+  -----------------------------------------------------------------------------------------    -- http://lua-users.org/wiki/SaveTableToFile
+  function table.exportstring( s ) return string.format("%q", s) end 
+  --// The Save Function
+  function table.save(  tbl )
+  local outstr = ''
+    local charS,charE = "   ","\n"
+  
+    -- initiate variables for save procedure
+    local tables,lookup = { tbl },{ [tbl] = 1 }
+    outstr = outstr..'\n'..( "return {"..charE )
+  
+    for idx,t in ipairs( tables ) do
+       outstr = outstr..'\n'..( "-- Table: {"..idx.."}"..charE )
+       outstr = outstr..'\n'..( "{"..charE )
+       local thandled = {}
+  
+       for i,v in ipairs( t ) do
+          thandled[i] = true
+          local stype = type( v )
+          -- only handle value
+          if stype == "table" then
+             if not lookup[v] then
+                table.insert( tables, v )
+                lookup[v] = #tables
+             end
+             outstr = outstr..'\n'..( charS.."{"..lookup[v].."},"..charE )
+          elseif stype == "string" then
+             outstr = outstr..'\n'..(  charS..table.exportstring( v )..","..charE )
+          elseif stype == "number" then
+             outstr = outstr..'\n'..(  charS..tostring( v )..","..charE )
+          end
+       end 
+       for i,v in pairs( t ) do
+          -- escape handled values
+          if (not thandled[i]) then
+          
+             local str = ""
+             local stype = type( i )
+             -- handle index
+             if stype == "table" then
+                if not lookup[i] then
+                   table.insert( tables,i )
+                   lookup[i] = #tables
+                end
+                str = charS.."[{"..lookup[i].."}]="
+             elseif stype == "string" then
+                str = charS.."["..table.exportstring( i ).."]="
+             elseif stype == "number" then
+                str = charS.."["..tostring( i ).."]="
+             end
+          
+             if str ~= "" then
+                stype = type( v )
+                -- handle value
+                if stype == "table" then
+                   if not lookup[v] then
+                      table.insert( tables,v )
+                      lookup[v] = #tables
+                   end
+                   outstr = outstr..'\n'..( str.."{"..lookup[v].."},"..charE )
+                elseif stype == "string" then
+                   outstr = outstr..'\n'..( str..table.exportstring( v )..","..charE )
+                elseif stype == "number" then
+                   outstr = outstr..'\n'..( str..tostring( v )..","..charE )
+                end
+             end
+          end
+       end
+       outstr = outstr..'\n'..( "},"..charE )
+    end
+    outstr = outstr..'\n'..( "}" )
+    return outstr
+  end 
+  --// The Load Function
+  function table.load( str )
+  if str == '' then return end
+    local ftables,err = load( str )
+    if err then return _,err end
+    local tables = ftables()
+    for idx = 1,#tables do
+       local tolinki = {}
+       for i,v in pairs( tables[idx] ) do
+          if type( v ) == "table" then
+             tables[idx][i] = tables[v[1]]
+          end
+          if type( i ) == "table" and tables[i[1]] then
+             table.insert( tolinki,{ i,tables[i[1]] } )
+          end
+       end
+       -- link indices
+       for _,v in ipairs( tolinki ) do
+          tables[idx][v[2]],tables[idx][v[1]] =  tables[idx][v[1]],nil
+       end
+    end
+    return tables[1]
+  end
+--------------------------------------------------------------------- 
+function DATA.PRESET_GetExtStatePresets()
+  DATA.presets.factory = DATA.presets_factory
+  DATA.presets.user = table.load( EXT.preset_base64_user ) or {} 
+  -- ported from old version
+  if EXT.update_presets == 1 then
+    local t = {}
+    for id_out=1, 32 do
+      local str = GetExtState( DATA.ES_key, 'PRESET'..id_out)
+      local str_dec = DATA.PRESET_decBase64(str)
+      if str_dec== '' then goto nextpres end
+      local tid = #t+1
+      t[tid] = {str=str}
+      for line in str_dec:gmatch('[^\r\n]+') do
+        local key,value = line:gsub('[%{}]',''):match('(.-)=(.*)') 
+        if key and value then
+          t[tid][key]= tonumber(value) or value
         end
       end   
-      -- perf at TS
-      if MOUSE_button(obj.PTS_b, gfx.h * ch_screen_num) then  
-        data_perform_TS = math.abs(data_perform_TS - 1)
-        SetExtState(data_perform_TS, 'PTS')
-        update_gfx = true 
-      end          
+      local name = t[tid].CONF_NAME
+      test = t[tid]
+      DATA.presets.user[name] = VF_CopyTable(t[tid])
+      ::nextpres::
     end
-    
-    if ch_screen_num == 2 then
-      if MOUSE_button(obj.ab_SC_b, gfx.h * ch_screen_num) then
-        F_open_URL('http://soundcloud.com/mp57')  
-      end
-      if MOUSE_button(obj.ab_VK_b, gfx.h * ch_screen_num) then
-        F_open_URL('http://vk.com/mpl57')  
-      end
-      if MOUSE_button(obj.ab_PP_b, gfx.h * ch_screen_num) then
-        F_open_URL('http://www.paypal.me/donate2mpl')  
-      end
-      
+    EXT.update_presets = 0
+    EXT:save()
+  end
+end
+-------------------------------------------------------------------------------- 
+function UI.MAIN_shortcuts()
+  if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then 
+    for key in pairs(UI.popups) do UI.popups[key].draw = false end
+    ImGui.CloseCurrentPopup( ctx ) 
+  end
+  if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  reaper.Main_OnCommand(40044,0) end
+end
+--------------------------------------------------------------------------------  
+function UI.draw_stuff()  
+  if ImGui.Button(ctx, 'Reset', UI.calc_mainbut, UI.ctrl_h) then 
+    DATA.valL = 0 
+    DATA.valR = 0 
+    reaper.Undo_BeginBlock2( -1 )
+    DATA:SMguard_Apply() 
+    reaper.Undo_EndBlock2( -1, 'Stretch Marker Guard', 0xFFFFFFFF )
+    reaper.UpdateArrange() 
+  end
+  if ImGui.Button(ctx, 'Print stretch to take markers', UI.calc_mainbut, UI.ctrl_h) then DATA:SMguard_PrintToTakeMarkers() end
+  ImGui.SetNextItemWidth( ctx, UI.ctrl_w) local retvalL, v = ImGui.SliderDouble(ctx, 'Left offset##Left', DATA.valL, -EXT.max_offset, 0, "%.3f", ImGui.SliderFlags_None) if retvalL then DATA.valL = v end
+  retvalL = reaper.ImGui_IsItemDeactivated( ctx )
+  ImGui.SetNextItemWidth( ctx, UI.ctrl_w) local retvalR, v = ImGui.SliderDouble(ctx, 'Right offset##Right', DATA.valR, 0,EXT.max_offset, "%.3f", ImGui.SliderFlags_None) if retvalR then DATA.valR = v end
+  retvalR = reaper.ImGui_IsItemDeactivated( ctx )
+  if retvalL or retvalR then 
+    reaper.Undo_BeginBlock2( -1 )
+    DATA:SMguard_Apply() 
+    reaper.Undo_EndBlock2( -1, 'Stretch Marker Guard', 0xFFFFFFFF )
+    reaper.UpdateArrange()
+  end
+end
+--------------------------------------------------------------------------------
+function UI.drawpopups()
+  for key in pairs(UI.popups) do
+    -- trig
+    if UI.popups[key] and UI.popups[key].trig == true then
+      UI.popups[key].trig = false
+      UI.popups[key].draw = true
+      ImGui.OpenPopup( ctx, key, ImGui.PopupFlags_NoOpenOverExistingPopup )
     end
-    
-    -- reset mouse context/doundo
-      if not mouse.last_LMB_state and not mouse.last_RMB_state then app = false mouse.last_obj = 0 end
-    
-    -- proceed undo state
-      if not app and last_app then reaper.Undo_OnStateChange(name )end
-      last_app = app
-      
-    -- mouse release
-      mouse.last_LMB_state = mouse.LMB_state  
-      mouse.last_RMB_state = mouse.RMB_state
-      mouse.last_MMB_state = mouse.MMB_state 
-      mouse.last_Ctrl_LMB_state = mouse.Ctrl_LMB_state
-      mouse.last_Ctrl_state = mouse.Ctrl_state
-      mouse.last_Alt_state = mouse.Alt_state
-      mouse.last_wheel = mouse.wheel 
-  end   
-  ------------------------------------------------------------------  
-  function F_open_URL(url)  
-     if OS=="OSX32" or OS=="OSX64" then
-       os.execute("open ".. url)
-      else
-       os.execute("start ".. url)
-     end
-   end   
-  ------------------------------------------------------------------    
-  function Run()    
-    clock = os.clock()
-    local obj = DEFINE_Objects()
-    local gui = DEFINE_GUI_vars()
-    GUI_draw(obj, gui)
-    MOUSE_get(obj)
-    local char = gfx.getchar() 
-    if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end
-    if char == 27 then gfx.quit() end     
-    if char ~= -1 then reaper.defer(Run) else gfx.quit() end    
-  end  
-  ------------------------------------------------------------------   
-  function Lokasenna_Window_At_Center (w, h)
-    -- thanks to Lokasenna 
-    -- http://forum.cockos.com/showpost.php?p=1689028&postcount=15    
-    local l, t, r, b = 0, 0, w, h    
-    local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)    
-    local x, y = (screen_w - w) / 2, (screen_h - h) / 2    
-    gfx.init(name..' // '..vrs, w, h, 0, x, y)  
+    -- draw
+    if UI.popups[key] and UI.popups[key].draw == true then UI.GetUserInputMB_replica(UI.popups[key].mode or 1, key, DATA.UI_name, 1, UI.popups[key].captions_csv, UI.popups[key].func_getval, UI.popups[key].func_setval) end 
+  end
+end
+--------------------------------------------------------------------------------
+function UI.draw()  
+  --UI.draw_preset() 
+  UI.draw_stuff()   
+  UI.drawpopups()
+end
+--------------------------------------------------------------------- 
+  function DATA.PRESET_encBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+      return ((data:gsub('.', function(x) 
+          local r,b='',x:byte()
+          for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+          return r;
+      end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+          if (#x < 6) then  return '' end
+          local c=0
+          for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+          return b:sub(c+1,c+1)
+      end)..({ '', '==', '=' })[#data%3+1])
+  end
+--------------------------------------------------------------------- 
+function DATA.PRESET_decBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+  local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+            return string.char(c)
+    end))
+end
+--------------------------------------------------------------------- 
+function DATA.PRESET_ApplyPreset(base64str, preset_name)  
+  if not base64str then return end
+  local  preset_t = {}
+  
+  local str_dec = DATA.PRESET_decBase64(base64str)
+  if str_dec~= '' then 
+    for line in str_dec:gmatch('[^\r\n]+') do
+      local key,value = line:gsub('[%{}]',''):match('(.-)=(.*)') 
+      if key and value and key:match('CONF_') then preset_t[key]= tonumber(value) or value end
+    end   
+  end 
+  for key in pairs(preset_t) do
+    if key:match('CONF_') then 
+      local presval = preset_t[key]
+      EXT[key] = tonumber(presval) or presval
+    end
+  end 
+  
+  if preset_name then EXT.CONF_NAME = preset_name end
+  EXT:save() 
+end
+--------------------------------------------------------------------- 
+function DATA.PRESET_RestoreDefaults(key, UI)
+  if not key then
+    for key in pairs(EXT) do
+      if key:match('CONF_') or (UI and UI == true and key:match('UI_'))then
+        local val = EXT_defaults[key]
+        if val then EXT[key]  = val end
+      end
+    end
+   else
+    local val = EXT_defaults[key]
+    if val then EXT[key]  = val end
   end
   
-  data_global_offset = GetExtState(0.2, 'glof')
-  data_safety_distance = GetExtState(0.005,'sadist') --second
-  data_perform_TS = GetExtState(0,'PTS')
+  EXT:save() 
+end
+--------------------------------------------------------------------- 
+function DATA.PRESET_GetCurrentPresetData()
+  local str = ''
+  for key in spairs(EXT) do if key:match('CONF_') then str = str..'\n'..key..'='..EXT[key] end end
+  return DATA.PRESET_encBase64(str)
+end 
+--------------------------------------------------------------------------------  
+function UI.draw_setbuttonbackgtransparent() 
+    UI.MAIN_PushStyle('Col_Button',0, 0) 
+    UI.MAIN_PushStyle('Col_ButtonActive',0, 0) 
+    UI.MAIN_PushStyle('Col_ButtonHovered',0, 0)
+end
+--------------------------------------------------------------------------------  
+function UI.draw_unsetbuttonstyle() 
+  UI.MAIN_PopStyle(ctx, nil, 3)
+end
+  ---------------------------------------------------
+  function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+    if order then table.sort(keys, function(a,b) return order(t, a, b) end)  else  table.sort(keys) end
+    local i = 0
+    return function()
+              i = i + 1
+              if keys[i] then return keys[i], t[keys[i]] end
+           end
+  end
+--------------------------------------------------------------------------------  
+function UI.draw_preset() 
+  -- preset 
   
-  ch_screen = true
-  ch_screen_num =0 -- def scr
-  ch_screen_move = 1
+  local select_wsz = 250
+  local select_hsz = 18--UI.calc_itemH
+  UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Preset') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx)
+  --ImGui.SetCursorPosX( ctx, DATA.display_w-UI.combo_w-UI.spacingX_wind )
+  --ImGui.SetNextItemWidth( ctx, UI.combo_w )  
+  local preview = EXT.CONF_name 
   
-  OS = reaper.GetOS()
-  mouse = {}
-  data = {str_val = {L = 0, R = 0}}
-  update_gfx = true
-  update_gfx_onstart = true
-  local obj = DEFINE_Objects()
-  Lokasenna_Window_At_Center (obj.main_w, obj.main_h)
-  obj = nil   
+  if ImGui.BeginCombo(ctx, '##Preset', preview, ImGui.ComboFlags_HeightLargest) then 
+    if ImGui.Button(ctx, 'Restore defaults') then DATA.PRESET_RestoreDefaults() end
+    local retval, buf = reaper.ImGui_InputText( ctx, '##presname', DATA.preset_name )
+    if retval then DATA.preset_name = buf end
+    ImGui.SameLine(ctx)
+    if ImGui.Button(ctx, 'Save current') then 
+      local newID = DATA.preset_name--os.date()
+      EXT.CONF_name = newID
+      DATA.presets.user[newID] = DATA.PRESET_GetCurrentPresetData() 
+      EXT.preset_base64_user = table.save(DATA.presets.user)
+      EXT:save() 
+    end
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5,1)
+    
+    local id = 0
+    for preset in spairs(DATA.presets.factory) do
+      id = id + 1
+      if ImGui.Selectable(ctx, '[F] '..preset..'##factorypresets'..id, nil,nil,select_wsz,select_hsz) then 
+        DATA.PRESET_ApplyPreset(DATA.presets.factory[preset], preset)
+        EXT:save() 
+      end
+    end 
+    local id = 0
+    for preset in spairs(DATA.presets.user) do
+      id = id + 1
+      if ImGui.Selectable(ctx, preset..'##userpresets'..id, nil,nil,select_wsz,select_hsz) then 
+        DATA.PRESET_ApplyPreset(DATA.presets.user[preset], preset)
+        EXT:save() 
+      end
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, 'Remove##remove'..id,0,select_hsz) then 
+        DATA.presets.user[preset] = nil
+        EXT.preset_base64_user = table.save(DATA.presets.user)
+        EXT:save() 
+      end
+    end 
+    ImGui.PopStyleVar(ctx)
+    ImGui.EndCombo(ctx) 
+  end  
+end
+------------------------------------------------------------------  
+function DATA:SMguard_PrintToTakeMarkers(take)
+  if take then 
+    it_pos = reaper.GetMediaItemInfo_Value( reaper.GetMediaItemTake_Item( take ), 'D_POSITION' )
+    tk_rate = reaper.GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+    -- clear markers 
+    local cnt = reaper.GetNumTakeMarkers( take )
+    for idx = cnt, 1, -1 do 
+      local retval, name, color = reaper.GetTakeMarker( take, idx -1)
+      if name:match('str_mark') then
+        DeleteTakeMarker( take, idx-1 ) 
+      end
+    end
+    
+    -- add new markers
+    for ism = 1, reaper.GetTakeNumStretchMarkers( take ) do
+      local _, sm_pos, sm_srcpos = reaper.GetTakeStretchMarker( take, ism -1 )  
+      local pos_glob = it_pos + sm_pos / tk_rate
+      SetTakeMarker( take, -1, 'str_mark'..pos_glob, sm_srcpos, 0 )
+    end
+    DATA:CollectData(take)
+    return
+  end
   
   
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.60) if ret then local ret2 = VF_CheckReaperVrs(6.78,true) if ret2 then 
-    Undo_BeginBlock2( 0 )
-    Run()
-    Undo_EndBlock2( 0, 'Toggle reverse pan flag and invert color of track under mouse cursor', 0xFFFFFFFF )
-  end end    
+  local cnt_items = CountMediaItems(-1)
+  for it = 1, cnt_items do
+    local item = GetMediaItem( 0, it-1 )
+    if not IsMediaItemSelected(item) then goto nextitem end
+    local take = GetActiveTake(item)
+    if TakeIsMIDI(take) then goto nextitem end
+    
+    it_pos = reaper.GetMediaItemInfo_Value( reaper.GetMediaItemTake_Item( take ), 'D_POSITION' )
+    tk_rate = reaper.GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+    
+    -- clear markers 
+    local cnt = reaper.GetNumTakeMarkers( take )
+    for idx = cnt, 1, -1 do 
+      local retval, name, color = reaper.GetTakeMarker( take, idx -1)
+      if name:match('str_mark') then
+        DeleteTakeMarker( take, idx-1 ) 
+      end
+    end
+    
+    -- add new markers
+    for ism = 1, reaper.GetTakeNumStretchMarkers( take ) do
+      local _, sm_pos, sm_srcpos = reaper.GetTakeStretchMarker( take, ism -1 )   
+      local pos_glob = it_pos + sm_pos / tk_rate
+      SetTakeMarker( take, -1, 'str_mark'..pos_glob, sm_srcpos, 0 )
+    end
+    
+    
+    ::nextitem::
+  end
+  DATA:CollectData()
+end
+--------------------------------------------------------------------   
+function DATA:SMguard_Apply_AddSM(take, tkGUID) 
+  local D_STARTOFFS = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+  local D_PLAYRATE = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+  local it_pos = reaper.GetMediaItemInfo_Value( reaper.GetMediaItemTake_Item( take ), 'D_POSITION' )
+  -- remove sm
+    DeleteTakeStretchMarkers( take, 0, GetTakeNumStretchMarkers( take ) ) 
+    
+  -- add markers 
+    local cnt = #DATA.takes[tkGUID]
+    for idx = 1, cnt do 
+      local posglob = DATA.takes[tkGUID][idx].pos
+      local sm_pos = (posglob - it_pos) * D_PLAYRATE
+      local srcpos = DATA.takes[tkGUID][idx].srcpos 
+      
+      if srcpos then 
+      
+        SetTakeStretchMarker( take, -1, sm_pos, srcpos) 
+        
+        if idx>1 and DATA.valL ~= 0 then
+          local srcpos_prev = DATA.takes[tkGUID][idx-1].srcpos
+          if srcpos_prev and srcpos - srcpos_prev > math.abs(DATA.valL)+math.abs(DATA.valR)+EXT.safety_distance then 
+            local posglob_prev = DATA.takes[tkGUID][idx-1].pos
+            local sm_pos_prev = (posglob_prev - it_pos) * D_PLAYRATE
+            SetTakeStretchMarker( take, -1, sm_pos_prev+ DATA.valL , srcpos_prev+ DATA.valL )
+          end
+        end
+
+        if idx<cnt and DATA.valR ~= 0  then
+          local srcpos_next = DATA.takes[tkGUID][idx+1].srcpos
+          if srcpos_next and srcpos_next - srcpos > math.abs(DATA.valL)+math.abs(DATA.valR)+EXT.safety_distance then 
+            local posglob_next = DATA.takes[tkGUID][idx+1].pos
+            local sm_pos_next = (posglob_next - it_pos) * D_PLAYRATE
+            SetTakeStretchMarker( take, -1, sm_pos_next+ DATA.valR , srcpos_next+ DATA.valR )
+          end
+        end 
+        
+      end    
+    end 
+end
+--------------------------------------------------------------------   
+function DATA:SMguard_Apply()   
+  local cnt_items = CountMediaItems(-1)
+  for it = 1, cnt_items do
+    local item = GetMediaItem( 0, it-1 )
+    if not IsMediaItemSelected(item) then goto nextitem end
+    local take = GetActiveTake(item)
+    if TakeIsMIDI(take) then goto nextitem end
+    local retval, takeGUID = reaper.GetSetMediaItemTakeInfo_String( take, 'GUID', '', false ) 
+    if not DATA.takes[takeGUID] then
+      DATA:SMguard_PrintToTakeMarkers(take)
+      DATA:CollectData(take)
+     else
+      DATA:SMguard_Apply_AddSM(take, takeGUID) 
+    end
+    ::nextitem::
+  end
+end
+-----------------------------------------------------------------------------------------
+main()
