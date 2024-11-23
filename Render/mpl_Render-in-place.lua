@@ -1,11 +1,12 @@
 -- @description Render-in-place
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Source / Sel.item: Ignore if at least one razor area exists
---    # improved sharing to fixed lanes
+--    # Postprocessing/Same track/New lanes: set first lane enbled by default
+--    + Postprocessing/Same track/New lanes: allow to do not set change active lane
+--    + Postprocessing/Same track/New lanes: allow to set last lane active
 
 
 
@@ -15,7 +16,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.10
+local vrs = 1.11
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -72,6 +73,7 @@ EXT = {
         -- postprocessing
         CONF_destination = 1, -- 1 same track 2 new track 3 common track
         CONF_destination_sametr = 1, -- 1 as new take to existed item 2 - fixed lane 
+        CONF_destination_sametr_flags = 2, -- &1 new fixedlane gets selected &2 do not set active lave
         CONF_destination_trposition = 1, -- 1 below source track 2 above source track 3 start of tracklist 4 end of tracklist
         CONF_destination_makeparent = 0,--&1 track above parent to source
         
@@ -851,6 +853,12 @@ function UI.draw_tab_postprocessing()
       local preview = names[EXT.CONF_destination_sametr] or '' if ImGui.BeginCombo(ctx, '##Destinationtr', preview) then for i = 1, #names do if ImGui.Selectable(ctx, names[i]) then EXT.CONF_destination_sametr = i EXT:save() end end ImGui.EndCombo(ctx) end
     end
     
+    if EXT.CONF_destination == 1 and EXT.CONF_destination_sametr == 2 then 
+      if ImGui.Checkbox(ctx, 'Do not change active lane (otherwise 1st always active)',EXT.CONF_destination_sametr_flags&2==2) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~2 EXT:save() end 
+      if EXT.CONF_destination_sametr_flags&2~=2 then
+        if ImGui.Checkbox(ctx, 'Make new fixed lane selected',EXT.CONF_destination_sametr_flags&1==1) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~1 EXT:save() end 
+      end
+    end
     
     -- tr properties
     if EXT.CONF_destination==2 or EXT.CONF_destination == 3 then 
@@ -1774,17 +1782,28 @@ function DATA:Render_InsertMedia(t)
       if I_FREEMODE ~= 2 then 
         SetMediaTrackInfo_Value( dest_tr, 'I_FREEMODE', 2 ) -- enable fixed lanes   
         local I_NUMFIXEDLANES = GetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES') 
-        SetMediaItemInfo_Value( new_item, 'I_FIXEDLANE',I_NUMFIXEDLANES-1)
+        local sellane = I_NUMFIXEDLANES-1
+        SetMediaItemInfo_Value( new_item, 'I_FIXEDLANE',sellane) 
         UpdateTimeline()  
        else 
         local I_NUMFIXEDLANES = GetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES') 
         SetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES',I_NUMFIXEDLANES+1) 
-        SetMediaItemInfo_Value( new_item, 'I_FIXEDLANE',I_NUMFIXEDLANES)
+        local sellane = I_NUMFIXEDLANES
+        SetMediaItemInfo_Value( new_item, 'I_FIXEDLANE',I_NUMFIXEDLANES) 
         UpdateTimeline()  
       end 
       
-      SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:0', 1 ) 
-      SetMediaTrackInfo_Value( tr, 'C_ALLLANESPLAY', 0 )  -- all lanes play
+      if EXT.CONF_destination_sametr_flags&2~=2 then 
+        if EXT.CONF_destination_sametr_flags&1~=1 then 
+          SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:0', 1 ) 
+         else
+          local I_NUMFIXEDLANES = GetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES') 
+          SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:0', 0 ) 
+          SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:'..(I_NUMFIXEDLANES-1), 1 ) 
+        end
+      end
+      
+      SetMediaTrackInfo_Value( tr, 'C_ALLLANESPLAY', 2 ) 
     end
   
   -- make new render track parent to source
