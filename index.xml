@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aa87ccaf8c40bd3fc464ee3a417194fda9171c2f" name="MPL Scripts">
+<index version="1" commit="295162de2e286c1f47938b8d73859d628ae6c642" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7449,6 +7449,10 @@
 + Postprocessing/Same track/New lanes: allow to do not set change active lane
 + Postprocessing/Same track/New lanes: allow to set last lane active]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aa87ccaf8c40bd3fc464ee3a417194fda9171c2f/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2024-11-23T20:38:30Z">
+        <changelog><![CDATA[# use audio device sample rate for render, thanks MathieuC [p=2825117]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/295162de2e286c1f47938b8d73859d628ae6c642/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
