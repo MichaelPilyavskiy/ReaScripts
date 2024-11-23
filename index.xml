@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="295162de2e286c1f47938b8d73859d628ae6c642" name="MPL Scripts">
+<index version="1" commit="3b1aeb6f13e89f776646e72a03ca17c8321a1cd1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7916,11 +7916,23 @@
     </reapack>
     <reapack name="mpl_Stretch marker guard.lua" type="script" desc="Stretch marker guard">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for protecting area around stretch markers\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
       </metadata>
       <version name="1.02" author="MPL" time="2023-04-10T18:32:17Z">
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-11-23T20:49:19Z">
+        <changelog><![CDATA[+ Ported to ReaImGui
+# uses specially namedd take markers to define source point of the central stretch markers]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3b1aeb6f13e89f776646e72a03ca17c8321a1cd1/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Tape start selected items.lua" type="script" desc="Tape start selected items">
