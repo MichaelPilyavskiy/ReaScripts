@@ -1,12 +1,10 @@
 -- @description Render-in-place
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # Postprocessing/Same track/New lanes: set first lane enbled by default
---    + Postprocessing/Same track/New lanes: allow to do not set change active lane
---    + Postprocessing/Same track/New lanes: allow to set last lane active
+--    # use audio device sample rate for render, thanks MathieuC [p=2825117]
 
 
 
@@ -16,7 +14,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.11
+local vrs = 1.12
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1664,7 +1662,10 @@ function DATA:Render_CurrentConfig_SetGlobalParams()
   
   GetSetProjectInfo( project, 'RENDER_SETTINGS', 0|512, true ) -- master mix | &512 embed metadata if format su pports
   GetSetProjectInfo( project, 'RENDER_BOUNDSFLAG', 0, true ) -- custom time bounds
-  --GetSetProjectInfo( project, 'RENDER_SRATE', 0, true ) -- project sample rate  
+  
+  local _,sampleRate = reaper.GetAudioDeviceInfo( "SRATE" )
+  sampleRate=tonumber(sampleRate)
+  GetSetProjectInfo( project, 'RENDER_SRATE', sampleRate, true ) -- project sample rate  
   
   if EXT.CONF_tail == 0 then 
     GetSetProjectInfo( project, 'RENDER_TAILFLAG', 0, true )
