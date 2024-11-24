@@ -1,10 +1,11 @@
 -- @description QuantizeTool
--- @version 4.02
+-- @version 4.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # fix small corner cases
+--    # fix lim error
+--    + Add tooltip on buttons about right click
 
 
 
@@ -768,7 +769,7 @@ function UI.draw()
   if ImGui.Button(ctx, 'Params',-1,0) then EXT.UI_compactmode = EXT.UI_compactmode~1 EXT:save() end
   
   -- get anchor points
-  ImGui.Button(ctx, 'Get anchor\n    points', UI.calc_mainbut, UI.calc_itemH*2)
+  ImGui.Button(ctx, 'Get anchor\n    points', UI.calc_mainbut, UI.calc_itemH*2) ImGui.SetItemTooltip( ctx, 'Right click to show anchor points' )
   if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA:GetAnchorPoints() end
   if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then
     if EXT.CONF_ref_grid>0 then DATA:MarkerPoints_Show(DATA.ref_pat, UI.default_data_col_adv, true) else DATA:MarkerPoints_Show(DATA.ref, UI.default_data_col_adv, false) end
@@ -778,7 +779,7 @@ function UI.draw()
   ImGui.SameLine(ctx)
   
   -- get targets
-  ImGui.Button(ctx, 'Get targets', UI.calc_mainbut, UI.calc_itemH*2)
+  ImGui.Button(ctx, 'Get targets', UI.calc_mainbut, UI.calc_itemH*2)ImGui.SetItemTooltip( ctx, 'Right click to show targets' )
   if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA:GetTargets() end
   if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then
     DATA:MarkerPoints_Show(DATA.src, UI.default_data_col_adv2)
@@ -2911,7 +2912,7 @@ end
       local out_offs = math.floor(ppq_posOUT-ppq_cur)
       
       if t.isNoteOn and EXT.CONF_src_midi_msgflag&1==1 then 
-        local out_vel = math.max(1,math.floor(lim(out_val,0,1)*127))
+        local out_vel = math.max(1,math.floor(VF_lim(out_val,0,1)*127))
         str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x90| (t.chan-1), t.pitch, out_vel )
         
         if EXT.CONF_src_midi_msgflag&4==4 
