@@ -1,5 +1,5 @@
 -- @description Render-in-place
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
@@ -14,7 +14,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.12
+local vrs = 1.13
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1800,7 +1800,7 @@ function DATA:Render_InsertMedia(t)
          else
           local I_NUMFIXEDLANES = GetMediaTrackInfo_Value( tr, 'I_NUMFIXEDLANES') 
           SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:0', 0 ) 
-          SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:'..(I_NUMFIXEDLANES-1), 1 ) 
+          SetMediaTrackInfo_Value( tr, 'C_LANEPLAYS:'..(I_NUMFIXEDLANES-1), 1 )
         end
       end
       
@@ -1834,10 +1834,10 @@ function DATA:Render_AddTrack(t)
   InsertTrackInProject( 0, tracknum, 0 )
   local tr = GetTrack(0,tracknum)
   if not t.options_sendonly then
-    local trname = EXT.CONF_newtrackname:gsub('#trname',t.P_NAME)
+    local trname = EXT.CONF_newtrackname:gsub('#trname',t.P_NAME or '')
     GetSetMediaTrackInfo_String(tr,'P_NAME',trname,1)  
    else
-    local trname = EXT.CONF_newtrackname2:gsub('#trname',t.P_NAME)
+    local trname = EXT.CONF_newtrackname2:gsub('#trname',t.P_NAME or '')
     GetSetMediaTrackInfo_String(tr,'P_NAME',trname,1)  
   end
   
