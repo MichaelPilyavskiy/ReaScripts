@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6fe6448c07f43882f3990be4aca79ab59dd63b9f" name="MPL Scripts">
+<index version="1" commit="3573e882a9f7b99edc439fb62e3e0f3d5e4b83af" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3620,6 +3620,15 @@
       <version name="1.0" author="MPL" time="2022-09-15T19:26:03Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb3d3090a29a34274405ea62fd46632b856e5d98/FX%20specific/mpl_Float%20Fre(a)koscope%20on%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Float RS5k instance by last clicked MIDI editor note.lua" type="script" desc="Float RS5k instance by last clicked MIDI editor note">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-11-27T19:27:27Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3573e882a9f7b99edc439fb62e3e0f3d5e4b83af/FX%20specific/mpl_Float%20RS5k%20instance%20by%20last%20clicked%20MIDI%20editor%20note.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float RS5k instance by last incoming note.lua" type="script" desc="Float RS5k instance by last incoming note">
