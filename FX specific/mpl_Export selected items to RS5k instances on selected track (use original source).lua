@@ -1,9 +1,9 @@
 -- @description Export selected items to RS5k instances on selected track (use original source)
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # fix addmidi error
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -86,6 +86,31 @@
       reaper.Undo_EndBlock2( 0, 'Export selected items to RS5k instances', -1 )     
     
   end 
+  -------------------------------------------------------------------------------    
+  function ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch, do_not_increment)    
+    if not MIDI then return end
+      local new_it = reaper.CreateNewMIDIItemInProj( track, MIDI.it_pos, MIDI.it_end_pos )
+      local new_tk = reaper.GetActiveTake( new_it )
+      for i = 1, #MIDI do
+        local startppqpos =  reaper.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].pos )
+        local endppqpos =  reaper.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].end_pos )
+        local pitch = base_pitch+i-1
+        if do_not_increment then pitch = base_pitch end
+        local ret = reaper.MIDI_InsertNote( new_tk, 
+            false, --selected, 
+            false, --muted, 
+            startppqpos, 
+            endppqpos, 
+            0, 
+            pitch, 
+            100, 
+            true)--noSortInOptional )
+          --if ret then reaper.ShowConsoleMsg('done') end
+      end
+      reaper.MIDI_Sort( new_tk )
+      reaper.GetSetMediaItemTakeInfo_String( new_tk, 'P_NAME', 'sliced loop', 1 )
+      reaper.UpdateArrange()    
+  end
   ----------------------------------------------------------------------- 
   function ExportItemToRS5K(note,filepath, start_offs, end_offs, track)
     local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
