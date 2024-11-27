@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e14e659c2bb1639a7a5db1dc81e754c77db4ae0a" name="MPL Scripts">
+<index version="1" commit="6fe6448c07f43882f3990be4aca79ab59dd63b9f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3534,6 +3534,10 @@
       <version name="1.05" author="MPL" time="2024-11-04T05:20:45Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ac2501e920c454e4953369488306cda2d25dae2/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2024-11-27T19:16:34Z">
+        <changelog><![CDATA[# fix addmidi error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6fe6448c07f43882f3990be4aca79ab59dd63b9f/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (use original source, wait for input).lua" type="script" desc="Export selected items to RS5k instances on selected track (use original source, wait for input)">
