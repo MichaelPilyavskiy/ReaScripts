@@ -1,10 +1,10 @@
 -- @description Render-in-place
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # use audio device sample rate for render, thanks MathieuC [p=2825117]
+--    # fix sapmming extstate.ini
 
 
 
@@ -14,7 +14,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.13
+local vrs = 1.14
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -591,7 +591,9 @@ end
 function DATA.PRESET_GetExtStatePresets()
   DATA.presets = {} 
   DATA.presets.factory = DATA.presets_factory
-  DATA.presets.user = table.load( EXT.preset_base64_user ) or {}
+  local preset_base64_user = EXT.preset_base64_user
+  if preset_base64_user:match('{')== nil and preset_base64_user~= '' then preset_base64_user = DATA.PRESET_decBase64(preset_base64_user) end
+  DATA.presets.user = table.load(preset_base64_user) or {}
 end
 --------------------------------------------------------------------- 
 function DATA.PRESET_RestoreDefaults(key, UI)
@@ -648,7 +650,7 @@ function UI.draw_preset()
       local newID = DATA.preset_name--os.date()
       EXT.CONF_name = newID
       DATA.presets.user[newID] = DATA.PRESET_GetCurrentPresetData() 
-      EXT.preset_base64_user = table.save(DATA.presets.user)
+      EXT.preset_base64_user =   DATA.PRESET_encBase64(table.save(DATA.presets.user))
       EXT:save() 
     end
     local id = 0
@@ -669,7 +671,7 @@ function UI.draw_preset()
       ImGui.SameLine(ctx)
       if ImGui.Button(ctx, 'Remove##remove'..id) then 
         DATA.presets.user[preset] = nil
-        EXT.preset_base64_user = table.save(DATA.presets.user)
+        EXT.preset_base64_user =   DATA.PRESET_encBase64(table.save(DATA.presets.user))
         EXT:save() 
       end
     end 

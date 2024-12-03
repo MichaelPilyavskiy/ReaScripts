@@ -1,11 +1,10 @@
 -- @description QuantizeTool
--- @version 4.03
+-- @version 4.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # fix lim error
---    + Add tooltip on buttons about right click
+--    # fix spamming extstate
 
 
 
@@ -641,7 +640,10 @@ end
 --------------------------------------------------------------------- 
 function DATA.PRESET_GetExtStatePresets()
   DATA.presets.factory = DATA.presets_factory
-  DATA.presets.user = table.load( EXT.preset_base64_user ) or {}
+  
+  local preset_base64_user = EXT.preset_base64_user
+  if preset_base64_user:match('{')== nil and preset_base64_user~= '' then preset_base64_user = DATA.PRESET_decBase64(preset_base64_user) end
+  DATA.presets.user = table.load(preset_base64_user) or {}
   
   -- ported from old version
   if EXT.update_presets == 1 then
@@ -1340,7 +1342,7 @@ function UI.draw_preset()
       local newID = DATA.preset_name--os.date()
       EXT.CONF_name = newID
       DATA.presets.user[newID] = DATA.PRESET_GetCurrentPresetData() 
-      EXT.preset_base64_user = table.save(DATA.presets.user)
+      EXT.preset_base64_user =   DATA.PRESET_encBase64(table.save(DATA.presets.user))
       EXT:save() 
     end
     
@@ -1365,7 +1367,7 @@ function UI.draw_preset()
       ImGui.SameLine(ctx)
       if ImGui.Button(ctx, 'Remove##remove'..id,0,select_hsz) then 
         DATA.presets.user[preset] = nil
-        EXT.preset_base64_user = table.save(DATA.presets.user)
+        EXT.preset_base64_user =   DATA.PRESET_encBase64(table.save(DATA.presets.user))
         EXT:save() 
       end
     end 
