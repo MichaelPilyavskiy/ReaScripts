@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f246fee125fd8813a29662494e3b39c519f114a1" name="MPL Scripts">
+<index version="1" commit="c2cad4a1eff41f8c054553fe6926eba5cd345c7e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5909,6 +5909,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40bf7337046643c12de87779d5e8c70a138cc05d/Items%20Properties/mpl_Item%20ADSR.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2024-12-03T15:31:38Z">
+        <changelog><![CDATA[# fix spamming ext state]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c2cad4a1eff41f8c054553fe6926eba5cd345c7e/Items%20Properties/mpl_Item%20ADSR.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Mute item under mouse cursor.lua" type="script" desc="Mute item under mouse cursor">
       <metadata>
@@ -7954,6 +7958,10 @@
         <changelog><![CDATA[+ Ported to ReaImGui
 # uses specially namedd take markers to define source point of the central stretch markers]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3b1aeb6f13e89f776646e72a03ca17c8321a1cd1/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2024-12-03T15:31:38Z">
+        <changelog><![CDATA[# fix spamming extstate]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c2cad4a1eff41f8c054553fe6926eba5cd345c7e/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Tape start selected items.lua" type="script" desc="Tape start selected items">
