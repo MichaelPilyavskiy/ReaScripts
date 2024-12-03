@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3573e882a9f7b99edc439fb62e3e0f3d5e4b83af" name="MPL Scripts">
+<index version="1" commit="f246fee125fd8813a29662494e3b39c519f114a1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7471,6 +7471,10 @@
         <changelog><![CDATA[# use audio device sample rate for render, thanks MathieuC [p=2825117]]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e14e659c2bb1639a7a5db1dc81e754c77db4ae0a/Render/mpl_Render-in-place.lua</source>
       </version>
+      <version name="1.14" author="MPL" time="2024-12-03T15:22:37Z">
+        <changelog><![CDATA[# fix sapmming extstate.ini]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f246fee125fd8813a29662494e3b39c519f114a1/Render/mpl_Render-in-place.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
       <metadata>
@@ -12487,6 +12491,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# fix lim error
 + Add tooltip on buttons about right click]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f06e1773ec8ed548b5235a80a25d870e0b798cf5/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="4.04" author="MPL" time="2024-12-03T15:22:37Z">
+        <changelog><![CDATA[# fix spamming extstate]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f246fee125fd8813a29662494e3b39c519f114a1/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
