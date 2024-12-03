@@ -1,11 +1,10 @@
 ﻿-- @description Stretch marker guard
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for protecting area around stretch markers
 -- @changelog
---    + Ported to ReaImGui
---    # uses specially namedd take markers to define source point of the central stretch markers
+--    # fix spamming extstate
 
 
 
@@ -560,7 +559,11 @@ end
 --------------------------------------------------------------------- 
 function DATA.PRESET_GetExtStatePresets()
   DATA.presets.factory = DATA.presets_factory
-  DATA.presets.user = table.load( EXT.preset_base64_user ) or {} 
+  
+  local preset_base64_user = EXT.preset_base64_user
+  if preset_base64_user:match('{')== nil and preset_base64_user~= '' then preset_base64_user = DATA.PRESET_decBase64(preset_base64_user) end
+  DATA.presets.user = table.load(preset_base64_user) or {}
+  
   -- ported from old version
   if EXT.update_presets == 1 then
     local t = {}
@@ -730,6 +733,7 @@ end
            end
   end
 --------------------------------------------------------------------------------  
+--------------------------------------------------------------------------------  
 function UI.draw_preset() 
   -- preset 
   
@@ -740,6 +744,8 @@ function UI.draw_preset()
   --ImGui.SetNextItemWidth( ctx, UI.combo_w )  
   local preview = EXT.CONF_name 
   
+  
+  
   if ImGui.BeginCombo(ctx, '##Preset', preview, ImGui.ComboFlags_HeightLargest) then 
     if ImGui.Button(ctx, 'Restore defaults') then DATA.PRESET_RestoreDefaults() end
     local retval, buf = reaper.ImGui_InputText( ctx, '##presname', DATA.preset_name )
@@ -749,9 +755,11 @@ function UI.draw_preset()
       local newID = DATA.preset_name--os.date()
       EXT.CONF_name = newID
       DATA.presets.user[newID] = DATA.PRESET_GetCurrentPresetData() 
-      EXT.preset_base64_user = table.save(DATA.presets.user)
+      EXT.preset_base64_user =   DATA.PRESET_encBase64(table.save(DATA.presets.user))
       EXT:save() 
     end
+    
+    
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 5,1)
     
     local id = 0
@@ -772,13 +780,20 @@ function UI.draw_preset()
       ImGui.SameLine(ctx)
       if ImGui.Button(ctx, 'Remove##remove'..id,0,select_hsz) then 
         DATA.presets.user[preset] = nil
-        EXT.preset_base64_user = table.save(DATA.presets.user)
+        EXT.preset_base64_user =   DATA.PRESET_encBase64(table.save(DATA.presets.user))
         EXT:save() 
       end
     end 
+    
+    
+    
     ImGui.PopStyleVar(ctx)
+    
+    
     ImGui.EndCombo(ctx) 
   end  
+  
+  
 end
 ------------------------------------------------------------------  
 function DATA:SMguard_PrintToTakeMarkers(take)
