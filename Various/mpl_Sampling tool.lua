@@ -1,16 +1,10 @@
 -- @description Sampling tool
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Merge all functions into single button
---    + Allow to clear notes after RS5k instance adding
---    + Add message if track is not selected
---    + Add message if instrument is not found (allowed to be ignored)
---    # add #fxname wildcard
---    # Defaults: set rename pattern to '#fxname sampled - #note'
---    # Defaults: set rename FX to ON
+--    + add option to set note off
     
     
     
@@ -21,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.04
+    DATA.extstate.version = 1.05
     DATA.extstate.extstatesection = 'SamplingTool'
     DATA.extstate.mb_title = 'MPL Sampling tool'
     DATA.extstate.default = 
@@ -49,6 +43,7 @@
                           CONF_addtestmidiitem = 1,
                           CONF_extend_bounds = 1, 
                           CONF_renameMEnotes = 1, 
+                          CONF_setobeynoteoff = 0, 
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -277,6 +272,11 @@
         TrackFX_SetParamNormalized( tr, fx, 13, offset_s )-- offset start
         TrackFX_SetParamNormalized( tr, fx, 14, offset_e)-- offset end
         
+        if DATA.extstate.CONF_setobeynoteoff==1 then
+          TrackFX_SetParamNormalized( tr, fx, 11, 1)-- offset end
+        end
+        
+        
         if DATA.extstate.CONF_showflag ~= -1 then TrackFX_Show( tr, fx, DATA.extstate.CONF_showflag )  else
           TrackFX_Show( tr, fx, 1 )
           TrackFX_Show( tr, fx, 2 )
@@ -374,6 +374,7 @@
         {str = 'Add test MIDI item',                  group = 2, itype = 'check', confkey = 'CONF_addtestmidiitem', level = 1}, 
         {str = 'Extend note bounds',                       group = 2, itype = 'check', confkey = 'CONF_extend_bounds', level = 1}, 
         {str = 'Schedule mode',                       group = 2, itype = 'check', confkey = 'CONF_schedmode', level = 1}, 
+        {str = 'Set obey note-off',                       group = 2, itype = 'check', confkey = 'CONF_setobeynoteoff', level = 1}, 
         {str = 'Pause between adding new instances' , group = 2, itype = 'readout', confkey = 'CONF_schedmode_s', level = 1,
         val_res = 0.05, 
         val_min = 0.5, 
