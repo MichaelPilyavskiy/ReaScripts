@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9b7f7e8583c7f59f458a2baa4f2c40a5c425a377" name="MPL Scripts">
+<index version="1" commit="e8846e7ef725ec1f95d2c39a680761d5cdc99066" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6347,6 +6347,12 @@
       <version name="1.15" author="MPL" time="2024-08-31T21:39:47Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
+      </version>
+      <version name="1.16" author="MPL" time="2024-12-07T06:12:26Z">
+        <changelog><![CDATA[# improve logic around non 4 denominator
+# improve logic around swing
+# handle negative output length as a trigger to force quantize to next grid instead]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8846e7ef725ec1f95d2c39a680761d5cdc99066/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize selected MIDI notes positions.lua" type="script" desc="Quantize selected MIDI notes positions">
