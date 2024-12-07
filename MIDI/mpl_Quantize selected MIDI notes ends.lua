@@ -1,11 +1,13 @@
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @provides
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # VF independent
+--    # improve logic around non 4 denominator
+--    # improve logic around swing
+--    # handle negative output length as a trigger to force quantize to next grid instead
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -23,58 +25,62 @@
   function Quantize_selected_MIDI_notes_ends_sub(take,i,itpos,muted,startppqpos, endppqpos,ME_grid,swing)
     
     local proj_time = reaper.MIDI_GetProjTimeFromPPQPos( take, endppqpos )
-    local beats, _, _, tpos_beats = reaper.TimeMap2_timeToBeats( proj, proj_time )
-    local out_pos, out_ppq, out_beatpos
+    beats, _, _, tpos_beats,denom = reaper.TimeMap2_timeToBeats( proj, proj_time )
+    ME_grid = ME_grid * denom/4
     
-    local ME_grid_s = TimeMap2_beatsToTime( 0, ME_grid)
-    local ME_grid_ppq = MIDI_GetPPQPosFromProjTime( take, ME_grid_s+itpos )
+    pos_in_beat = tpos_beats%ME_grid 
+    nextbeat = tpos_beats + ME_grid - pos_in_beat
+    prevbeat = tpos_beats - pos_in_beat
     
-    if swing == 0 then             
-      if (beats % ME_grid) < (ME_grid/2) then out_beatpos = tpos_beats - (beats % ME_grid) else out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid end
-      out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
-      out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )
-     else
-      local midval = 0.5 + 0.25*swing
-      local checkval = 0.5 * (beats % (ME_grid*2)) / ME_grid
-      if checkval < midval then 
-        -- before swing grid
-        if checkval < 0.5*midval then 
-          out_beatpos = tpos_beats - (beats % ME_grid)  
-         else 
-          if swing < 0 then 
-            out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid*midval*2
-           else
-            out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid*swing/2
-            if checkval % midval < 0.5 then out_beatpos = out_beatpos + ME_grid end
-          end
+    if swing ~= 0 then  
+    
+      pos_in_beat = tpos_beats%(ME_grid*2) 
+      nextbeat = tpos_beats + ME_grid*2 - pos_in_beat
+      prevbeat = tpos_beats - pos_in_beat
+      swingline = tpos_beats - pos_in_beat + ME_grid+swing*ME_grid/2 
+      if tpos_beats>=prevbeat and tpos_beats<=swingline then
+        if swingline-tpos_beats < tpos_beats- prevbeat then
+          out_beatpos = swingline
+         else
+          out_beatpos = prevbeat
+          out_beatpos2 = swingline
         end
-                  
        else 
-       
-        -- after swing grid
-        if checkval < midval + 0.5*  (1-midval)  then 
-          out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid * 0.5 * swing
-         else 
-          out_beatpos = tpos_beats - (beats % ME_grid) + ME_grid
-        end            
-       
+        if nextbeat-tpos_beats < tpos_beats- swingline then
+          out_beatpos = nextbeat
+         else
+          out_beatpos = swingline
+          out_beatpos2 = nextbeat
+        end
       end
-      out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
-      out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )     
-    end  
+      
+      
+     else
+      
+      -- strangth
+      if tpos_beats-prevbeat< nextbeat-tpos_beats then
+        out_beatpos = prevbeat
+        out_beatpos2 = nextbeat
+       else
+        out_beatpos = nextbeat
+      end
+      
+    end
     
-      
-    if out_ppq and out_pos then
-      
-      if out_ppq - startppqpos < ME_grid_ppq then
-        out_pos = TimeMap2_beatsToTime( 0, out_beatpos+ME_grid)
-        out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos )   
-      end
-      
-      if out_ppq - startppqpos > ME_grid_ppq then 
+    
+    
+    out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
+    out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos ) 
+    if out_ppq<startppqpos then
+      if out_beatpos2 then
+        out_pos = TimeMap2_beatsToTime( 0, out_beatpos2)
+        out_ppq = MIDI_GetPPQPosFromProjTime( take, out_pos ) 
         MIDI_SetNote( take, i-1, true, muted, startppqpos, out_ppq, chan, pitch, vel, true ) 
       end
+     else
+      MIDI_SetNote( take, i-1, true, muted, startppqpos, out_ppq, chan, pitch, vel, true ) 
     end
+    
   end
   ----------------------------------------------------------------------  
   function Quantize_selected_MIDI_notes_ends(take) 
