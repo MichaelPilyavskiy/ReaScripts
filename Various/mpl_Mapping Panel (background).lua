@@ -1,15 +1,15 @@
 -- @description MappingPanel
--- @version 4.05
+-- @version 4.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    # prevent error on changing tab / lost context
+--    # reverted to 4.03
 
 
 
 
-  local vrs = 4.05
+  local vrs = 4.06
 
   --[[ gmem map: 
   Master
@@ -33,7 +33,7 @@
      
      if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
      package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-     ImGui = require 'imgui' '0.9.3.2'
+     ImGui = require 'imgui' '0.9.2'
      
      
      
@@ -43,7 +43,6 @@
            viewport_posY = 10,
            viewport_posW = 640,
            viewport_posH = 400, 
-           viewport_dock = 0, 
            
            CONF_setslaveparamtomaster = 1,
            CONF_randstrength = 1,
@@ -813,7 +812,7 @@
   -------------------------------------------------------------------------------- 
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
   -------------------------------------------------------------------------------- 
-  function ImGui.PushStyle(key, value, value2) 
+  function ImGui.PushStyle(key, value, value2)  
     if not (ctx and key and value) then return end
     local iscol = key:match('Col_')~=nil
     local keyid = ImGui[key]
@@ -823,7 +822,7 @@
       UI.pushcnt_var = UI.pushcnt_var + 1
     else 
       if not value2 then
-        ReaScriptError( key )
+        ReaScriptError( key ) 
        else
         ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
         if not UI.pushcnt_col then UI.pushcnt_col = 0 end
@@ -845,7 +844,7 @@
   end 
   -------------------------------------------------------------------------------- 
   function UI.MAIN_styledefinition(open)  
-  
+    
     -- window_flags
       local window_flags = ImGui.WindowFlags_None
       --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
@@ -857,7 +856,7 @@
       --window_flags = window_flags | ImGui.WindowFlags_NoNav()
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
       --window_flags = window_flags | ImGui.WindowFlags_NoDocking
-      --window_flags = window_flags | ImGui.WindowFlags_TopMost
+      window_flags = window_flags | ImGui.WindowFlags_TopMost
       window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
       --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings()
       --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
@@ -919,10 +918,10 @@
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
-      local x, y, w, h, dock =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH,EXT.viewport_dock
+      local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing) 
-      ImGui.SetNextWindowDockID( ctx, EXT.viewport_dock, ImGui.Cond_Appearing )
+      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
@@ -931,8 +930,8 @@
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
         DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
-        DATA.display_dock = ImGui.GetWindowDockID( ctx )
         DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
+        
         
       -- calc stuff for childs
         UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
@@ -1034,7 +1033,6 @@
     DATA.ReaProj = ReaProj 
     
     DATA:MasterJSFX_Validate()
-    if DATA.masterJSFX_isvalid ~= true then DATA:MasterJSFX_Validate_Add() end 
     
     DATA:CollectData_LTP()    
     DATA:MasterJSFX_ReadSliders()
@@ -1069,9 +1067,6 @@
     DATA.upd = false
     
     -- draw UI
-    local ret = ImGui.ValidatePtr(ctx, 'ImGui_Context*')
-    if not ret then return end
-    
     UI.open = UI.MAIN_styledefinition(true)  
     UI.MAIN_shortcuts()
     
@@ -1137,14 +1132,10 @@
     if not DATA.display_w_last then DATA.display_w_last = DATA.display_w end
     if not DATA.display_h_last then DATA.display_h_last = DATA.display_h end
     
-    if not DATA.display_dock_last then DATA.display_dock_last = DATA.display_dock  end
-    
-    
     if  DATA.display_x_last~= DATA.display_x 
       or DATA.display_y_last~= DATA.display_y 
       or DATA.display_w_last~= DATA.display_w 
       or DATA.display_h_last~= DATA.display_h 
-      or DATA.display_dock_last~= DATA.display_dock 
       then 
       DATA.display_schedule_save = os.clock() 
     end
@@ -1153,7 +1144,6 @@
       EXT.viewport_posY = DATA.display_y
       EXT.viewport_posW = DATA.display_w
       EXT.viewport_posH = DATA.display_h
-      EXT.viewport_dock = DATA.display_dock
       EXT:save() 
       DATA.display_schedule_save = nil 
     end
@@ -1161,10 +1151,10 @@
     DATA.display_y_last = DATA.display_y
     DATA.display_w_last = DATA.display_w
     DATA.display_h_last = DATA.display_h
-    DATA.display_dock_last = DATA.display_dock
   end
   -------------------------------------------------------------------------------- 
   function UI.draw_knob(sliderID, sliderW,  sliderH, paramval, app_func_onmouseclick, app_func_onmousedrag, app_func_header, iscollapsed, selected, name, col) 
+   
     if not (paramval and sliderID ) then return end
     local sliderID_key = sliderID..'##sl'..sliderID
     local posx_abs, posy_abs = ImGui.GetCursorScreenPos( ctx )
@@ -1191,85 +1181,76 @@
     
     if ImGui.BeginChild( ctx, '##ch'..sliderID, childW,  sliderH, ImGui.ChildFlags_None, ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar ) then 
       -- background
-      local draw_list = ImGui.GetWindowDrawList( ctx ) 
+      --local draw_list = ImGui.GetForegroundDrawList(ctx) 
+      local draw_list = ImGui.GetWindowDrawList( ctx )
+      
       local slcol
       if col then
         slcol = col:gsub('%#','')
         slcol = tonumber(slcol,16)
       end
-      if slcol then slcol = slcol<<8|0xCF else slcol  = 0xFFFFFF0F end
+      if slcol then 
+        slcol = slcol<<8|0xCF
+       else
+        slcol  = 0xFFFFFF0F
+      end
       local round = 5
       if iscollapsed == false then round = 0 end
       ImGui.DrawList_AddRectFilled(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+sliderH, slcol, round, ImGui.DrawFlags_None)
       if not iscollapsed then ImGui.DrawList_AddRectFilled(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+UI.main_knobtxth, 0xFFFFFF2F, 5, ImGui.DrawFlags_RoundCornersTopRight) end
-      if selected then
+      if selected then 
         local selcolframe = 0xFFFFFF4F
         if not iscollapsed then ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+UI.main_knobtxth, selcolframe, 5, ImGui.DrawFlags_RoundCornersTopRight) 
           else                  ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+sliderH, selcolframe, 5)--, ImGui.DrawFlags_RoundCornersTop) 
         end
-      end 
-        
-      UI.draw_knob_controls(name, sliderID, iscollapsed,namew,nameh,vsliderw, vsliderh , paramval)  
-      UI.draw_knob_handlemousestate(sliderID,paramval)  
-      UI.draw_knob_drawlist(mindim,posx_abs,posy_abs,sliderW,sliderH,iscollapsed,namew,paramval,draw_list) 
+      end
       
-      ImGui.EndChild( ctx )
-    end
-    
-    
-    
-  end
-  -------------------------------------------------------------------------------- 
-  function UI.draw_knob_controls(name, sliderID, iscollapsed,namew,nameh,vsliderw, vsliderh , paramval) 
-    -- macro name / handle context menu
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 1,1)
-      ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x00000000)
-      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0x00000000)
-      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xFFFFFF2F) 
-      if iscollapsed==true then 
-        ImGui.Button(ctx, name..'##name'..sliderID, namew, nameh) 
-       else 
-        local x1, y1 = ImGui.GetCursorPos( ctx )
-        ImGui.SetCursorPos( ctx, x1+2, y1+2)
-        ImGui.TextWrapped( ctx, name )
-        ImGui.SetCursorPos( ctx, x1, y1) 
-        ImGui.Button(ctx, '##name'..sliderID, namew, nameh)
-      end 
-      ImGui.PopStyleColor(ctx, 3)
-      ImGui.PopStyleVar(ctx,1)
-      
-      if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) then
-        if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 1 ) then
-          DATA:Macro_Select(sliderID) 
-         elseif ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right, 1 ) then
-          DATA:Macro_Select(sliderID) 
-          ImGui.OpenPopup( ctx, 'ppupmacro')
+      -- macro name / handle context menu
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 1,1)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x00000000)
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0x00000000)
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xFFFFFF2F) 
+        if iscollapsed==true then 
+          ImGui.Button(ctx, name..'##name'..sliderID, namew, nameh) 
+         else 
+          local x1, y1 = ImGui.GetCursorPos( ctx )
+          ImGui.SetCursorPos( ctx, x1+2, y1+2)
+          ImGui.TextWrapped( ctx, name )
+          ImGui.SetCursorPos( ctx, x1, y1) 
+          ImGui.Button(ctx, '##name'..sliderID, namew, nameh)
+        end 
+        if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) then
+          if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 1 ) then
+            DATA:Macro_Select(sliderID) 
+           elseif ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right, 1 ) then
+            DATA:Macro_Select(sliderID) 
+            ImGui.OpenPopup( ctx, 'ppupmacro')
+          end
         end
-      end
-      
-    -- context menu
-      ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg, 0x2F2F2FFF)
-      if ImGui.BeginPopup(ctx, 'ppupmacro') then
-        UI.MAIN_drawstuff_contextmenu_macro() 
-        ImGui.EndPopup(ctx)
-      end
-      ImGui.PopStyleColor(ctx, 1)
-     
-    -- slider: draw
-      if iscollapsed then ImGui.SameLine(ctx) end
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, 0x00000000)
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, 0x00000000) 
-      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x00000000)
-      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive, 0x00000000)
-      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered, 0x00000000)
-      
-      if DATA.masterJSFX_isvalid == true then
-        local retval, v = ImGui.VSliderDouble( ctx, '##vsl'..sliderID,  vsliderw, vsliderh , paramval, 0, 1, '' )
-      end
-      ImGui.PopStyleColor(ctx,5)
-  end
-  -------------------------------------------------------------------------------- 
-  function UI.draw_knob_handlemousestate(sliderID,paramval) 
+        ImGui.PopStyleColor(ctx, 3)
+        ImGui.PopStyleVar(ctx,1)
+        
+      -- context menu
+        ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg, 0x2F2F2FFF)
+        if ImGui.BeginPopup(ctx, 'ppupmacro') then
+          UI.MAIN_drawstuff_contextmenu_macro() 
+          ImGui.EndPopup(ctx)
+        end
+        ImGui.PopStyleColor(ctx, 1)
+       
+      -- slider: draw
+        if iscollapsed then ImGui.SameLine(ctx) end
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, 0x00000000)
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, 0x00000000) 
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x00000000)
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive, 0x00000000)
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered, 0x00000000)
+        
+        if DATA.masterJSFX_isvalid == true then
+          local retval, v = ImGui.VSliderDouble( ctx, '##vsl'..sliderID,  vsliderw, vsliderh , paramval, 0, 1, '' )
+        end
+        ImGui.PopStyleColor(ctx,5)
+        
       -- slider: handle mouse state
         if DATA.masterJSFX_isvalid == true then
           if not temp then temp = {} end
@@ -1277,7 +1258,7 @@
           if  ImGui.IsItemActivated( ctx ) then 
             temp[sliderID].latchstate = paramval 
             app_func_onmouseclick(sliderID)
-            return
+            goto drawknob 
           end 
           if  ImGui.IsItemActive( ctx ) and temp[sliderID].latchstate then
             local x, y = ImGui.GetMouseDragDelta( ctx )
@@ -1294,48 +1275,56 @@
             outval = math.max(0,math.min(outval,1))
             app_func_onmousedrag(sliderID, outval, true)
           end
-        end  
-  end
-  -------------------------------------------------------------------------------- 
-  function UI.draw_knob_drawlist(mindim,posx_abs,posy_abs,sliderW,sliderH,iscollapsed,namew,paramval,draw_list) 
-    if DATA.masterJSFX_isvalid == true then
-      -- draw stuff vars
-        local knob_handle = 0xc8edfa 
-        local col_rgba = 0xF0F0F0FF 
-        local thicknessIn = 3
-        local roundingIn = 0
-        local radius = math.floor(mindim/2)
-        local radius_draw = math.floor(0.85 * radius) 
-        local center_x = posx_abs + sliderW/2
-        local center_y = posy_abs + UI.main_knobtxth + ((sliderH - UI.main_knobtxth)/2)
-        local handlethickness = 2
-        if iscollapsed then 
-          radius = math.floor(vsliderw / 2)
-          radius_draw = math.floor(0.8 * radius) 
-          center_x = posx_abs + namew + radius
-          center_y = posy_abs +  radius
         end
-        local ang_min = -210
-        local ang_max = 30
-        local ang_val = ang_min + math.floor((ang_max - ang_min)*paramval)
-        local radiusshift_y = (radius_draw- radius)
-        local radius_draw2 = radius_draw-math.floor(0.1 * radius)
-        local radius_draw3 = radius_draw-math.floor(mindim*0.2)
-        if iscollapsed then 
-           radius_draw3 = radius_draw-math.floor(0.7 * radius)
-           radiusshift_y = -math.floor(0.3 * radius)
+        
+        
+      ::drawknob::
+      
+        if DATA.masterJSFX_isvalid == true then
+          -- draw stuff vars
+            local knob_handle = 0xc8edfa 
+            local col_rgba = 0xF0F0F0FF 
+            local thicknessIn = 3
+            local roundingIn = 0
+            local radius = math.floor(mindim/2)
+            local radius_draw = math.floor(0.85 * radius) 
+            local center_x = posx_abs + sliderW/2
+            local center_y = posy_abs + UI.main_knobtxth + ((sliderH - UI.main_knobtxth)/2)
+            local handlethickness = 2
+            if iscollapsed then 
+              radius = math.floor(vsliderw / 2)
+              radius_draw = math.floor(0.8 * radius) 
+              center_x = posx_abs + namew + radius
+              center_y = posy_abs +  radius
+            end
+            local ang_min = -210
+            local ang_max = 30
+            local ang_val = ang_min + math.floor((ang_max - ang_min)*paramval)
+            local radiusshift_y = (radius_draw- radius)
+            local radius_draw2 = radius_draw-math.floor(0.1 * radius)
+            local radius_draw3 = radius_draw-math.floor(mindim*0.2)
+            if iscollapsed then 
+               radius_draw3 = radius_draw-math.floor(0.7 * radius)
+               radiusshift_y = -math.floor(0.3 * radius)
+            end
+          -- arc
+            ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
+            ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0x2F,  ImGui.DrawFlags_None,thicknessIn)
+            ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
+            if paramval > 0 then ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2) end
+          -- handle
+            ImGui.DrawList_PathClear(draw_list)
+            ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
+            ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
+            ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, handlethickness)
+          
         end
-      -- arc
-        ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
-        ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0x2F,  ImGui.DrawFlags_None,thicknessIn)
-        ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
-        if paramval > 0 then ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2) end
-      -- handle
-        ImGui.DrawList_PathClear(draw_list)
-        ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
-        ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
-        ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, handlethickness) 
+      
+      ImGui.EndChild( ctx )
     end
+    
+    
+    
   end
   -------------------------------------------------------------------------------- 
   function DATA:handleProjUpdates()
@@ -1547,7 +1536,6 @@
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
       ImGui.Button(ctx, but_name, UI.calc_knobcollapsedW-UI.calc_knobcollapsedH, UI.calc_knobcollapsedH*2+ UI.spacingX)
       ImGui.PopStyleVar(ctx,3)
-      
       if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) then
         if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 1 ) then
           DATA:Link_FloatFX(t) 
@@ -1567,7 +1555,6 @@
     
     -- mute
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0,0)
-      
       --local mutestate = t.flags_mute == 1
       local mutestate = t.flags_mute_link == true
       if mutestate == true then 
