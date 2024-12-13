@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="813e3f48942e84d7db6a8b299e4a842a2bdbd887" name="MPL Scripts">
+<index version="1" commit="35afc1d27186f6819cc1566b005829eee16d83d9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12203,6 +12203,10 @@ various fixes]]></changelog>
       <version name="4.05" author="MPL" time="2024-12-07T11:43:46Z">
         <changelog><![CDATA[# prevent error on changing tab / lost context]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/813e3f48942e84d7db6a8b299e4a842a2bdbd887/Various/mpl_Mapping%20Panel%20(background).lua</source>
+      </version>
+      <version name="4.06" author="MPL" time="2024-12-13T20:27:01Z">
+        <changelog><![CDATA[# reverted to 4.03]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/35afc1d27186f6819cc1566b005829eee16d83d9/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
