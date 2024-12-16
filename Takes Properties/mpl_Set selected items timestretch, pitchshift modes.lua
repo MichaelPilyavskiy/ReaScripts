@@ -1,5 +1,5 @@
 -- @description Set selected items timestretch, pitchshift modes
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -27,11 +27,7 @@
 --   [main] . > mpl_Set selected items time stretch mode to Transient.lua
 --   [main] . > mpl_Set selected items time stretch mode to No pre echo reduction.lua      
 -- @changelog
---    # VF independent
---    # use metapackage sharing
---    # do not use chunking
---    # use modern API (2024)
---    # check if REAPER support specific mode on specific machine
+--    # backward compatibility for 3.3.3
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -73,7 +69,6 @@
     params.mode_pitchshift = scr_name:match('pitch shift mode')~= nil 
     params.mode_smfadesz = scr_name:match('stretch marker fade size')~= nil 
     params.mode_timestretch = scr_name:match('time stretch mode')~= nil
-    
     -- check if pshift mode is supported
     if params.mode_pitchshift == true then 
       if scr_name:match('Dirac LE')~= nil then params.pitchshift_name = 'Dirac LE' end 
@@ -89,14 +84,22 @@
       if scr_name:match('Simple windowed')~= nil then params.pitchshift_name = 'Simple windowed' end 
       if scr_name:match('SoundTouch')~= nil then params.pitchshift_name = 'SoundTouch' end 
       if scr_name:match('project default')~= nil then params.pitchshift_reset = true end 
-      if params.pitchshift_name and params.pitchshift_reset~= true then
+      if params.pitchshift_name and params.pitchshift_reset~= true then 
         local supported 
         for mode=0,32 do
           local retval, str = reaper.EnumPitchShiftModes( mode )
-          if retval and str then 
-            str = str:lower():gsub('[%s%p]',''):gsub('é','e')
-            local pitchshift_name = params.pitchshift_name:lower():gsub('[%s%p]',''):gsub('é','e')
-            if str:match(pitchshift_name) then supported = true params.pitchshift =mode break end
+          if retval and str then  
+            str = str:gsub('%.','')
+            str = str:lower():gsub('é','e')-- ignore non unicode str
+            local pitchshift_name = params.pitchshift_name:lower():gsub('é','e')-- ignore non unicode str 
+            pitchshift_name = pitchshift_name:gsub('%.','') 
+            if str:match(pitchshift_name) 
+              or str:match(pitchshift_name:gsub(330,333)) -- fix for backward compatibility
+             then 
+              supported = true 
+              params.pitchshift =mode 
+              break 
+            end
           end
         end
       end
