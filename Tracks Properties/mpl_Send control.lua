@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.25
+-- @version 1.26
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + fix collision of right click to rename destination and main menu
+--    # show mono plugins
 
 
 
@@ -364,7 +364,7 @@ end
 ---------------------------------------------------
 function VF_ReduceFXname(s) 
   for man in s:gmatch('%(.-%)') do
-    if man:len() > 1 and not (man:match('64') or man:match('86')) then
+    if man:len() > 1 and not (man:match('64') or man:match('86') or man:match('mono')) then
       s=s:gsub('%('..man..'%)', '')
     end
   end
