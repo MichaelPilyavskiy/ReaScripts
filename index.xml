@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="829d2dbbbc2c9ec3b88120c09ba5600bed5c249e" name="MPL Scripts">
+<index version="1" commit="341755602c01e2bdc5d458ba6fcef6dcdd729304" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9076,6 +9076,10 @@ various fixes]]></changelog>
       <version name="1.25" author="MPL" time="2024-11-15T07:34:59Z">
         <changelog><![CDATA[+ fix collision of right click to rename destination and main menu]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bbb82eda39ceb29f5b75df34e40f742f058e1fd5/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
+      <version name="1.26" author="MPL" time="2024-12-16T19:49:17Z">
+        <changelog><![CDATA[# show mono plugins]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/341755602c01e2bdc5d458ba6fcef6dcdd729304/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
