@@ -1,10 +1,10 @@
 -- @description CopyPaste plugin data
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about test
 -- @changelog
---    + init
+--    # fix pro-q 3 to pro-q 4 shapes port
 
 
 
@@ -53,7 +53,6 @@ DATA = {
         upd = true, 
         preset_name = 'untitled', -- for inputtext
         presets_factory = {
-          --['Align items to edit cursor'] = 'CkNPTkZfTkFNRT1BbGlnbiBpdGVtcyB0byBlZGl0IGN1cnNvcgpDT05GX2FjdF9hY3Rpb249MQpDT05GX2FjdF9hbGlnbmRpcj0xCkNPTkZfYWN0X2NhdGNocmVmdGltZXNlbD0wCkNPTkZfYWN0X2NhdGNoc3JjdGltZXNlbD0wCkNPTkZfYWN0X2luaXRhcHA9MApDT05GX2FjdF9pbml0Y2F0Y2hyZWY9MQpDT05GX2FjdF9pbml0Y2F0Y2hzcmM9MQpDT05GX2NvbnZlcnRub3Rlb252ZWwwdG9ub3Rlb2ZmPTAKQ09ORl9lbnZzdGVwcz0wCkNPTkZfZXhjbHdpdGhpbj0wCkNPTkZfaW5jbHdpdGhpbj0wCkNPTkZfaW5pdGF0bW91c2Vwb3M9MApDT05GX2l0ZXJhdGlvbmxpbT0zMDAwMApDT05GX29mZnNldD0wLjUKQ09ORl9yZWZfZWRpdGN1cj0xCkNPTkZfcmVmX2VudnBvaW50cz0wCkNPTkZfcmVmX2VudnBvaW50c2ZsYWdzPTEKQ09ORl9yZWZfZ3JpZD0wCkNPTkZfcmVmX2dyaWRfc3c9MApDT05GX3JlZl9ncmlkX3ZhbD0wLjUKQ09ORl9yZWZfbWFya2VyPTAKQ09ORl9yZWZfbWlkaT0wCkNPTkZfcmVmX21pZGlfbXNnZmxhZz0xCkNPTkZfcmVmX21pZGlmbGFncz0xCkNPTkZfcmVmX3BhdHRlcm49MApDT05GX3JlZl9wYXR0ZXJuX2dlbnNyYz0xCkNPTkZfcmVmX3BhdHRlcm5fbGVuMj04CkNPTkZfcmVmX3BhdHRlcm5fbmFtZT1sYXN0X3RvdWNoZWQKQ09ORl9yZWZfc2VsaXRlbXM9MApDT05GX3JlZl9zZWxpdGVtc192YWx1ZT0wCkNPTkZfcmVmX3N0cm1hcmtlcnM9MApDT05GX3JlZl90aW1lbWFya2VyPTAKQ09ORl9zcmNfZW52cG9pbnRzPTAKQ09ORl9zcmNfZW52cG9pbnRzZmxhZz0xCkNPTkZfc3JjX2VudnBvaW50c2ZsYWdzPTEKQ09ORl9zcmNfbWlkaT0wCkNPTkZfc3JjX21pZGlfbXNnZmxhZz01CkNPTkZfc3JjX21pZGlmbGFncz0xCkNPTkZfc3JjX3Bvc2l0aW9ucz0xCkNPTkZfc3JjX3NlbGl0ZW1zPTEKQ09ORl9zcmNfc2VsaXRlbXNmbGFnPTEKQ09ORl9zcmNfc3RybWFya2Vycz0w',
           },
         presets = {
           factory= {},
@@ -1007,6 +1006,8 @@ end
 -------------------------------------------------------------------------------- 
 function DATA:Transfer_Parameters( track, fx)
   if not (DATA.fx.PARAMS and DATA.fx.PARAMS.param_data) then return end
+  local _, destfxname = GetNamedConfigParm( track, fx, 'fx_name' )
+  local proq3_to_4 = destfxname:match(literalize('Pro-Q 4')) and DATA.fx.fx_name:match(literalize('Pro-Q 3'))
   
   -- get dest mapping 
     local paramnames = {}
@@ -1032,10 +1033,12 @@ function DATA:Transfer_Parameters( track, fx)
       local _, minval_src, maxval_src = reaper.TrackFX_GetParam( track, fx,  PARAMS[pname].id )
       local minval = DATA.fx.PARAMS.param_data[pname].minval
       local maxval = DATA.fx.PARAMS.param_data[pname].maxval
+      if proq3_to_4 and pname:match('Shape') then maxval_src = 8/9 end -- fix 8 vs 9 shapes but the limits still 0...1
       local val = DATA.fx.PARAMS.param_data[pname].val 
       local normalized = (val-minval) / (maxval - minval) 
       local outval = minval_src + (maxval_src - minval_src) * normalized
       TrackFX_SetParam( track, fx,  PARAMS[pname].id, outval)
+      
       
       -- envelope
       if EXT.CONF_transfer_envelope == 1 and DATA.fx.PARAMS.param_data[pname].env and #DATA.fx.PARAMS.param_data[pname].env > 0  then
