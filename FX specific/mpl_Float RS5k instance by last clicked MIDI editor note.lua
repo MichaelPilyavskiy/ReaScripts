@@ -1,9 +1,9 @@
 -- @description Float RS5k instance by last clicked MIDI editor note
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix range math
+--    # fix range math, https://t.me/mplscripts_chat/5532
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -46,7 +46,7 @@
       if buf =='Gain for minimum velocity' then -- validate fx is rs5k
         local nrangest = TrackFX_GetParamNormalized( track, fx-1, 3 ) -- note range start
         local nrangeendd = TrackFX_GetParamNormalized( track, fx-1, 4 ) -- note range end
-        if math.abs(math.floor( nrangest *128) - base_pitch) < 10^-8 and math.abs(math.floor(nrangeendd *128) - base_pitch) < 10^-8 then  
+        if math.floor( nrangest *128) <= base_pitch and  math.floor(nrangeendd *128) >= base_pitch then -- https://t.me/mplscripts_chat/5532
           reaper.TrackFX_SetOpen( track, fx-1, true )
           reaper.SetOnlyTrackSelected( track )
           return true
