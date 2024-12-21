@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="53b6ed6d34b168e75bda8ae70854981aa31a06d3" name="MPL Scripts">
+<index version="1" commit="8e535cf7dd280120bdfb98e13ac570a5e41dce34" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1585,6 +1585,10 @@
       <version name="1.01" author="MPL" time="2024-12-18T21:50:43Z">
         <changelog><![CDATA[# fix pro-q 3 to pro-q 4 shapes port]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c67bed1cbd10c3f340f29794e6fce9a38fe520a4/FX/mpl_CopyPaste%20plugin%20data.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2024-12-21T20:36:14Z">
+        <changelog><![CDATA[+ Add to prevent overwriting existing envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e535cf7dd280120bdfb98e13ac570a5e41dce34/FX/mpl_CopyPaste%20plugin%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create send from focused FX.lua" type="script" desc="Create send from focused FX">
