@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c67bed1cbd10c3f340f29794e6fce9a38fe520a4" name="MPL Scripts">
+<index version="1" commit="3c63eec3f6da9e548c6240a7d77f411b02f6f012" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6203,6 +6203,32 @@
     </reapack>
   </category>
   <category name="Meta">
+    <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-12-21T10:05:41Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/203ea167e420bb3ef645077b96e3fa67482a4986/Meta/mpl_Check%20REAPER%20password,%20quit%20if%20not%20match.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Notification.lua" type="script" desc="Notification">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for showing custom notification\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2024-12-21T10:08:12Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3c63eec3f6da9e548c6240a7d77f411b02f6f012/Meta/mpl_Notification.lua</source>
+        <source file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3c63eec3f6da9e548c6240a7d77f411b02f6f012/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Repeat the most recent action for all background tabs.lua" type="script" desc="Repeat the most recent action for all background tabs">
       <metadata>
         <link rel="website">http://forum.cockos.com/showpost.php?p=2806828&amp;postcount=26</link>
@@ -6210,6 +6236,15 @@
       <version name="1.0" author="MPL" time="2024-09-04T18:21:02Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/979b7b56479f9f33fe378341cdbab294beba1159/Meta/mpl_Repeat%20the%20most%20recent%20action%20for%20all%20background%20tabs.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2024-12-21T10:05:41Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/203ea167e420bb3ef645077b96e3fa67482a4986/Meta/mpl_Set%20REAPER%20password.lua</source>
       </version>
     </reapack>
   </category>
@@ -9415,6 +9450,16 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20time%20selection%20crossing%20any%20of%20their%20items.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2024-12-21T10:05:41Z">
+        <changelog><![CDATA[# ReaImGui based UI
+# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/203ea167e420bb3ef645077b96e3fa67482a4986/Tracks%20Properties/mpl_Write%20LUFS%20compensation%20to%20trim%20volume%20every%20bar.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="Transport">
     <reapack name="mpl_Play from item under mouse cursor.lua" type="script" desc="Play from item under mouse cursor">
@@ -9813,15 +9858,6 @@ various fixes]]></changelog>
       <version name="3.08" author="MPL" time="2024-10-11T22:24:30Z">
         <changelog><![CDATA[# fix ReaImGui API version requirement]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7b34722dfa7cda7df293bb76349ccd9e73cacc9c/Various/mpl_Align%20takes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-03-18T20:01:20Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a246e0cda73e1a37a1e324e2ca54505f11b9f13/Various/mpl_Check%20REAPER%20password,%20quit%20if%20not%20match.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete non-existing scripts from ActionList.lua" type="script" desc="Delete non-existing scripts from Action List">
@@ -12753,15 +12789,6 @@ various fixes]]></changelog>
         <source file="mpl_SendFader_Mark selected tracks as receives.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be807ff22cd9678f841f7314b7cdfc640dc99549/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20receives.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-03-18T20:01:20Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a246e0cda73e1a37a1e324e2ca54505f11b9f13/Various/mpl_Set%20REAPER%20password.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Spectral editing tools - perform.lua" type="script" desc="Spectral editing tools - perform">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -13053,20 +13080,6 @@ various fixes]]></changelog>
         <changelog><![CDATA[# prevent track to be both selected if placed one under another
 + Settings: add option to handle all tracks instead selection]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/708132a984b6cb12fe1c3c1f22ce08b103263e6d/Various/mpl_Visual%20Mixer.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-01-29T14:07:18Z">
-        <changelog><![CDATA[+ Init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0df63a74b397fd92c8be7bb325cb2bb1ee2bbb5d/Various/mpl_Write%20LUFS%20compensation%20to%20trim%20volume%20every%20bar.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2024-09-01T11:38:14Z">
-        <changelog><![CDATA[# ReaImGui based UI
-# VF independent]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06ebc1415e8f0dd0f3301fa27be3f4681637e647/Various/mpl_Write%20LUFS%20compensation%20to%20trim%20volume%20every%20bar.lua</source>
       </version>
     </reapack>
   </category>
