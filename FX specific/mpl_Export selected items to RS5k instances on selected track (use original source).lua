@@ -1,9 +1,9 @@
 -- @description Export selected items to RS5k instances on selected track (use original source)
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix addmidi error
+--    # fix empty files when using section
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -72,7 +72,13 @@
         local take = reaper.GetActiveTake(item)
         if not take or reaper.TakeIsMIDI(take) then goto skip_to_next_item end
         local tk_src =  GetMediaItemTake_Source( take )
-        local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+        local retval, len, rev
+        local offs = 0
+        if GetMediaSourceParent( tk_src ) ~= nil then  
+          retval, offs, len, rev = reaper.PCM_Source_GetSectionInfo( tk_src )
+          tk_src = GetMediaSourceParent( tk_src ) 
+        end 
+        local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' ) + offs
         local src_len =GetMediaSourceLength( tk_src )
         local filepath = reaper.GetMediaSourceFileName( tk_src, '' )
         --msg(s_offs/src_len)
