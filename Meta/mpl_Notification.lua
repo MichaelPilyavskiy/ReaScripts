@@ -1,13 +1,12 @@
 -- @description Notification
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
--- @changelog
---    + init
 -- @provides
---    mpl_Notification, set track volume changed.lua
-
+--    [main] mpl_Notification, set track volume changed.lua
+-- @changelog
+--    + force set script shared to main action list
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
