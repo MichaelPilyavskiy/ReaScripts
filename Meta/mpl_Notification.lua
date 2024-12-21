@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    + force set script shared to main action list
+--    + pass through keyboard shortcuts
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -251,6 +251,8 @@ function UI.MAIN_draw(open)
       
       
     -- draw stuff
+      UI.draw_passthroughshortcuts()
+    
       UI.draw()
       ImGui.Dummy(ctx,0,0) 
       ImGui.PopStyleVar(ctx, UI.pushcnt)
@@ -263,6 +265,104 @@ function UI.MAIN_draw(open)
     if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
   
     return open
+end
+--------------------------------------------------------------------------------  
+function UI.draw_passthroughshortcuts()
+  local ret, unicode_char = ImGui.GetInputQueueCharacter(ctx, 0)
+  if ret == true then
+    
+    --Main=0, Main (alt recording)=100, MIDI Editor=32060, MIDI Event List Editor=32061, MIDI Inline Editor=32062, Media Explorer=32063
+    
+    local section = 0
+    cmd = GetCommandByShortcut(section, ConvertCharToShortcut(unicode_char))
+    if cmd then reaper.Main_OnCommand(cmd, section) return end
+    
+    if  reaper.MIDIEditor_GetActive() then
+      local section = 32060
+      cmd = GetCommandByShortcut(section, ConvertCharToShortcut(unicode_char))
+      if cmd then reaper.Main_OnCommand(cmd, section) return end
+    end
+  end
+end
+--------------------------------------------------------------------------------  
+function ConvertCharToShortcut(char) -- https://forums.cockos.com/showthread.php?p=2620519
+  local special_chars = {}
+  special_chars[8] = 'Backspace'
+  special_chars[9] = 'Tab'
+  special_chars[13] = 'Enter'
+  special_chars[27] = 'ESC'
+  special_chars[32] = 'Space'
+  special_chars[176] = '°'
+  special_chars[26161] = 'F1'
+  special_chars[26162] = 'F2'
+  special_chars[26163] = 'F3'
+  special_chars[26164] = 'F4'
+  special_chars[26165] = 'F5'
+  special_chars[26166] = 'F6'
+  special_chars[26167] = 'F7'
+  special_chars[26168] = 'F8'
+  special_chars[26169] = 'F9'
+  special_chars[6697264] = 'F10'
+  special_chars[6697265] = 'F11'
+  special_chars[6697266] = 'F12'
+  special_chars[65105] = '﹑'
+  special_chars[65106] = '﹒'
+  special_chars[6579564] = 'Delete'
+  special_chars[6909555] = 'Insert'
+  special_chars[1752132965] = 'Home'
+  special_chars[6647396] = 'End'
+  special_chars[1885828464] = 'Page Up'
+  special_chars[1885824110] = 'Page Down'
+  
+    local is_ctrl = gfx.mouse_cap & 4 == 4
+    local is_shift = gfx.mouse_cap & 8 == 8
+    local is_alt = gfx.mouse_cap & 16 == 16
+
+    local key
+
+    -- Check for special characters, avoid 1..26 (Ctrl+A..Z)
+    if not (is_ctrl and char <= 26) then key = special_chars[char] end
+
+    if not key then
+        -- Add offset for 1..26 (Ctrl+A..Z)
+        if char >= 1 and char <= 26 then char = char + 64 end
+        -- Add offset for 257..282 (Ctrl+Alt+A..Z)
+        if char >= 257 and char <= 282 then char = char - 192 end
+        -- Convert char to key string
+        key = string.char(char & 0xFF):upper()
+    end
+
+    -- Add keyboard modifiers in text form
+    if is_shift and key ~= key:lower() then key = 'Shift+' .. key end
+    if is_alt then key = 'Alt+' .. key end
+    if is_ctrl then key = 'Ctrl+' .. key end
+
+    return key
+end
+--------------------------------------------------------------------------------  
+function GetCommandByShortcut(section_id, shortcut) -- https://forums.cockos.com/showthread.php?p=2620519
+    -- On MacOS, replace Ctrl with Cmd etc.
+    local is_macos = reaper.GetOS():match('OS')
+    if is_macos then
+        shortcut = shortcut:gsub('Ctrl%+', 'Cmd+', 1)
+        shortcut = shortcut:gsub('Alt%+', 'Opt+', 1)
+    end
+    
+    -- Go through all actions of the section
+    local sec = reaper.SectionFromUniqueID(section_id)
+    local i = 0
+    repeat
+        local cmd = reaper.kbd_enumerateActions(sec, i)
+        if cmd ~= 0 then
+            -- Go through all shortcuts of each action
+            for n = 0, reaper.CountActionShortcuts(sec, cmd) - 1 do
+                -- Find the action that matches the given shortcut
+                local _, desc = reaper.GetActionShortcutDesc(sec, cmd, n, '')
+                if desc == shortcut then return cmd, n end
+            end
+        end
+        i = i + 1
+    until cmd == 0
 end
 --------------------------------------------------------------------------------  
 function UI.MAIN_PopStyle(ctx, cnt, cnt2)
@@ -480,7 +580,7 @@ function DATA:handleProjUpdates()
 end
 -----------------------------------------------------------------------------------------
 reaper.gmem_attach('mpl_notification_trig' )
-reaper.set_action_options(1|2)
+reaper.set_action_options(3)
 main()
   
   
