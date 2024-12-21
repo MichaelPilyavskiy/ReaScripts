@@ -1,10 +1,10 @@
 -- @description CopyPaste plugin data
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about test
 -- @changelog
---    # fix pro-q 3 to pro-q 4 shapes port
+--    + Add to prevent overwriting existing envelopes
 
 
 
@@ -42,7 +42,7 @@ EXT = {
         CONF_transfer_parallel = 1,
         CONF_transfer_instance_oversample_shift = 1,
         CONF_transfer_parameters = 1,
-        CONF_transfer_envelope = 1,
+        CONF_transfer_envelope = 1|2, --&2 do not overwrite if exist
         CONF_transfer_modlearn = 1,
         
       }
@@ -918,7 +918,12 @@ function UI.draw()
       --UI.draw_flow_CHECK({['key']='FX name',               ['extstr'] = 'CONF_transfer_fx_name'})
       UI.draw_flow_CHECK({['key']=paramsstr,               ['extstr'] = 'CONF_transfer_parameters'})
       if EXT.CONF_transfer_parameters == 1 then
-        UI.draw_flow_CHECK({['key']='Envelope',               ['extstr'] = 'CONF_transfer_envelope'})
+        UI.draw_flow_CHECK({['key']='Envelope',               ['extstr'] = 'CONF_transfer_envelope',confkeybyte = 0})
+        if EXT.CONF_transfer_envelope&1==1 then
+          ImGui.Indent(ctx,10)
+          UI.draw_flow_CHECK({['key']='Do not overwrite if envelope exists',               ['extstr'] = 'CONF_transfer_envelope',confkeybyte = 1})
+          ImGui.Unindent(ctx,10)
+        end
         UI.draw_flow_CHECK({['key']='Mod/Learn',               ['extstr'] = 'CONF_transfer_modlearn'})
       end
       UI.draw_flow_CHECK({['key']='Options: Force auto bypass',               ['extstr'] = 'CONF_transfer_force_auto_bypass'})
@@ -1042,18 +1047,23 @@ function DATA:Transfer_Parameters( track, fx)
       
       -- envelope
       if EXT.CONF_transfer_envelope == 1 and DATA.fx.PARAMS.param_data[pname].env and #DATA.fx.PARAMS.param_data[pname].env > 0  then
+        local fxenv_exist = GetFXEnvelope( track, fx, PARAMS[pname].id, false )~=nil
         local fxenv = GetFXEnvelope( track, fx, PARAMS[pname].id, true )
-        DeleteEnvelopePointRange( fxenv, 0, math.huge )
-        local srcenv = DATA.fx.PARAMS.param_data[pname].env
-        local pointscnt = #srcenv
-        local scaling_mode = reaper.GetEnvelopeScalingMode( fxenv )
-        for ptidx = 1, pointscnt do
-          local pt = srcenv[ptidx]
-          local normalized = (pt.value-minval) / (maxval - minval) 
-          local outval = minval_src + (maxval_src - minval_src) * normalized
-          InsertEnvelopePoint( fxenv, pt.time, outval, pt.shape, pt.tension, pt.selected, true )
-          Envelope_SortPoints(fxenv)
+        
+        if EXT.CONF_transfer_envelope&2~=2 or (EXT.CONF_transfer_envelope&2==2 and fxenv_exist == false) then
+          DeleteEnvelopePointRange( fxenv, 0, math.huge )
+          local srcenv = DATA.fx.PARAMS.param_data[pname].env
+          local pointscnt = #srcenv
+          local scaling_mode = reaper.GetEnvelopeScalingMode( fxenv )
+          for ptidx = 1, pointscnt do
+            local pt = srcenv[ptidx]
+            local normalized = (pt.value-minval) / (maxval - minval) 
+            local outval = minval_src + (maxval_src - minval_src) * normalized
+            InsertEnvelopePoint( fxenv, pt.time, outval, pt.shape, pt.tension, pt.selected, true )
+            Envelope_SortPoints(fxenv)
+          end
         end
+        
       end
 
       -- mod/learn
