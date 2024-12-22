@@ -1,13 +1,10 @@
 -- @description InstrumentRack
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---    # fixed "select and scroll to track on click"
---    + Allow to collect fx from multiple tabs
---    # change format of saving to project ext state, forward compatible
---    # UI: separate track/fx names, right click on fx name grabs only fx names
+--    # fix setting parameter on other tab
     
     
 --NOT reaper NOT gfx
@@ -478,6 +475,7 @@ function DATA.CtrlsExtState_Read_sub(project)
       DATA.extctrls[fxGUID][paramidx] = {
         paramval=paramval,
         paramname=paramname,
+        project=project
         }
     end
   end
