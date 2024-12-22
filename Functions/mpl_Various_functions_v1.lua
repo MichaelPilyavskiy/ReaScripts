@@ -1,4 +1,4 @@
-﻿-- @description Various_functions_v1
+-- @description Various_functions_v1
 -- @author MPL
 -- @noindex  
   
@@ -71,7 +71,7 @@
     local pat = '[%p]+'
     if not tr then
       for trid = 1, CountTracks(proj or 0) do
-        local tr = GetTrack(0,trid-1)
+        local tr = GetTrack(proj,trid-1)
         local fxcnt_main = TrackFX_GetCount( tr ) 
         local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
         for fx = 1, fxcnt do
