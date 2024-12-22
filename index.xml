@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="17dc79260fd540d9c0b4536c5008daa3dea4143a" name="MPL Scripts">
+<index version="1" commit="d2aa0047a507ff2482f5b3ef591e2ef61d8bd1cb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3691,6 +3691,10 @@
       <version name="1.02" author="MPL" time="2024-12-21T14:24:00Z">
         <changelog><![CDATA[# fix range math, https://t.me/mplscripts_chat/5532]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53b6ed6d34b168e75bda8ae70854981aa31a06d3/FX%20specific/mpl_Float%20RS5k%20instance%20by%20last%20clicked%20MIDI%20editor%20note.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2024-12-22T20:59:36Z">
+        <changelog><![CDATA[# share to MIDI editor section]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2aa0047a507ff2482f5b3ef591e2ef61d8bd1cb/FX%20specific/mpl_Float%20RS5k%20instance%20by%20last%20clicked%20MIDI%20editor%20note.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float RS5k instance by last incoming note.lua" type="script" desc="Float RS5k instance by last incoming note">
