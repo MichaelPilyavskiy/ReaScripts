@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    + pass through keyboard shortcuts
+--    # fix integer variables not loading
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -428,7 +428,6 @@ function UI.MAINloop()
 end
 -------------------------------------------------------------------------------- 
 function UI.MAIN() 
-  EXT:load() 
   EXT.CONF_autoterminate_fadetime = math.min(EXT.CONF_autoterminate_fadetime,EXT.CONF_autoterminatetime)
   
   -- imgUI init

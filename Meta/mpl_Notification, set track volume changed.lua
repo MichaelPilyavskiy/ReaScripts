@@ -9,8 +9,8 @@ EXT = {
         CONF_txt1 = 'Volume',
         CONF_txt2 = '#lasttouchedtrack_volume',
         CONF_png = [[C:\test.png]],
-        CONF_autoterminatetime = 4, -- seconds, script will close after this time
-        CONF_autoterminate_fadetime = 2,-- seconds, fade time to make script fully transparent bofore close
+        CONF_autoterminatetime = 1, -- seconds, script will close after this time
+        CONF_autoterminate_fadetime = 0.5,-- seconds, fade time to make script fully transparent bofore close
       }
       
 
@@ -20,7 +20,7 @@ EXT = {
 
 -------------------------------------------------------------------------------- 
 function WildCards_Decode(str)
-  if not (str and type(str) == 'string' ) then return end
+  if not (str and type(str) == 'string' ) then return str end
   
   --  #lasttouchedtrack_volume
     if str:match('#lasttouchedtrack_volume') then
