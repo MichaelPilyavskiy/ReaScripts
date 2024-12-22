@@ -1,9 +1,10 @@
 -- @description Float RS5k instance by last clicked MIDI editor note
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
+-- @provides [main=main,midi_editor] .
 -- @changelog
---    # fix range math, https://t.me/mplscripts_chat/5532
+--    # share to MIDI editor section
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
