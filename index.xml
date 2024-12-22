@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8e535cf7dd280120bdfb98e13ac570a5e41dce34" name="MPL Scripts">
+<index version="1" commit="f3752cd7baa0a7f64565e9e962db8acc5fa1cdd5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1590,6 +1590,10 @@
         <changelog><![CDATA[+ Add to prevent overwriting existing envelopes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e535cf7dd280120bdfb98e13ac570a5e41dce34/FX/mpl_CopyPaste%20plugin%20data.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2024-12-22T20:34:22Z">
+        <changelog><![CDATA[+ Allow to transfer vst data directly]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3752cd7baa0a7f64565e9e962db8acc5fa1cdd5/FX/mpl_CopyPaste%20plugin%20data.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create send from focused FX.lua" type="script" desc="Create send from focused FX">
       <metadata>
@@ -2040,6 +2044,13 @@
         <changelog><![CDATA[# lots of fixes by cfillion, see  https://github.com/MichaelPilyavskiy/ReaScripts/pull/50
  # require ReaImGUI 0.9+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7a93d7f7cd9d9232a37adf29a5b9f31cd8cf2c22/FX/mpl_InstrumentRack.lua</source>
+      </version>
+      <version name="2.05" author="MPL" time="2024-12-22T20:34:22Z">
+        <changelog><![CDATA[# fixed "select and scroll to track on click"
++ Allow to collect fx from multiple tabs
+# change format of saving to project ext state, forward compatible
+# UI: separate track/fx names, right click on fx name grabs only fx names]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3752cd7baa0a7f64565e9e962db8acc5fa1cdd5/FX/mpl_InstrumentRack.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Item spacer.lua" type="script" desc="Item spacer">
