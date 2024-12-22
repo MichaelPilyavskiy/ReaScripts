@@ -1,10 +1,9 @@
 -- @description InstrumentRack
--- @version 2.06
+-- @version 2.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
--- @changelog
---    # fix setting parameter on other tab
+-- @chansupport legacy format before 2.04
     
     
 --NOT reaper NOT gfx
@@ -453,17 +452,15 @@ end
 function DATA.CtrlsExtState_Read_sub(project)
   
   local legacyformat
-  local retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'macro2' )
+  local retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'macro' )
+  if retval and val ~= '' then legacyformat = true end
   
-  --[[if not retval then 
-    retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'macro' )
-    if not retval then return end
-    legacyformat = true
-  end ]]
+  if legacyformat~= true then retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'macro2' ) end
+  
   
   for line in val:gmatch('[^\r\n]+') do 
-    --local parent_GUID, child_GUID, paramidx = line:match('(%{.-%})%s+(%{.-%})%s+(%d+)')
     local fxGUID, paramidx = line:match('(%{.-%})%s+(%d+)') -- 2.04+  
+    if legacyformat == true then parent_GUID, fxGUID, paramidx = line:match('(%{.-%})%s+(%{.-%})%s+(%d+)') end
     paramidx = tonumber(paramidx)
     if not DATA.extctrls[fxGUID] then DATA.extctrls[fxGUID] = {} end--[paramidx]={}
 
