@@ -1,10 +1,10 @@
 -- @description CopyPaste plugin data
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about test
 -- @changelog
---    + Add to prevent overwriting existing envelopes
+--    + Allow to transfer vst data directly
 
 
 
@@ -351,6 +351,7 @@ function DATA:CollectData_Get()
   if not track  then return end 
   
   DATA.fx.focused_exists = true
+  DATA.fx.offline = TrackFX_GetOffline( track, fxidx )
   DATA.fx.srctr=track
   _,DATA.fx.srctr_name=reaper.GetTrackName(track)
   DATA.fx.fxidx=fxidx
@@ -501,9 +502,9 @@ function DATA:Transfer_GetSetRawChunk(track, fxGUID, replacechunk)
         msg(vstchunk)
         msg('\n\n\n\n')]]
         --msg(chunk) 
-        msg('\n\n\n\n')
+        --msg('\n\n\n\n')
         chunk=chunk:gsub(literalize(vstchunk),replacechunk)
-        msg(chunk)
+        --msg(chunk)
         SetTrackStateChunk(track, chunk, true)
       end
       break
@@ -906,10 +907,8 @@ function UI.draw()
   if ImGui.BeginChild(ctx,'settings',0,-1,reaper.ImGui_ChildFlags_Border()) then
     str = '[no vst data found]'
     if DATA.fx.has_chunk==true then str = 'VST data ('..DATA.fx.vst_chunk_sz..' characters)' end 
-    if reaper.ImGui_BeginDisabled(ctx,true) then
-      UI.draw_flow_CHECK({['key']=str,               ['extstr'] = 'CONF_transfer_vstchunk'}) 
-      ImGui.EndDisabled(ctx)
-    end
+    if EXT.CONF_transfer_vstchunk ==1 then str=str..' USE WITH CARE!' end
+    UI.draw_flow_CHECK({['key']=str,               ['extstr'] = 'CONF_transfer_vstchunk'}) 
     local paramsstr = 'Parameters [unknown]'
     if DATA.fx.PARAMS and DATA.fx.PARAMS.cnt then 
       paramsstr = 'Parameters ('..DATA.fx.PARAMS.cnt..' found, '..DATA.fx.PARAMS.cnt_duplicates_cnt..' duplicates ignored)'

@@ -1,16 +1,32 @@
 -- @description InstrumentRack
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---  # lots of fixes by cfillion, see  https://github.com/MichaelPilyavskiy/ReaScripts/pull/50
---   # require ReaImGUI 0.9+
+--    # fixed "select and scroll to track on click"
+--    + Allow to collect fx from multiple tabs
+--    # change format of saving to project ext state, forward compatible
+--    # UI: separate track/fx names, right click on fx name grabs only fx names
     
     
 --NOT reaper NOT gfx
 
 
+--------------------------------------------------------------------------------  init globals
+  for key in pairs(reaper) do _G[key]=reaper[key] end 
+  app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
+  if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end 
+  local ImGui
+  if APIExists('ImGui_GetBuiltinPath') then
+    if not   reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+    package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+    ImGui = require 'imgui' '0.9'
+   else 
+    return reaper.MB('This script require ReaImGui extension 0.9+','',0) 
+  end
+  -------------------------------------------------------------------------------- 
+  
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
   hiders5k = 0,
@@ -19,6 +35,7 @@ EXT = {
   
   showofflineattheend = 0, 
   collectsamefoldinstr = 0,
+  collectalltabs = 0,
   
   searchfilter = '',
   usesecondcol = 0,
@@ -33,18 +50,6 @@ DATA = {
         }
         
 -------------------------------------------------------------------------------- INIT UI locals
-for key in pairs(reaper) do _G[key]=reaper[key] end 
-app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
-if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
-
-local ImGui
-if APIExists('ImGui_GetBuiltinPath') then
-  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
-  package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  ImGui = require 'imgui' '0.9'
- else 
-  return reaper.MB('This script require ReaImGui extension 0.9+','',0) 
-end
 --local ctx
 -------------------------------------------------------------------------------- UI init variables
 UI = {}
@@ -98,6 +103,7 @@ end
 -------------------------------------------------------------------------------- 
 function UI.MAIN_PushStyle(key, value, value2, iscol)  
   if not iscol then 
+    if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then UI.MAIN_initcontext()  end
     ImGui.PushStyleVar(ctx, key, value, value2)
     UI.pushcnt = UI.pushcnt + 1
   else 
@@ -122,7 +128,7 @@ function UI.MAIN_draw()
     --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings end
     --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument
     --open = false -- disable the close button
-  
+
   
   -- set style
     UI.pushcnt = 0
@@ -276,6 +282,7 @@ function UI.MAINloop()
   DATA.upd = false
   
   -- draw UI
+  if not ctx then UI.MAIN_initcontext()  end
   UI.open = UI.MAIN_draw()
   
   -- data
@@ -284,9 +291,7 @@ end
 -------------------------------------------------------------------------------- 
 function UI.SameLine(ctx) ImGui.SameLine(ctx) ImGui.SameLine(ctx)end
 -------------------------------------------------------------------------------- 
-function UI.MAIN()
-  
-  EXT:load() 
+function UI.MAIN_initcontext()  
   -- imGUI init
   ctx = ImGui.CreateContext(DATA.UI_name)
   -- fonts
@@ -296,7 +301,12 @@ function UI.MAIN()
   -- config
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
+end
+-------------------------------------------------------------------------------- 
+function UI.MAIN()
   
+  EXT:load() 
+  UI.MAIN_initcontext() 
   -- run loop
   defer(UI.MAINloop)
 end
@@ -354,7 +364,7 @@ function VF_GetFXByGUID(GUID, tr, proj)
   local pat = '[%p]+'
   if not tr then
     for trid = 1, CountTracks(proj or 0) do
-      local tr = GetTrack(0,trid-1)
+      local tr = GetTrack(proj or 0,trid-1)
       local fxcnt_main = TrackFX_GetCount( tr ) 
       local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
       for fx = 1, fxcnt do
@@ -393,47 +403,79 @@ function DATA.EnumeratePlugins()
   return plugs_data
 end
 --------------------------------------------------------------------------------  
-function DATA.PluginsExtState_Read()
-  DATA.extplugins = {}
-  local retval, val = GetProjExtState( 0, 'MPL_InstrumentRack', 'pluginsdata' )
+function DATA.PluginsExtState_Read_sub(project)
+  local retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'pluginsdata' )
+  
   if not retval then return end
   for line in val:gmatch('[^\r\n]+') do 
     local t = {}
-    for key in line:gmatch('[^|]+') do t[#t+1] = key end
-    local fxGUID   = t[1]
-    local customname  = t[2]:gsub('\n','')
-    if not DATA.extplugins[fxGUID] then DATA.extplugins[fxGUID] = {} end
-    DATA.extplugins[fxGUID].customname = customname
+    local fxGUID, customname 
+    if line:match('||') then
+      for key in line:gmatch('[^||]+') do t[#t+1] = key end
+      fxGUID   = t[1]
+      if t[2] then customname = t[2]:gsub('\n','') end
+     else
+      for key in line:gmatch('[^|]+') do t[#t+1] = key end
+      fxGUID   = t[1]
+      if t[2] then customname = t[2]:gsub('\n','') end
+    end
+    
+    if fxGUID and customname  then
+      if not DATA.extplugins[fxGUID] then DATA.extplugins[fxGUID] = {} end
+      DATA.extplugins[fxGUID].customname = customname
+    end
   end
 end
 --------------------------------------------------------------------------------  
-function DATA.PluginsExtState_Write()
+function DATA.PluginsExtState_Read()
+  DATA.extplugins = {}
+  
+  if EXT.collectalltabs == 0 then
+    DATA.PluginsExtState_Read_sub(-1)
+   else
+    for idx = 0, 100 do
+      local reaproj = reaper.EnumProjects( idx )
+      if not reaproj then break end
+      DATA.PluginsExtState_Read_sub(reaproj)
+    end
+  end
+  
+end
+--------------------------------------------------------------------------------  
+function DATA.PluginsExtState_Write(project)
   local str = ''
   for fxGUID in pairs(DATA.extplugins) do
-    str = str..fxGUID..'|'..DATA.extplugins[fxGUID].customname..'\n' 
+    local ret = VF_GetFXByGUID(fxGUID, nil, project)
+    if ret==true then 
+      str = str..fxGUID..'||'..DATA.extplugins[fxGUID].customname..'\n'  
+    end
   end
-  SetProjExtState( 0, 'MPL_InstrumentRack', 'pluginsdata', str )
+  SetProjExtState( project, 'MPL_InstrumentRack', 'pluginsdata', str )
 end
 --------------------------------------------------------------------------------  
-function DATA.CtrlsExtState_Read()
-  DATA.extctrls = {}
-  local retval, val = GetProjExtState( 0, 'MPL_InstrumentRack', 'macro' )
-  if not retval then return end
+function DATA.CtrlsExtState_Read_sub(project)
+  
+  local legacyformat
+  local retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'macro2' )
+  
+  --[[if not retval then 
+    retval, val = GetProjExtState( project, 'MPL_InstrumentRack', 'macro' )
+    if not retval then return end
+    legacyformat = true
+  end ]]
   
   for line in val:gmatch('[^\r\n]+') do 
-    local parent_GUID, child_GUID, paramidx = line:match('(%{.-%})%s+(%{.-%})%s+(%d+)')
-    if not DATA.extctrls[parent_GUID] then DATA.extctrls[parent_GUID] = {} end
-    local id = #DATA.extctrls[parent_GUID]+1
-    
+    --local parent_GUID, child_GUID, paramidx = line:match('(%{.-%})%s+(%{.-%})%s+(%d+)')
+    local fxGUID, paramidx = line:match('(%{.-%})%s+(%d+)') -- 2.04+  
+    paramidx = tonumber(paramidx)
+    if not DATA.extctrls[fxGUID] then DATA.extctrls[fxGUID] = {} end--[paramidx]={}
+
     -- pass params
-    local ret, tr, fx = VF_GetFXByGUID(child_GUID)
-    if ret then 
-      
+    local ret, tr, fx = VF_GetFXByGUID(fxGUID,nil,project)
+    if ret then  
       local paramval = TrackFX_GetParamNormalized( tr, fx, paramidx )
       local retval, paramname = reaper.TrackFX_GetParamName( tr, fx, paramidx )
-      DATA.extctrls[parent_GUID][id] = {
-        fxGUID = child_GUID, 
-        paramidx = tonumber(paramidx),
+      DATA.extctrls[fxGUID][paramidx] = {
         paramval=paramval,
         paramname=paramname,
         }
@@ -441,14 +483,24 @@ function DATA.CtrlsExtState_Read()
   end
 end
 --------------------------------------------------------------------------------  
-function DATA:CollectData()
-  DATA.CtrlsExtState_Read()
-  DATA.PluginsExtState_Read()
-
-  DATA.plugins_data = {}
-  DATA.plugins_tree = {}
-  for trid = 1, CountTracks(0) do
-    local tr = GetTrack(0,trid-1)
+function DATA.CtrlsExtState_Read()
+  DATA.extctrls = {}
+  
+  if EXT.collectalltabs == 0 then
+    DATA.CtrlsExtState_Read_sub(-1)
+   else
+    for idx = 0, 100 do
+      local reaproj = reaper.EnumProjects( idx )
+      if not reaproj then break end
+      DATA.CtrlsExtState_Read_sub(reaproj)
+    end
+  end
+  
+end
+--------------------------------------------------------------------------------  
+function DATA:CollectData_sub(project)
+  for trid = 1, CountTracks(project) do
+    local tr = GetTrack(project,trid-1)
     local parent = GetParentTrack( tr )
     local tr_solo = GetMediaTrackInfo_Value( tr, 'I_SOLO' )> 0
     local tr_mute = GetMediaTrackInfo_Value( tr, 'B_MUTE' )> 0
@@ -465,7 +517,7 @@ function DATA:CollectData()
       local fxGUID = TrackFX_GetFXGUID( tr, fx_id-1)
       local retval, trname = reaper.GetTrackName( tr )
       local fxname = VF_ReduceFXname(buf)
-      local txt_out =  '['..trid..'] '..trname..' | '..fxname
+      local txt_out =  fxname -- '['..trid..'] '..trname..' | '..
       
       local tr_col = GetTrackColor( tr )
       local r, g, b = reaper.ColorFromNative( tr_col )
@@ -490,9 +542,31 @@ function DATA:CollectData()
           txt_out = txt_out, 
           presetname = presetname,
           parenttr_GUID=parenttr_GUID,
+          project = project,
+          tr=tr,
+          trname=trname,
         }
       
       ::skipnextFX::
+    end
+  end
+  
+end
+--------------------------------------------------------------------------------  
+function DATA:CollectData()
+  DATA.CtrlsExtState_Read()
+  DATA.PluginsExtState_Read()
+
+  DATA.plugins_data = {}
+  DATA.plugins_tree = {}
+  
+  if EXT.collectalltabs == 0 then
+    DATA:CollectData_sub(-1)
+   else
+    for idx = 0, 100 do
+      local reaproj = reaper.EnumProjects( idx )
+      if not reaproj then break end
+      DATA:CollectData_sub(reaproj)
     end
   end
   
@@ -503,23 +577,27 @@ function main()
   UI.MAIN() 
 end
 --------------------------------------------------------------------------------  
-function DATA.Plugin_params_set(GUID,params)
-  local ret, tr, id = VF_GetFXByGUID(GUID)
+function DATA.Plugin_params_set(plugdata,params)
+  
+  local ret, tr, id = VF_GetFXByGUID(plugdata.fxGUID,plugdata.tr,plugdata.project)
   if not ret then return end
+  
+  if EXT.scrolltotrackonedit == 1 then
+    SetMixerScroll( tr )
+    SetOnlyTrackSelected( tr )
+    VF_Action(40913)--Track: Vertical scroll selected tracks into view 
+  end  
+  
   if params.online ~= nil then TrackFX_SetOffline(tr, id, params.online) end
   if params.bypass ~= nil then TrackFX_SetEnabled(tr, id, params.bypass) end
-  if params.open ~= nil then 
+  if params.open ~= nil then  
     if params.open == false then 
       TrackFX_Show( tr, id, 2)
      else 
       if EXT.floatchain == 1 then TrackFX_Show( tr, id, 1 ) else TrackFX_Show( tr, id, 3 )end
-    end
-    if EXT.scrolltotrackonedit == 1 then
-      SetMixerScroll( tr )
-      SetOnlyTrackSelected( tr )
-      VF_Action(40913)--Track: Vertical scroll selected tracks into view
-    end
+    end 
   end
+  
   if params.solo ~= nil then 
     local out_st = 0
     if not params.solo == false then out_st = 1 end
@@ -547,10 +625,9 @@ function UI.draw_plugin_handlelatchstate(t)
     local x, y = ImGui.GetMouseDragDelta( ctx )
     local outval = DATA.latchstate - y/500
     outval = math.max(0,math.min(outval,1))
-    local fxGUID = t.fxGUID
     local dx, dy = ImGui.GetMouseDelta( ctx )
     if dy~=0 then
-      DATA.Plugin_params_set(fxGUID,{paramidx = t.paramidx, paramval = outval})
+      DATA.Plugin_params_set(t,{paramidx = t.paramidx, paramval = outval})
     end
   end
 end
@@ -577,21 +654,22 @@ function UI.draw_plugin(plugdata,sec_col, islast)
     local online = 'Online' 
     if plugdata.online == false then online = 'Offline' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
     local ret = ImGui.Button( ctx, online..'##off'..fxGUID, butw ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
-    if ret then DATA.Plugin_params_set(fxGUID,{online= plugdata.online}) end
+    if ret then DATA.Plugin_params_set(plugdata,{online= plugdata.online}) end
     
     -- bypass
     local bypass = 'Bypass' 
     if plugdata.enabled == true then bypass = 'Bypass' UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_green) end 
     local ret = ImGui.Button( ctx, bypass..'##byp'..fxGUID, butw ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
-    if ret then DATA.Plugin_params_set(fxGUID,{bypass= not plugdata.enabled}) end
+    if ret then DATA.Plugin_params_set(plugdata,{bypass= not plugdata.enabled}) end
     
     ImGui.Dummy(ctx,20,0) UI.SameLine(ctx)
-    local txtout =  plugdata.txt_out
+    local txtout =  plugdata.txt_out 
+    UI.draw_setbuttonbackgtransparent() 
+    ImGui.Button( ctx, plugdata.trname)UI.SameLine(ctx)
+    UI.draw_unsetbuttoncolor() 
     if DATA.extplugins[fxGUID] and DATA.extplugins[fxGUID].customname and DATA.extplugins[fxGUID].customname ~= 'nil' then txtout = DATA.extplugins[fxGUID].customname end
     if not (DATA.editfield and DATA.editfield == fxGUID) then ImGui.Text(ctx, txtout) end
-    if ImGui.IsItemClicked( ctx,  ImGui.MouseButton_Right ) then
-      DATA.editfield = fxGUID
-    end
+    if ImGui.IsItemClicked( ctx,  ImGui.MouseButton_Right ) then DATA.editfield = fxGUID end
     
     if DATA.editfield == fxGUID then
       UI.SameLine(ctx)
@@ -601,35 +679,35 @@ function UI.draw_plugin(plugdata,sec_col, islast)
         if not DATA.extplugins[fxGUID] then DATA.extplugins[fxGUID] = {} end
         if buf == '' then buf = 'nil' end
         DATA.extplugins[fxGUID].customname = buf
-        DATA.PluginsExtState_Write()
-        
+        DATA.PluginsExtState_Write(plugdata.project) 
         DATA.editfield = nil
       end
     end
+    
     --
     ImGui.PushFont(ctx, DATA.font3)
     -- open
     if plugdata.open == true then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end 
     local ret = ImGui.Button( ctx, 'FX'..'##fx'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
-    if ret then DATA.Plugin_params_set(fxGUID,{open= not plugdata.open}) end
+    if ret then DATA.Plugin_params_set(plugdata,{open= not plugdata.open}) end
 
     -- solo
     if plugdata.tr_solo == true then UI.draw_setbuttoncolor(UI.butBg_green) else UI.draw_setbuttoncolor(UI.main_col) end 
     local ret = ImGui.Button( ctx, 'S'..'##s'..fxGUID, butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
-    if ret then DATA.Plugin_params_set(fxGUID,{solo = not plugdata.tr_solo}) end
+    if ret then DATA.Plugin_params_set(plugdata,{solo = not plugdata.tr_solo}) end
 
     
     -- mute
     if plugdata.tr_mute == true then UI.draw_setbuttoncolor(UI.butBg_red) else UI.draw_setbuttoncolor(UI.main_col) end 
     local ret = ImGui.Button( ctx, 'M', butw_low, UI.calc_itemH_small ) UI.draw_unsetbuttoncolor() UI.SameLine(ctx)
-    if ret then DATA.Plugin_params_set(fxGUID,{mute = not plugdata.tr_mute}) end
+    if ret then DATA.Plugin_params_set(plugdata,{mute = not plugdata.tr_mute}) end
     
     ImGui.Dummy(ctx,20,0) UI.SameLine(ctx)
     
     -- preset
     UI.draw_setbuttoncolor(UI.main_col)
-    local ret = ImGui.Button( ctx, '<'..'##presL'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(fxGUID,{preset = -1}) end
-    local ret = ImGui.Button( ctx, '>'..'##presR'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(fxGUID,{preset = 1}) end
+    local ret = ImGui.Button( ctx, '<'..'##presL'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(plugdata,{preset = -1}) end
+    local ret = ImGui.Button( ctx, '>'..'##presR'..fxGUID, 0, UI.calc_itemH_small )  UI.SameLine(ctx) if ret then DATA.Plugin_params_set(plugdata,{preset = 1}) end
     ImGui.Text(ctx, plugdata.presetname)
     UI.draw_unsetbuttoncolor()
     
@@ -646,28 +724,33 @@ function UI.draw_plugin(plugdata,sec_col, islast)
       UI.MAIN_PushStyle(ImGui.Col_SliderGrabActive,UI.main_col, 0, true)
       UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, .1, true)
       UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.main_col, .3, true)
-      for extid = 1, #DATA.extctrls[fxGUID] do
-        if not DATA.extctrls[fxGUID][extid] then goto skipnextctrl end
+      for paramID in pairs(DATA.extctrls[fxGUID]) do
         -- define
-        local butid = '##ext'..extid..fxGUID
-        local retval, v = ImGui.VSliderDouble( ctx, butid,  UI.calc_itemH,  UI.calc_itemH, DATA.extctrls[fxGUID][extid].paramval, 0, 1, '' )
-        UI.draw_plugin_handlelatchstate(DATA.extctrls[fxGUID][extid])  
+        local butid = '##ext'..fxGUID..paramID
+        local retval, v = ImGui.VSliderDouble( ctx, butid,  UI.calc_itemH,  UI.calc_itemH, DATA.extctrls[fxGUID][paramID].paramval, 0, 1, '' )
+        
+        local plugdata = DATA.extctrls[fxGUID][paramID]
+        plugdata.fxGUID = fxGUID
+        plugdata.paramidx = paramID
+        UI.draw_plugin_handlelatchstate(plugdata)  
+        
         -- tooltip
         if ImGui.IsItemHovered( ctx ) or ImGui.IsItemActive( ctx )  then
-          UI.extinfo[fxGUID] = DATA.extctrls[fxGUID][extid].paramname  
+          UI.extinfo[fxGUID] = DATA.extctrls[fxGUID][paramID].paramname  
         end
         if ImGui.IsItemHovered( ctx )  then
-          -- delete click
+          -- delete/alt click
           if  ImGui.IsKeyPressed( ctx,   ImGui.Key_Delete, false ) then
-            table.remove(DATA.extctrls[fxGUID], extid)
-            DATA.CtrlsExtState_Write()
+            --[[or 
+            ImGui.IsKeyPressed( ctx,  reaper.ImGui_Mod_Alt(), false ) or  
+            ImGui.IsKeyPressed( ctx,  reaper.ImGui_Key_LeftAlt(), false ) or  
+            ImGui.IsKeyPressed( ctx,  reaper.ImGui_Key_RightAlt(), false ) ]]  
+            DATA.extctrls[fxGUID][paramID] = nil
+            DATA.CtrlsExtState_Write(plugdata.project)
             DATA.upd = true
           end
         end
-        if DATA.extctrls[fxGUID][extid] then 
-          UI.draw_knob(DATA.extctrls[fxGUID][extid].paramval)
-          
-        end
+        if DATA.extctrls[fxGUID][paramID] then UI.draw_knob(DATA.extctrls[fxGUID][paramID].paramval) end
         UI.SameLine(ctx)
         ::skipnextctrl::
       end
@@ -717,7 +800,7 @@ function UI.draw_knob(val)
   local radiusshift_y = (radius_draw- radius)
   ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
   ImGui.DrawList_PathStroke(draw_list, 0xF0F0F02F,  ImGui.DrawFlags_None, 2)
-  ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+2))
+  ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
   ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
   
   local radius_draw2 = radius_draw-1
@@ -731,33 +814,42 @@ end
 function DATA.Plugin_params_extset(plugdata) 
   local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
   if retval ~= true then return end
+  
   if trackidx ==-1 then return end
   if itemidx ~=-1 then return end
   if fxidx&0x2000000==0x2000000 then return end
   if fxidx&0x1000000==0x1000000 then return end
   
-  local tr = GetTrack(0,trackidx)
+  local tr = GetTrack(plugdata.project,trackidx)
   local tr_GUID = GetTrackGUID( tr )
   if tr_GUID ~= plugdata.tr_GUID then return end
   
   local fxGUID = reaper.TrackFX_GetFXGUID( tr, fxidx )
-  local parfxGUID = plugdata.fxGUID
   if not DATA.extctrls then DATA.extctrls = {} end
-  if not DATA.extctrls[parfxGUID] then DATA.extctrls[parfxGUID] ={} end
-  DATA.extctrls[parfxGUID]  [#DATA.extctrls[parfxGUID] + 1] = {fxGUID=fxGUID,paramidx=parm}
-  
-  DATA.CtrlsExtState_Write()
+  if not DATA.extctrls[fxGUID] then DATA.extctrls[fxGUID] ={} end
+  DATA.extctrls[fxGUID][parm] = {fxGUID=fxGUID,paramidx=parm,plugdata.project}
+  DATA.CtrlsExtState_Write(plugdata.project)
 end
 
 --------------------------------------------------------------------------------  
-function DATA.CtrlsExtState_Write()
+function DATA.CtrlsExtState_Write(project)
   local str = ''
   for fxGUID in pairs(DATA.extctrls) do
-    for i = 1, #DATA.extctrls[fxGUID] do
-      str = str..fxGUID..' '..DATA.extctrls[fxGUID][i].fxGUID..' '..DATA.extctrls[fxGUID][i].paramidx..'\n' 
+    local ret = VF_GetFXByGUID(fxGUID, nil, project)
+    if ret==true then 
+      for paramidx in pairs(DATA.extctrls[fxGUID]) do 
+        str = str..fxGUID..' '..paramidx..'\n' 
+      end 
     end
   end
-  SetProjExtState( 0, 'MPL_InstrumentRack', 'macro', str )
+  
+  SetProjExtState( project, 'MPL_InstrumentRack', 'macro2', str )
+end
+--------------------------------------------------------------------------------  
+function UI.draw_setbuttonbackgtransparent() 
+    UI.MAIN_PushStyle(ImGui.Col_Button,0xFFFFFF, 0, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonActive,0xFFFFFF, 0, true)
+    UI.MAIN_PushStyle(ImGui.Col_ButtonHovered,0xFFFFFF, 0, true)
 end
 --------------------------------------------------------------------------------  
 function UI.draw_setbuttoncolor(col) 
@@ -781,6 +873,7 @@ function UI.draw()
       local ret = ImGui.MenuItem(ctx, 'Select and scroll to track on click', nil, EXT.scrolltotrackonedit == 1) if ret then DATA.upd = true EXT.scrolltotrackonedit=EXT.scrolltotrackonedit~1 EXT:save() end
       local ret = ImGui.MenuItem(ctx, 'Show FX chain instead floating FX', nil, EXT.floatchain == 1) if ret then DATA.upd = true EXT.floatchain=EXT.floatchain~1 EXT:save() end
       local ret = ImGui.MenuItem(ctx, 'Hide RS5k instances', nil, EXT.hiders5k == 1) if ret then DATA.upd = true EXT.hiders5k=EXT.hiders5k~1 EXT:save() end
+      local ret = ImGui.MenuItem(ctx, 'Collect instruments from all project tabs', nil, EXT.collectalltabs == 1) if ret then DATA.upd = true EXT.collectalltabs=EXT.collectalltabs~1 EXT:save() end
       --local ret = ImGui.MenuItem(ctx, 'Use second column', nil, EXT.usesecondcol == 1) if ret then DATA.upd = true EXT.usesecondcol=EXT.usesecondcol~1 EXT:save() end
       --local ret = ImGui.MenuItem(ctx, 'Sorting', nil, nil, false)
       ImGui.SeparatorText(ctx, 'Sorting')
@@ -843,6 +936,4 @@ end
 
 
 
-
---------------------------------------------------------------------------------  
 main()
