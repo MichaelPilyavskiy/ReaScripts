@@ -9,8 +9,6 @@ EXT = {
         CONF_txt1 = 'Volume',
         CONF_txt2 = '#lasttouchedtrack_volume',
         CONF_png = [[C:\test.png]],
-        CONF_autoterminatetime = 1, -- seconds, script will close after this time
-        CONF_autoterminate_fadetime = 0.5,-- seconds, fade time to make script fully transparent bofore close
       }
       
 

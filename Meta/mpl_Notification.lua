@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # fix integer variables not loading
+--    # use constant timing (1 second display time, 0.5sec fade)
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -33,8 +33,6 @@ EXT = {
         CONF_txt2 = 'Test2', 
         CONF_png = [[]],
         CONF_png_scaling = 0.8,
-        CONF_autoterminatetime = 4, -- seconds, script will close after this time
-        CONF_autoterminate_fadetime = 2,-- seconds, fade time to make script fully transparent bofore close
       }
       
 -------------------------------------------------------------------------------- INIT data
@@ -49,6 +47,8 @@ DATA = {
           factory= {},
           user= {}, 
           },
+        CONF_autoterminatetime2 = 1, -- seconds, script will close after this time
+        CONF_autoterminate_fadetime2 = 0.5,-- seconds, fade time to make script fully transparent bofore close
         }
         
         
@@ -398,13 +398,13 @@ function UI.MAINloop()
    else
     DATA.timer = DATA.clock - DATA.timerTS
   end
-  if DATA.timer> EXT.CONF_autoterminatetime then 
+  if DATA.timer> DATA.CONF_autoterminatetime2 then  
     return 
   end
   
   -- calc transparency ratio
-  if DATA.timer> EXT.CONF_autoterminatetime - EXT.CONF_autoterminate_fadetime then
-    DATA.transparencyratio_inverted = (DATA.timer - (EXT.CONF_autoterminatetime - EXT.CONF_autoterminate_fadetime)) / (EXT.CONF_autoterminatetime - EXT.CONF_autoterminate_fadetime)
+  if DATA.timer> DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2 then 
+    DATA.transparencyratio_inverted = (DATA.timer - (DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2)) / (DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2)
    else
     
     DATA.transparencyratio_inverted = 0
@@ -428,7 +428,7 @@ function UI.MAINloop()
 end
 -------------------------------------------------------------------------------- 
 function UI.MAIN() 
-  EXT.CONF_autoterminate_fadetime = math.min(EXT.CONF_autoterminate_fadetime,EXT.CONF_autoterminatetime)
+  DATA.CONF_autoterminate_fadetime2 = math.min(DATA.CONF_autoterminate_fadetime2,DATA.CONF_autoterminatetime2)
   
   -- imgUI init
   ctx = ImGui.CreateContext(DATA.UI_name) 
