@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # increase timing for macOS
+--    # use time_precise() instead os.clock()
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -50,10 +50,10 @@ DATA = {
         CONF_autoterminatetime2 = 1, -- seconds, script will close after this time
         CONF_autoterminate_fadetime2 = 0.5,-- seconds, fade time to make script fully transparent before close
         }
-if reaper.GetOS():match('Win') == nil then 
+--[[if reaper.GetOS():match('Win') == nil then 
   DATA.CONF_autoterminatetime2 = 2
   DATA.CONF_autoterminate_fadetime2 = 1
-end
+end]]
         
 -------------------------------------------------------------------------------- UI init variables
 UI = {}
@@ -396,7 +396,7 @@ function UI.MAINloop()
   DATA.transparencyratio_inverted = 0
   -- calc timer
   if not DATA.clock then 
-    DATA.timerTS = os.clock() 
+    DATA.timerTS = reaper.time_precise() 
     DATA.timer = 0
    else
     DATA.timer = DATA.clock - DATA.timerTS
@@ -414,7 +414,7 @@ function UI.MAINloop()
   end
   
   
-  DATA.clock = os.clock() 
+  DATA.clock = reaper.time_precise()  
   DATA:handleProjUpdates()
   
   if DATA.upd == true then  DATA:CollectData()  end 
