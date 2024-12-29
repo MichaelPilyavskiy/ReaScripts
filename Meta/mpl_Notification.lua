@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # use constant timing (1 second display time, 0.5sec fade)
+--    # increase timing for macOS
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -48,9 +48,12 @@ DATA = {
           user= {}, 
           },
         CONF_autoterminatetime2 = 1, -- seconds, script will close after this time
-        CONF_autoterminate_fadetime2 = 0.5,-- seconds, fade time to make script fully transparent bofore close
+        CONF_autoterminate_fadetime2 = 0.5,-- seconds, fade time to make script fully transparent before close
         }
-        
+if reaper.GetOS():match('Win') == nil then 
+  DATA.CONF_autoterminatetime2 = 2
+  DATA.CONF_autoterminate_fadetime2 = 1
+end
         
 -------------------------------------------------------------------------------- UI init variables
 UI = {}
