@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.28
+-- @version 3.29
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,8 +16,8 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # revert back whate keys priority default
---    # fix not rename note name if 'rename track' option dectivated
+--    # fix adding formatted gain to 3rd party plugins
+--    + Add option to add new track to the end of folder
 
 
 
@@ -32,7 +32,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.28'
+    DATA.extstate.version = '3.29'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -51,6 +51,7 @@
                           CONF_onadd_customtemplate = '',
                           CONF_onadd_renametrack = 1,
                           CONF_onadd_copytoprojectpath = 0,
+                          CONF_onadd_trackdestendoffolder = 0,
                           
                           -- rs5k various
                           CONF_onadd_thickchilds = 0, 
@@ -703,7 +704,12 @@ List:
     
     if note_layer_t[extparamkey] then
       note_layer_t[outval_key] = TrackFX_GetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] ) 
-      note_layer_t[outvalform_key]=math.floor(({TrackFX_GetFormattedParamValue( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] )})[2]*100)..'%'
+      local formatparamval = ({TrackFX_GetFormattedParamValue( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] )})[2]
+      if formatparamval and tonumber(formatparamval)then 
+        note_layer_t[outvalform_key]=math.floor(formatparamval*100)..'%'
+       else 
+        note_layer_t[outvalform_key]=formatparamval
+      end
     end
   end
   ---------------------------------------------------------------------  
@@ -1574,6 +1580,7 @@ rightclick them to hide all but active.
         {str = 'Custom track template [clear]',                 group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
         {str = 'Thick childrens',                               group = 1, itype = 'check', confkey = 'CONF_onadd_thickchilds', level = 1},--,  func_onrelease = function() GUI_MODULE_SETTINGS(DATA) end},
         {str = 'White keys priority',                           group = 1, itype = 'check', confkey = 'CONF_onadd_whitekeyspriority', level = 1},
+        {str = 'Move new track to the bottom of folder',        group = 1, itype = 'check', confkey = 'CONF_onadd_trackdestendoffolder', level = 1},
         
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
@@ -3320,9 +3327,31 @@ rightclick them to hide all but active.
     end
   end
   --------------------------------------------------------------------- 
+  function DATA2:Actions_PadOnFileDrop_AddChildTrack_GetLastTrackInFolder() 
+    local tr = GetTrack(0,DATA2.tr_ID-1)
+    local depth = reaper.GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' )
+    if depth == 0 then return DATA2.tr_ID end
+    
+    local curdepth = 0
+    for i = DATA2.tr_ID,CountTracks(0) do
+      local tr = GetTrack(0,i-1)
+      local depth = reaper.GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' )
+      curdepth = curdepth + depth
+      if curdepth == 0 then
+        return i
+      end
+    end
+  end
+  --------------------------------------------------------------------- 
   function DATA2:Actions_PadOnFileDrop_AddChildTrack(ID_spec) 
     local ID = DATA2.tr_ID
-    if ID_spec then ID = ID_spec end
+    if ID_spec then 
+      ID = ID_spec 
+     else
+      if DATA.extstate.CONF_onadd_trackdestendoffolder ==1 then
+        ID = DATA2:Actions_PadOnFileDrop_AddChildTrack_GetLastTrackInFolder() 
+      end
+    end
     InsertTrackAtIndex( ID, false )
     local new_tr = CSurf_TrackFromID(ID+1,false)
     
@@ -3342,6 +3371,12 @@ rightclick them to hide all but active.
       end
     end
     
+    if DATA.extstate.CONF_onadd_trackdestendoffolder ==1 then
+      local tr = GetTrack(0,ID-1)
+      local depth = reaper.GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' )
+      SetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH',depth+1 )
+      SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH',-1 )
+    end
     
     DATA2:TrackDataWrite(new_tr, {set_currentparentforchild = true})  
     DATA2:TrackDataWrite(new_tr, {setchild = true}) 
