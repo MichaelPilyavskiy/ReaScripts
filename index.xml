@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="69885b75e2ed5d5f628f34ce54897b696ad9ac6f" name="MPL Scripts">
+<index version="1" commit="50c8a1b65191e72ebc38794e36a06b582f816ebe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2276,6 +2276,19 @@
       <version name="1.10" author="MPL" time="2023-11-10T19:25:21Z">
         <changelog><![CDATA[# rename action for clean modulation]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5957249669f72fbd8ddf90d63869d7a09e16b2c8/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2025-01-05T21:55:11Z">
+        <changelog><![CDATA[+ Ported to ReaImGui
++ Controls block: sorted by date added
++ Controls block: support collapsing
+# Controls block: rightclick on modulation name directly redirect to input field
+# Controls block: support custom color
++ Controls: show tooltips
++ LFO: add direction selector
++ Audio: add direction selector
+# Filter: better query focused fx change
++ Actions: add actions to expand/collapse all blocks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/50c8a1b65191e72ebc38794e36a06b582f816ebe/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
