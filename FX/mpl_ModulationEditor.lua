@@ -1,18 +1,9 @@
 -- @description ModulationEditor
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Ported to ReaImGui
---    + Controls block: sorted by date added
---    + Controls block: support collapsing
---    # Controls block: rightclick on modulation name directly redirect to input field
---    # Controls block: support custom color
---    + Controls: show tooltips
---    + LFO: add direction selector
---    + Audio: add direction selector
---    # Filter: better query focused fx change
---    + Actions: add actions to expand/collapse all blocks
+--    + Right click on activate button pin block to the top
 
 
 
@@ -474,7 +465,9 @@ function DATA:CollectData_ModStateSortByTS()
   local increment = 0
   local change
   for key in pairs(DATA.modulationstate) do 
-    local ext_TS = (DATA.modulationstate[key].ext_TS or 0 ) + increment
+    local srcts = DATA.modulationstate[key].ext_TS 
+    if DATA.modulationstate_ext[key].pin and DATA.modulationstate_ext[key].pin == 1  then srcts = srcts - 10^10 end
+    local ext_TS = (srcts or 0 ) + increment
     if DATA.modulationstate_order[ext_TS] then
       change = true
       increment = increment +1
@@ -1109,9 +1102,18 @@ function UI.draw_mods_sub(t)
   if ImGui.BeginChild(ctx, str_id, 0, childH, flags, ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then
     -- active indicator
       local actcol = UI.activecol_on if t.PMOD['mod.active'] == 0 then actcol = UI.activecol_off end
-      UI.draw_setbuttoncolor(actcol) 
-      if ImGui.Button(ctx, ''..'##active'..str_id,UI.ctrl_w_active) then t.PMOD['mod.active']=t.PMOD['mod.active']~1 DATA:ApplyPMOD(t) end
+      local pin = ''
+      if DATA.modulationstate_ext[str_id].pin and DATA.modulationstate_ext[str_id].pin == 1 then pin = '^' end
+      UI.draw_setbuttoncolor(actcol)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 4, 5)
+      if ImGui.Button(ctx, pin..'##active'..str_id,UI.ctrl_w_active) then t.PMOD['mod.active']=t.PMOD['mod.active']~1 DATA:ApplyPMOD(t) end
+      ImGui.PopStyleVar(ctx)
       UI.draw_unsetbuttonstyle()
+      if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
+        if not DATA.modulationstate_ext[str_id].pin then DATA.modulationstate_ext[str_id].pin = 1 else DATA.modulationstate_ext[str_id].pin = DATA.modulationstate_ext[str_id].pin ~1 end
+        DATA.upd_projextstate = true
+        DATA.upd = true
+      end
       ImGui.SameLine(ctx)
       --ImGui.SetItemTooltip( ctx, 'Bypass' )
     -- base
