@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="50c8a1b65191e72ebc38794e36a06b582f816ebe" name="MPL Scripts">
+<index version="1" commit="39c26878d4d625746d1084f973143dfb82435f57" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2289,6 +2289,10 @@
 # Filter: better query focused fx change
 + Actions: add actions to expand/collapse all blocks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/50c8a1b65191e72ebc38794e36a06b582f816ebe/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2025-01-05T22:10:19Z">
+        <changelog><![CDATA[+ Right click on activate button pin block to the top]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/39c26878d4d625746d1084f973143dfb82435f57/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
