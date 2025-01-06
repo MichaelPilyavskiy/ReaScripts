@@ -1,9 +1,10 @@
 -- @description ModulationEditor
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add docking (via menu)
+--    # increase knob resolution
+--    + Add L shortcut to link last touched
 
 
 
@@ -73,7 +74,7 @@ UI = {}
   UI.default_data_col_adv2 = '#e61919 ' -- red
 
   UI.indent = 20
-  UI.knob_resY = 120
+  UI.knob_resY = 400
   UI.ctrl_w_active = 15 
   UI.activecol_on = 0x0Fff0F -- green
   UI.activecol_off = 0x808080 -- yellow
@@ -827,6 +828,9 @@ function UI.MAIN_shortcuts()
     ImGui.CloseCurrentPopup( ctx ) 
   end
   if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  reaper.Main_OnCommand(40044,0) end
+  if  ImGui.IsKeyPressed( ctx, ImGui.Key_L,false ) then
+    if DATA.LiveLinkT.run == true then DATA.LiveLinkT.run = nil else DATA.LiveLinkT.run = true  end
+  end
 end
 --------------------------------------------------------------------------------  
 function UI.draw_mods_audio(t)  
