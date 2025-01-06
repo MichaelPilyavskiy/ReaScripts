@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d4756b3b2d818b43a7f3f1d23b58caa225b3f4e" name="MPL Scripts">
+<index version="1" commit="fcae0f5bb5d88210bbb15e44160b2cc348e310e8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2298,6 +2298,11 @@
         <changelog><![CDATA[+ Add docking (via menu)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d4756b3b2d818b43a7f3f1d23b58caa225b3f4e/FX/mpl_ModulationEditor.lua</source>
       </version>
+      <version name="2.03" author="MPL" time="2025-01-06T16:04:47Z">
+        <changelog><![CDATA[# increase knob resolution
++ Add L shortcut to link last touched]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fcae0f5bb5d88210bbb15e44160b2cc348e310e8/FX/mpl_ModulationEditor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
       <metadata>
@@ -3197,6 +3202,10 @@
       <version name="2.02" author="MPL" time="2023-02-25T08:17:19Z">
         <changelog><![CDATA[# change radius of active area]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb4ce031411af2cbaf2e8e0e431c4e8d8fb4dffb/FX/mpl_XYPad%20(background).lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2025-01-06T10:11:55Z">
+        <changelog><![CDATA[+ Ported to ReaimGui]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/80d3ad6724d024ba1a6ce8a5a712a5b155ea683c/FX/mpl_XYPad%20(background).lua</source>
       </version>
     </reapack>
   </category>
@@ -10617,15 +10626,6 @@ various fixes]]></changelog>
       <version name="2.27" author="MPL" time="2024-08-17T17:03:11Z">
         <changelog><![CDATA[# free matched track at set source destination to none]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94359b237c1c84e5e67d1a5fe08bdb89148ab01c/Various/mpl_ImportSessionData.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-01-06T18:36:49Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a42fd3d084741cb606995fa18fb8a7964ec6bf52/Various/mpl_Input%20audio%20check%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
