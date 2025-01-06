@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="649b5c2ef742158cb7752f3dfd5bf146c036e89f" name="MPL Scripts">
+<index version="1" commit="edaad89299c00c830b2f3b0bfa7cb904fcfbf593" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2209,6 +2209,14 @@
         <changelog><![CDATA[# refresh GUI at wh change]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5229320b9dfda0062a67a54961b5686f95e7afe/FX/mpl_LearnEditor.lua</source>
       </version>
+      <version name="3.0" author="MPL" time="2025-01-06T17:53:01Z">
+        <changelog><![CDATA[+ Ported to ReaImGui
+# better handle aliasing
++ Allow pin learn blocks
++ Allow color learn blocks
++ Allow collapse learn blocks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/709d49e1061f889ce6e84095c46ab3e149170160/FX/mpl_LearnEditor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_ModulationEditor.lua" type="script" desc="ModulationEditor">
       <metadata>
@@ -2306,6 +2314,11 @@
       <version name="2.04" author="MPL" time="2025-01-06T16:21:05Z">
         <changelog><![CDATA[# remove debug message]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/649b5c2ef742158cb7752f3dfd5bf146c036e89f/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="2.05" author="MPL" time="2025-01-06T20:03:18Z">
+        <changelog><![CDATA[+ Link: allow to read and write MIDI
++ LFO: use combo fro tempo sync]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/edaad89299c00c830b2f3b0bfa7cb904fcfbf593/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
