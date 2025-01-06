@@ -1,9 +1,10 @@
 -- @description ModulationEditor
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # remove debug message
+--    + Link: allow to read and write MIDI
+--    + LFO: use combo fro tempo sync
 
 
 
@@ -39,6 +40,12 @@ DATA = {
         UI_name = 'Modulation editor', 
         upd = true,
         LiveLinkT = {},
+        addlinkmidi = {
+          msg1 = 176,
+          msg2 = 1,
+          chan = 0,
+          bus = 0
+        }
         }
         
         
@@ -403,6 +410,23 @@ function DATA:CollectData_ModState_Sub(track,fx,pid,  trname,fxname,pname)
       local retval, fxname = TrackFX_GetFXName(track, DATA.modulationstate[key].PMOD['plink.effect'] )
       local retval, paramname = TrackFX_GetParamName( track, DATA.modulationstate[key].PMOD['plink.effect'], DATA.modulationstate[key].PMOD['plink.param'] )
       txt =  'from: '..VF_ReduceFXname(fxname)..' / '..paramname
+     else
+      local msg1 = tostring(DATA.modulationstate[key].PMOD['plink.midi_msg'])--:gsub(192,'CC')
+        :gsub(176, 'CC')
+        :gsub(144, 'Note')
+        :gsub(160, 'Aftertouch')
+        :gsub(224, 'Pitch')
+        :gsub(192, 'Program change')
+        :gsub(208, 'Channel pressure')
+      local msg2 = DATA.modulationstate[key].PMOD['plink.midi_msg2']
+      if not (msg1=='CC' or msg1=='Note' or msg1=='Aftertouch') then msg2 = '' end 
+      if msg1=='CC' and tonumber(msg2)&0x80==0x80 then msg2 = ' '..tostring(tonumber(msg2)~0x80)..'/'..(tonumber(msg2)~0x80)+32 end
+      
+      txt = 
+        msg1..
+        msg2..' | '..
+        'Chan '..tostring(DATA.modulationstate[key].PMOD['plink.midi_chan']):gsub(0,'Omni')..', '..
+        'Bus '..DATA.modulationstate[key].PMOD['plink.midi_bus']+1
     end
     DATA.modulationstate[key].PMOD.fx_txt = txt
     
@@ -971,12 +995,78 @@ function UI.draw_mods_link(t)
         --tooltip = 'Base value' ,
         formatstr = function(v) return 'Scale: '..math.floor(v*1000)/1000 end}) 
       ImGui.SameLine(ctx)  
-        
-      if t.PMOD.fx_txt and ImGui.Button(ctx, t.PMOD.fx_txt..'##'..str_id..'plink_fx',-1,0) then DATA.AddLinkFromLastTouched(t) end
+      
+      UI.draw_mods_link_combo(t,str_id)
+      
         
         
   if disabled==true then ImGui.EndDisabled(ctx) end
   ImGui.PopFont(ctx)   
+end
+--------------------------------------------------------------------------------  
+function UI.draw_mods_link_combo(t,str_id) 
+  --if t.PMOD.fx_txt and ImGui.Button(ctx, t.PMOD.fx_txt..'##'..str_id..'plink_fx',-1,0) then DATA.AddLinkFromLastTouched(t) end
+  local txt = t.PMOD.fx_txt
+  
+  ImGui.SetNextItemWidth( ctx, -1 )
+  if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo', txt, ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
+    ImGui.SeparatorText(ctx, 'FX')
+    if ImGui.Button( ctx, 'Add last touched') then DATA.AddLinkFromLastTouched(t) end
+    ImGui.SeparatorText(ctx, 'MIDI')
+    local msg1_txt = tostring(DATA.addlinkmidi.msg1)
+      :gsub(176, 'CC')
+      :gsub(144, 'Note')
+      :gsub(160, 'Aftertouch')
+      :gsub(224, 'Pitch')
+      :gsub(192, 'Program change')
+      :gsub(208, 'Channel pressure')
+    
+    -- type
+    if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo_type', msg1_txt, ImGui.ComboFlags_None ) then
+      if ImGui.Selectable( ctx, 'CC', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 176 end
+      if ImGui.Selectable( ctx, 'Note', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 144 end
+      if ImGui.Selectable( ctx, 'Aftertouch', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 160 end
+      if ImGui.Selectable( ctx, 'Pitch', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 224 end
+      if ImGui.Selectable( ctx, 'Program change', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 192 end
+      if ImGui.Selectable( ctx, 'Channel pressure', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 208 end
+      ImGui.EndCombo( ctx)
+    end
+    
+    
+    -- msg2
+    if ImGui.BeginCombo( ctx, 'msg2##'..str_id..'linkcombo_msg2', DATA.addlinkmidi.msg2, ImGui.ComboFlags_None ) then
+      for i = 1, 128 do
+        if ImGui.Selectable( ctx, i, nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg2 = i end
+      end
+      ImGui.EndCombo( ctx)
+    end
+
+    -- msg2
+    if ImGui.BeginCombo( ctx, 'Chan##'..str_id..'linkcombo_chan', DATA.addlinkmidi.chan, ImGui.ComboFlags_None ) then
+      for i = 0, 15 do
+        if ImGui.Selectable( ctx, i, nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.chan = i end
+      end
+      ImGui.EndCombo( ctx)
+    end
+    
+    -- msg2
+    if ImGui.BeginCombo( ctx, 'Bus##'..str_id..'linkcombo_bus', DATA.addlinkmidi.bus, ImGui.ComboFlags_None ) then
+      for i = 0, 15 do
+        if ImGui.Selectable( ctx, i, nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.bus = i end
+      end
+      ImGui.EndCombo( ctx)
+    end
+    
+    if ImGui.Button( ctx, 'Set MIDI link') then  
+      t.PMOD['plink.midi_bus'] = DATA.addlinkmidi.bus
+      t.PMOD['plink.midi_chan'] = DATA.addlinkmidi.chan
+      t.PMOD['plink.midi_msg2'] = DATA.addlinkmidi.msg2
+      t.PMOD['plink.midi_msg'] = DATA.addlinkmidi.msg1
+      DATA:ApplyPMOD(t) 
+    end
+    
+    ImGui.EndCombo( ctx)
+  end
 end
 -------------------------------------------------------------------------------- 
 function DATA.AddLinkFromLastTouched(ctrl_t)
@@ -1041,18 +1131,62 @@ function UI.draw_mods_lfo(t)
       ImGui.SameLine(ctx)
             
     -- speed
-      local val_min,val_max = 0,8
-      if t.PMOD['lfo.temposync']==1 then val_min,val_max = 8,0.25 end
-      UI.draw_knob(
-        {butGUID = t.butGUID,
-        param_key = 'lfo.speed',
-        srct = t,
-        --tooltip = 'Base value' ,
-        name = 'Speed',
-        disabled=disabled,
-        val_min = val_min,
-        val_max = val_max,
-        formatstr = function(v) return 'Speed: '..math.floor(v*1000)/1000 end,})
+      --if t.PMOD['lfo.temposync']==1 then val_min,val_max = 8,0.25 end
+      if t.PMOD['lfo.temposync']==0 then 
+        local val_min,val_max = 0,8 
+        UI.draw_knob(
+          {butGUID = t.butGUID,
+          param_key = 'lfo.speed',
+          srct = t,
+          --tooltip = 'Base value' ,
+          name = 'Speed',
+          disabled=disabled,
+          val_min = val_min,
+          val_max = val_max,
+          formatstr = function(v) return 'Speed: '..math.floor(v*1000)/1000 end,})
+       else
+        
+        local speedstr = t.PMOD['lfo.speed']
+        speed_str_map = {
+            {str = '2/1',val = 8},
+            {str = '1/1',val = 4},
+            {str = '1/2',val = 2},
+            {str = '1/4',val = 1},
+            {str = '1/8',val = 0.5},
+            {str = '1/16',val = 0.25},
+
+            {str = '1/1D',val = 6},
+            {str = '1/2D',val = 3},
+            {str = '1/4D',val = 1.5},
+            {str = '1/8D',val = 0.75},
+            {str = '1/16D',val = 0.375},
+            
+            {str = '2/1T',val = 5.3333},
+            {str = '1/1T',val = 2.6667},
+            {str = '1/2T',val = 1.3333},
+            {str = '1/4T',val = 0.6667},
+            {str = '1/8T',val = 0.3333},
+            
+            {str = '1/1Q',val = 3.2},
+            {str = '1/2Q',val = 1.6},
+            {str = '1/4Q',val = 0.8},
+            {str = '1/8Q',val = 0.4},
+            
+          }
+        for i = 1, #speed_str_map do
+          if speed_str_map[i].val == t.PMOD['lfo.speed'] then 
+            speedstr = speed_str_map[i].str
+            break
+          end
+        end
+        ImGui.SetNextItemWidth( ctx, 80 )
+        if ImGui.BeginCombo( ctx, '##'..str_id..'lfospeed', speedstr, ImGui.ComboFlags_None ) then
+          for i = 1, #speed_str_map do
+            if ImGui.Selectable( ctx, speed_str_map[i].str, nil, ImGui.SelectableFlags_None, 0, 0 ) then t.PMOD['lfo.speed']=speed_str_map[i].val DATA:ApplyPMOD(t) end
+          end
+          ImGui.EndCombo( ctx)
+        end
+      end
       ImGui.SameLine(ctx)    
       
     -- phase
