@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fcae0f5bb5d88210bbb15e44160b2cc348e310e8" name="MPL Scripts">
+<index version="1" commit="649b5c2ef742158cb7752f3dfd5bf146c036e89f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2302,6 +2302,10 @@
         <changelog><![CDATA[# increase knob resolution
 + Add L shortcut to link last touched]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fcae0f5bb5d88210bbb15e44160b2cc348e310e8/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="2.04" author="MPL" time="2025-01-06T16:21:05Z">
+        <changelog><![CDATA[# remove debug message]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/649b5c2ef742158cb7752f3dfd5bf146c036e89f/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
