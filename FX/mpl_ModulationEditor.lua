@@ -1,9 +1,9 @@
 -- @description ModulationEditor
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Right click on activate button pin block to the top
+--    + Add docking (via menu)
 
 
 
@@ -24,6 +24,9 @@ EXT = {
         viewport_posY = 0,
         viewport_posW = 600,
         viewport_posH = 480,
+        viewport_dock = 0,
+        
+        CONF_dock = 0,
         
         -- global
         CONF_name = 'default',
@@ -156,7 +159,7 @@ function UI.MAIN_draw(open)
     window_flags = window_flags | ImGui.WindowFlags_NoCollapse
     --window_flags = window_flags | ImGui.WindowFlags_NoNav()
     --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
-    window_flags = window_flags | ImGui.WindowFlags_NoDocking
+    --window_flags = window_flags | ImGui.WindowFlags_NoDocking
     --window_flags = window_flags | ImGui.WindowFlags_TopMost
     window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
     --if UI.disable_save_window_pos == true then window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings() end
@@ -265,9 +268,10 @@ function UI.MAIN_draw(open)
     
   -- We specify a default position/size in case there's no data in the .ini file.
     local main_viewport = ImGui.GetMainViewport(ctx)
-    local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+    local x, y, w, h, dock =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH,EXT.viewport_dock
     ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
     ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+    ImGui.SetNextWindowDockID( ctx, EXT.CONF_dock , ImGui.Cond_Always )
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
@@ -277,6 +281,8 @@ function UI.MAIN_draw(open)
       DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
       DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
       DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
+      DATA.display_dock = ImGui.GetWindowDockID( ctx )
+      --if DATA.display_dock ~= EXT.CONF_dock then EXT.CONF_dock = DATA.display_dock EXT:save() msg(DATA.display_dock) end
       
     -- calc stuff for childs
       UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
@@ -1276,6 +1282,13 @@ function UI.draw_menu()
     if ImGui.BeginMenu( ctx, 'Actions', true ) then
       if ImGui.MenuItem( ctx, 'Collapse all', nil, nil, true ) then  for str_id in pairs(DATA.modulationstate_ext) do if type(DATA.modulationstate_ext[str_id]) == 'table' then DATA.modulationstate_ext[str_id].collapsed_state = 1 end DATA.upd_projextstate = true end end
       if ImGui.MenuItem( ctx, 'Expand all', nil, nil, true ) then  for str_id in pairs(DATA.modulationstate_ext) do if type(DATA.modulationstate_ext[str_id]) == 'table' then DATA.modulationstate_ext[str_id].collapsed_state = 0 end DATA.upd_projextstate = true end end
+      ImGui.SeparatorText(ctx,'Options')
+      if ImGui.MenuItem( ctx, 'No Dock', nil, nil, true ) then EXT.CONF_dock = 0 EXT:save() DATA.upd = true end
+      if ImGui.MenuItem( ctx, 'Dock -1', nil, nil, true ) then EXT.CONF_dock = -1 EXT:save() end
+      if ImGui.MenuItem( ctx, 'Dock -2', nil, nil, true ) then EXT.CONF_dock = -2 EXT:save() end
+      if ImGui.MenuItem( ctx, 'Dock -4', nil, nil, true ) then EXT.CONF_dock = -4 EXT:save() end
+      if ImGui.MenuItem( ctx, 'Dock -8', nil, nil, true ) then EXT.CONF_dock = -8 EXT:save() end
+      
       ImGui.EndMenu( ctx)
     end
     
@@ -1444,17 +1457,20 @@ function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-t
 end
 -------------------------------------------------------------------------------- 
 function DATA:handleViewportXYWH()
+  if EXT.CONF_dock ~=0 or DATA.display_dock ~= 0  then return end
   if not (DATA.display_x and DATA.display_y) then return end 
   if not DATA.display_x_last then DATA.display_x_last = DATA.display_x end
   if not DATA.display_y_last then DATA.display_y_last = DATA.display_y end
   if not DATA.display_w_last then DATA.display_w_last = DATA.display_w end
   if not DATA.display_h_last then DATA.display_h_last = DATA.display_h end
-  
+  if not DATA.display_dock_last then DATA.display_dock_last = DATA.display_dock end
   if  DATA.display_x_last~= DATA.display_x 
     or DATA.display_y_last~= DATA.display_y 
     or DATA.display_w_last~= DATA.display_w 
     or DATA.display_h_last~= DATA.display_h 
+    or DATA.display_dock_last~= DATA.display_dock 
     then 
+    
     DATA.display_schedule_save = os.clock() 
   end
   if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.3 then 
@@ -1462,6 +1478,7 @@ function DATA:handleViewportXYWH()
     EXT.viewport_posY = DATA.display_y
     EXT.viewport_posW = DATA.display_w
     EXT.viewport_posH = DATA.display_h
+    EXT.viewport_dock = DATA.display_dock
     EXT:save() 
     DATA.display_schedule_save = nil 
   end
@@ -1469,6 +1486,7 @@ function DATA:handleViewportXYWH()
   DATA.display_y_last = DATA.display_y
   DATA.display_w_last = DATA.display_w
   DATA.display_h_last = DATA.display_h
+  DATA.display_dock_last = DATA.display_dock
 end
 -------------------------------------------------------------------------------- 
 function DATA:handleProjUpdates()
