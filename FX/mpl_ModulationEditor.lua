@@ -1,10 +1,9 @@
 -- @description ModulationEditor
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # increase knob resolution
---    + Add L shortcut to link last touched
+--    # remove debug message
 
 
 
@@ -1241,7 +1240,7 @@ function DATA:LiveLink()
     end
   
   -- dub
-  if trig == true then msg(2) end
+  if trig == true then  end
     
     if trig == true and DATA.LiveLinkT.reference then
       local retval, param = TrackFX_GetNamedConfigParm( track, fxidx, 'param.'..parm..'.plink.active')
