@@ -1,10 +1,9 @@
 -- @description ModulationEditor
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Link: allow to read and write MIDI
---    + LFO: use combo fro tempo sync
+--    + Link: fix write MIDI link
 
 
 
@@ -501,7 +500,9 @@ function DATA:CollectData_ModStateSortByTS()
     if DATA.modulationstate_order[ext_TS] then
       change = true
       increment = increment +1
-      local ext_TS_new = DATA.modulationstate[key].ext_TS + increment
+      local TS = 0
+      if DATA.modulationstate[key] and DATA.modulationstate[key].ext_TS then TS =  DATA.modulationstate[key].ext_TS end
+      local ext_TS_new = TS + increment
       DATA.modulationstate_order[ext_TS_new] = key 
      else
       DATA.modulationstate_order[ext_TS] = key
@@ -1058,11 +1059,13 @@ function UI.draw_mods_link_combo(t,str_id)
     end
     
     if ImGui.Button( ctx, 'Set MIDI link') then  
-      t.PMOD['plink.midi_bus'] = DATA.addlinkmidi.bus
+      t.PMOD['plink.midi_bus'] = DATA.addlinkmidi.bus-1
       t.PMOD['plink.midi_chan'] = DATA.addlinkmidi.chan
       t.PMOD['plink.midi_msg2'] = DATA.addlinkmidi.msg2
       t.PMOD['plink.midi_msg'] = DATA.addlinkmidi.msg1
+      t.PMOD['plink.effect'] = -100
       DATA:ApplyPMOD(t) 
+      DATA.upd = true
     end
     
     ImGui.EndCombo( ctx)
