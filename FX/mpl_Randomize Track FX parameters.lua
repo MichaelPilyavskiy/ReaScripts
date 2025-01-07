@@ -1,12 +1,9 @@
 -- @description Randomize Track FX parameters
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    + Port to Reaimgui
---    + Allow to pass or filter keywords
---    + Use 8 keywords blocks
---    + Rightclick on text input reset field to defaults
+--    # small tweaks
 
 
 --------------------------------------------------------------------------------  init globals
@@ -523,6 +520,7 @@ UI.main_buth = 60
   end
   -------------------------------------------------------------------- 
   function DATA:GetFocusedFXData_Filter()
+    if not DATA.FX.func_str then return end
     local param_bypass = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':bypass' )
     local param_wet = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':wet' )
     local param_delta = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':delta' )  
@@ -621,7 +619,7 @@ UI.main_buth = 60
   end
   ----------------------------------------------------------------------  
   function DATA:SetParameters(ignore_morph)
-    if not DATA.FX.params then return end 
+    if not (DATA.FX.cnt_params and DATA.FX.params) then return end
     
     if EXT.CONF_smooth > 0 and not ignore_morph == true then
       if DATA.morphstate == 0 then
@@ -651,7 +649,7 @@ UI.main_buth = 60
   end 
   ---------------------------------------------------------------------  
   function DATA:GenerateRandomSnapshot()
-    if not DATA.FX.params then return end
+    if not (DATA.FX.cnt_params and DATA.FX.params) then return end
     for paramid = 1, DATA.FX.cnt_params do
       if  DATA.FX.params[paramid].ignore ~= true then
         DATA.FX.params[paramid].value_morph = math.random()
