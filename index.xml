@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="edaad89299c00c830b2f3b0bfa7cb904fcfbf593" name="MPL Scripts">
+<index version="1" commit="c4989db410939a628beced6231113ce3fd88f17c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2319,6 +2319,10 @@
         <changelog><![CDATA[+ Link: allow to read and write MIDI
 + LFO: use combo fro tempo sync]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/edaad89299c00c830b2f3b0bfa7cb904fcfbf593/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="2.06" author="MPL" time="2025-01-07T11:53:57Z">
+        <changelog><![CDATA[+ Link: fix write MIDI link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4989db410939a628beced6231113ce3fd88f17c/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
