@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c4989db410939a628beced6231113ce3fd88f17c" name="MPL Scripts">
+<index version="1" commit="4a7bc3043209e65d5dcd772070a13b0c52696af3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2464,6 +2464,13 @@
         <changelog><![CDATA[# fix typo in exclude filter (thanks to PitchSlap)
 + Add support for multiword filter(use _ instead of space)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c1ae27f0322865766408b9f15dde011053c786cd/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2025-01-07T16:53:09Z">
+        <changelog><![CDATA[+ Port to Reaimgui
++ Allow to pass or filter keywords
++ Use 8 keywords blocks
++ Rightclick on text input reset field to defaults]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4a7bc3043209e65d5dcd772070a13b0c52696af3/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove MIDI learn from focused FX.lua" type="script" desc="Remove MIDI learn from focused FX">
