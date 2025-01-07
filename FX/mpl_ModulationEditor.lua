@@ -1,9 +1,10 @@
 -- @description ModulationEditor
--- @version 2.06
+-- @version 2.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Link: fix write MIDI link
+--    # Link: set default bus to 1
+--    + Link: add option to add link from recent list menu
 
 
 
@@ -32,6 +33,7 @@ EXT = {
         CONF_name = 'default',
         CONF_filtermode = 0,
         
+        recent_add_list = '',
       }
 -------------------------------------------------------------------------------- INIT data
 DATA = {
@@ -43,7 +45,7 @@ DATA = {
           msg1 = 176,
           msg2 = 1,
           chan = 0,
-          bus = 0
+          bus = 1,
         }
         }
         
@@ -530,6 +532,28 @@ function DATA:CollectData()
   DATA:CollectData_ExtState() 
   DATA:CollectData_ModState() 
   DATA:CollectData_ModStateSortByTS() 
+  
+  DATA:Parse_RecentList()
+end
+--------------------------------------------------------------------------------
+function DATA:Parse_RecentList()
+  local recent_add_list = DATA.PRESET_decBase64(EXT.recent_add_list)
+  DATA.recent_list = {}
+  for block in recent_add_list:gmatch('<(.-)>') do
+    local fxname,fxident,paramid,paramname = block:match('(.-)%|(.-)%|(.-)%|(.*)')
+    
+    if fxname then fxname = fxname:match('%=(.*)') end
+    if fxident then fxident = fxident:match('%=(.*)') end
+    if paramid then paramid = paramid:match('%=(.*)') end  if tonumber(paramid) then paramid = tonumber(paramid) end
+    if paramname then paramname = paramname:match('%=(.*)') end
+    
+    if fxname and paramid and fxident and paramname then 
+      DATA.recent_list[#DATA.recent_list+1] = 
+        {block=block,
+        fxname=fxname,fxident=fxident,paramid=paramid,paramname=paramname
+        }
+    end
+  end
 end
 -------------------------------------------------------------------------------- 
 function DATA:CollectData_Always()
@@ -1004,6 +1028,44 @@ function UI.draw_mods_link(t)
   if disabled==true then ImGui.EndDisabled(ctx) end
   ImGui.PopFont(ctx)   
 end
+-------------------------------------------------------------------------------- 
+function DATA.AddLinkFromList(ctrl_t, recentlist_entry) 
+  local track = VF_GetTrackByGUID(ctrl_t.trGUID)
+  if not track then return end
+  local fxident = recentlist_entry.fxname--fxident
+  local parm = recentlist_entry.paramid
+  if not fxident then return end
+  
+  local fxidx = TrackFX_AddByName( track, fxident, false, 1 )
+  
+  Undo_BeginBlock2( -1 )
+  ctrl_t.PMOD['plink.effect']=fxidx
+  ctrl_t.PMOD['plink.param']=parm
+  DATA:ApplyPMOD(ctrl_t)
+  Undo_EndBlock2( -1, 'Add link from last touched', 0xFFFFFFFF )
+  DATA.upd = true
+  
+  local retval, fx_ident = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_ident' )
+  local retval, fxname = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+  local retval, paramname = reaper.TrackFX_GetParamName( track, fxidx,parm )
+  
+  EXT.recent_add_list = DATA.PRESET_decBase64(EXT.recent_add_list)
+  EXT.recent_add_list = '<fxname='..fxname..'|fx_ident='..fx_ident..'|param='..parm..'|paramname='..paramname..'>;'..EXT.recent_add_list
+  EXT.recent_add_list = EXT.recent_add_list:sub(0,1000)
+  EXT.recent_add_list = DATA.PRESET_encBase64(EXT.recent_add_list)
+  EXT:save()
+  
+end
+  --------------------------------------------------
+  function VF_GetTrackByGUID(giv_guid, reaproj)
+    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
+    for i = 1, CountTracks(reaproj or -1) do
+      local tr = GetTrack(reaproj or -1,i-1)
+      --local GUID = reaper.GetTrackGUID( tr )
+      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
+    end
+  end
 --------------------------------------------------------------------------------  
 function UI.draw_mods_link_combo(t,str_id) 
   --if t.PMOD.fx_txt and ImGui.Button(ctx, t.PMOD.fx_txt..'##'..str_id..'plink_fx',-1,0) then DATA.AddLinkFromLastTouched(t) end
@@ -1013,6 +1075,18 @@ function UI.draw_mods_link_combo(t,str_id)
   if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo', txt, ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
     ImGui.SeparatorText(ctx, 'FX')
     if ImGui.Button( ctx, 'Add last touched') then DATA.AddLinkFromLastTouched(t) end
+    
+    -- recent list
+    if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo_reclist', 'RecentList', ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
+      for i = 1, #DATA.recent_list do
+        if ImGui.Selectable( ctx, DATA.recent_list[i].fxname..' / '..DATA.recent_list[i].paramname, nil, ImGui.SelectableFlags_None, 0, 0 ) then 
+          DATA.AddLinkFromList(t,DATA.recent_list[i])
+        end
+      end
+      ImGui.EndCombo( ctx)
+    end
+    
+    
     ImGui.SeparatorText(ctx, 'MIDI')
     local msg1_txt = tostring(DATA.addlinkmidi.msg1)
       :gsub(176, 'CC')
@@ -1023,7 +1097,7 @@ function UI.draw_mods_link_combo(t,str_id)
       :gsub(208, 'Channel pressure')
     
     -- type
-    if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo_type', msg1_txt, ImGui.ComboFlags_None ) then
+    if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo_type', msg1_txt, ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
       if ImGui.Selectable( ctx, 'CC', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 176 end
       if ImGui.Selectable( ctx, 'Note', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 144 end
       if ImGui.Selectable( ctx, 'Aftertouch', nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg1 = 160 end
@@ -1035,7 +1109,7 @@ function UI.draw_mods_link_combo(t,str_id)
     
     
     -- msg2
-    if ImGui.BeginCombo( ctx, 'msg2##'..str_id..'linkcombo_msg2', DATA.addlinkmidi.msg2, ImGui.ComboFlags_None ) then
+    if ImGui.BeginCombo( ctx, 'msg2##'..str_id..'linkcombo_msg2', DATA.addlinkmidi.msg2, ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
       for i = 1, 128 do
         if ImGui.Selectable( ctx, i, nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.msg2 = i end
       end
@@ -1043,7 +1117,7 @@ function UI.draw_mods_link_combo(t,str_id)
     end
 
     -- msg2
-    if ImGui.BeginCombo( ctx, 'Chan##'..str_id..'linkcombo_chan', DATA.addlinkmidi.chan, ImGui.ComboFlags_None ) then
+    if ImGui.BeginCombo( ctx, 'Chan##'..str_id..'linkcombo_chan', DATA.addlinkmidi.chan, ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
       for i = 0, 15 do
         if ImGui.Selectable( ctx, i, nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.chan = i end
       end
@@ -1051,7 +1125,7 @@ function UI.draw_mods_link_combo(t,str_id)
     end
     
     -- msg2
-    if ImGui.BeginCombo( ctx, 'Bus##'..str_id..'linkcombo_bus', DATA.addlinkmidi.bus, ImGui.ComboFlags_None ) then
+    if ImGui.BeginCombo( ctx, 'Bus##'..str_id..'linkcombo_bus', DATA.addlinkmidi.bus, ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
       for i = 0, 15 do
         if ImGui.Selectable( ctx, i, nil, ImGui.SelectableFlags_None, 0, 0 ) then DATA.addlinkmidi.bus = i end
       end
@@ -1088,6 +1162,16 @@ function DATA.AddLinkFromLastTouched(ctrl_t)
   DATA:ApplyPMOD(ctrl_t)
   Undo_EndBlock2( -1, 'Add link from last touched', 0xFFFFFFFF )
   DATA.upd = true
+  
+  local retval, fx_ident = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_ident' )
+  local retval, fxname = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+  local retval, paramname = reaper.TrackFX_GetParamName( track, fxidx,parm )
+  
+  EXT.recent_add_list = DATA.PRESET_decBase64(EXT.recent_add_list)
+  EXT.recent_add_list = '<fxname='..fxname..'|fx_ident='..fx_ident..'|param='..parm..'|paramname='..paramname..'>;'..EXT.recent_add_list
+  EXT.recent_add_list = EXT.recent_add_list:sub(0,1000)
+  EXT.recent_add_list = DATA.PRESET_encBase64(EXT.recent_add_list)
+  EXT:save()
 end
 --------------------------------------------------------------------------------  
 function UI.draw_mods_lfo(t)  
