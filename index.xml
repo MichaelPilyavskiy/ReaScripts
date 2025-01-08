@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="96779a6df6331b7bfaadb2484189bbf02d2a8858" name="MPL Scripts">
+<index version="1" commit="284388c0c9f2de6cf0583292aaf61b3ca9119a5e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13021,35 +13021,6 @@ various fixes]]></changelog>
 + Manipulate SE: add set gain tweak
 # Add SE: properly handle time selection outside item]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5d18b5360aaf1283df9afef94060cce7a0c054b/Various/mpl_Spectral%20editing%20tools.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Spectral search.lua" type="script" desc="Spectral search">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script allows to search audio data spectrum match based on given piece of other audio data\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-08-01T21:06:12Z">
-        <changelog><![CDATA[+ initial release
-+ Get source: take spectral print of selected track - item - take as matching source
-+ Get destination: take spectral print of selected track - item - take as matching destination
-+ Preset/Action: Share points to destination track as razor edits
-+ Preset: allow to clear razor edits before sharing
-+ Preset: Spectrum settings
-+ Preset/Spectrum settings: FFT size
-+ Preset/Spectrum settings: window, independent from FFT size, can overlap or be inside [0.5 x FFT size / Sample rate]
-+ Preset/PointsDetectionAlgorithm: allow to limit source length
-+ Preset/PointsDetectionAlgorithm: allow to set threshold for minimum difference betweeen src and dest
-+ Preset/Initialization: various init options
-+ GUI: show source
-+ GUI/Difference graph: show difference graph
-+ GUI/Difference graph: show points detection threshold]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Various/mpl_Spectral%20search.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
