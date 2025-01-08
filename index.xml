@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5bfa63e189411fdf7195e8c1bfd74cd2ce8d0cc1" name="MPL Scripts">
+<index version="1" commit="8a7a198b88ecd306db8a903847b759ca10113d96" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2067,22 +2067,6 @@
       </version>
       <version name="2.07" author="MPL" time="2024-12-22T20:48:57Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/17dc79260fd540d9c0b4536c5008daa3dea4143a/FX/mpl_InstrumentRack.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Item spacer.lua" type="script" desc="Item spacer">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Audiobook tool for spacing dialogg with the ability to set minimum items distance\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2024-09-01T09:02:39Z">
-        <changelog><![CDATA[+ Init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/282e9a9c00189c818eaffd20fc17b4b062500622/FX/mpl_Item%20spacer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
@@ -12205,22 +12189,6 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e1be82de925f458f6b535a63355beee404aa7291/Various/mpl_InteractiveToolbar_RefreshGUI.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Item spacer.lua" type="script" desc="Item spacer">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Audiobook tool for spacing dialogg with the ability to set minimum items distance\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-02-07T20:31:39Z">
-        <changelog><![CDATA[+ Init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd8dc9e3b4a5a525d0261a0a65e5b161867ca988/Various/mpl_Item%20spacer.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -13107,6 +13075,10 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2022-06-18T08:30:58Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60f134669c33e95856ccc8958e201d5989946801/Various/mpl_Transient%20shaper.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2025-01-08T08:27:25Z">
+        <changelog><![CDATA[+ Ported to ReaimGui]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a7a198b88ecd306db8a903847b759ca10113d96/Various/mpl_Transient%20shaper.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Visual Mixer.lua" type="script" desc="VisualMixer">
