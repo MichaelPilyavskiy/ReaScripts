@@ -1,71 +1,378 @@
 -- @description Transient shaper
--- @version 1.0
+-- @version 2.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    + Ported to ReaimGui
 
  
-  -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
-   DATA2 = {}
-  ---------------------------------------------------------------------  
-  function main()
-    if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.00
-    DATA.extstate.extstatesection = 'MPLEBTRANSSHAPE'
-    DATA.extstate.mb_title = 'MPL Transient shaper'
-    DATA.extstate.default = 
-                          {  
-                          wind_x =  100,
-                          wind_y =  100,
-                          wind_w =  300,
-                          wind_h =  153,
-                          dock =    0,
-                          
-                          CONF_NAME = 'default',
-                          CONF_mode = 0,
-                          
-                          --CONF_attack_sec = 0,
-                          CONF_attack_khsTS = 0,
-                          CONF_pump_khsTS = 0,
-                          CONF_sustain_khsTS = 0,
-                          CONF_rate_khsTS = 1,
-                          
-                          -- UI
-                          UI_appatchange = 0, 
-                          UI_enableshortcuts = 0,
-                          UI_initatmouse = 0,
-                          UI_showtooltips = 1,
-                          UI_groupflags = 0,
-                          UI_processoninit = 0,
-                          
-                          }
-                          
-    DATA:ExtStateGet()
-    DATA:ExtStateGetPresets()  
-    if DATA.extstate.UI_initatmouse&1==1 then
-      local w = DATA.extstate.wind_w
-      local h = DATA.extstate.wind_h 
-      local x, y = GetMousePosition()
-      DATA.extstate.wind_x = x-w/2
-      DATA.extstate.wind_y = y-h/2
-    end
+  --------------------------------------------------------------------------------  init globals
+    for key in pairs(reaper) do _G[key]=reaper[key] end
+    app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
+    if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
+    local ImGui
     
-    DATA:GUIinit()
-    GUI_RESERVED_init(DATA)
-    RUN()
+    if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+    package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+    ImGui = require 'imgui' '0.9.3.2'
+    
+    
+    
+  -------------------------------------------------------------------------------- init external defaults 
+  EXT = {
+          viewport_posX = 10,
+          viewport_posY = 10,
+          viewport_posW = 640,
+          viewport_posH = 480, 
+          
+          CONF_attack_khsTS = 0,
+          CONF_pump_khsTS = 0,
+          CONF_sustain_khsTS = 0,
+          CONF_rate_khsTS = 1,
+        }
+  -------------------------------------------------------------------------------- INIT data
+  DATA = {
+          ES_key = 'MPLEBTRANSSHAPE',
+          UI_name = 'Transient shaper', 
+          upd = true, 
+          }
+          
+  -------------------------------------------------------------------------------- INIT UI locals
+  for key in pairs(reaper) do _G[key]=reaper[key] end 
+  --local ctx
+  -------------------------------------------------------------------------------- UI init variables
+    UI = {
+            -- font
+              font='Arial',
+              font1sz=15,
+            -- mouse
+              hoverdelay = 0.8,
+              hoverdelayshort = 0.8,
+            -- size / offset
+              spacingX = 4,
+              spacingY = 3,
+            -- colors / alpha
+              main_col = 0x7F7F7F, -- grey
+              textcol = 0xFFFFFF,
+              textcol_a_enabled = 1,
+              textcol_a_disabled = 0.5,
+              but_hovered = 0x878787,
+              windowBg = 0x303030,
+          }
+ --[[   UI.font2sz=14
+    UI.font3sz=12
+  -- special 
+    UI.butBg_green = 0x00B300
+    UI.butBg_red = 0xB31F0F
+  
+  -- MP
+  -- size
+    UI.main_butw = 150
+    UI.main_butclosew = 20
+    UI.main_buth = 40
+    UI.flowchildW = 600
+    UI.flowchildH = UI.main_buth*8
+    UI.plotW = UI.flowchildW - 200
+    UI.plotH = UI.main_buth
+  ]]
+  
+  
+  
+  
+  
+  
+  
+  function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
+  -------------------------------------------------------------------------------- 
+  function ImGui.PushStyle(key, value, value2)  
+    if not (ctx and key and value) then return end
+    local iscol = key:match('Col_')~=nil
+    local keyid = ImGui[key]
+    if not iscol then 
+      ImGui.PushStyleVar(ctx, keyid, value, value2)
+      if not UI.pushcnt_var then UI.pushcnt_var = 0 end
+      UI.pushcnt_var = UI.pushcnt_var + 1
+    else 
+      if not value2 then
+        ReaScriptError( key ) 
+       else
+        ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
+        if not UI.pushcnt_col then UI.pushcnt_col = 0 end
+        UI.pushcnt_col = UI.pushcnt_col + 1
+      end
+    end 
   end
-  ---------------------------------------------------------------------  
-  function DATA2:Process_GetItems()
-    DATA2.items = {}
+  -------------------------------------------------------------------------------- 
+  function ImGui.PopStyle_var()  
+    if not (ctx) then return end
+    ImGui.PopStyleVar(ctx, UI.pushcnt_var)
+    UI.pushcnt_var = 0
+  end
+  -------------------------------------------------------------------------------- 
+  function ImGui.PopStyle_col()  
+    if not (ctx) then return end
+    ImGui.PopStyleColor(ctx, UI.pushcnt_col)
+    UI.pushcnt_col = 0
+  end 
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_styledefinition(open)  
+    
+    -- window_flags
+      local window_flags = ImGui.WindowFlags_None
+      --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
+      window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
+      --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
+      --window_flags = window_flags | ImGui.WindowFlags_NoMove()
+      --window_flags = window_flags | ImGui.WindowFlags_NoResize
+      window_flags = window_flags | ImGui.WindowFlags_NoCollapse
+      --window_flags = window_flags | ImGui.WindowFlags_NoNav()
+      --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
+      window_flags = window_flags | ImGui.WindowFlags_NoDocking
+      window_flags = window_flags | ImGui.WindowFlags_TopMost
+      window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
+      --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings()
+      --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
+      --open = false -- disable the close button
+    
+    
+      -- rounding
+        ImGui.PushStyle('StyleVar_FrameRounding',5)   
+        ImGui.PushStyle('StyleVar_GrabRounding',3)  
+        ImGui.PushStyle('StyleVar_WindowRounding',10)  
+        ImGui.PushStyle('StyleVar_ChildRounding',5)  
+        ImGui.PushStyle('StyleVar_PopupRounding',0)  
+        ImGui.PushStyle('StyleVar_ScrollbarRounding',9)  
+        ImGui.PushStyle('StyleVar_TabRounding',4)   
+      -- Borders
+        ImGui.PushStyle('StyleVar_WindowBorderSize',0)  
+        ImGui.PushStyle('StyleVar_FrameBorderSize',0) 
+      -- spacing
+        ImGui.PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
+        ImGui.PushStyle('StyleVar_FramePadding',10,UI.spacingY) 
+        ImGui.PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
+        ImGui.PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
+        ImGui.PushStyle('StyleVar_ItemInnerSpacing',4,0)
+        ImGui.PushStyle('StyleVar_IndentSpacing',20)
+        ImGui.PushStyle('StyleVar_ScrollbarSize',10)
+      -- size
+        ImGui.PushStyle('StyleVar_GrabMinSize',20)
+        ImGui.PushStyle('StyleVar_WindowMinSize',w_min,h_min)
+      -- align
+        ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
+        ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
+      -- alpha
+        ImGui.PushStyle('StyleVar_Alpha',0.98)
+        ImGui.PushStyle('Col_Border',UI.main_col, 0.3)
+      -- colors
+        ImGui.PushStyle('Col_Button',UI.main_col, 0.2) --0.3
+        ImGui.PushStyle('Col_ButtonActive',UI.main_col, 1) 
+        ImGui.PushStyle('Col_ButtonHovered',UI.but_hovered, 0.8)
+        ImGui.PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
+        ImGui.PushStyle('Col_FrameBg',0x1F1F1F, 0.7)
+        ImGui.PushStyle('Col_FrameBgActive',UI.main_col, .6)
+        ImGui.PushStyle('Col_FrameBgHovered',UI.main_col, 0.7)
+        ImGui.PushStyle('Col_Header',UI.main_col, 0.5) 
+        ImGui.PushStyle('Col_HeaderActive',UI.main_col, 1) 
+        ImGui.PushStyle('Col_HeaderHovered',UI.main_col, 0.98) 
+        ImGui.PushStyle('Col_PopupBg',0x303030, 0.9) 
+        ImGui.PushStyle('Col_ResizeGrip',UI.main_col, 1) 
+        ImGui.PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
+        ImGui.PushStyle('Col_SliderGrab',UI.butBg_green, 0.4) 
+        ImGui.PushStyle('Col_Tab',UI.main_col, 0.37) 
+        ImGui.PushStyle('Col_TabHovered',UI.main_col, 0.8) 
+        ImGui.PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
+        ImGui.PushStyle('Col_TitleBg',UI.main_col, 0.7) 
+        ImGui.PushStyle('Col_TitleBgActive',UI.main_col, 0.95) 
+        ImGui.PushStyle('Col_WindowBg',UI.windowBg, 1)
+      
+    -- We specify a default position/size in case there's no data in the .ini file.
+      local main_viewport = ImGui.GetMainViewport(ctx)
+      local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      ImGui.SetNextWindowSize(ctx, 300, 150, ImGui.Cond_Appearing)
+      
+      
+    -- init UI 
+      ImGui.PushFont(ctx, DATA.font1) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+      if rv then
+        local Viewport = ImGui.GetWindowViewport(ctx)
+        DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
+        DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
+        DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
+        
+      -- calc stuff for childs
+        UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
+        local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
+        local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
+        UI.calc_itemH = calcitemh + frameh * 2
+        
+      -- draw stuff
+        UI.draw()
+        ImGui.Dummy(ctx,0,0) 
+        ImGui.PopStyle_var() 
+        ImGui.PopStyle_col() 
+        ImGui.End(ctx)
+       else
+        ImGui.PopStyle_var() 
+        ImGui.PopStyle_col() 
+      end 
+      ImGui.PopFont( ctx ) 
+      if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
+    
+      return open
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_UIloop() 
+    DATA.clock = os.clock() 
+    DATA:handleProjUpdates()
+    DATA.flicker = math.abs(-1+(math.cos(math.pi*(DATA.clock%2)) + 1))
+    
+    --if DATA.upd == true then  DATA:CollectData()  end 
+    DATA.upd = false
+    
+    -- draw UI
+    UI.open = UI.MAIN_styledefinition(true) 
+    
+    -- handle xy
+    DATA:handleViewportXYWH()
+    -- data
+    if UI.open then defer(UI.MAIN_UIloop) end
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_definecontext()
+    
+    EXT:load() 
+    
+    -- imgUI init
+    ctx = ImGui.CreateContext(DATA.UI_name) 
+    -- fonts
+    DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
+    --DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
+    --DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
+    -- config
+    ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
+    ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
+    
+    
+    -- run loop
+    defer(UI.MAIN_UIloop)
+  end
+  -------------------------------------------------------------------------------- 
+  function EXT:save() 
+    if not DATA.ES_key then return end 
+    for key in pairs(EXT) do 
+      if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
+        SetExtState( DATA.ES_key, key, EXT[key], true  ) 
+      end 
+    end 
+    EXT:load()
+  end
+  -------------------------------------------------------------------------------- 
+  function EXT:load() 
+    if not DATA.ES_key then return end
+    for key in pairs(EXT) do 
+      if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
+        if HasExtState( DATA.ES_key, key ) then 
+          local val = GetExtState( DATA.ES_key, key ) 
+          EXT[key] = tonumber(val) or val 
+        end 
+      end  
+    end 
+    DATA.upd = true
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:handleViewportXYWH()
+    if not (DATA.display_x and DATA.display_y) then return end 
+    if not DATA.display_x_last then DATA.display_x_last = DATA.display_x end
+    if not DATA.display_y_last then DATA.display_y_last = DATA.display_y end
+    if not DATA.display_w_last then DATA.display_w_last = DATA.display_w end
+    if not DATA.display_h_last then DATA.display_h_last = DATA.display_h end
+    
+    if  DATA.display_x_last~= DATA.display_x 
+      or DATA.display_y_last~= DATA.display_y 
+      or DATA.display_w_last~= DATA.display_w 
+      or DATA.display_h_last~= DATA.display_h 
+      then 
+      DATA.display_schedule_save = os.clock() 
+    end
+    if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.3 then 
+      EXT.viewport_posX = DATA.display_x
+      EXT.viewport_posY = DATA.display_y
+      EXT.viewport_posW = DATA.display_w
+      EXT.viewport_posH = DATA.display_h
+      EXT:save() 
+      DATA.display_schedule_save = nil 
+    end
+    DATA.display_x_last = DATA.display_x
+    DATA.display_y_last = DATA.display_y
+    DATA.display_w_last = DATA.display_w
+    DATA.display_h_last = DATA.display_h
+  end
+  ---------------------------------------------------
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  ------------------------------------------------------------------------------------------------------
+  function VF_math_Qdec(num, pow) if not pow then pow = 3 end return math.floor(num * 10^pow) / 10^pow end
+  -------------------------------------------------------------------------------- 
+  function DATA:handleProjUpdates()
+    local SCC =  GetProjectStateChangeCount( 0 ) if (DATA.upd_lastSCC and DATA.upd_lastSCC~=SCC ) then DATA.upd = true end  DATA.upd_lastSCC = SCC
+    local editcurpos =  GetCursorPosition()  if (DATA.upd_last_editcurpos and DATA.upd_last_editcurpos~=editcurpos ) then DATA.upd = true end DATA.upd_last_editcurpos=editcurpos 
+    local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true end DATA.upd_last_reaproj = reaproj
+  end
+  ------------------------------------------------------------------------------------------------------
+  function vars_form_def(f) if f then return (VF_math_Qdec(f,2)*100)..'%%' else return '' end end
+  function vars_formrev_def(v) return tonumber(v)/100 end
+  --------------------------------------------------------------------------------  
+  function UI.draw()  
+    local retval, v = ImGui.SliderDouble( ctx, 'Attack', EXT.CONF_attack_khsTS, -1, 1, vars_form_def(EXT.CONF_attack_khsTS), ImGui.SliderFlags_None )
+    if retval then EXT.CONF_attack_khsTS = v EXT:save() DATA:Process_SetItemsEnvelopes() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA:Process_GetItems() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then EXT.CONF_attack_khsTS = EXT_defaults.CONF_attack_khsTS EXT:save() DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+    if ImGui.IsItemDeactivated( ctx )  then DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+    
+    local retval, v = ImGui.SliderDouble( ctx, 'Pump', EXT.CONF_pump_khsTS, -1, 1, vars_form_def(EXT.CONF_pump_khsTS), ImGui.SliderFlags_None )
+    if retval then EXT.CONF_pump_khsTS = v EXT:save() DATA:Process_SetItemsEnvelopes() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA:Process_GetItems() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then EXT.CONF_pump_khsTS = EXT_defaults.CONF_pump_khsTS EXT:save() DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+    if ImGui.IsItemDeactivated( ctx )  then DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+        
+    local retval, v = ImGui.SliderDouble( ctx, 'Sustain', EXT.CONF_sustain_khsTS, -1, 1, vars_form_def(EXT.CONF_sustain_khsTS), ImGui.SliderFlags_None )
+    if retval then EXT.CONF_sustain_khsTS = v EXT:save() DATA:Process_SetItemsEnvelopes() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA:Process_GetItems() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then EXT.CONF_sustain_khsTS = EXT_defaults.CONF_sustain_khsTS EXT:save() DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+    if ImGui.IsItemDeactivated( ctx )  then DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+    
+    local retval, v = ImGui.SliderDouble( ctx, 'Rate', EXT.CONF_rate_khsTS, -1, 1, vars_form_def(EXT.CONF_rate_khsTS), ImGui.SliderFlags_None )
+    if retval then EXT.CONF_rate_khsTS = v EXT:save() DATA:Process_SetItemsEnvelopes() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA:Process_GetItems() end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then EXT.CONF_rate_khsTS = EXT_defaults.CONF_rate_khsTS EXT:save() DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' )end
+    if ImGui.IsItemDeactivated( ctx )  then DATA:Process_SetItemsEnvelopes() Undo_OnStateChange2( 0, 'mpl_Transient shaper' ) end
+    
+  end
+  
+  function DATA:Process_GetItems() 
+    DATA.items = {}
     for i = 1, CountSelectedMediaItems(0) do
       local it = GetSelectedMediaItem(0,i-1)
       local tk = GetActiveTake(it)
       if tk then 
         local env_ptr = reaper.GetTakeEnvelopeByName( tk, 'Volume' )
         if not env_ptr then 
-          DATA2:Process_ActivateTakeVolEnvelope(it,tk)
+          DATA:Process_ActivateTakeVolEnvelope(it,tk)
           local env_ptr = reaper.GetTakeEnvelopeByName( tk, 'Volume' )
           DeleteEnvelopePointRangeEx( env_ptr, -1, 0, math.huge )
           SetEnvelopePointEx( env_ptr, -1, 0, 
@@ -78,7 +385,7 @@
           Envelope_SortPointsEx( env_ptr, -1 )
         end
         if env_ptr then
-          DATA2.items[#DATA2.items+1] = {
+          DATA.items[#DATA.items+1] = {
                           it_ptr = it,
                           tk_ptr = tk,
                           transients = {0},
@@ -88,10 +395,10 @@
         end
       end
     end
-    DATA2.getstate = true
+    DATA.getstate = true
   end
   ------------------------------------------------------------------------------------------------------
-  function DATA2:Process_ActivateTakeVolEnvelope(item,take)
+  function DATA:Process_ActivateTakeVolEnvelope(item,take)
     local ID = GetMediaItemTakeInfo_Value( take, 'IP_TAKENUMBER' )
     if not item then return end
     -- get
@@ -121,7 +428,7 @@
         
 tk_env_chunk = [[       
 <VOLENV
-EGUID {]]..genGuid( )..[[}
+EGUID {] ]..genGuid( )..[[}
 ACT 1 -1
 VIS 1 1 1
 LANEHEIGHT 0 0
@@ -139,15 +446,18 @@ PT 0 1 0
     SetItemStateChunk( item, out_chunk, false )
     UpdateItemInProject( item )
   end
+  
+  ------------------------------------------------------------------------------------------------------
+  function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h  
   ------------------------------------------------------------------------------------------  
-  function DATA2:Process_SetItemsEnvelopes()
+  function DATA:Process_SetItemsEnvelopes()
     local attack_max = 0.1 -- at negative attack
     local linear_zero = WDL_DB2VAL(0)
     local pump_mid_pos = 0.1
     
-    if not DATA2.items then return end
-    for i = 1, #DATA2.items do
-      local env = DATA2.items[i]. env_ptr
+    if not DATA.items then return end
+    for i = 1, #DATA.items do
+      local env = DATA.items[i]. env_ptr
       local scaling_mode = GetEnvelopeScalingMode( env )
       local linear_zero_scaled = ScaleToEnvelopeMode( scaling_mode, linear_zero )
       DeleteEnvelopePointRangeEx( env, -1, 0, math.huge )
@@ -163,11 +473,11 @@ PT 0 1 0
       
       -- attack
         local attacktime_s
-        if DATA.extstate.CONF_attack_khsTS <0 then attacktime_s = math.abs(DATA.extstate.CONF_attack_khsTS)*attack_max else attacktime_s = 10*10^-14 end
+        if EXT.CONF_attack_khsTS <0 then attacktime_s = math.abs(EXT.CONF_attack_khsTS)*attack_max else attacktime_s = 10*10^-14 end
         local attack_val = ScaleToEnvelopeMode( scaling_mode, linear_zero )
-        if DATA.extstate.CONF_attack_khsTS >=0 then attack_val = ScaleToEnvelopeMode( scaling_mode, 1+DATA.extstate.CONF_attack_khsTS ) end
+        if EXT.CONF_attack_khsTS >=0 then attack_val = ScaleToEnvelopeMode( scaling_mode, 1+EXT.CONF_attack_khsTS ) end
         InsertEnvelopePointEx( env, -1, 
-          DATA.extstate.CONF_rate_khsTS*attacktime_s, --pos
+          EXT.CONF_rate_khsTS*attacktime_s, --pos
           attack_val,--valueIn, 
           3,--shapeIn, 
           -0.05,--tensionIn, 
@@ -176,8 +486,8 @@ PT 0 1 0
       
       --pump_mid_pos
         InsertEnvelopePointEx( env, -1, 
-          DATA.extstate.CONF_rate_khsTS*(attacktime_s + pump_mid_pos), --pos
-          ScaleToEnvelopeMode( scaling_mode, linear_zero+DATA.extstate.CONF_pump_khsTS ),--valueIn, 
+          EXT.CONF_rate_khsTS*(attacktime_s + pump_mid_pos), --pos
+          ScaleToEnvelopeMode( scaling_mode, linear_zero+EXT.CONF_pump_khsTS ),--valueIn, 
           2,--shapeIn, 
           0,--tensionIn, 
           1,--selectedIn, 
@@ -185,8 +495,8 @@ PT 0 1 0
       
       -- sustain
         InsertEnvelopePointEx( env, -1, 
-          DATA.extstate.CONF_rate_khsTS*(attacktime_s + pump_mid_pos*2), --pos
-          ScaleToEnvelopeMode( scaling_mode, linear_zero+DATA.extstate.CONF_sustain_khsTS ),--valueIn, 
+          EXT.CONF_rate_khsTS*(attacktime_s + pump_mid_pos*2), --pos
+          ScaleToEnvelopeMode( scaling_mode, linear_zero+EXT.CONF_sustain_khsTS ),--valueIn, 
           0,--shapeIn, 
           0,--tensionIn, 
           0,--selectedIn, 
@@ -197,220 +507,10 @@ PT 0 1 0
     
     
   end
-  ---------------------------------------------------------------------  
-  function GUI_RESERVED_init_knob(DATA, t)
-    local function vars_form_def(f) if f then return (VF_math_Qdec(f,2)*100)..'%' else return '' end end
-    local function vars_formrev_def(v) return tonumber(v)/100 end
-    if not t.vars_form then t.vars_form = vars_form_def end
-    if not t.vars_formrev then t.vars_formrev = vars_formrev_def end
-    DATA.GUI.buttons[t.key] = { x=t.x,
-                          y=t.y,
-                          w=t.w,
-                          h=t.h,
-                          txt = t.key..': '..t.vars_form(DATA.extstate[t.confval]),
-                          knob_isknob = true,
-                          knob_showvalueright = true,
-                          val_res = 0.25,
-                          val = DATA.extstate[t.confval],
-                          frame_a = DATA.GUI.default_framea_normal,
-                          val_min = t.val_min,
-                          val_max = t.val_max,
-                          frame_asel = DATA.GUI.default_framea_normal,
-                          back_sela = 0,
-                          onmouseclick =    function() DATA2:Process_GetItems() end,
-                          onmousedrag =     function() 
-                              DATA.extstate[t.confval] = DATA.GUI.buttons[t.key].val
-                              DATA.GUI.buttons[t.key].txt = t.key..': '..t.vars_form(DATA.extstate[t.confval])
-                              DATA2:Process_SetItemsEnvelopes()
-                              DATA.GUI.buttons[t.key].refresh = true
-                            end,
-                          onmouserelease  = function() 
-                              DATA.GUI.buttons[t.key].txt = t.key..': '..t.vars_form(DATA.extstate[t.confval])
-                              DATA.extstate[t.confval] = DATA.GUI.buttons[t.key].val 
-                              DATA2:Process_SetItemsEnvelopes()
-                              Undo_OnStateChange2( 0, 'mpl_Envelope based transient shaper' )  
-                              DATA.GUI.buttons[t.key].refresh = true
-                              DATA.UPD.onconfchange = true
-                            end,
-                          onmousereleaseR  = function() 
-                            local retval, retvals_csv = GetUserInputs(t.key, 1, '', t.vars_form(DATA.extstate[t.confval]))
-                            if not retval then return end
-                            
-                            local val  = retvals_csv:match('[%d%.%-]+')
-                            if not val then return end
-                            val =tonumber(val)
-                            if not val then return end
-                            val =t.vars_formrev(val)
-                            
-                            DATA.extstate[t.confval] = val 
-                            DATA.UPD.onconfchange = true
-                            DATA.GUI.buttons[t.key].val = val
-                            DATA.GUI.buttons[t.key].txt = t.key..': '..t.vars_form(DATA.extstate[t.confval])
-                            DATA.GUI.buttons[t.key].refresh = true
-                            DATA2:Process_SetItemsEnvelopes()
-                            Undo_OnStateChange2( 0, 'mpl_Envelope based transient shaper' ) 
-                          end ,
-                          onmousedoubleclick =   function() --reset
-                                                  val = t.default_val 
-                                                  DATA.extstate[t.confval] = t.default_val 
-                                                  DATA.UPD.onconfchange = true
-                                                  DATA.GUI.buttons[t.key].val = val
-                                                  DATA.GUI.buttons[t.key].txt = t.key..': '..t.vars_form(DATA.extstate[t.confval])
-                                                  DATA.GUI.buttons[t.key].refresh = true
-                                                  DATA2:Process_SetItemsEnvelopes()
-                                                  Undo_OnStateChange2( 0, 'mpl_Envelope based transient shaper' ) 
-                                              end,
-                          onwheeltrig = function() 
-                                          --[[local mult = 0
-                                          if not DATA.GUI.wheel_trig then return end
-                                          if DATA.GUI.wheel_dir then mult =1 else mult = -1 end
-                                          if not DATA2.getstate then DATA2:Process_GetItems()   end
-                                          DATA2.val1 = VF_lim(DATA2.val1 - 0.01*mult, 0,1)
-                                          DATA.GUI.buttons[t.key].txt = 100*VF_math_Qdec(DATA2.val1,2)..'%'
-                                          DATA.GUI.buttons[t.key].val  = DATA2.val1
-                                          if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
-                                            DATA2:Execute() 
-                                            Undo_OnStateChange2( 0, 'QuantizeTool' )  
-                                          end 
-                                          DATA.GUI.buttons[t.key].refresh = true
-                                          DATA.UPD.onconfchange = true]]
-                                        end
-                        }   
-  end
-  ---------------------------------------------------------------------  
-  function GUI_RESERVED_init(DATA)
-    --DATA.GUI.default_scale = 2
-    
-    -- init main stuff
-      DATA.GUI.custom_mainbuth = 30*DATA.GUI.default_scale
-      DATA.GUI.custom_texthdef = 23
-      DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
-      DATA.GUI.custom_mainsepx = gfx.w/DATA.GUI.default_scale--(gfx.w/DATA.GUI.default_scale)*0.4-- *DATA.GUI.default_scale--400*DATA.GUI.default_scale--
-      DATA.GUI.custom_mainbutw = gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*2 --(gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*3
-      DATA.GUI.custom_scrollw = 10
-      DATA.GUI.custom_frameascroll = 0.05
-      DATA.GUI.custom_default_framea_normal = 0.1
-      DATA.GUI.custom_spectralw = DATA.GUI.custom_mainbutw*3 + DATA.GUI.custom_offset*2
-      DATA.GUI.custom_datah = (gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset*3) 
-    
-    -- shortcuts
-      DATA.GUI.shortcuts[32] = function() VF_Action(40044) end -- space to transport play
-    
-      DATA.GUI.buttons = {} 
-      local knobw = (DATA.GUI.custom_mainbutw)
-      
-      --[[
-      function vars_form_attack(f) if f then return math.floor(1000*  VF_math_Qdec(2*f^2,3)   )..'ms' else return '' end end
-      function vars_formrev_attack(v) return math.sqrt((tonumber(v)/1000)/2) end
-      function vars_form_attack(f) if f then return math.floor(1000*  VF_math_Qdec(2*f^2,3)   )..'ms' else return '' end end
-      function vars_formrev_attack(v) return math.sqrt((tonumber(v)/1000)/2) end
-      function vars_form_pump(f) if f then return VF_math_Qdec(f,2)..'dB' else return '' end end
-      function vars_formrev_pump(v) return tonumber(v) end
-      function vars_form_sustain(f) if f then return VF_math_Qdec(f,2)..'dB' else return '' end end
-      function vars_formrev_sustain(v) return tonumber(v) end
-      function vars_form_rate(f) if f then return VF_math_Qdec(f,2)..'x' else return '' end end
-      function vars_formrev_rate(v) return tonumber(v) end
-      ]]
-      -- attack
-      GUI_RESERVED_init_knob(DATA, {key = 'Attack',
-                                    confval = 'CONF_attack_khsTS',
-                                    default_val = 0,
-                                    val_min = -1,
-                                    val_max = 1,
-                                    x=DATA.GUI.custom_offset,
-                                    y=DATA.GUI.custom_offset,
-                                    w =knobw,
-                                    h=DATA.GUI.custom_mainbuth,
-                                    vars_form = vars_form_attack,
-                                    vars_formrev =vars_formrev_attack,
-                                    })
-      -- pump
-      GUI_RESERVED_init_knob(DATA, {key = 'Pump',
-                                    confval = 'CONF_pump_khsTS',
-                                    default_val = 0,
-                                    val_min = -1,
-                                    val_max = 1,
-                                    x=DATA.GUI.custom_offset,
-                                    y=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbuth,
-                                    w =knobw,
-                                    h=DATA.GUI.custom_mainbuth,
-                                    vars_form = vars_form_pump,
-                                    vars_formrev =vars_formrev_pump,
-                                    })    
-
-      -- sustain
-      GUI_RESERVED_init_knob(DATA, {key = 'Sustain',
-                                    confval = 'CONF_sustain_khsTS',
-                                    default_val = 0,
-                                    val_min = -1,
-                                    val_max = 1,
-                                    x=DATA.GUI.custom_offset,
-                                    y=DATA.GUI.custom_offset*3+DATA.GUI.custom_mainbuth*2,
-                                    w =knobw,
-                                    h=DATA.GUI.custom_mainbuth,
-                                    vars_form = vars_form_sustain,
-                                    vars_formrev =vars_formrev_sustain,
-                                    })                                       
-      -- speed
-      GUI_RESERVED_init_knob(DATA, {key = 'Rate',
-                                    confval = 'CONF_rate_khsTS',
-                                    default_val = 0,
-                                    val_min = 0,25,
-                                    val_max = 2,
-                                    x=DATA.GUI.custom_offset,
-                                    y=DATA.GUI.custom_offset*4+DATA.GUI.custom_mainbuth*3,
-                                    w =knobw,
-                                    h=DATA.GUI.custom_mainbuth,
-                                    vars_form = vars_form_rate,
-                                    vars_formrev =vars_formrev_rate,
-                                    })   
-                                    
-                                    
-      --[[DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset,
-                            y=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbuth,
-                            w=DATA.GUI.custom_mainbutw,
-                            h=DATA.GUI.custom_mainbuth,
-                            txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
-                            txt_short = (DATA.extstate.CONF_NAME or '[untitled]'),
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
-                            onmouseclick =  function() DATA:GUIbut_preset() end}     ]]  
-                            
-
-      Rsettings_y = DATA.GUI.custom_offset*4+DATA.GUI.custom_mainbuth*4
-      Rsettings_h = gfx.h/DATA.GUI.default_scale-  Rsettings_y
-      DATA.GUI.buttons.Rsettings = { x=0,
-                            y= Rsettings_y,
-                            w=DATA.GUI.custom_mainsepx,
-                            h=Rsettings_h,
-                            txt = '',
-                            --txt_fontsz = DATA.GUI.default_txt_fontsz3,
-                            frame_a = 0,
-                            --offsetframe = DATA.GUI.custom_offset,
-                            --offsetframe_a = 0.1,
-                            ignoremouse = true,
-                            }
-      DATA:GUIBuildSettings()
-      
-    for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
-  end 
-  ---------------------------------------------------------------------  
-  function GUI_RESERVED_BuildSettings(DATA)
-    local readoutw_extw = (gfx.w/DATA.GUI.default_scale)*0.7*DATA.GUI.default_scale
-    local SR_spls =tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
-    
-                          
-    local  t = 
-    {
-      {str = 'Mode' ,                          group = 1, itype = 'readout', confkey = 'CONF_mode', level = 0, menu={[0]='kiloHearts Transient Shaper'},readoutw_extw = readoutw_extw},
-          -----------------------------------------  
-          
-    } 
-    return t
-    
-  end
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.16) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  ----------------------------------------------------------------------------------------- 
+  function main() 
+    EXT_defaults = CopyTable(EXT)
+    UI.MAIN_definecontext() 
+  end  
+  -----------------------------------------------------------------------------------------
+  main()
