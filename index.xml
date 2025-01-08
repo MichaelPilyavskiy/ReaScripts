@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="904b573dc64795369e1afe3f3aa0a546f5a8bf6c" name="MPL Scripts">
+<index version="1" commit="96779a6df6331b7bfaadb2484189bbf02d2a8858" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12836,6 +12836,11 @@ various fixes]]></changelog>
       <version name="1.05" author="MPL" time="2024-12-07T04:51:03Z">
         <changelog><![CDATA[+ add option to set note off]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b7f7e8583c7f59f458a2baa4f2c40a5c425a377/Various/mpl_Sampling%20tool.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2025-01-08T20:29:17Z">
+        <changelog><![CDATA[+ Ported to ReaImGui
+- Removed schedule mode, not really stable]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/96779a6df6331b7bfaadb2484189bbf02d2a8858/Various/mpl_Sampling%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_SendFader (background).lua" type="script" desc="SendFader">
