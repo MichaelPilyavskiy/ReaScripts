@@ -1,10 +1,9 @@
 -- @description ModulationEditor
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Link: set default bus to 1
---    + Link: add option to add link from recent list menu
+--    + Link: add option to add MIDI link from recent list menu
 
 
 
@@ -34,6 +33,7 @@ EXT = {
         CONF_filtermode = 0,
         
         recent_add_list = '',
+        recent_add_listMIDI = '',
       }
 -------------------------------------------------------------------------------- INIT data
 DATA = {
@@ -554,6 +554,24 @@ function DATA:Parse_RecentList()
         }
     end
   end
+  
+  local recent_add_listMIDI = DATA.PRESET_decBase64(EXT.recent_add_listMIDI)
+  DATA.recent_listMIDI = {}
+  for block in recent_add_listMIDI:gmatch('<(.-)>') do
+    local msg1,msg2,chan,bus = block:match('(.-)%|(.-)%|(.-)%|(.*)')
+    
+    if msg1 then msg1 = msg1:match('%=(.*)') end
+    if msg2 then msg2 = msg2:match('%=(.*)') end
+    if chan then chan = chan:match('%=(.*)') end
+    if bus then bus = bus:match('%=(.*)') end
+    
+    if msg1 and msg2 and chan and bus then 
+      DATA.recent_listMIDI[#DATA.recent_listMIDI+1] = 
+        {block=block,
+        msg1=msg1,msg2=msg2,chan=chan,bus=bus
+        }
+    end
+  end
 end
 -------------------------------------------------------------------------------- 
 function DATA:CollectData_Always()
@@ -1053,6 +1071,12 @@ function DATA.AddLinkFromList(ctrl_t, recentlist_entry)
   EXT.recent_add_list = '<fxname='..fxname..'|fx_ident='..fx_ident..'|param='..parm..'|paramname='..paramname..'>;'..EXT.recent_add_list
   EXT.recent_add_list = EXT.recent_add_list:sub(0,1000)
   EXT.recent_add_list = DATA.PRESET_encBase64(EXT.recent_add_list)
+  
+  EXT.recent_add_listMIDI = DATA.PRESET_decBase64(EXT.recent_add_listMIDI)
+  EXT.recent_add_listMIDI = '<msg1='..msg1..'|msg2='..msg2..'|chan='..chan..'|bus='..bus..'>;'..EXT.recent_add_listMIDI
+  EXT.recent_add_listMIDI = EXT.recent_add_listMIDI:sub(0,1000)
+  EXT.recent_add_listMIDI = DATA.PRESET_encBase64(EXT.recent_add_listMIDI)
+  
   EXT:save()
   
 end
@@ -1140,7 +1164,46 @@ function UI.draw_mods_link_combo(t,str_id)
       t.PMOD['plink.effect'] = -100
       DATA:ApplyPMOD(t) 
       DATA.upd = true
+      
+      EXT.recent_add_listMIDI = DATA.PRESET_decBase64(EXT.recent_add_listMIDI)
+      EXT.recent_add_listMIDI = '<msg1='..DATA.addlinkmidi.msg1..'|msg2='..DATA.addlinkmidi.msg2..'|chan='..DATA.addlinkmidi.chan..'|bus='..DATA.addlinkmidi.bus..'>;'..EXT.recent_add_listMIDI
+      EXT.recent_add_listMIDI = EXT.recent_add_listMIDI:sub(0,1000)
+      EXT.recent_add_listMIDI = DATA.PRESET_encBase64(EXT.recent_add_listMIDI)
+      EXT:save()
     end
+    
+    -- recent list
+    if ImGui.BeginCombo( ctx, '##'..str_id..'linkcombo_reclistMIDI', 'RecentList', ImGui.ComboFlags_None|ImGui.ComboFlags_HeightLarge ) then
+      
+      for i = 1, #DATA.recent_listMIDI do
+      
+        local msg1_txt = tostring(DATA.recent_listMIDI[i].msg1)
+          :gsub(176, 'CC')
+          :gsub(144, 'Note')
+          :gsub(160, 'Aftertouch')
+          :gsub(224, 'Pitch')
+          :gsub(192, 'Program change')
+          :gsub(208, 'Channel pressure')
+          
+        if ImGui.Selectable( ctx, msg1_txt..' '..DATA.recent_listMIDI[i].msg2..' / Chan '..DATA.recent_listMIDI[i].chan..' Bus '..(DATA.recent_listMIDI[i].bus), nil, ImGui.SelectableFlags_None, 0, 0 ) then 
+          t.PMOD['plink.midi_bus'] = DATA.recent_listMIDI[i].bus-1
+          t.PMOD['plink.midi_chan'] = DATA.recent_listMIDI[i].chan
+          t.PMOD['plink.midi_msg2'] = DATA.recent_listMIDI[i].msg2
+          t.PMOD['plink.midi_msg'] = DATA.recent_listMIDI[i].msg1
+          t.PMOD['plink.effect'] = -100
+          DATA:ApplyPMOD(t) 
+          DATA.upd = true
+          
+          EXT.recent_add_listMIDI = DATA.PRESET_decBase64(EXT.recent_add_listMIDI)
+          EXT.recent_add_listMIDI = '<msg1='..DATA.recent_listMIDI[i].msg1..'|msg2='..DATA.recent_listMIDI[i].msg2..'|chan='..DATA.recent_listMIDI[i].chan..'|bus='..DATA.recent_listMIDI[i].bus..'>;'..EXT.recent_add_listMIDI
+          EXT.recent_add_listMIDI = EXT.recent_add_listMIDI:sub(0,1000)
+          EXT.recent_add_listMIDI = DATA.PRESET_encBase64(EXT.recent_add_listMIDI)
+          EXT:save()
+        end
+      end
+      ImGui.EndCombo( ctx)
+    end
+    
     
     ImGui.EndCombo( ctx)
   end
