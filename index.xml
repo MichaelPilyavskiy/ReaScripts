@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="284388c0c9f2de6cf0583292aaf61b3ca9119a5e" name="MPL Scripts">
+<index version="1" commit="8189976a2e2effe5ea3f55a7f82532698bb5b0a0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12542,6 +12542,10 @@ various fixes]]></changelog>
       <version name="2.0" author="MPL" time="2025-01-07T21:45:02Z">
         <changelog><![CDATA[+ Ported to ReaImGui]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ed6c869edab2a507fd7e5c4f6a2b97b907f0460b/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2025-01-09T17:25:01Z">
+        <changelog><![CDATA[+ General / Destination: add option to share AI at pre-fx volume envelope]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8189976a2e2effe5ea3f55a7f82532698bb5b0a0/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
