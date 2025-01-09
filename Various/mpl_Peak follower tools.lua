@@ -1,10 +1,10 @@
 -- @description Peak follower tools
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Ported to ReaImGui
+--    + General / Destination: add option to share AI at pre-fx volume envelope
 
 
 
@@ -67,7 +67,7 @@ EXT = {
         CONF_comp_lookahead = 0,--  s
         
         -- dest
-        CONF_dest = 1, -- 0 AI track vol 1 take vol env
+        CONF_dest = 1, -- 0 AI track vol 1 take vol env 2 AI pre-fx track vol
         
         -- output
         CONF_reducesamevalues = 1, -- do not add point if previous point has same value
@@ -671,6 +671,22 @@ end
         AI_idx = DATA:Process_GetEditAIbyEdges(env, boundary_start, boundary_end)  
         if not AI_idx then AI_idx = InsertAutomationItem( env, -1, boundary_start, boundary_end-boundary_start )end
       end
+      
+    -- destination
+      local env
+      local AI_idx = -1
+      if EXT.CONF_dest == 2 then -- prefx track vol AI
+        local track = GetMediaItem_Track(item)
+        env =  GetTrackEnvelopeByName( track, 'Volume (Pre-FX)' )
+        if not ValidatePtr2( 0, env, 'TrackEnvelope*' ) then 
+          SetOnlyTrackSelected(track)
+          Main_OnCommand(40409,0) -- show Pre-FX vol envelope
+          env =  GetTrackEnvelopeByName( track, 'Volume (Pre-FX)' )
+        end
+        AI_idx = DATA:Process_GetEditAIbyEdges(env, boundary_start, boundary_end)  
+        if not AI_idx then AI_idx = InsertAutomationItem( env, -1, boundary_start, boundary_end-boundary_start )end
+      end
+      
       -- take env
       if EXT.CONF_dest == 1 then 
         local take = GetActiveTake(item)
@@ -1309,7 +1325,7 @@ end
         UI.draw_flow_CHECK({['key']='Bypass',                             ['extstr'] = 'CONF_bypass'}) 
         UI.draw_flow_COMBO({['key']='Mode',                               ['extstr'] = 'CONF_mode',                   ['values'] = {[0]='Peak follower', [1]='Gate', [2] = 'Compressor (by ashcat_lt & SaulT)', [4] = 'Peak fol. difference'} }) 
         UI.draw_flow_COMBO({['key']='Boundaries',                         ['extstr'] = 'CONF_boundary',               ['values'] = {[0]='Item edges', [1]='Time selection' } })  
-        UI.draw_flow_COMBO({['key']='Destination',                               ['extstr'] = 'CONF_dest',                   ['values'] = {[0]='Track volume env AI', [1]='Take volume env'} }) 
+        UI.draw_flow_COMBO({['key']='Destination',                        ['extstr'] = 'CONF_dest',                   ['values'] = {[0]='Track volume envelope AI', [1]='Take volume envelope', [2]='Track pre-FX volume envelope AI'} }) 
         ImGui.SeparatorText(ctx,'Mode parameters')
         UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_gate_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_mode~=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
         UI.draw_flow_CHECK({['key']='Invert',                             ['extstr'] = 'CONF_gate_inv',               hide=EXT.CONF_mode~=1}) 
