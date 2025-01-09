@@ -1,10 +1,11 @@
 -- @description Peak follower tools
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + General / Destination: add option to share AI at pre-fx volume envelope
+--    # use amplitude and baseline AI instead points scaling and offset
+--    # fix preFX error
 
 
 
@@ -77,6 +78,8 @@ EXT = {
         CONF_out_scale = 1, 
         CONF_out_offs = 0, 
         CONF_out_pointsshape = 0,
+        CONF_out_AI_D_BASELINE = 0,
+        CONF_out_AI_D_AMPLITUDE = 1,
         
       }
 -------------------------------------------------------------------------------- INIT data
@@ -663,7 +666,7 @@ end
       if EXT.CONF_dest == 0 then -- track vol AI
         local track = GetMediaItem_Track(item)
         env =  GetTrackEnvelopeByName( track, 'Volume' )
-        if not ValidatePtr2( 0, env, 'TrackEnvelope*' ) then 
+        if not ValidatePtr2( -1, env, 'TrackEnvelope*' ) then 
           SetOnlyTrackSelected(track)
           Main_OnCommand(40406,0) -- show vol envelope
           env =  GetTrackEnvelopeByName( track, 'Volume' )
@@ -678,9 +681,9 @@ end
       if EXT.CONF_dest == 2 then -- prefx track vol AI
         local track = GetMediaItem_Track(item)
         env =  GetTrackEnvelopeByName( track, 'Volume (Pre-FX)' )
-        if not ValidatePtr2( 0, env, 'TrackEnvelope*' ) then 
+        if not ValidatePtr2( -1, env, 'TrackEnvelope*' ) then 
           SetOnlyTrackSelected(track)
-          Main_OnCommand(40409,0) -- show Pre-FX vol envelope
+          Main_OnCommand(40408,0) -- show Pre-FX vol envelope
           env =  GetTrackEnvelopeByName( track, 'Volume (Pre-FX)' )
         end
         AI_idx = DATA:Process_GetEditAIbyEdges(env, boundary_start, boundary_end)  
@@ -1102,7 +1105,7 @@ end
       local wind_offs = 0--window_ms
       
     -- get output points
-      local output = {}
+       output = {}
       if EXT.CONF_mode ==0 or EXT.CONF_mode == 4 then output = DATA:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx) end -- peak follow 
       if EXT.CONF_mode ==1 then output = DATA:Process_InsertData_Gate(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate
       if EXT.CONF_mode ==2 then output = DATA:Process_InsertData_Compressor(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate 
@@ -1114,13 +1117,24 @@ end
         local valout
         local sz = #output  
         for i = 1, sz do if output[i] and (not output[i].ignore or output[i].ignore==false) then 
-          valout = VF_lim(output[i].val*EXT.CONF_out_scale - EXT.CONF_out_offs)
+          if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then
+            valout = VF_lim(output[i].val)
+           else
+            valout = VF_lim(output[i].val*EXT.CONF_out_scale - EXT.CONF_out_offs)
+          end
           local valout = ScaleToEnvelopeMode( scaling_mode, valout) 
-          if EXT.CONF_out_invert ==1 then valout = 1000- valout end
+          if EXT.CONF_out_invert ==1 and (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then  
+            local valout_max = ScaleToEnvelopeMode( scaling_mode, 1) 
+            valout = valout_max- valout 
+          end
           local shape = EXT.CONF_out_pointsshape 
           InsertEnvelopePointEx( env, AI_idx, output[i].tpos, valout, shape, 0, 0, true ) 
         end end 
         Envelope_SortPointsEx( env, AI_idx ) 
+        if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then -- if AI set scale offset for AI
+          GetSetAutomationItemInfo( env, AI_idx, 'D_BASELINE', EXT.CONF_out_AI_D_BASELINE, true )
+          GetSetAutomationItemInfo( env, AI_idx, 'D_AMPLITUDE', EXT.CONF_out_AI_D_AMPLITUDE, true )
+        end
       end
       
       
@@ -1327,17 +1341,23 @@ end
         UI.draw_flow_COMBO({['key']='Boundaries',                         ['extstr'] = 'CONF_boundary',               ['values'] = {[0]='Item edges', [1]='Time selection' } })  
         UI.draw_flow_COMBO({['key']='Destination',                        ['extstr'] = 'CONF_dest',                   ['values'] = {[0]='Track volume envelope AI', [1]='Take volume envelope', [2]='Track pre-FX volume envelope AI'} }) 
         ImGui.SeparatorText(ctx,'Mode parameters')
-        UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_gate_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_mode~=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-        UI.draw_flow_CHECK({['key']='Invert',                             ['extstr'] = 'CONF_gate_inv',               hide=EXT.CONF_mode~=1}) 
-        UI.draw_flow_SLIDER({['key']='Hold',                              ['extstr'] = 'CONF_gate_hold',              int=true,['format']=function(x) return (math.floor(1000*x*EXT.CONF_window/EXT.CONF_windowoverlap)/1000)..'s' end,    ['min']=1,  ['max']=40,hide=EXT.CONF_mode~=1})  --val_format_rev = function(x) return math.floor(tonumber(x/(EXT.CONF_window/EXT.CONF_windowoverlap))) end, },  
-        UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_comp_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_mode~=2})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-        UI.draw_flow_SLIDER({['key']='Lookahead / delay',                 ['extstr'] = 'CONF_comp_lookahead',         ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=-0.05,  ['max']=0.05,hide=EXT.CONF_mode~=2})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0)/1000, -0.05,0.05) end, 
-        UI.draw_flow_SLIDER({['key']='Attack',                            ['extstr'] = 'CONF_comp_attack',            ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=0,  ['max']=0.5,hide=EXT.CONF_mode~=2})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
-        UI.draw_flow_SLIDER({['key']='Release',                           ['extstr'] = 'CONF_comp_release',           ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=0,  ['max']=0.5,hide=EXT.CONF_mode~=2})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
-        UI.draw_flow_SLIDER({['key']='Ratio',                             ['extstr'] = 'CONF_comp_Ratio',             ['format']=function(x) if x == 41 then return '-inf' else return (math.floor(x*10)/10)..' : 1' end end,    ['min']=1,  ['max']=41,hide=EXT.CONF_mode~=2})  --val_format_rev = function(x)  local y= x:match('[%d%.]+') if not y then return 2 end y = tonumber(y) if y then return VF_lim(y, 1,21) end  end, 
-        UI.draw_flow_SLIDER({['key']='Knee',                             ['extstr'] = 'CONF_comp_knee',             ['format']=function(x) return (math.floor(x*10)/10)..'dB' end,    ['min']=0,  ['max']=20,hide=EXT.CONF_mode~=2})  --val_format_rev = function(x) return VF_lim(      math.floor((tonumber(x) or 0)*10)/10      , 0,20) end, 
-        UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4,hide=EXT.CONF_mode~=2})  
-        
+        if EXT.CONF_mode==1 then
+          UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_gate_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
+          UI.draw_flow_CHECK({['key']='Invert',                             ['extstr'] = 'CONF_gate_inv',               }) 
+          UI.draw_flow_SLIDER({['key']='Hold',                              ['extstr'] = 'CONF_gate_hold',              int=true,['format']=function(x) return (math.floor(1000*x*EXT.CONF_window/EXT.CONF_windowoverlap)/1000)..'s' end,    ['min']=1,  ['max']=40})  --val_format_rev = function(x) return math.floor(tonumber(x/(EXT.CONF_window/EXT.CONF_windowoverlap))) end, },  
+        end
+        if EXT.CONF_mode==2 then
+          UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_comp_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
+          UI.draw_flow_SLIDER({['key']='Lookahead / delay',                 ['extstr'] = 'CONF_comp_lookahead',         ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=-0.05,  ['max']=0.05})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0)/1000, -0.05,0.05) end, 
+          UI.draw_flow_SLIDER({['key']='Attack',                            ['extstr'] = 'CONF_comp_attack',            ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=0,  ['max']=0.5})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
+          UI.draw_flow_SLIDER({['key']='Release',                           ['extstr'] = 'CONF_comp_release',           ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=0,  ['max']=0.5})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
+          UI.draw_flow_SLIDER({['key']='Ratio',                             ['extstr'] = 'CONF_comp_Ratio',             ['format']=function(x) if x == 41 then return '-inf' else return (math.floor(x*10)/10)..' : 1' end end,    ['min']=1,  ['max']=41})  --val_format_rev = function(x)  local y= x:match('[%d%.]+') if not y then return 2 end y = tonumber(y) if y then return VF_lim(y, 1,21) end  end, 
+          UI.draw_flow_SLIDER({['key']='Knee',                             ['extstr'] = 'CONF_comp_knee',             ['format']=function(x) return (math.floor(x*10)/10)..'dB' end,    ['min']=0,  ['max']=20})  --val_format_rev = function(x) return VF_lim(      math.floor((tonumber(x) or 0)*10)/10      , 0,20) end, 
+        end
+        UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4})  
+        if EXT.CONF_mode==0 then
+          UI.draw_flow_SLIDER({['key']='Window overlap',                    ['extstr'] = 'CONF_windowoverlap',           ['min']=1,  ['max']=16, hide=EXT.CONF_mode==2, int = true})  
+        end
         ImGui.EndTabItem(ctx)
       end
       
@@ -1360,11 +1380,20 @@ end
 
       if ImGui.BeginTabItem(ctx, 'Output') then
         UI.draw_flow_CHECK({['key']='Reduce points with same values',            ['extstr'] = 'CONF_reducesamevalues'}) 
-        UI.draw_flow_CHECK({['key']='Invert points',                             ['extstr'] = 'CONF_out_invert'}) 
-        UI.draw_flow_SLIDER({['key']='Scale',                                    ['extstr'] = 'CONF_out_scale',         ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-        UI.draw_flow_SLIDER({['key']='Offset',                                   ['extstr'] = 'CONF_out_offs',         ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=-1,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
+        if not (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then 
+          UI.draw_flow_CHECK({['key']='Invert points',                             ['extstr'] = 'CONF_out_invert'}) 
+          UI.draw_flow_SLIDER({['key']='Scale',                                    ['extstr'] = 'CONF_out_scale',         ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
+          UI.draw_flow_SLIDER({['key']='Offset',                                   ['extstr'] = 'CONF_out_offs',         ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=-1,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
+        end
+         
         UI.draw_flow_CHECK({['key']='Reset boundary edges',                      ['extstr'] = 'CONF_zeroboundary'}) 
         UI.draw_flow_COMBO({['key']='Points shape',                              ['extstr'] = 'CONF_out_pointsshape',                   ['values'] = {[0]='Linear',[1]='Square',[2]='Slow start/end',[5]='Bezier'} }) 
+        
+        if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then 
+          UI.draw_flow_SLIDER({['key']='Automation item baseline',                                    ['extstr'] = 'CONF_out_AI_D_BASELINE',         ['format']=function(x) return x end,    ['min']=0,  ['max']=1})
+          UI.draw_flow_SLIDER({['key']='Automation item amplitude',                                    ['extstr'] = 'CONF_out_AI_D_AMPLITUDE',         ['format']=function(x) return x end,    ['min']=-2,  ['max']=2})
+        end
+        
         ImGui.EndTabItem(ctx)
       end
       
