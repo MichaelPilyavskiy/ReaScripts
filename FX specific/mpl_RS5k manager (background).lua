@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.29
+-- @version 3.30
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,8 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix adding formatted gain to 3rd party plugins
---    + Add option to add new track to the end of folder
+--    # fix thanks to rjattrill https://github.com/MichaelPilyavskiy/ReaScripts/issues/54
 
 
 
@@ -1135,6 +1134,8 @@ List:
             end
             map[note] = params
           end
+         else dbstr = line:match('DBNAME (.+)')
+           dbname = dbstr
         end
       end 
       DATA2.database_map.map = map
@@ -4292,6 +4293,7 @@ rightclick them to hide all but active.
                 DATA2.database_map.dbname = retname
                 DATA.extstate.CONF_database_map1 = DATA2:Database_Save()
                 DATA.UPD.onconfchange = true
+                DATA.UPD.onGUIinit = true
               end
             end},          
     {str = 'Save current database map to slot2',
@@ -4301,6 +4303,7 @@ rightclick them to hide all but active.
                 DATA2.database_map.dbname = retname
                 DATA.extstate.CONF_database_map2 = DATA2:Database_Save()
                 DATA.UPD.onconfchange = true
+                DATA.UPD.onGUIinit = true
               end
             end},  
     {str = 'Save current database map to slot3',
@@ -4310,6 +4313,7 @@ rightclick them to hide all but active.
                 DATA2.database_map.dbname = retname
                 DATA.extstate.CONF_database_map3 = DATA2:Database_Save()
                 DATA.UPD.onconfchange = true
+                DATA.UPD.onGUIinit = true
               end
             end},  
     {str = 'Save current database map to slot4',
@@ -4319,17 +4323,20 @@ rightclick them to hide all but active.
                 DATA2.database_map.dbname = retname
                 DATA.extstate.CONF_database_map4 = DATA2:Database_Save()
                 DATA.UPD.onconfchange = true
+                DATA.UPD.onGUIinit = true
               end
             end}, 
     {str = '|Save current database map as default',
      func = function() 
               DATA.extstate.CONF_database_map_default = DATA2:Database_Save()
               DATA.UPD.onconfchange = true
+              DATA.UPD.onGUIinit = true
             end},             
     {str = 'Clear default database map',
      func = function() 
               DATA.extstate.CONF_database_map_default = ''
               DATA.UPD.onconfchange = true
+              DATA.UPD.onGUIinit = true
             end},
             
     {str = '|#Load database map slot:'},         
