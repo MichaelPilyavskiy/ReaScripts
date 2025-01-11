@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="969e09cab68ffb3b44488fe0f565675e55bc114c" name="MPL Scripts">
+<index version="1" commit="d93bfb67272964a646d31adff6a0cc11c74b40ee" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12993,6 +12993,16 @@ various fixes]]></changelog>
         <changelog><![CDATA[# improved mute visibility]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be807ff22cd9678f841f7314b7cdfc640dc99549/Various/mpl_SendFader%20(background).lua</source>
         <source file="mpl_SendFader_Mark selected tracks as receives.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be807ff22cd9678f841f7314b7cdfc640dc99549/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20receives.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2025-01-11T19:45:34Z">
+        <changelog><![CDATA[+ Ported to ReaImGui, internal overhaul
++ Handle mono dest channels 
++ Increase dest channel if need
++ Add source channel combo
++ Click on dest track go to this track
++ Allow to disable peaks
+- Remove receive mode for consistency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d93bfb67272964a646d31adff6a0cc11c74b40ee/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Spectral editing tools - perform.lua" type="script" desc="Spectral editing tools - perform">
