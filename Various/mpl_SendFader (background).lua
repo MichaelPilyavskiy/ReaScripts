@@ -1,15 +1,9 @@
 ﻿-- @description SendFader
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Ported to ReaImGui, internal overhaul
---    + Handle mono dest channels 
---    + Increase dest channel if need
---    + Add source channel combo
---    + Click on dest track go to this track
---    + Allow to disable peaks
---    - Remove receive mode for consistency
+--    # fix error on empty sends
 
 
   --------------------------------------------------------------------------------  init globals
@@ -642,20 +636,20 @@
       
       if DATA.srctr.ptr and ImGui.Selectable( ctx,  DATA.srctr.name,false, ImGui.SelectableFlags_None, UI.calc_trnamew, 0 )then  end
       
-      
-      if ImGui.BeginMenu( ctx, 'Add', true ) then
-        for i = 1, #DATA.receives do
-          if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
-            CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
-            DATA.upd = true 
+      if DATA.srctr and DATA.srctr.ptr then 
+        if ImGui.BeginMenu( ctx, 'Add', true ) then
+          for i = 1, #DATA.receives do
+            if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
+              CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
+              DATA.upd = true 
+            end
           end
+          if #DATA.receives == 0 then 
+            ImGui.MenuItem( ctx, '[not found, see options]', '', false, true )
+          end
+          ImGui.EndMenu( ctx)
         end
-        if #DATA.receives == 0 then 
-          ImGui.MenuItem( ctx, '[not found, see options]', '', false, true )
-        end
-        ImGui.EndMenu( ctx)
       end
-      
       
       
       -- solo source
@@ -1212,6 +1206,7 @@
   end
   ---------------------------------------------------------------------  
   function DATA:CollectData_ReadProject_ReadReceives_Checkpointers(tr)
+    if not (DATA.srctr and DATA.srctr.sends) then return end
     for i = 1, #DATA.srctr.sends do
       if tr == DATA.srctr.sends[i].destPtr then return true end
     end
