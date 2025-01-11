@@ -1,280 +1,389 @@
 ﻿-- @description SendFader
--- @version 2.14
+-- @version 3.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @provides
---    mpl_SendFader_Mark selected tracks as receives.lua
 -- @changelog
---    # improved mute visibility
+--    + Ported to ReaImGui, internal overhaul
+--    + Handle mono dest channels 
+--    + Increase dest channel if need
+--    + Add source channel combo
+--    + Click on dest track go to this track
+--    + Allow to disable peaks
+--    - Remove receive mode for consistency
 
 
-
-  -- config defaults
-  DATA2 = { latch_filt = {},
-            tracks = {},
-            sendtracks={},
-            peaks={},
-            scroll_x=0,
-            scroll_w=1,
+  --------------------------------------------------------------------------------  init globals
+    for key in pairs(reaper) do _G[key]=reaper[key] end
+    app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
+    if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
+    local ImGui
+    
+    if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+    package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+    ImGui = require 'imgui' '0.9.3.2'
+    
+    
+    
+  -------------------------------------------------------------------------------- init external defaults 
+  EXT = {
+          viewport_posX = 10,
+          viewport_posY = 10,
+          viewport_posW = 640,
+          viewport_posH = 480, 
+          
+          CONF_definebyname = 'aux,send',
+          CONF_definebygroup = 'aux,send',
+          CONF_marksendint = 1,
+          CONF_marksendwordsmatch = 1,
+          CONF_marksendparentwordsmatch = 1,
+          
+          CONF_showpeaks = 1,
+        }
+  -------------------------------------------------------------------------------- INIT data
+  DATA = {
+          ES_key = 'MPL_SendFader',
+          UI_name = 'MPL SendFader', 
+          upd = true, 
+          
+          tracks  = {},
+          peaks = {},
+          sendtracks = {},
+          receives = {},
+          
+          scale_map = { 
+            '-40',
+            '-18',
+            '-6',
+            '0',
+            '+12',
+            } 
           }
-  ---------------------------------------------------------------------  
-  function main()  
-    if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.14'
-    DATA.extstate.extstatesection = 'MPL_SendFader'
-    DATA.extstate.mb_title = 'MPL SendFader'
-    DATA.extstate.default = 
-                          {
-                          wind_x =  100,
-                          wind_y =  100,
-                          wind_w =  600,
-                          wind_h =  480,
-                          dock =    0,
-                          
-                          FPRESET1 = 'CkNPTkZfTkFNRT1kZWZhdWx0CkNPTkZfZGVmaW5lYnlncm91cD1hdXgsc2VuZApDT05GX2RlZmluZWJ5bmFtZT1hdXgsc2VuZA==',
-                          
-                          CONF_NAME = 'default',
-                          CONF_definebyname = 'aux,send',
-                          CONF_definebygroup = 'aux,send',
-                          CONF_marksendint = 1,
-                          CONF_marksendregular = 1,
-                          CONF_marksendwordsmatch = 1,
-                          CONF_marksendparentwordsmatch = 1,
-                          -- UI
-                          UI_appatchange = 0, 
-                          UI_enableshortcuts = 0,
-                          UI_initatmouse = 0,
-                          UI_showtooltips = 1,
-                          UI_groupflags = 0, 
-                          UI_showsendrecnamevertically = 0, 
-                          
-                          }
-    
-    DATA:ExtStateGet()
-    DATA:ExtStateGetPresets()  
-    if DATA.extstate.UI_initatmouse&1==1 then
-      local w = DATA.extstate.wind_w
-      local h = DATA.extstate.wind_h 
-      local x, y = GetMousePosition()
-      DATA.extstate.wind_x = x-w/2
-      DATA.extstate.wind_y = y-h/2
-    end
-    DATA:GUIinit()
-    DATA_RESERVED_ONPROJCHANGE(DATA)
-    DATA.GUI.shortcuts2= {
-      custom = {}--{['Space']='_RSfc6990bed179e8ecd167f17a2ca833b0a3e04af7'}
-                          } -- use shortcuts handling
-    RUN()
-  end
-  ----------------------------------------------------------------------
-  function GUI_RESERVED_drawDYN(DATA)
-    if not DATA.GUI.buttons then return end
-    
-    if not DATA2.issendselected then
-      for sendID = 1, #DATA2.sendtracks do 
-        if DATA.GUI.buttons['fader_send'..sendID] and DATA2.peaks[sendID] and #DATA2.peaks[sendID] > 4 then
-          local obj = DATA.GUI.buttons['fader_send'..sendID]
-          local x=obj.x*DATA.GUI.default_scale
-          local y=obj.y*DATA.GUI.default_scale
-          local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--obj.w
-          local h=obj.h*DATA.GUI.default_scale
-          gfx.a=0.5
-          local trcol = DATA2.sendtracks[sendID].col
-          if trcol then 
-            if trcol==0 then trcol = 0xFFFFFF end
-            local r, g, b = reaper.ColorFromNative( trcol )
-            gfx.set(r/255,g/255,b/255)
-          end
-          local sz = #DATA2.peaks[sendID]
-          local L = (DATA2.peaks[sendID][sz][1] + DATA2.peaks[sendID][sz-1][1]+ DATA2.peaks[sendID][sz-2][1]+ DATA2.peaks[sendID][sz-3][1]) /4
-          local R = (DATA2.peaks[sendID][sz][2] + DATA2.peaks[sendID][sz-1][2]+ DATA2.peaks[sendID][sz-2][2]+ DATA2.peaks[sendID][sz-3][2]) /4
-          gfx.rect(x,y+h-h*L,w,h*L,1)
-          gfx.rect(x+w,y+h-h*R,w,h*R,1)
-        end
-      end
-    end
-    
-    if DATA2.issendselected ==true then
-      for recGUID in pairs(DATA2.tracks[1].receives) do 
-        if DATA.GUI.buttons['fader_rec'..recGUID] and DATA2.peaks[recGUID] and #DATA2.peaks[recGUID] > 4 then
-          local obj = DATA.GUI.buttons['fader_rec'..recGUID]
-          local x=obj.x*DATA.GUI.default_scale
-          local y=obj.y*DATA.GUI.default_scale
-          local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--obj.w
-          local h=obj.h*DATA.GUI.default_scale
-          gfx.a=0.5
-          local trcol = DATA2.tracks[1].receives[recGUID].trcol
-          if trcol then 
-            if trcol==0 then trcol = 0xFFFFFF end
-            local r, g, b = reaper.ColorFromNative( trcol )
-            gfx.set(r/255,g/255,b/255)
-          end
-          local sz = #DATA2.peaks[recGUID]
-          local L = (DATA2.peaks[recGUID][sz][1] + DATA2.peaks[recGUID][sz-1][1]+ DATA2.peaks[recGUID][sz-2][1]+ DATA2.peaks[recGUID][sz-3][1]) /4
-          local R = (DATA2.peaks[recGUID][sz][2] + DATA2.peaks[recGUID][sz-1][2]+ DATA2.peaks[recGUID][sz-2][2]+ DATA2.peaks[recGUID][sz-3][2]) /4
-          gfx.rect(x,y+h-h*L,w,h*L,1)
-          gfx.rect(x+w,y+h-h*R,w,h*R,1)
-        end
-      end
-    end
-    
-    
-    
-    if DATA.GUI.buttons['activetrack'] and DATA2.peaks[0] and #DATA2.peaks[0] > 4 then
-      local obj = DATA.GUI.buttons['activetrack']
-      local x=obj.x*DATA.GUI.default_scale
-      local y=obj.y*DATA.GUI.default_scale
-      local w=obj.w*DATA.GUI.default_scale--DATA.GUI.custom_meterW*DATA.GUI.default_scale--*DATA.GUI.default_scale-obj.w
-      local h=obj.h*DATA.GUI.default_scale
-      gfx.a=0.4
-      local sz = #DATA2.peaks[0]
-      local L = (DATA2.peaks[0][sz][1] + DATA2.peaks[0][sz-1][1]+ DATA2.peaks[0][sz-2][1]+ DATA2.peaks[0][sz-3][1]) /4
-      local R = (DATA2.peaks[0][sz][2] + DATA2.peaks[0][sz-1][2]+ DATA2.peaks[0][sz-2][2]+ DATA2.peaks[0][sz-3][2]) /4
-      local h2 = math.floor(h/2)
-      gfx.rect(x,y,w*L,h2,1)
-      gfx.rect(x,y+h2,w*R,h2,1)
-    end
-    
-  end
-  ----------------------------------------------------------------------
-  function DATA2:DYNUPDATE_peaks()
-    local max_cnt = 5
-    local mult = 1/6
-    
-    if DATA2.issendselected and DATA2.tracks[1] and DATA2.tracks[1].receives then
-      for recGUID in pairs(DATA2.tracks[1].receives) do 
-        if not DATA2.peaks[recGUID] then DATA2.peaks[recGUID] = {} end
-        if not DATA2.tracks[1].receives[recGUID].srcptr or (DATA2.tracks[1].receives[recGUID].srcptr and not ValidatePtr(DATA2.tracks[1].receives[recGUID].srcptr, '*MediaTrack')) then
-          DATA2.tracks[1].receives[recGUID].srcptr = VF_GetMediaTrackByGUID(0,recGUID)
-        end
-        local tr = DATA2.tracks[1].receives[recGUID].srcptr
-        local peakL = Track_GetPeakInfo( tr, 0 )
-        local peakR = Track_GetPeakInfo( tr, 1 )
-        DATA2.peaks[recGUID][#DATA2.peaks[recGUID]+1] = {DATA2:Convert_Val2Fader(peakL),DATA2:Convert_Val2Fader(peakR)}
-        if #DATA2.peaks[recGUID] > max_cnt then table.remove(DATA2.peaks[recGUID] ,1) end
-      end
-    end
-    
-    if not DATA2.issendselected ==true then
-      for sid = 1, #DATA2.sendtracks do 
-        if not DATA2.peaks[sid] then DATA2.peaks[sid] = {} end
-        local tr = DATA2.sendtracks[sid].ptr
-        local peakL = Track_GetPeakInfo( tr, 0 )
-        local peakR = Track_GetPeakInfo( tr, 1 )
-        DATA2.peaks[sid][#DATA2.peaks[sid]+1] = {DATA2:Convert_Val2Fader(peakL),DATA2:Convert_Val2Fader(peakR)}
-        if #DATA2.peaks[sid] > max_cnt then table.remove(DATA2.peaks[sid] ,1) end
-      end
-    end
-    
-    if DATA2.tracks[1] then 
-      local tr = DATA2.tracks[1].ptr
-      if not DATA2.peaks[0] then DATA2.peaks[0] = {} end
-      local peakL = Track_GetPeakInfo( tr, 0 )
-      local peakR = Track_GetPeakInfo( tr, 1 )
-      DATA2.peaks[0][#DATA2.peaks[0]+1] =  {DATA2:Convert_Val2Fader(peakL),DATA2:Convert_Val2Fader(peakR)}
-      if #DATA2.peaks[0] > max_cnt then table.remove(DATA2.peaks[0] ,1) end
-    end
-    
-  end
-  
-  ----------------------------------------------------------------------
-  function DATA_RESERVED_DYNUPDATE()
-    DATA2:DYNUPDATE_peaks()
-  end
-  ---------------------------------------------------------------------  
-  function DATA2:ReadProject_ReadSends_IsSend(tr,names_group,names_track)
-    local issend
-    
-    -- regular send
-    if DATA.extstate.CONF_marksendregular ==1 then
-      local partr = GetSelectedTrack(0,0)
-      if partr then
-        for sendidx=1, reaper.GetTrackNumSends( tr, -1 ) do
-          if reaper.GetTrackSendInfo_Value( tr, -1, sendidx-1, 'P_SRCTRACK' ) == partr then issend= true end
-        end
-      end
-    end
-    
-    -- extaernal state marked
-      if DATA.extstate.CONF_marksendint == 1 then
-         retval, issend = reaper.GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', '', false )
-        if retval and  issend and tonumber(issend) and tonumber(issend)  == 1 then issend = true else issend = false end
-      end      
-    
-    -- check name 
-      local matchname
-      if DATA.extstate.CONF_marksendwordsmatch == 1 then 
-        local retval, sendname = reaper.GetTrackName( tr )
-        local ispath =  GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) 
-        if ispath~=1 and not sendname:match('Track') then
-          for sendnameID = 1, #names_track do 
-            if sendname:lower():match(names_track[sendnameID]:lower()) then
-              matchname = true break
-            end
-          end
-        end
-      end
+          
+  -------------------------------------------------------------------------------- INIT UI locals
+  for key in pairs(reaper) do _G[key]=reaper[key] end 
+  --local ctx
+  -------------------------------------------------------------------------------- UI init variables
+    UI = {    popups = {},
+            -- font
+              font='Arial',
+              font1sz=15,
+              font2sz=13,
+              font3sz=12,
+            -- mouse
+              hoverdelay = 0.8,
+              hoverdelayshort = 0.8,
+            -- size / offset
+              spacingX = 4,
+              spacingY = 3,
+            -- colors / alpha
+              main_col = 0x7F7F7F, -- grey
+              textcol = 0xFFFFFF,
+              textcol_a_enabled = 1,
+              textcol_a_disabled = 0.5,
+              but_hovered = 0x878787,
+              windowBg = 0x303030,
+          }
+      UI.fader_scale_limratio = 0.8 
+      UI.fader_scale_coeff = 30      
+      UI.indent_menu = 15      
+      UI.menubutw = 70
+      UI.faderW = 70
+      UI.GrabMinSize = 20
+      UI.peaks_cnt = 4
       
-    -- check fold name 
-      local matchparent
-      if DATA.extstate.CONF_marksendparentwordsmatch == 1 then 
-        local par_track = GetParentTrack( tr ) 
-        if par_track and ispath~=1 then
-          local retval, parname = GetTrackName( par_track )
-          for sendnameID = 1, #names_group do 
-            if parname:lower():match(names_group[sendnameID]:lower()) then
-              matchparent = true break
-            end
-          end
-        end
-      end
       
-    return issend==true or matchname==true or matchparent==true, name
+  function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
+  ------------------------------------------------------------------------------------------------------
+  function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+  ------------------------------------------------------------------------------------------------------
+  function WDL_VAL2DB(x, reduce)   --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+    if not x or x < 0.0000000298023223876953125 then return -150.0 end
+    local v=math.log(x)*8.6858896380650365530225783783321
+    if v<-150.0 then return -150.0 else 
+      if reduce then 
+        return string.format('%.2f', v)
+       else 
+        return v 
+      end
+    end
   end
-  ---------------------------------------------------------------------  
-  function DATA2:ReadProject_ReadSends()
-    local CONF_definebygroup = tostring(DATA.extstate.CONF_definebygroup)
-    local CONF_definebyname = tostring(DATA.extstate.CONF_definebyname)
-    -- parse group names
-      local names_group = {cached=true} 
-      if CONF_definebygroup ~= '' then
-        for word in CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
+  ----------------------------------------------------------------------------------------- 
+  function main() UI.MAIN_definecontext() end  
+  -------------------------------------------------------------------------------- 
+  function ImGui.PushStyle(key, value, value2)  
+    if not (ctx and key and value) then return end
+    local iscol = key:match('Col_')~=nil
+    local keyid = ImGui[key]
+    if not iscol then 
+      ImGui.PushStyleVar(ctx, keyid, value, value2)
+      if not UI.pushcnt_var then UI.pushcnt_var = 0 end
+      UI.pushcnt_var = UI.pushcnt_var + 1
+    else 
+      if not value2 then
+        ReaScriptError( key ) 
+       else
+        ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
+        if not UI.pushcnt_col then UI.pushcnt_col = 0 end
+        UI.pushcnt_col = UI.pushcnt_col + 1
       end
-    -- parse group names
-      local names_track = {} 
-      if CONF_definebyname ~= '' then
-        for word in CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
-      end
+    end 
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.GetUserInputMB_replica(mode, key, title, num_inputs, captions_csv, retvals_csv_returnfunc, retvals_csv_setfunc) 
+    local round = 4
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, round)
+    
+      -- draw content
+      -- (from reaimgui demo) Always center this window when appearing
+      local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
+      ImGui.SetNextWindowPos(ctx, center_x, center_y, ImGui.Cond_Appearing, 0.5, 0.5)
+      if ImGui.BeginPopupModal(ctx, key, nil, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border) then
       
-    -- read sends
-    DATA2.sendtracks = {}
-    local id = 0
-    for i = 1, CountTracks(0) do
-      local tr = GetTrack(0,i-1)
-      local issend,name,isinternal = DATA2:ReadProject_ReadSends_IsSend(tr,names_group,names_track)
-      if issend == true then
-        local retval, trname = GetTrackName( tr )
-        id = id + 1
-        local  retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+        -- MB replika
+        if mode == 0 then
+          ImGui.Text(ctx, captions_csv)
+          ImGui.Separator(ctx) 
         
-        local  retval, issend = reaper.GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', '', false )
-        if retval and  issend and tonumber(issend) and tonumber(issend)  == 1 then issend = true else issend = false end
-        if issend ==true then trname='['..trname..']' end
-        DATA2.sendtracks[id] = {ptr=tr,GUID = GUID,name=trname,sendEQ={},col =  GetTrackColor( tr ),isinternal=isinternal} 
-        DATA2:ReadProject_ReadSends_readEQ(tr, DATA2.sendtracks[id].sendEQ)
-      end
-    end
+          if ImGui.Button(ctx, 'OK', 0, 0) then 
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end
+        end
+        
+        -- GetUserInput replika
+        if mode == 1 then
+          ImGui.SameLine(ctx)
+          ImGui.SetKeyboardFocusHere( ctx )
+          local retval, buf = ImGui.InputText( ctx, captions_csv, retvals_csv_returnfunc(), ImGui.InputTextFlags_EnterReturnsTrue ) 
+          if retval then
+            retvals_csv_setfunc(retval, buf)
+            UI.popups[key].draw = false
+            ImGui.CloseCurrentPopup(ctx) 
+          end 
+        end
+        
+        ImGui.EndPopup(ctx)
+      end 
+    
+    
+    ImGui.PopStyleVar(ctx, 4)
+  end 
+  --------------------------------------------------------------------------------  
+  function UI.draw_setbuttonbackgtransparent() 
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0 )
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0 )
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0 )
+  end
+  function UI.draw_unsetbuttonstyle() ImGui.PopStyleColor(ctx,3) end
+  -------------------------------------------------------------------------------- 
+  function ImGui.PopStyle_var()  
+    if not (ctx) then return end
+    ImGui.PopStyleVar(ctx, UI.pushcnt_var)
+    UI.pushcnt_var = 0
+  end
+  -------------------------------------------------------------------------------- 
+  function ImGui.PopStyle_col()  
+    if not (ctx) then return end
+    ImGui.PopStyleColor(ctx, UI.pushcnt_col)
+    UI.pushcnt_col = 0
+  end 
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_styledefinition(open)  
+    
+    -- window_flags
+      local window_flags = ImGui.WindowFlags_None
+      --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
+      --window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
+      window_flags = window_flags | ImGui.WindowFlags_MenuBar
+      --window_flags = window_flags | ImGui.WindowFlags_NoMove()
+      --window_flags = window_flags | ImGui.WindowFlags_NoResize
+      window_flags = window_flags | ImGui.WindowFlags_NoCollapse
+      --window_flags = window_flags | ImGui.WindowFlags_NoNav()
+      --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
+      --window_flags = window_flags | ImGui.WindowFlags_NoDocking
+      window_flags = window_flags | ImGui.WindowFlags_TopMost
+      window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
+      --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings()
+      --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
+      window_flags = window_flags | ImGui.WindowFlags_HorizontalScrollbar
+      --open = false -- disable the close button
+    
+    
+      -- rounding
+        ImGui.PushStyle('StyleVar_FrameRounding',5)   
+        ImGui.PushStyle('StyleVar_GrabRounding',3)  
+        ImGui.PushStyle('StyleVar_WindowRounding',10)  
+        ImGui.PushStyle('StyleVar_ChildRounding',5)  
+        ImGui.PushStyle('StyleVar_PopupRounding',0)  
+        ImGui.PushStyle('StyleVar_ScrollbarRounding',9)  
+        ImGui.PushStyle('StyleVar_TabRounding',4)   
+      -- Borders
+        ImGui.PushStyle('StyleVar_WindowBorderSize',0)  
+        ImGui.PushStyle('StyleVar_FrameBorderSize',0) 
+      -- spacing
+        ImGui.PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
+        ImGui.PushStyle('StyleVar_FramePadding',1,UI.spacingY) 
+        ImGui.PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
+        ImGui.PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
+        ImGui.PushStyle('StyleVar_ItemInnerSpacing',2,0)
+        ImGui.PushStyle('StyleVar_IndentSpacing',20)
+        ImGui.PushStyle('StyleVar_ScrollbarSize',20)
+      -- size
+        ImGui.PushStyle('StyleVar_GrabMinSize',UI.GrabMinSize)
+        ImGui.PushStyle('StyleVar_WindowMinSize',w_min,h_min)
+      -- align
+        ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
+        ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
+        ImGui.PushStyle('StyleVar_SelectableTextAlign',0.5,0.5)
+      -- alpha
+        ImGui.PushStyle('StyleVar_Alpha',0.98)
+        ImGui.PushStyle('Col_Border',UI.main_col, 0.3)
+      -- colors
+        ImGui.PushStyle('Col_Button',UI.main_col, 0.2) --0.3
+        ImGui.PushStyle('Col_ButtonActive',UI.main_col, 0.6) 
+        ImGui.PushStyle('Col_ButtonHovered',UI.but_hovered, 0.4)
+        ImGui.PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
+        ImGui.PushStyle('Col_FrameBg',0x1F1F1F, 0.7)
+        ImGui.PushStyle('Col_FrameBgActive',UI.main_col, .6)
+        ImGui.PushStyle('Col_FrameBgHovered',UI.main_col, 0.7)
+        ImGui.PushStyle('Col_Header',UI.main_col, 0.5) 
+        ImGui.PushStyle('Col_HeaderActive',UI.main_col, 1) 
+        ImGui.PushStyle('Col_HeaderHovered',UI.main_col, 0.98) 
+        ImGui.PushStyle('Col_PopupBg',0x303030, 0.9) 
+        ImGui.PushStyle('Col_ResizeGrip',UI.main_col, 1) 
+        ImGui.PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
+        ImGui.PushStyle('Col_SliderGrab',UI.butBg_green, 0.4) 
+        ImGui.PushStyle('Col_Tab',UI.main_col, 0.37) 
+        ImGui.PushStyle('Col_TabHovered',UI.main_col, 0.8) 
+        ImGui.PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
+        ImGui.PushStyle('Col_TitleBg',UI.main_col, 0.7) 
+        ImGui.PushStyle('Col_TitleBgActive',UI.main_col, 0.95) 
+        ImGui.PushStyle('Col_WindowBg',UI.windowBg, 1)
+      
+    -- We specify a default position/size in case there's no data in the .ini file.
+      local main_viewport = ImGui.GetMainViewport(ctx)
+      local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      
+      
+    -- init UI 
+      ImGui.PushFont(ctx, DATA.font1) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+      if rv then
+        local Viewport = ImGui.GetWindowViewport(ctx)
+        DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
+        DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
+        DATA.display_w_region, DATA.display_h_region = ImGui.Viewport_GetSize(Viewport) 
+        DATA.display_w_regavail, DATA.display_h_regavail = ImGui.GetContentRegionAvail(ctx)
+        
+      -- calc stuff for childs
+        UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
+        local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
+        local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
+        UI.calc_itemH = calcitemh + frameh * 2
+        UI.calc_trnamew = DATA.display_w - UI.menubutw*2
+        UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*8-UI.spacingY*13
+        UI.calc_comboW = math.floor(UI.faderW - UI.spacingY*2)/2
+      -- draw stuff
+        UI.draw()
+        ImGui.Dummy(ctx,0,0) 
+        ImGui.PopStyle_var() 
+        ImGui.PopStyle_col() 
+        ImGui.End(ctx)
+       else
+        ImGui.PopStyle_var() 
+        ImGui.PopStyle_col() 
+      end 
+      ImGui.PopFont( ctx ) 
+      
+      -- cnt popups 
+      local ppupcnt = 0 
+      for key in pairs(UI.popups) do  ppupcnt = ppupcnt + 1 end 
+      if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then  if ppupcnt == 0 then return else ImGui.CloseCurrentPopup( ctx ) UI.popups = {} end end
+    
+      return open
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:CollectData()
+    DATA:CollectData_ReadProject_ReadTracks()
+    DATA:CollectData_ReadProject_ReadReceives()
+  end
+  -------------------------------------------------------------------- 
+  function DATA:Convert_Val2Fader(rea_val)
+    if not rea_val then return end 
+    local rea_val = VF_lim(rea_val, 0, 4)
+    local val 
+    local gfx_c, coeff = UI.fader_scale_limratio,UI.fader_scale_coeff 
+    local real_dB = 20*math.log(rea_val, 10)
+    local lin2 = 10^(real_dB/coeff)  
+    if lin2 <=1 then val = lin2*gfx_c else val = gfx_c + (real_dB/12)*(1-gfx_c) end
+    if val > 1 then val = 1 end
+    return VF_lim(val, 0.0001, 1)
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_lim(val, min,max) --local min,max 
+    if not min or not max then min, max = 0,1 end 
+    return math.max(min,  math.min(val, max) ) 
   end
   ---------------------------------------------------------------------  
-  function DATA2:ReadProject_ReadSends_readEQ(dest_tr, sendEQ)
-    if not sendEQ then return end
+  function DATA:CollectData_ReadProject_ReadTracks_Sends()
+    local tr = DATA.srctr.ptr
+    DATA.srctr.sends = {}
+    
+    
+    
+    for sendidx = 1, GetTrackNumSends( tr, 0 ) do 
+      local destPtr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
+      local B_MUTE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' )
+      local vol = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
+      local B_MONO = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MONO' )
+      local D_PAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_PAN' )
+      local B_PHASE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_PHASE' )
+      local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' )
+      local I_AUTOMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_AUTOMODE' )
+      local I_SRCCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SRCCHAN' )
+      local I_DSTCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_DSTCHAN' )
+      local retval, destGUID = GetSetMediaTrackInfo_String( destPtr, 'GUID', '', false )
+      local destI_NCHAN  = GetMediaTrackInfo_Value( destPtr, 'I_NCHAN' ) 
+      local ret, destName  = reaper.GetTrackName( destPtr ) 
+      local destCol  = GetTrackColor( destPtr ) 
+      local id = #DATA.srctr.sends+1
+      DATA.srctr.sends[id] = {
+            sendidx=sendidx-1,
+            vol=vol, 
+            B_MUTE =B_MUTE,
+            B_MONO =B_MONO,
+            D_PAN =D_PAN,
+            B_PHASE =B_PHASE,
+            I_SENDMODE =I_SENDMODE,
+            I_AUTOMODE =I_AUTOMODE,
+            I_DSTCHAN=I_DSTCHAN,
+            I_SRCCHAN=I_SRCCHAN,
+            destI_NCHAN=destI_NCHAN ,
+            destGUID=destGUID,
+            destPtr=destPtr,
+            destName=destName,
+            destCol=destCol,
+            peaks = {},
+            }
+      DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(destPtr,DATA.srctr.sends[id]) 
+    end
+    
+  end 
+  ---------------------------------------------------------------------  
+  function DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(dest_tr,t)
+    t.sendEQ = {}
     local fx_cnt = TrackFX_GetCount( dest_tr )
     for fx_i = 1, fx_cnt do
       local _, fx_name = TrackFX_GetFXName( dest_tr, fx_i-1, '' )
       if (fx_name == 'PreEQ' or fx_name == 'PostEQ') then 
         local HP, LP
-        for paramidx = 1, reaper.TrackFX_GetNumParams(dest_tr, fx_i-1 ) do
-          local _, bandtype, _, paramtype, normval = reaper.TrackFX_GetEQParam( dest_tr, fx_i-1, paramidx-1 )
+        for paramidx = 1, TrackFX_GetNumParams(dest_tr, fx_i-1 ) do
+          local _, bandtype, _, paramtype, normval = TrackFX_GetEQParam( dest_tr, fx_i-1, paramidx-1 )
           if bandtype == 0 and paramtype == 0 then HP = normval end
           if bandtype == 5 and paramtype == 0 then LP = normval end
         end
@@ -285,7 +394,7 @@
           local key = 'pre'
           if fx_name == 'PostEQ' then key = 'post' end
           local GUID = TrackFX_GetFXGUID( dest_tr, fx_i-1)
-          sendEQ[key] = {HP =  HP,
+          t.sendEQ[key] = {HP =  HP,
                         LP =  LP,
                         val_POS = val_POS,
                         val_WID = val_WID,
@@ -295,984 +404,592 @@
     end
   end
   ---------------------------------------------------------------------  
-  function DATA2:ReadProject()
-    DATA2:ReadProject_ReadSends()
-    DATA2:ReadProject_ReadTracks()
-  end
-  ---------------------------------------------------------------------  
-  function DATA2:ReadProject_ReadTracks_Sends(tr)
-    -- read sends
-    local sends = {}
-    for sendidx = 1, GetTrackNumSends( tr, 0 ) do 
-      local dest_trptr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
-      local B_MUTE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' )
-      local vol = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
-      local B_MONO = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MONO' )
-      local D_PAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_PAN' )
-      local B_PHASE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_PHASE' )
-      local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' )
-      local I_AUTOMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_AUTOMODE' )
-      local I_DSTCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_DSTCHAN' )
-      if ValidatePtr(dest_trptr, 'MediaTrack*') then
-        local retval, destGUID = reaper.GetSetMediaTrackInfo_String( dest_trptr, 'GUID', '', false )
-        for i = 1, #DATA2.sendtracks do
-          if DATA2.sendtracks[i].GUID == destGUID then
-            sends[destGUID] = {
-              vol=vol, 
-              B_MUTE =B_MUTE,
-              B_MONO =B_MONO,
-              D_PAN =D_PAN,
-              B_PHASE =B_PHASE,
-              I_SENDMODE =I_SENDMODE,
-              I_AUTOMODE =I_AUTOMODE,
-              I_DSTCHAN=I_DSTCHAN,
-              }
-          end 
-        end
-      end
-    end
-    return sends
-  end
-  ---------------------------------------------------------------------  
-  function DATA2:ReadProject_ReadTracks_Receives(tr)
-    -- read receives
-    local receives = {}
-    for sendidx = 1, GetTrackNumSends( tr, -1 ) do 
-      local src_trptr = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'P_SRCTRACK' )
-      local B_MUTE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'B_MUTE' )
-      local vol = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'D_VOL' )
-      local B_MONO = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'B_MONO' )
-      local D_PAN = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'D_PAN' )
-      local B_PHASE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'B_PHASE' )
-      local I_SENDMODE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'I_SENDMODE' )
-      local I_AUTOMODE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'I_AUTOMODE' )
-      local trcol = GetTrackColor( src_trptr )
-      if ValidatePtr(src_trptr, 'MediaTrack*') then
-        local retval, srcGUID = reaper.GetSetMediaTrackInfo_String( src_trptr, 'GUID', '', false )
-        local retval, srcname = reaper.GetSetMediaTrackInfo_String( src_trptr, 'P_NAME', '', false )
-        
-        receives[srcGUID] = {
-              vol=vol, 
-              B_MUTE =B_MUTE,
-              B_MONO =B_MONO,
-              D_PAN =D_PAN,
-              B_PHASE =B_PHASE,
-              I_SENDMODE =I_SENDMODE,
-              I_AUTOMODE =I_AUTOMODE,
-              srcname = srcname,
-              trcol=trcol,
-              }
-      end
-    end
-    return receives
-  end
+  function DATA:CollectData_ReadProject_ReadTracks()
   
-  
-  ---------------------------------------------------------------------  
-  function DATA2:ReadProject_ReadTracks()
-  
-    DATA2.tracks = {}
-    DATA2.issendselected = false 
+    DATA.srctr = {}
     
-    local CONF_definebygroup = tostring(DATA.extstate.CONF_definebygroup)
-    local CONF_definebyname = tostring(DATA.extstate.CONF_definebyname)
-    
-    -- parse group names
-      local names_group = {cached=true} 
-      if CONF_definebygroup ~= '' then
-        for word in CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
-      end
-      
-    -- parse group names
-      local names_track = {} 
-      if CONF_definebyname ~= '' then
-        for word in CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
-      end
-      
     local tr = GetSelectedTrack(0,0)
-    if not tr then return end 
-    local issend,name = DATA2:ReadProject_ReadSends_IsSend(tr,names_group,names_track)
+    if not tr then return end  
+    
     local  retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
     local ret, name =  GetTrackName(tr)
-    DATA2.tracks[1] = {
+    local solo  = GetMediaTrackInfo_Value( tr, 'I_SOLO' ) 
+    local I_NCHAN  = GetMediaTrackInfo_Value( tr, 'I_NCHAN' ) 
+    local UIsolotxt = 'Solo'
+    if GetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT') ==1 then UIsolotxt = UIsolotxt..' [Defeat]' end 
+    
+    DATA.srctr = {
       ptr = tr,
       GUID=GUID, 
-      name =name,
-      
-      }
+      name =name, 
+      solo = solo,
+      UIsolotxt = UIsolotxt,
+      I_NCHAN = I_NCHAN,
+      peaks = {},
+      }    
     
-    if issend==true then 
-      DATA2.issendselected = true 
-      DATA2.tracks[1].receives=DATA2:ReadProject_ReadTracks_Receives(tr)
-     else  
-      DATA2.tracks[1].sends=DATA2:ReadProject_ReadTracks_Sends(tr)
+    DATA:CollectData_ReadProject_ReadTracks_Sends()
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:CollectData_Always()
+    if EXT.CONF_showpeaks == 1 then DATA:CollectData_Always_getpeaks() end
+  end
+  ------------------------------------------------------------------------------------------------------  
+  function VF_GetMediaTrackByGUID(optional_proj, GUID)
+    local optional_proj0 = optional_proj or -1
+    for i= 1, CountTracks(optional_proj0) do tr = GetTrack(0,i-1 )if reaper.GetTrackGUID( tr ) == GUID then return tr end end
+    local mast = reaper.GetMasterTrack( optional_proj0 ) if reaper.GetTrackGUID( mast ) == GUID then return mast end
+  end 
+  ----------------------------------------------------------------------
+  function DATA:CollectData_Always_getpeaks_sub(t, tr) 
+    local max_cnt = UI.peaks_cnt
+    if not (t and tr) then return end
+    if reaper.ValidatePtr(tr, 'MediaTrack*') then 
+      local peakL = Track_GetPeakInfo( tr, 0 )
+      local peakR = Track_GetPeakInfo( tr, 1 )
+      table.insert(t, 1, {DATA:Convert_Val2Fader(peakL),DATA:Convert_Val2Fader(peakR)})
+      local sz = #t
+      if  sz >= max_cnt then table.remove(t, max_cnt) end
+      t.peaksRMS_L = 0
+      t.peaksRMS_R = 0
+      for i = 1, sz do if t[i] then t.peaksRMS_L = t[i][1] + t.peaksRMS_L end end
+      for i = 1, sz do if t[i] then t.peaksRMS_R = t[i][2] + t.peaksRMS_R end end
+      t.peaksRMS_L = t.peaksRMS_L/sz
+      t.peaksRMS_R = t.peaksRMS_R/sz
+    end
+  end
+  ----------------------------------------------------------------------
+  function DATA:CollectData_Always_getpeaks()
+    if DATA.srctr and DATA.srctr.ptr then 
+      DATA:CollectData_Always_getpeaks_sub(DATA.srctr.peaks, DATA.srctr.ptr)
+    
+      for sendID = 1, #DATA.srctr.sends do 
+        DATA:CollectData_Always_getpeaks_sub(DATA.srctr.sends[sendID].peaks, DATA.srctr.sends[sendID].destPtr)
+      end
     end 
   end
-  ---------------------------------------------------------------------  
-  function DATA_RESERVED_ONPROJCHANGE(DATA)
-    DATA2:ReadProject()
-    GUI_refresh(DATA)
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_UIloop() 
+    DATA.clock = os.clock() 
+    DATA:handleProjUpdates()
+    DATA.flicker = math.abs(-1+(math.cos(math.pi*(DATA.clock%2)) + 1))
+    
+    DATA:CollectData_Always()
+    if DATA.upd == true then  DATA:CollectData()  end 
+    DATA.upd = false
+    
+    -- draw UI
+    UI.open = UI.MAIN_styledefinition(true) 
+    
+    -- handle xy
+    DATA:handleViewportXYWH()
+    -- data
+    if UI.open then defer(UI.MAIN_UIloop) end
   end
+  -------------------------------------------------------------------------------- 
+  function UI.MAIN_definecontext()
+    
+    EXT:load() 
+    
+    -- imgUI init
+    ctx = ImGui.CreateContext(DATA.UI_name) 
+    -- fonts
+    DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
+    DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
+    DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
+    -- config
+    ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
+    ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
+    
+    
+    -- run loop
+    defer(UI.MAIN_UIloop)
+  end
+  -------------------------------------------------------------------------------- 
+  function EXT:save() 
+    if not DATA.ES_key then return end 
+    for key in pairs(EXT) do 
+      if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
+        SetExtState( DATA.ES_key, key, EXT[key], true  ) 
+      end 
+    end 
+    EXT:load()
+  end
+  -------------------------------------------------------------------------------- 
+  function EXT:load() 
+    if not DATA.ES_key then return end
+    for key in pairs(EXT) do 
+      if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
+        if HasExtState( DATA.ES_key, key ) then 
+          local val = GetExtState( DATA.ES_key, key ) 
+          EXT[key] = tonumber(val) or val 
+        end 
+      end  
+    end 
+    DATA.upd = true
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:handleViewportXYWH()
+    if not (DATA.display_x and DATA.display_y) then return end 
+    if not DATA.display_x_last then DATA.display_x_last = DATA.display_x end
+    if not DATA.display_y_last then DATA.display_y_last = DATA.display_y end
+    if not DATA.display_w_last then DATA.display_w_last = DATA.display_w end
+    if not DATA.display_h_last then DATA.display_h_last = DATA.display_h end
+    
+    if  DATA.display_x_last~= DATA.display_x 
+      or DATA.display_y_last~= DATA.display_y 
+      or DATA.display_w_last~= DATA.display_w 
+      or DATA.display_h_last~= DATA.display_h 
+      then 
+      DATA.display_schedule_save = os.clock() 
+    end
+    if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.3 then 
+      EXT.viewport_posX = DATA.display_x
+      EXT.viewport_posY = DATA.display_y
+      EXT.viewport_posW = DATA.display_w
+      EXT.viewport_posH = DATA.display_h
+      EXT:save() 
+      DATA.display_schedule_save = nil 
+    end
+    DATA.display_x_last = DATA.display_x
+    DATA.display_y_last = DATA.display_y
+    DATA.display_w_last = DATA.display_w
+    DATA.display_h_last = DATA.display_h
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:handleProjUpdates()
+    local SCC =  GetProjectStateChangeCount( 0 ) if (DATA.upd_lastSCC and DATA.upd_lastSCC~=SCC ) then DATA.upd = true end  DATA.upd_lastSCC = SCC
+    local editcurpos =  GetCursorPosition()  if (DATA.upd_last_editcurpos and DATA.upd_last_editcurpos~=editcurpos ) then DATA.upd = true end DATA.upd_last_editcurpos=editcurpos 
+    local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true end DATA.upd_last_reaproj = reaproj
+  end
+  
   ----------------------------------------------------------------------
-  function DATA2:MarkSelectedTracksAsSend(set) 
-    for i = 1, CountSelectedTracks(0) do
-      local tr = GetSelectedTrack(0,i-1) 
+  function DATA:MarkSelectedTracksAsSend(set) 
+    for i = 1, CountSelectedTracks(-1) do
+      local tr = GetSelectedTrack(-1,i-1) 
       if tr then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', set, true )end
     end
-    DATA.UPD.onprojstatechange = true
+    DATA.upd = true
   end
-  ----------------------------------------------------------------------
-  function GUI_MODULE_ControlPanel(DATA)  
-    local x_offs = DATA.GUI.custom_infobut_w+DATA.GUI.custom_offset
-    
-    -- solo source
-      local seltr = GetSelectedTrack(0,0)
-      local solo
-      local solotxt = 'Solo'
-      if seltr then
-        solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
-        if solo > 0 then 
-          backgr_fill = 0.5
-          backgr_col = '#FFFFFF' 
-        end
-        if reaper.GetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT') ==1 then solotxt = solotxt..' [D]' end
-      end  
-      DATA.GUI.buttons.solosrc = { x=x_offs,
-                            y=DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_infobut_w-2,
-                            h=DATA.GUI.custom_infobuth-1,
-                            txt = solotxt,
-                            backgr_fill=backgr_fill,
-                            backgr_col=backgr_col,
-                            txt_fontsz = DATA.GUI.custom_txtsz1,
-                            onmouseclick = function()
-                              local backgr_fill=0.5
-                              local backgr_col='#FFFFFF'
-                              local seltr = GetSelectedTrack(0,0)
-                              if not seltr then return end 
-                              local solo  = reaper.GetMediaTrackInfo_Value( seltr, 'I_SOLO' ) 
-                              if solo==0 then 
-                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 4 ) 
-                                reaper.SetTrackUISolo( seltr, 4, 2 )
-                               else 
-                                reaper.SetMediaTrackInfo_Value( seltr, 'I_SOLO', 0 ) 
-                                reaper.SetTrackUISolo( seltr,0, 2 )
-                                backgr_fill = nil
-                                backgr_col = nil
-                              end 
-                              reaper.TrackList_AdjustWindows( false )
-                              GUI_MODULE_ControlPanel(DATA) 
-                            end,
-                            onmouseclickR = function()
-                              local seltr = GetSelectedTrack(0,0)
-                              if not seltr then return end 
-                              local solod  = reaper.GetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT' ) 
-                              if solod==0 then 
-                                reaper.SetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT', 1 ) 
-                                DATA.GUI.buttons.solosrc.txt=solotxt..' [D]'
-                               else 
-                                reaper.SetMediaTrackInfo_Value( seltr, 'B_SOLO_DEFEAT', 0 )
-                                DATA.GUI.buttons.solosrc.txt=solotxt
-                              end 
-                              reaper.TrackList_AdjustWindows( false )
-                              GUI_MODULE_ControlPanel(DATA) 
-                            end,                            
-                            }
-        x_offs = x_offs + DATA.GUI.custom_infobut_w
-        
-        local seltr = GetSelectedTrack(0,0)
-        local trchan = 'N/A'
-        if seltr then
-          trchan = math.floor(reaper.GetMediaTrackInfo_Value( seltr, 'I_NCHAN' ))
-        end 
-         --[[
-        DATA.GUI.buttons.trackchan = { x=x_offs,
-                              y=DATA.GUI.custom_offset,
-                              w=DATA.GUI.custom_infobut_w-2,
-                              h=DATA.GUI.custom_infobuth-1,
-                              txt = trchan..' chan.',
-                              txt_fontsz = DATA.GUI.custom_txtsz1,
-                              onmouseclick = function()
-                                local chasel_t = {}
-                                for i = 2, 64, 2 do
-                                  chasel_t[#chasel_t+1] = {
-                                                            str=i..' channels', 
-                                                            func = 
-                                                              function() 
-                                                                local seltr = GetSelectedTrack(0,0)
-                                                                if not seltr then return end 
-                                                                reaper.SetMediaTrackInfo_Value( seltr, 'I_NCHAN',i )
-                                                                DATA.UPD.onprojstatechange = true 
-                                                              end
-                                                          }
-                                end
-                                DATA:GUImenu(chasel_t)
-                                  
-                                
-                                
-                                reaper.TrackList_AdjustWindows( false )
-                              end,
-                              }
-          x_offs = x_offs + DATA.GUI.custom_infobut_w]]
-          
-    -- active track
-      DATA.GUI.buttons.activetrack = { x=x_offs,
-                            y=DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_gfx_wreal-x_offs-DATA.GUI.custom_offset*2-1,--DATA.GUI.custom_infobut_w*2-2,
-                            h=DATA.GUI.custom_infobuth-1, 
-                            txt = DATA.GUI.custom_txt_trackinfoinit,
-                            txt_fontsz = DATA.GUI.custom_txtsz1,
-                            --txt_flags = 4,
-                            --frame_a =0,
-                            ignoremouse = true,
-                            onmouseclick = function() end, 
-                            data = {fader_vca=true}
-                            }                           
-   GUI_RefreshreadOuts(DATA)
+  -------------------------------------------------------------------- 
+  function DATA:GetSendIdx(destGUID0,allowcreate)
+    local destPtr
+    -- get send id
+    local tr = DATA.srctr.ptr
+    local sendidx_out
+    for sendidx = 1, GetTrackNumSends( tr, 0 ) do 
+      destPtr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
+      if ValidatePtr(destPtr, 'MediaTrack*') then
+        local retval, destGUID = reaper.GetSetMediaTrackInfo_String( destPtr, 'GUID', '', false )
+        if destGUID == destGUID0 then sendidx_out = sendidx-1 break end
+      end
+    end
+    if not sendidx_out and allowcreate==true  then
+      destPtr = VF_GetMediaTrackByGUID(0,destGUID0)
+      if ValidatePtr(destPtr, 'MediaTrack*') then 
+        sendidx_out = CreateTrackSend( tr, destPtr ) 
+        SetTrackSendInfo_Value( tr, 0, sendidx_out, 'D_VOL', 0 )
+      end
+    end
+    return sendidx_out,destPtr
   end
-  ---------------------------------------------------------------------------------------------
-  function GUI_RESERVED_init(DATA)
-    DATA.GUI.buttons = {} 
-    -- get globals
-      local gfx_h = math.floor(gfx.h/DATA.GUI.default_scale)--math.max(250,gfx.h/DATA.GUI.default_scale)
-      local gfx_w = math.floor(gfx.w/DATA.GUI.default_scale)--math.max(250,gfx.h/DATA.GUI.default_scale)
-      DATA.GUI.custom_gfx_wreal = gfx_w
-      DATA.GUI.custom_gfx_hreal = gfx_h 
-      DATA.GUI.custom_referenceH = 300
-      DATA.GUI.custom_Yrelation = math.max(gfx_h/DATA.GUI.custom_referenceH, 0.5) -- global W
-      DATA.GUI.custom_Yrelation = math.min(DATA.GUI.custom_Yrelation, 1) -- global W
-      DATA.GUI.custom_offset =  math.floor(2 * DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_scrollH =  math.floor(10 * DATA.GUI.custom_Yrelation)
-      --DATA.GUI.default_scale = 1
-      
-    -- init button stuff
-      DATA.GUI.custom_infobuth =  math.floor(25*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_infobut_w =  math.floor(80*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_txtsz1 = math.floor(16*DATA.GUI.custom_Yrelation) -- menu
-      DATA.GUI.custom_txta = 1
-      DATA.GUI.custom_txta_disabled = 0.4
-      DATA.GUI.custom_txt_trackinfoinit = '[track not selected]'
-      DATA.GUI.custom_txt_trackinfoinit2 = '[receive track selected]'
-      
-    -- send control
-      DATA.GUI.custom_sendctrl_nameh = math.floor(21*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_sendctrl_txtsz1 = math.floor(14*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_filter_centerH = math.floor(2*DATA.GUI.custom_Yrelation)
-      
-    -- send block
-      DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*9-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3
-      if DATA.extstate.UI_showsendrecnamevertically == 1 then DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*7-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3 end
-      DATA.GUI.custom_sendfaderW = math.floor(80*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_sendfaderWmin = math.floor(90*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_fader_scale_lim = 0.8
-      DATA.GUI.custom_fader_coeff = 30
-      DATA.GUI.custom_txtsz_scalelevels = DATA:GUIdraw_txtCalibrateFont( DATA.GUI.default_txt_font, math.floor(14*DATA.GUI.custom_Yrelation), 0) 
-    
-    -- main control
-      --DATA.GUI.custom_vcaW = math.floor(20*DATA.GUI.custom_Yrelation)
-      
-    -- meters
-      DATA.GUI.custom_meterW = math.floor(5*DATA.GUI.custom_Yrelation)
-      
-    -- settings
-      if not DATA.GUI.Settings_open then DATA.GUI.Settings_open = 0  end
-      local x_offs = DATA.GUI.custom_offset
-      DATA.GUI.buttons.settings = { x=x_offs,
-                            y=DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_infobut_w-DATA.GUI.custom_offset,
-                            h=DATA.GUI.custom_infobuth-1,
-                            txt = '>',
-                            txt_fontsz = DATA.GUI.custom_txtsz1,
-                            --frame_a = 0.3,
-                            onmouseclick = function()
-                              if DATA.GUI.Settings_open then DATA.GUI.Settings_open = math.abs(1-DATA.GUI.Settings_open) else DATA.GUI.Settings_open = 1 end 
-                              DATA.UPD.onGUIinit = true
-                            end,
-                            }
-                       
-  
-                            
-      DATA.GUI.buttons.horizscroll = { x=0,
-                            y=DATA.GUI.custom_gfx_hreal-DATA.GUI.custom_scrollH,
-                            w=DATA.GUI.custom_gfx_wreal-1,--DATA.GUI.custom_infobut_w*2-2,
-                            h=DATA.GUI.custom_scrollH-1, 
-                            data = {horslider = true},
-                            frame_a =0.3,
-                            val = 0,
-                            val_xaxis = true,
-                            val_res = -1,
-                            onmousedrag = function()
-                              DATA2.scroll_x = DATA.GUI.buttons.horizscroll.val
-                              GUI_refresh(DATA)
-                            end
-                            
-                            }
-
-
-                            
-     GUI_refresh(DATA)
-    for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
-  end 
-  ---------------------------------------------------------------------  
-  function GUI_RefreshreadOuts(DATA)
-    if not (DATA2.tracks  and DATA2.tracks[1]) then return end
-    if not (DATA.GUI.custom_txt_trackinfoinit2 and DATA.GUI.buttons.activetrack) then return end
-    if DATA2.tracks[1] and not DATA2.issendselected == true then 
-      DATA.GUI.buttons.activetrack.txt = DATA2.tracks[1].name
+  -------------------------------------------------------------------- 
+  function DATA:Convert_Fader2Val(fader_val)
+    local fader_val = VF_lim(fader_val,0,1)
+    local gfx_c, coeff = UI.fader_scale_limratio,UI.fader_scale_coeff 
+    local val
+    if fader_val <=gfx_c then
+      local lin2 = fader_val/gfx_c
+      local real_dB = coeff*math.log(lin2, 10)
+      val = 10^(real_dB/20)
      else
-      DATA.GUI.buttons.activetrack.txt = DATA.GUI.custom_txt_trackinfoinit2..': '..DATA2.tracks[1].name
+      local real_dB = 12 * (fader_val  / (1 - gfx_c) - gfx_c/ (1 - gfx_c))
+      val = 10^(real_dB/20)
     end
+    if val > 4 then val = 4 end
+    if val < 0 then val = 0 end
+    return val
   end
-  ---------------------------------------------------------------------  
-  function GUI_refresh(DATA)
-    if DATA.GUI.buttons then
-      GUI_MODULE_SETTINGS(DATA)
-      GUI_RefreshreadOuts(DATA)
-      GUI_MODULE_ControlPanel(DATA)
-      GUI_MODULE_BuildSends(DATA)
-      GUI_MODULE_BuildReceives(DATA)
-    end
-     
-    -- update buttons
-    if not DATA.GUI.layers_refresh  then DATA.GUI.layers_refresh = {} end
-    DATA.GUI.layers_refresh[2]=true 
-  end
-  ---------------------------------------------------------------------  
-  function GUI_MODULE_SETTINGS(DATA)
-      for key in pairs(DATA.GUI.buttons) do if key:match('Rsettings') then DATA.GUI.buttons[key] = nil end end
-      if not DATA.GUI.layers[21] then DATA.GUI.layers[21] = {} end DATA.GUI.layers[21].a = 0 -- reset settings
-      if DATA.GUI.Settings_open ==0 then return end 
-      DATA.GUI.buttons.Rsettings = { x=0,
-                            y=DATA.GUI.custom_infobuth + DATA.GUI.custom_offset,
-                            w=gfx.w/DATA.GUI.default_scale,
-                            h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_infobuth-DATA.GUI.custom_offset,
-                            --txt = 'Settings',
-                            frame_a = 0,
-                            offsetframe = DATA.GUI.custom_offset,
-                            offsetframe_a = 0.1,
-                            ignoremouse = true,
-                            refresh = true,
-                            }
-      DATA:GUIBuildSettings()
-    end
-    
-
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildReceives_ControlStuff(DATA,receiveGUID,x_offs0, y_offs, faderW)
-    local srct = DATA2.tracks[1].receives[receiveGUID]
-    local act_w = faderW-DATA.GUI.custom_offset*2
-    local ctrlbutw = math.floor(act_w/2) 
-    local x_offs = x_offs0
-    GUI_MODULE_BuildReceives_ControlStuff_name(DATA,receiveGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1,srct.srcname) 
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh
-    if srct then GUI_MODULE_BuildReceives_ControlStuff_mute(DATA,receiveGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
-    x_offs = x_offs + ctrlbutw 
-    if srct then GUI_MODULE_BuildReceives_ControlStuff_remove(DATA,receiveGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
-    x_offs = x_offs0
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    if srct then GUI_MODULE_BuildReceives_ControlStuff_smode(DATA,receiveGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    if srct then GUI_MODULE_BuildReceives_ControlStuff_pan(DATA,receiveGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
-    --[[y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    GUI_MODULE_BuildSends_ControlStuff_filt(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1)
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    GUI_MODULE_BuildSends_ControlStuff_filt(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1,true)
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    GUI_MODULE_BuildSends_ControlStuff_FX(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1)
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_mono(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw-1,DATA.GUI.custom_sendctrl_nameh-1) end
-    x_offs = x_offs + ctrlbutw 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_phase(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw-1,DATA.GUI.custom_sendctrl_nameh-1) end
-    ]]
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildReceives_ControlStuff_name(DATA,receiveGUID,srct,x,y,w,h, name) 
-    local key = 'fader_rec'..receiveGUID..'_name'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = name,
-      frame_a = 0,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      onmouseclick = function()
-        if DATA.GUI.Alt == true then
-          local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-          reaper.SetOnlyTrackSelected( srctr)
-          DATA.UPD.onprojstatechange = true 
-        end
-      end,
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildReceives_ControlStuff_mute(DATA,receiveGUID,srct,x,y,w,h) 
-    local txt_a = DATA.GUI.custom_txta
-    if srct.B_MUTE==0 then txt_a = DATA.GUI.custom_txta_disabled  end
-    local key = 'fader_rec'..receiveGUID..'_mute'
-    DATA.GUI.buttons[key] = { 
-      x=x,--+ctrlbutw,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'Mute', 
-      txt_a=txt_a,
-      txt_col = '#FF0000',
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      frame_a = 0,
-      onmouserelease = function() 
-        local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-        SetTrackSendInfo_Value( srctr, 0, sendIDx, 'B_MUTE', srct.B_MUTE~1)
-        DATA.UPD.onprojstatechange = true 
-      end}
-      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildReceives_ControlStuff_remove(DATA,receiveGUID,srct,x,y,w,h) 
-    local txt_a = DATA.GUI.custom_txta
-    local key = 'fader_rec'..receiveGUID..'_remove'
-    DATA.GUI.buttons[key] = { 
-      x=x,--+ctrlbutw,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'X', 
-      txt_a=txt_a,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      frame_a = 0,
-      onmouserelease = function() 
-        local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-        RemoveTrackSend(srctr, 0, sendIDx )
-        DATA.UPD.onprojstatechange = true 
-      end}
-      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_rec'..receiveGUID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildReceives_ControlStuff_smode(DATA,receiveGUID,srct,x,y,w,h) 
-    local modetxtx = '[unknown]'
-    if srct.I_SENDMODE == 0 then modetxtx = 'PostFader'
-    elseif srct.I_SENDMODE == 3 then modetxtx = 'PreFader'
-    elseif srct.I_SENDMODE == 1 then modetxtx = 'PreFX'
-    
-    end
-    local key = 'fader_rec'..receiveGUID..'_stype'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      frame_a = 0,
-      txt = modetxtx,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      onmouserelease = function() 
-        DATA:GUImenu(
-          {
-            {str='PostFader', func = function() local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID) SetTrackSendInfo_Value( srctr, 0, sendIDx, 'I_SENDMODE', 0) DATA.UPD.onprojstatechange = true end},
-            {str='PreFader', func = function() local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID) SetTrackSendInfo_Value( srctr, 0, sendIDx, 'I_SENDMODE', 3) DATA.UPD.onprojstatechange = true end},
-            {str='PreFX', func = function() local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID) SetTrackSendInfo_Value( srctr, 0, sendIDx, 'I_SENDMODE', 1) DATA.UPD.onprojstatechange = true end},
-          }
-        )
-      end 
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildReceives_ControlStuff_pan(DATA,receiveGUID,srct,x,y,w,h) 
-    local val_txt = 'Center' if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end 
-    local pan = 0
-    if DATA2.tracks[1].receives[receiveGUID] then pan = DATA2.tracks[1].receives[receiveGUID].D_PAN end 
-    local key = 'fader_rec'..receiveGUID..'_pan'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = val_txt,
-      --frame_a = 0,
-      val=srct.D_PAN,
-      val_centered = true,
-      val_xaxis = true,
-      val_res = -0.05,
-      val_min = -1,
-      val_max = 1,
-      backgr_usevalue = true,
-      backgr_col2='#FFFFFF',
-      backgr_fill2 = 0.2,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      onmousedrag = function() 
-        local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-        local outpan = DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].val
-        SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_PAN', outpan)
-        SetTrackSendUIPan( srctr, sendIDx, outpan, 0)
-        srct.D_PAN=DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].val
-        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end
-        DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].txt=val_txt
-        DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].refresh = true
-      end,
-      onmouserelease = function() 
-        local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-        local outpan = DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].val
-        if DATA.GUI.Alt == true then outpan = 0 end
-        SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_PAN', outpan)
-        SetTrackSendUIPan( srctr, sendIDx, outpan, 1)
-        srct.D_PAN=DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].val
-        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end
-        DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].txt=val_txt
-        DATA.GUI.buttons['fader_rec'..receiveGUID..'_pan'].refresh = true
-        DATA.UPD.onprojstatechange = true
-      end,
-      onmouseclickR = function() 
-        local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-        local cur_pan = math.floor( DATA2.tracks[1].receives[receiveGUID].D_PAN *100)
-        local ret, outpan = GetUserInputs( 'set pan', 1, '%', cur_pan)
-        if not (ret and tonumber(outpan)) then return end
-        outpan = tonumber(outpan)
-        if ( outpan > 100 or outpan < -100) then return end
-        SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_PAN', outpan/100)
-        SetTrackSendUIPan( srctr, sendIDx, outpan, 1)
-        DATA.UPD.onprojstatechange = true 
-      end,
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  ---------------------------------------------------------------------  
-  function GUI_MODULE_BuildReceives(DATA)
-    for key in pairs(DATA.GUI.buttons) do if key:match('fader_rec') then DATA.GUI.buttons[key] = nil end end 
-    if not (DATA2.tracks and DATA2.tracks[1] and DATA2.tracks[1].receives) then return end
-    if DATA.GUI.Settings_open ==1 then return end 
-    
-    local cntreceives = 0
-    for receiveID in pairs(DATA2.tracks[1].receives) do cntreceives = cntreceives + 1 end
-    local x_offs0 = DATA.GUI.custom_offset--*2+DATA.GUI.custom_vcaW
-    local faderareaW = (DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_offset*2) -- -DATA.GUI.custom_vcaW
-    --local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntreceives ))
-    local faderW = DATA.GUI.custom_sendfaderW
-    --local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
-    local faderH = DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
-    local faderW_scale = faderW--math.floor(faderW*0.8) 
-    local y_offs = DATA.GUI.custom_gfx_hreal - faderH-DATA.GUI.custom_scrollH-DATA.GUI.custom_offset--DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
-    
-    
-    DATA2.scroll_w = math.min(1,faderareaW / (faderW_scale * cntreceives ))
-    local x_shift = -DATA2.scroll_x*((faderW_scale * cntreceives ) - faderareaW)
-    if DATA2.scroll_w == 1 then x_shift = 0 end
-    
-    local recID = 0
-    for receiveGUID in spairs(DATA2.tracks[1].receives) do
-      recID = recID + 1
-      local vol,trcol = 0,0
-      if DATA2.tracks[1].receives[receiveGUID].vol then vol = DATA2.tracks[1].receives[receiveGUID].vol end
-      if DATA2.tracks[1].receives[receiveGUID].trcol then trcol = DATA2.tracks[1].receives[receiveGUID].trcol end
-      local val = DATA2:Convert_Val2Fader(vol)
-      local x_offs = x_offs0 + faderW * (recID-1)
-      DATA.GUI.buttons['fader_rec'..receiveGUID] = { x=x_offs+ faderW/2 - faderW_scale/2 +x_shift,
-                            y=y_offs,
-                            w=faderW_scale-DATA.GUI.custom_offset*2,--DATA.GUI.custom_infobut_w*2-2,
-                            h=faderH-1,
-                            val = val,
-                            --txt = i,
-                            --txt_fontsz = DATA.GUI.custom_txtsz1,
-                            --txt_flags = 4,
-                            frame_a =0.5,
-                            onmouseclick = function()
-                              DATA2.temp_latch_levels = {}
-                              for receiveGUID_all in pairs(DATA2.tracks[1].receives) do
-                                DATA2.temp_latch_levels[receiveGUID_all] = DATA.GUI.buttons['fader_rec'..receiveGUID_all].val
-                              end
-                            end,
-                            onmousedrag = function() 
-                              
-                              local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-                              local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_rec'..receiveGUID].val)
-                              SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_VOL', outvol)
-                              SetTrackSendUIVol( srctr, sendIDx, outvol, 0)
-                              DATA.GUI.buttons['fader_rec'..receiveGUID].refresh = true
-                              
-                              if DATA.GUI.Shift == true then
-                                local val_diff_linear = DATA.GUI.buttons['fader_rec'..receiveGUID].latchval - DATA.GUI.buttons['fader_rec'..receiveGUID].val
-                                if DATA2.temp_latch_levels then
-                                  for receiveGUID_all in pairs(DATA2.temp_latch_levels) do
-                                    if receiveGUID_all ~= receiveGUID then
-                                      local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID_all)
-                                      local outval = DATA2.temp_latch_levels[receiveGUID_all]-val_diff_linear
-                                      DATA.GUI.buttons['fader_rec'..receiveGUID_all].val=outval
-                                      local outvol = DATA2:Convert_Fader2Val(outval)
-                                      SetTrackSendInfo_Value( srctr, 0, sendIDx, 'D_VOL', outvol)
-                                      SetTrackSendUIVol( srctr, sendIDx, outvol, 0) 
-                                      DATA.GUI.buttons['fader_rec'..receiveGUID_all].refresh = true
-                                    end
-                                  end
-                                end
-                              end
-                            end,
-                            onmouserelease = function() 
-                              local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-                              local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_rec'..receiveGUID].val)
-                              if DATA.GUI.Alt == true then outvol = 0 end
-                              SetTrackSendInfo_Value(srctr, 0, sendIDx, 'D_VOL', outvol)
-                              SetTrackSendUIVol( srctr, sendIDx, outvol, 1)
-                              DATA.UPD.onprojstatechange = true
-                              DATA2.temp_latch_levels = nil -- clear latch
-                            end,
-                            onmouseclickR = function()
-                              local cur_dB = math.floor(  WDL_VAL2DB(DATA2.tracks[1].receives[receiveGUID].vol) *100)/100
-                              local ret, str = GetUserInputs( 'set volume', 1, 'dB', cur_dB)
-                              if not (ret and tonumber(str)) then return end
-                              local dbval = tonumber(str)
-                              if not ( dbval > -90 and dbval < 12) then return end
-                              local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
-                              local outvol = WDL_DB2VAL(dbval)
-                              SetTrackSendInfo_Value(srctr, 0, sendIDx, 'D_VOL', outvol)
-                              SetTrackSendUIVol( srctr, sendIDx, outvol, 1 )
-                              DATA.UPD.onprojstatechange = true 
-                            end,
-                            data = {fader_cust=true,receiveGUID=receiveGUID,trcol=trcol}
-                            } 
-      
-      --DATA.GUI.buttons['fader_rec'..receiveGUID].hide = DATA.GUI.buttons['fader_rec'..receiveGUID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-      local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
-      GUI_MODULE_BuildReceives_ControlStuff(DATA,receiveGUID,x_offs+x_shift, y_offs, faderW,faderH)
-    end
-    
-  end
-  ---------------------------------------------------------------------  
-  function GUI_MODULE_BuildSends(DATA)
-    for key in pairs(DATA.GUI.buttons) do if key:match('fader_send') then DATA.GUI.buttons[key] = nil end end 
-    if not (DATA2.tracks and DATA2.tracks[1] and DATA2.tracks[1].sends) then return end
-    if DATA.GUI.Settings_open ==1 then return end 
-    
-    if not DATA2.sendtracks then return end
-    local cntsends = #DATA2.sendtracks
-    local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
-    local x_offs0 = DATA.GUI.custom_offset--*2+DATA.GUI.custom_vcaW
-    local faderareaW = (DATA.GUI.custom_gfx_wreal -DATA.GUI.custom_offset*2) ---DATA.GUI.custom_vcaW
-    --local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntsends ))
-    --local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
-    local faderW =  DATA.GUI.custom_sendfaderW
-    local faderH = DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
-    local faderW_scale = faderW--math.floor(faderW*0.8)
-    
-    
-    DATA2.scroll_w = math.min(1,faderareaW / (faderW_scale * cntsends ))
-    local x_shift = -DATA2.scroll_x*((faderW_scale * cntsends ) - faderareaW)
-    if DATA2.scroll_w == 1 then x_shift = 0 end
-    
-    for sendID = 1, cntsends do
-      local trcol = DATA2.sendtracks[sendID].col
-      local destGUID = DATA2.sendtracks[sendID].GUID
-      local vol = 0
-      if DATA2.tracks[1].sends[destGUID] then vol = DATA2.tracks[1].sends[destGUID].vol end
-      local val = DATA2:Convert_Val2Fader(vol)
-      local x_offs = x_offs0 + faderW * (sendID-1)
-      DATA.GUI.buttons['fader_send'..sendID] = { x=x_offs+ faderW/2 - faderW_scale/2 +x_shift,
-                            y=y_offs,
-                            w=faderW_scale-DATA.GUI.custom_offset*2,--DATA.GUI.custom_infobut_w*2-2,
-                            h=faderH-1,
-                            val = val,
-                            --txt = i,
-                            --txt_fontsz = DATA.GUI.custom_txtsz1,
-                            --txt_flags = 4,
-                            frame_a =0.5,
-                            --frame_col = col,
-                            onmouseclick = function()
-                              DATA2.temp_latch_levels = {}
-                              for sendID = 1, cntsends do
-                                DATA2.temp_latch_levels[sendID] = {val = DATA.GUI.buttons['fader_send'..sendID].val, GUID = DATA2.sendtracks[sendID].GUID}
-                              end
-                            end,
-                            
-                            
-                            onmousedrag = function() 
-                              local sendIDx = DATA2:GetSendIdx(destGUID,true)
-                              local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_send'..sendID].val)
-                              SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                              SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 0)
-                              DATA.GUI.buttons['fader_send'..sendID].refresh = true
-                              
-                              if DATA.GUI.Shift == true then
-                                local val_diff_linear = DATA.GUI.buttons['fader_send'..sendID].latchval - DATA.GUI.buttons['fader_send'..sendID].val
-                                
-                                if DATA2.temp_latch_levels then
-                                  local destGUID = DATA2.sendtracks[sendID].GUID
-                                  for sendID0=1, #DATA2.temp_latch_levels do
-                                    if sendID ~= sendID0 then
-                                    
-                                      local sendIDx = DATA2:GetSendIdx(DATA2.temp_latch_levels[sendID0].GUID,true)
-                                      local outval = DATA2.temp_latch_levels[sendID0].val-val_diff_linear
-                                      DATA.GUI.buttons['fader_send'..sendID0].val=outval
-                                      local outvol = DATA2:Convert_Fader2Val(outval)
-                                      SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                                      SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 0)
-                                      DATA.GUI.buttons['fader_send'..sendID0].refresh = true
-                                      
-                                    end
-                                  end
-                                end
-                              end
-                            end,
-                            
-                            
-                            onmouserelease = function() 
-                              local sendIDx = DATA2:GetSendIdx(destGUID,true)
-                              local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_send'..sendID].val)
-                              if DATA.GUI.Alt == true then outvol = 0 end
-                              SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                              SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1)
-                              DATA.UPD.onprojstatechange = true
-                              DATA2.temp_latch_levels = nil -- clear latch
-                            end,
-                            onmouseclickR = function()
-                              local cur_dB = math.floor(  WDL_VAL2DB(DATA2.tracks[1].sends[destGUID].vol) *100)/100
-                              local ret, str = GetUserInputs( 'set volume', 1, 'dB', cur_dB)
-                              if not (ret and tonumber(str)) then return end
-                              local dbval = tonumber(str)
-                              if not ( dbval > -90 and dbval < 12) then return end
-                              local sendIDx = DATA2:GetSendIdx(destGUID,true)
-                              local outvol = WDL_DB2VAL(dbval)
-                              SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                              SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1 )
-                              DATA.UPD.onprojstatechange = true 
-                            end,
-                            data = {fader_cust=true,destGUID=destGUID,trcol=trcol}
-                            } 
-      
-      --DATA.GUI.buttons['fader_send'..sendID].hide = DATA.GUI.buttons['fader_send'..sendID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-      local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth + faderH
-      GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs+x_shift, y_offs, faderW,faderH)
-    end
-    
-  end
-  -------------------------------------------------------------------- 
   
-  function GUI_MODULE_BuildSends_ControlStuff_recvchan(DATA,sendID,destGUID,srct,x,y,w,h, name) 
-      local key = 'fader_send'..sendID..'_recvchan'
-      local txt = ''
-      if srct.I_DSTCHAN == 0 then txt = '1/2' end
-      if srct.I_DSTCHAN == 2 then txt = 'SC' end
-      if srct.I_DSTCHAN == 4 then txt = '5/6' end
-      if srct.I_DSTCHAN == 6 then txt = '7/8' end
-      DATA.GUI.buttons[key] = { 
-        x=x,
-        y=y,
-        w=w,
-        h=h,
-        txt = '-> '..txt,
-        frame_a = 0,
-        txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-        onmouseclick = function()
-          DATA:GUImenu(
-            {
-              {str='-> 1/2', state = srct.I_DSTCHAN == 0, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 0)  DATA.UPD.onprojstatechange = true end},
-              {str='-> 3/4', state = srct.I_DSTCHAN == 2, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 2) local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' ) out = math.max(4, reaper.GetMediaTrackInfo_Value( desttr, 'I_NCHAN' )) reaper.SetMediaTrackInfo_Value(desttr, 'I_NCHAN', out )  DATA.UPD.onprojstatechange = true end},
-              {str='-> 5/6', state = srct.I_DSTCHAN == 4, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 4) local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' ) out = math.max(6, reaper.GetMediaTrackInfo_Value( desttr, 'I_NCHAN' )) reaper.SetMediaTrackInfo_Value(desttr, 'I_NCHAN', out )  DATA.UPD.onprojstatechange = true end},
-              {str='-> 7/8', state = srct.I_DSTCHAN == 6, func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_DSTCHAN', 6) local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' ) out = math.max(8, reaper.GetMediaTrackInfo_Value( desttr, 'I_NCHAN' )) reaper.SetMediaTrackInfo_Value(desttr, 'I_NCHAN', out )  DATA.UPD.onprojstatechange = true end},
-            }
-          )
-        end,
-        onmouseclickR = function()
+  -------------------------------------------------------------------- 
+  function DATA:SetData_InitReaEQ(dest_tr) 
+    local haspre 
+    local haspost 
+    local fx_cnt = TrackFX_GetCount( dest_tr )
+    for fx_i = 1, fx_cnt do
+      local _, fx_name = TrackFX_GetFXName( dest_tr, fx_i-1, '' )
+      if fx_name == 'PreEQ' then haspre = true end
+      if fx_name == 'PostEQ' then haspost = true end
+    end
+    
+    if not haspre then
+      local new_fx_id = TrackFX_AddByName( dest_tr, 'ReaEQ', false, -1000 )
+      DATA:SetData_SetReaEQLPHP(dest_tr, new_fx_id, 0, 1)
+      TrackFX_SetNamedConfigParm( dest_tr, new_fx_id, 'renamed_name', 'PreEQ' )
+      TrackFX_SetOpen( dest_tr, new_fx_id, false ) 
+    end
+    
+    if not haspost then
+      local new_fx_id = TrackFX_AddByName( dest_tr, 'ReaEQ', false, -1 )
+      DATA:SetData_SetReaEQLPHP(dest_tr, new_fx_id, 0, 1)
+      TrackFX_SetNamedConfigParm( dest_tr, new_fx_id, 'renamed_name', 'PostEQ' )
+      TrackFX_SetOpen( dest_tr, new_fx_id, false ) 
+    end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_menu()  
+    if ImGui.BeginMenuBar( ctx ) then  
+      
+      if DATA.srctr.ptr and ImGui.Selectable( ctx,  DATA.srctr.name,false, ImGui.SelectableFlags_None, UI.calc_trnamew, 0 )then  end
+      
+      
+      if ImGui.BeginMenu( ctx, 'Add', true ) then
+        for i = 1, #DATA.receives do
+          if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
+            CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
+            DATA.upd = true 
+          end
+        end
+        if #DATA.receives == 0 then 
+          ImGui.MenuItem( ctx, '[not found, see options]', '', false, true )
+        end
+        ImGui.EndMenu( ctx)
+      end
+      
+      
+      
+      -- solo source
+      if DATA.srctr and DATA.srctr.UIsolotxt then 
+        if ImGui.MenuItem( ctx, DATA.srctr.UIsolotxt, '', DATA.srctr and DATA.srctr.solo > 0, true ) then 
+          local tr = DATA.srctr.ptr
+          if DATA.srctr.solo==0 then 
+            SetMediaTrackInfo_Value( tr, 'I_SOLO', 4 ) 
+            SetTrackUISolo( tr, 4, 2 )
+           else 
+            SetMediaTrackInfo_Value( tr, 'I_SOLO', 0 ) 
+            SetTrackUISolo( tr,0, 2 )
+          end 
+          TrackList_AdjustWindows( false )
+          DATA.upd = true 
+        end
+      end
+      if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then
+        local tr = DATA.srctr.ptr
+        local solod  = GetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT' ) 
+        SetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT', solod~1 ) 
+        TrackList_AdjustWindows( false )
+        DATA.upd = true 
+      end
+      
+      
+      
+      
+      
+      --if ImGui.Selectable( ctx,  'Options', false, ImGui.SelectableFlags_None, UI.menubutw, 0 ) then
+      if ImGui.BeginMenu( ctx, 'Options', true ) then
+        ImGui.SeparatorText(ctx, 'Add send definition')
+        if ImGui.MenuItem( ctx, 'Show sends that marked as sends in SendFader', '', EXT.CONF_marksendint==1, true ) then EXT.CONF_marksendint=EXT.CONF_marksendint~1 EXT:save() DATA.upd = true end
+        if EXT.CONF_marksendint==1 then 
+          ImGui.Indent(ctx, UI.indent_menu)
+          if ImGui.Button( ctx, '[Action] Mark selected tracks as receives',-1) then DATA:MarkSelectedTracksAsSend(1) DATA.upd = true end
+          if ImGui.Button( ctx, '[Action] Unmark selected tracks as receives',-1) then DATA:MarkSelectedTracksAsSend(0) DATA.upd = true end
+          ImGui.Unindent(ctx, UI.indent_menu)
+        end
+        if ImGui.MenuItem( ctx, 'Show sends match words', '', EXT.CONF_marksendwordsmatch==1, true ) then EXT.CONF_marksendwordsmatch=EXT.CONF_marksendwordsmatch~1 EXT:save() DATA.upd = true end
+        if EXT.CONF_marksendwordsmatch==1 then 
+          ImGui.Indent(ctx, UI.indent_menu)
+          local retval, buf = ImGui.InputText( ctx, 'Send names CSV', EXT.CONF_definebyname, ImGui.InputTextFlags_EnterReturnsTrue )
+          if retval then 
+            if buf == '' then buf = '[none]' end
+            EXT.CONF_definebyname = buf 
+            EXT:save() 
+            DATA.upd = true 
+          end
+          ImGui.Unindent(ctx, UI.indent_menu)
+        end 
+        if ImGui.MenuItem( ctx, 'Show sends with parent folder match words', '', EXT.CONF_marksendparentwordsmatch==1, true ) then EXT.CONF_marksendparentwordsmatch=EXT.CONF_marksendparentwordsmatch~1 EXT:save() DATA.upd = true end
+        if EXT.CONF_marksendparentwordsmatch==1  then 
+          ImGui.Indent(ctx, UI.indent_menu)
+          local retval, buf = ImGui.InputText( ctx, 'Folder names CSV', EXT.CONF_definebygroup, ImGui.InputTextFlags_EnterReturnsTrue )
+          if retval then 
+            if buf == '' then buf = '[none]' end
+            EXT.CONF_definebygroup = buf 
+            EXT:save() 
+            DATA.upd = true 
+          end
+          ImGui.Unindent(ctx, UI.indent_menu)
+        end
+        ImGui.SeparatorText(ctx, 'Other')
+        if ImGui.MenuItem( ctx, 'Show peaks', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
         
-        end
-      }
+        ImGui.EndMenu( ctx)
+      end
+      
+      ImGui.EndMenuBar( ctx )
+    end
     
-  end  
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x,y,w,h, name) 
-    if DATA.extstate.UI_showsendrecnamevertically ==0 then
-      local key = 'fader_send'..sendID..'_name'
-      DATA.GUI.buttons[key] = { 
-        x=x,
-        y=y,
-        w=w,
-        h=h,
-        txt = name,
-        frame_a = 0,
-        txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-        onmouseclick = function()
-          if DATA.GUI.Alt == true then
-            local sendIDx = DATA2:GetSendIdx(destGUID,true)
-            local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' )
-            reaper.SetOnlyTrackSelected( desttr)
-            DATA.UPD.onprojstatechange = true 
-          end
+  end 
+  --------------------------------------------------------------------------------  
+  function UI.draw()  
+    UI.draw_menu() 
+    
+    ImGui.PushFont(ctx, DATA.font2) 
+    ImGui.SameLine(ctx)
+    UI.draw_sends()  
+    ImGui.PopFont(ctx)
+    
+    
+    UI.draw_popups() 
+  end 
+  --------------------------------------------------------------------------------  
+  function UI.draw_popups()  
+    for key in pairs(UI.popups) do
+      -- trig
+      if UI.popups[key] and UI.popups[key].trig == true then
+        UI.popups[key].trig = false
+        UI.popups[key].draw = true
+        ImGui.OpenPopup( ctx, key, ImGui.PopupFlags_NoOpenOverExistingPopup )
+      end
+      -- draw
+      if UI.popups[key] and UI.popups[key].draw == true then UI.GetUserInputMB_replica(UI.popups[key].mode or 1, key, DATA.UI_name, 1, UI.popups[key].captions_csv, UI.popups[key].func_getval, UI.popups[key].func_setval) end 
+    end
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_slider(t) 
+    local str_id = t.destGUID
+    
+    local x, y = reaper.ImGui_GetCursorScreenPos( ctx )
+    local hovered 
+    -- slider
+    local faderval = DATA:Convert_Val2Fader(t.vol)
+    local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
+    if retval then 
+      local outvol = DATA:Convert_Fader2Val(v)
+      SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_VOL', outvol)
+      SetTrackSendUIVol( DATA.srctr.ptr, t.sendidx, outvol,0)
+      DATA.upd = true
+      hovered = true
+    end
+    hovered = ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None )
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
+      UI.popups['Set fader volume in dB'] = {
+        trig = true,
+        captions_csv = 'New volume in dB',
+        func_getval = function()  
+          local cur_dB = math.floor(  WDL_VAL2DB(t.vol) *100)/100
+          return cur_dB
         end,
-        onmouseclickR = function()
-          local sendIDx = DATA2:GetSendIdx(destGUID,true)
-          local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' )
-          local  retval, trname = reaper.GetTrackName( desttr )
-          if retval then
-            local retval1, retvals_csv = reaper.GetUserInputs( 'Set destination track name', 1, '', trname )
-            if retval1 then GetSetMediaTrackInfo_String( desttr, 'P_NAME', retvals_csv, true ) end
+        
+        func_setval = function(retval, retvals_csv)  
+          if retval == true and  tonumber(retvals_csv) then
+            local dbval = tonumber(retvals_csv)
+            if not ( dbval > -90 and dbval < 12) then return end
+            local outvol = WDL_DB2VAL(dbval)
+            SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_VOL', outvol)
+            SetTrackSendUIVol( DATA.srctr.ptr, t.sendidx, outvol, 1 )
+            DATA.upd = true
           end
-          DATA.UPD.onprojstatechange = true 
         end
+        
       }
-      return
     end
-    --[[DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
     
-    if DATA.extstate.UI_showsendrecnamevertically ==1 then
-      local key = 'fader_send'..sendID..'_name'
-      DATA.GUI.buttons[key] = { 
-        x=DATA.GUI.buttons['fader_send'..sendID].x,
-        y=DATA.GUI.buttons['fader_send'..sendID].y,
-        w=DATA.GUI.buttons['fader_send'..sendID].w,
-        h=DATA.GUI.buttons['fader_send'..sendID].h,
-        txt = name,
-        txt_vertical = true,
-        frame_a = 0,
-        backgr_fill = 0,
-        ignoremouse = true,
-        txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      }
-      return
+    if hovered == true then 
+      UI.draw_sends_sub_slider_scale(t,x, y, UI.faderW, UI.calc_faderH) 
+    end
+    if EXT.CONF_showpeaks == 1 then 
+      UI.draw_sends_sub_slider_peaks(t,x, y, UI.faderW, UI.calc_faderH) 
+    end
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_slider_peaks(t,x0, y0, w0, h0)
+    if not (t.peaks and t.peaks.peaksRMS_L) then return end
+    local x,y,w,h = x0, y0+UI.GrabMinSize/2, w0, h0-UI.GrabMinSize
+    local draw_list = ImGui.GetWindowDrawList( ctx )
+    --[[for i = 1, UI.peaks_cnt do
+      if t.peaks[i] then
+        local peak = t.peaks[i][1]
+        local peakR = t.peaks[i][2]
+        ImGui_DrawList_AddRectFilled( draw_list, x+5, y+h-h*peak, x+10, y+h, 0xFFFFFFF<<8|math.floor((0x20* i/UI.peaks_cnt)), 2, ImGui.DrawFlags_None )
+        ImGui_DrawList_AddRectFilled( draw_list, x+10, y+h-h*peakR, x+15, y+h, 0xFFFFFFF<<8|math.floor((0x20* i/UI.peaks_cnt)), 2, ImGui.DrawFlags_None )
+      end
     end]]
+    local alpha = 0x60
+    if t.peaks.peaksRMS_L then ImGui_DrawList_AddRectFilled( draw_list, x+5, y+h-h*t.peaks.peaksRMS_L, x+10, y+h, 0xFFFFFF<<8|alpha, 2, ImGui.DrawFlags_None ) end
+    if t.peaks.peaksRMS_R then ImGui_DrawList_AddRectFilled( draw_list, x+10, y+h-h*t.peaks.peaksRMS_R, x+15, y+h, 0xFFFFFF<<8|alpha, 2, ImGui.DrawFlags_None ) end
     
   end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local txt_a = DATA.GUI.custom_txta
-    local backgr_fill = 0.4
-    local frame_a = 1
-    local backgr_col='#FFFFFF'
-    if srct.B_MUTE==0 then 
-      txt_a = 0.7--DATA.GUI.custom_txta_disabled 
-      backgr_fill=nil 
-      backgr_col=nil 
-      frame_a = 0
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_slider_scale(t,x0, y0, w0, h0) 
+    local x,y,w,h = x0, y0+UI.GrabMinSize/2, w0, h0-UI.GrabMinSize
+    local draw_list = ImGui.GetWindowDrawList( ctx )
+    --ImGui.DrawList_AddRect( draw_list, x, y, x+w, y+h, 0xFFFFFFFF, 0, 0, 1 )
+    local col_rgba = 0xFFFFFF5F
+    for i = 1, #DATA.scale_map do
+      local t_val = tonumber(DATA.scale_map[i])
+      local rea_val = WDL_DB2VAL(t_val)
+      local y1 = DATA:Convert_Val2Fader(rea_val)
+      local ylev = y+h*(1-y1)
+      ImGui.DrawList_AddLine( draw_list, x+w-5, ylev, x+w-10, ylev, col_rgba, 1 )
+      ImGui.DrawList_AddText( draw_list, x+w-45, ylev-6, col_rgba, DATA.scale_map[i]..'dB' )
     end
-    local key = 'fader_send'..sendID..'_mute'
-    DATA.GUI.buttons[key] = { 
-      x=x,--+ctrlbutw,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'Mute', 
-      txt_a=txt_a,
-      txt_col = '#FF5555',
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      frame_a = frame_a,
-      frame_col = '#FF5555',
-      backgr_fill = backgr_fill,
-      backgr_col = backgr_col,
-      onmouserelease = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'B_MUTE', srct.B_MUTE~1)
-        DATA.UPD.onprojstatechange = true 
-      end}
-      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_remove(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local txt_a = DATA.GUI.custom_txta
-    local key = 'fader_send'..sendID..'_remove'
-    DATA.GUI.buttons[key] = { 
-      x=x,--+ctrlbutw,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'X', 
-      txt_a=txt_a,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      frame_a = 0,
-      onmouserelease = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        RemoveTrackSend( DATA2.tracks[1].ptr, 0, sendIDx )
-        DATA.UPD.onprojstatechange = true 
-      end}
-      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_send'..sendID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_smode(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local modetxtx = '[unknown]'
-    if srct.I_SENDMODE == 0 then modetxtx = 'PostFader'
-    elseif srct.I_SENDMODE == 3 then modetxtx = 'PreFader'
-    elseif srct.I_SENDMODE == 1 then modetxtx = 'PreFX'
+  -----------------------------------------------------------------------------------------
+  function UI.draw_sends_sub_chan(t)
+    local str_id = t.destGUID 
     
+    --I_SRCCHAN : audio source starting channel index or -1 if audio send is disabled (&1024=mono...note that in that case, when reading index, you should do (index XOR 1024) to get starting channel index)
+    --I_DSTCHAN : audio destination starting channel index (&1024=mono (and in case of hardware output &512=rearoute)...note that in that case, when reading index, you should do (index XOR (1024 OR 512)) to get starting channel index)
+
+    -- src
+    ImGui.SetNextItemWidth(ctx,UI.calc_comboW) 
+    local preview_value = ''
+    local mapt = {} 
+    local step = 2
+    local ismono =  t.I_SRCCHAN ~= -1 and t.I_SRCCHAN&1024 == 1024
+    if ismono == true then step = 1 end
+    for i = 0, 63, step do
+      mapt[i] = ' '..(i+1)..'/'..(i+2 )
+      if ismono then mapt[i] = (i+1) end
+    end 
+    if mapt[t.I_SRCCHAN&0x1FF] then preview_value= mapt[t.I_SRCCHAN&0x1FF] end
+    if t.I_SRCCHAN == -1 then preview_value  = 'none' end
+    if ImGui.BeginCombo( ctx, '##srcch'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
+      -- mono
+      if t.I_SRCCHAN ~= -1 and ImGui.Checkbox( ctx, 'Mono', t.I_SRCCHAN&1024 == 1024 ) then
+        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SRCCHAN', t.I_SRCCHAN~1024)
+        DATA.upd = true
+      end
+      -- dest offs
+      if ImGui.Selectable( ctx, 'none##srcch'..str_id..-1, t.I_SRCCHAN == -1, ImGui.SelectableFlags_None) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SRCCHAN', -1) DATA.upd = true end
+      for i = 0, 63, step do
+        if ImGui.Selectable( ctx, mapt[i]..'##srcch'..str_id..i, t.I_SRCCHAN&0x1FF==i, ImGui.SelectableFlags_None) then
+          local mono = 0 if ismono == true then mono =1024 end
+          if t.I_SRCCHAN == -1 then t.I_SRCCHAN = i end
+          if t.I_SRCCHAN&0x1FF > DATA.srctr.I_NCHAN-2 then SetMediaTrackInfo_Value(  DATA.srctr.ptr, 'I_NCHAN', (t.I_SRCCHAN&0x1FF+2)|mono ) end -- increase 
+          SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SRCCHAN', i|mono)
+          DATA.upd = true
+        end
+      end
+      ImGui.EndCombo( ctx)
     end
-    local key = 'fader_send'..sendID..'_stype'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      frame_a = 0,
-      txt = modetxtx,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      onmouserelease = function() 
-        DATA:GUImenu(
-          {
-            {str='PostFader', func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_SENDMODE', 0) DATA.UPD.onprojstatechange = true end},
-            {str='PreFader', func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_SENDMODE', 3) DATA.UPD.onprojstatechange = true end},
-            {str='PreFX', func = function() local sendIDx = DATA2:GetSendIdx(destGUID) SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'I_SENDMODE', 1) DATA.UPD.onprojstatechange = true end},
-          }
-        )
-      end 
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    
+    ImGui.SameLine(ctx)
+    -- dest
+    ImGui.SetNextItemWidth(ctx,UI.calc_comboW) 
+    local preview_value = ''
+    local mapt = {} 
+    local step = 2
+    local ismono =  t.I_DSTCHAN&1024 == 1024
+    if ismono == true then step = 1 end
+    for i = 0, 63, step do
+      mapt[i] = ' '..(i+1)..'/'..(i+2 )
+      if ismono then mapt[i] = (i+1) end
+    end 
+    if mapt[t.I_DSTCHAN&0x1FF] then preview_value= mapt[t.I_DSTCHAN&0x1FF] end
+    if ImGui.BeginCombo( ctx, '##destch'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
+      -- mono
+      if ImGui.Checkbox( ctx, 'Mono', t.I_DSTCHAN&1024 == 1024 ) then
+        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_DSTCHAN', t.I_DSTCHAN~1024)
+        DATA.upd = true
+      end
+      -- dest offs
+      for i = 0, 63, step do
+        if ImGui.Selectable( ctx, mapt[i]..'##destch'..str_id..i, t.I_DSTCHAN&0x1FF==i, ImGui.SelectableFlags_None) then
+          local mono = 0 if ismono == true then mono =1024 end
+          if t.I_DSTCHAN&0x1FF > t.destI_NCHAN-2 then SetMediaTrackInfo_Value( t.destPtr, 'I_NCHAN', (t.I_DSTCHAN&0x1FF+2)|mono ) end -- increase 
+          SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_DSTCHAN', i|mono)
+          DATA.upd = true
+        end
+      end
+      ImGui.EndCombo( ctx)
+    end
+    
+    
+    
   end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_pan(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local val_txt = 'Center' if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end 
-    local destGUID = DATA2.sendtracks[sendID].GUID
-    local pan = 0
-    if DATA2.tracks[1].sends[destGUID] then pan = DATA2.tracks[1].sends[destGUID].pan end 
-    local key = 'fader_send'..sendID..'_pan'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = val_txt,
-      --frame_a = 0,
-      val=srct.D_PAN,
-      val_centered = true,
-      val_xaxis = true,
-      val_res = -0.05,
-      val_min = -1,
-      val_max = 1,
-      backgr_usevalue = true,
-      backgr_col2='#FFFFFF',
-      backgr_fill2 = 0.2,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      onmousedrag = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        local outpan = DATA.GUI.buttons['fader_send'..sendID..'_pan'].val
-        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_PAN', outpan)
-        SetTrackSendUIPan( DATA2.tracks[1].ptr, sendIDx, outpan, 0)
-        srct.D_PAN=DATA.GUI.buttons['fader_send'..sendID..'_pan'].val
-        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end
-        DATA.GUI.buttons['fader_send'..sendID..'_pan'].txt=val_txt
-        DATA.GUI.buttons['fader_send'..sendID..'_pan'].refresh = true
-      end,
-      onmouserelease = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        local outpan = DATA.GUI.buttons['fader_send'..sendID..'_pan'].val
-        if DATA.GUI.Alt == true then outpan = 0 end
-        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_PAN', outpan)
-        SetTrackSendUIPan( DATA2.tracks[1].ptr, sendIDx, outpan, 1)
-        srct.D_PAN=DATA.GUI.buttons['fader_send'..sendID..'_pan'].val
-        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end
-        DATA.GUI.buttons['fader_send'..sendID..'_pan'].txt=val_txt
-        DATA.GUI.buttons['fader_send'..sendID..'_pan'].refresh = true
-        DATA.UPD.onprojstatechange = true
-      end,
-      onmouseclickR = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        local cur_pan = math.floor( DATA2.tracks[1].sends[destGUID].D_PAN *100)
-        local ret, outpan = GetUserInputs( 'set pan', 1, '%', cur_pan)
-        if not (ret and tonumber(outpan)) then return end
-        outpan = tonumber(outpan)
-        if ( outpan > 100 or outpan < -100) then return end
-        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_PAN', outpan/100)
-        SetTrackSendUIPan( DATA2.tracks[1].ptr, sendIDx, outpan, 1)
-        DATA.UPD.onprojstatechange = true 
-      end,
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+  ----------------------------------------------------------------------------------------- 
+  function DATA:GoTotrack(tr)
+    reaper.Main_OnCommand(40297,0) -- unselect all
+    reaper.SetTrackSelected(tr, true) 
+    reaper.SetMixerScroll(tr)
+    reaper.Main_OnCommand(40913,0) -- arrange view to selected send  
   end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_destname(t)
+    local str_id = t.destGUID
+    if ImGui.Button(ctx, t.destName..'##destname'..str_id,-1) then DATA:GoTotrack(t.destPtr) end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
+      UI.popups['Set new name'] = {
+        trig = true,
+        captions_csv = 'New name',
+        func_getval = function()  
+          return t.destName
+        end,
+        
+        func_setval = function(retval, retvals_csv)  
+          if retval == true then
+            GetSetMediaTrackInfo_String( t.destPtr, 'P_NAME', retvals_csv, true )
+            DATA.upd = true
+          end
+        end
+        
+      }
+    end
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_muteremove(t)
+    local str_id = t.destGUID
+    if t.B_MUTE == 1 then 
+      UI.draw_setbuttoncolor(0xFF0000) 
+     else
+      UI.draw_setbuttoncolor(UI.main_col)
+    end
+    if ImGui.Button(ctx, 'Mute##destmute'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'B_MUTE', t.B_MUTE~1) DATA.upd = true end
+    ImGui.PopStyleColor(ctx,3)
+    
+    ImGui.SameLine(ctx)
+    if ImGui.Button(ctx, 'Del##destrem'..str_id,UI.calc_comboW) then RemoveTrackSend( DATA.srctr.ptr, 0, t.sendidx ) DATA.upd = true end
+    
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_mode(t)
+    local str_id = t.destGUID
+    
+    ImGui.SetNextItemWidth(ctx,UI.faderW) 
+    local map_t = {
+      [0] = 'PostFader',
+      [1] = 'PreFX',
+      [3] = 'PreFader',
+    }
+    local preview_value= ''
+    if map_t[t.I_SENDMODE] then preview_value = map_t[t.I_SENDMODE] end
+    if ImGui.BeginCombo( ctx, '##srcmode'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
+      for key in pairs(map_t) do
+        if ImGui.Selectable( ctx, map_t[key]..'##srcch'..str_id..key, t.I_SENDMODE==key, ImGui.SelectableFlags_None) then
+          SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SENDMODE', key)
+          DATA.upd = true
+        end
+      end
+      ImGui.EndCombo( ctx)
+    end
+    
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_pan(t)
+    local str_id = t.destGUID
+    ImGui.SetNextItemWidth(ctx,UI.faderW) 
+    local formatIn = 'Center' if t.D_PAN > 0.01 then formatIn = math.ceil(t.D_PAN*100)..'%%R' elseif t.D_PAN < -0.01 then formatIn = -math.floor(t.D_PAN*100)..'%%L' end 
+    local retval, v = reaper.ImGui_SliderDouble( ctx, '##pan'..str_id, t.D_PAN, -1, 1, formatIn, ImGui.SliderFlags_None )
+    if retval then 
+      SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN', v)
+      DATA.upd = true
+    end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN',0) DATA.upd = true end
+  end
+  
   -------------------------------------------------------------------- 
-  function DATA2:SetData_SetReaEQLPHP(tr, fx, HP_freq, LP_freq)
+  function DATA:SetData_SetReaEQLPHP(tr, fx, HP_freq, LP_freq)
     -- 0Hz for LP
       TrackFX_SetEQParam( tr, fx, 
         0,--bandtype HP, 
@@ -1302,449 +1019,227 @@
         0, --val, 
         true)--isnorm )          
   end
-  -------------------------------------------------------------------- 
-  function DATA2:SetData_InitReaEQ(dest_tr, sendID) 
-    local haspre 
-    local haspost 
-    local fx_cnt = TrackFX_GetCount( dest_tr )
-    for fx_i = 1, fx_cnt do
-      local _, fx_name = TrackFX_GetFXName( dest_tr, fx_i-1, '' )
-      if fx_name == 'PreEQ' then haspre = true end
-      if fx_name == 'PostEQ' then haspost = true end
-    end
-    
-    if not haspre then
-      local new_fx_id = TrackFX_AddByName( dest_tr, 'ReaEQ', false, -1000 )
-      DATA2:SetData_SetReaEQLPHP(dest_tr, new_fx_id, 0, 1)
-      SetFXName(dest_tr, new_fx_id, 'PreEQ')
-      TrackFX_SetOpen( dest_tr, new_fx_id, false ) 
-    end
-    
-    if not haspost then
-      local new_fx_id = TrackFX_AddByName( dest_tr, 'ReaEQ', false, -1 )
-      DATA2:SetData_SetReaEQLPHP(dest_tr, new_fx_id, 0, 1)
-      SetFXName(dest_tr, new_fx_id, 'PostEQ')
-      TrackFX_SetOpen( dest_tr, new_fx_id, false ) 
-    end
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_filt(DATA,sendID,destGUID,srct,x,y,w,h,ispost) 
-    local sendIDx,dest_trptr = DATA2:GetSendIdx(destGUID)
-    if not dest_trptr then return end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_filt(t,ispost)
+    local str_id = t.destGUID 
+    local UI_txt = 'PreEQ'
+    if ispost then str_id=str_id..'post'  UI_txt = 'PostEQ' end
     
     -- define custom data values for filter slider
-    local filtFpos
-    local filtFwidth
+    local filtFpos = 0
+    local filtFwidth = 0
     local key = 'pre'
     if ispost then key = 'post' end
-    if not DATA2.sendtracks[sendID].sendEQ[key] then 
+    if not t.sendEQ[key] then 
       filtFpos = 0.5
       filtFwidth = 1
      else
-      filtFpos = DATA2.sendtracks[sendID].sendEQ[key].val_POS
-      filtFwidth = DATA2.sendtracks[sendID].sendEQ[key].val_WID
+      filtFpos = t.sendEQ[key].val_POS
+      filtFwidth = t.sendEQ[key].val_WID
     end
-    local butkey = 'fader_send'..sendID..'_'..key..'filter'
-    DATA.GUI.buttons[butkey] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = key..'EQ',
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      data = {slider_2dir = true,
-              filtFpos=filtFpos,
-              filtFwidth=filtFwidth,  },
-      onmouseclick = function() 
-        DATA2.latch_filt = {}
-        if not DATA2.sendtracks[sendID].sendEQ[key] then 
-          PreventUIRefresh( 1 )
-          DATA2:SetData_InitReaEQ(dest_trptr, sendID)
-          DATA2:ReadProject_ReadSends()
-          PreventUIRefresh( -1 )
+    
+    ImGui.SetNextItemWidth(ctx,UI.faderW) 
+    local filtW_max = UI.faderW -- 5
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, filtW_max*filtFwidth)
+    local retval, v = reaper.ImGui_SliderDouble( ctx, '##filt'..str_id, filtFpos, 0, 1, UI_txt, ImGui.SliderFlags_None )
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left) then 
+      DATA:SetData_InitReaEQ(t.destPtr) 
+      DATA.temp_x, DATA.temp_y = ImGui.GetMousePos( ctx )
+      DATA.temp_p = filtFpos
+      DATA.temp_w = filtFwidth
+    end
+    if DATA.temp_w and ImGui.IsItemActive( ctx ) then 
+      local x, y = reaper.ImGui_GetMouseDragDelta( ctx, DATA.temp_x, DATA.temp_y, ImGui.MouseButton_Left, -1 )
+      local out_pos = DATA.temp_p + x /100
+      local out_width = DATA.temp_w - y /100
+      
+      out_width = VF_lim(out_width,0.1,1) 
+      out_pos = VF_lim(out_pos,out_width/2,1-out_width/2) 
+      
+      if (out_width == filtFwidth and out_pos==filtFpos) then goto skip_set end
+      local ret,tr, fxID = VF_GetFXByGUID(t.sendEQ[key].fxGUID, t.destPtr)
+      if not ret then goto skip_set end
+      DATA:SetData_SetReaEQLPHP(t.destPtr, fxID, VF_lim(out_pos-out_width/2), VF_lim(out_pos+out_width/2))
+      DATA.upd=true 
+      ::skip_set::
+    end
+    ImGui.PopStyleVar(ctx)
+  end
+  ----------------------------------------------------------------------------------------- 
+  function VF_GetFXByGUID(GUID, tr, proj)
+    if not GUID then return end
+    local pat = '[%p]+'
+    if not tr then
+      for trid = 1, CountTracks(proj or -1) do
+        local tr = GetTrack(proj,trid-1)
+        local fxcnt_main = TrackFX_GetCount( tr ) 
+        local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
+        for fx = 1, fxcnt do
+          local fx_dest = fx
+          if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
+          if TrackFX_GetFXGUID( tr, fx-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx-1 end 
         end
-        if DATA2.sendtracks[sendID].sendEQ[key].val_POS and DATA2.sendtracks[sendID].sendEQ[key].val_WID then
-          DATA2.latch_filt.pos = DATA2.sendtracks[sendID].sendEQ[key].val_POS
-          DATA2.latch_filt.width = DATA2.sendtracks[sendID].sendEQ[key].val_WID
-        end
-      end,
-      onmousedrag = function() 
-        if not (DATA2.latch_filt and DATA2.latch_filt.pos and DATA2.latch_filt.width) then return end
-        local out_pos = DATA2.latch_filt.pos + 0.01*(DATA.GUI.dx/DATA.GUI.default_scale)
-        local out_width = DATA2.latch_filt.width - 0.01*(DATA.GUI.dy/DATA.GUI.default_scale) 
-        out_width = VF_lim(out_width,0.2,1) 
-        out_pos = VF_lim(out_pos,out_width/2,1-out_width/2) 
-        
-        DATA.GUI.buttons[butkey].data.filtFpos = VF_lim(out_pos)
-        DATA.GUI.buttons[butkey].data.filtFwidth = VF_lim(out_width)
-        local ret,tr, fxID = VF_GetFXByGUID(DATA2.sendtracks[sendID].sendEQ[key].fxGUID, dest_trptr)
-        if not ret then return end
-        DATA2:SetData_SetReaEQLPHP(dest_trptr, fxID, VF_lim(out_pos-out_width/2), VF_lim(out_pos+out_width/2))
-        DATA.GUI.layers_refresh[2]=true 
-      end,
-      onmouserelease = function()   
-        if not (DATA2.latch_filt and DATA2.latch_filt.pos and DATA2.latch_filt.width) then return end
-        DATA2.latch_filt = {}
-        DATA2:ReadProject_ReadSends()
-      end,
-    }
-    --DATA.GUI.buttons[butkey].hide = DATA.GUI.buttons[butkey].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_FX(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local key = 'fader_send'..sendID..'_fx'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'FX',
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      frame_a = 0,
-      onmouserelease = function() 
-        local sendIDx,dest_trptr = DATA2:GetSendIdx(destGUID,true)
-        TrackFX_Show( dest_trptr, 0, 1 )
-      end,
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_mono(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local txt_a = DATA.GUI.custom_txta
-    if srct.B_MONO==0 then txt_a = DATA.GUI.custom_txta_disabled  end
-    local key = 'fader_send'..sendID..'_mono'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'Mono',
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      txt_a=txt_a,
-      frame_a = 0,
-      onmouserelease = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'B_MONO', srct.B_MONO~1)
-        DATA.UPD.onprojstatechange = true 
-      end,
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff_phase(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local txt_a = DATA.GUI.custom_txta
-    if srct.B_PHASE==0 then txt_a = DATA.GUI.custom_txta_disabled  end
-    local key = 'fader_send'..sendID..'_phase'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = 'Ø',
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-      txt_a=txt_a,
-      frame_a = 0,
-      onmouserelease = function() 
-        local sendIDx = DATA2:GetSendIdx(destGUID,true)
-        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'B_PHASE', srct.B_PHASE~1)
-        DATA.UPD.onprojstatechange = true 
-      end,
-    }
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_send'..sendID..'_mono'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
-  end
-  -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs0, y_offs, faderW)
-    local srct = DATA2.tracks[1].sends[destGUID]
-    local act_w = faderW-DATA.GUI.custom_offset*2
-    local x_offs = x_offs0
-    if srct then GUI_MODULE_BuildSends_ControlStuff_recvchan(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh  
-    GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1,DATA2.sendtracks[sendID].name) 
-    local ctrlbutw = math.floor(act_w/2) 
-    if DATA.extstate.UI_showsendrecnamevertically == 0 then y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh end
-    if srct then GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
-    x_offs = x_offs + ctrlbutw 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_remove(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
-    x_offs = x_offs0
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_smode(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_pan(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    GUI_MODULE_BuildSends_ControlStuff_filt(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1)
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    GUI_MODULE_BuildSends_ControlStuff_filt(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1,true)
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    GUI_MODULE_BuildSends_ControlStuff_FX(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1)
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_mono(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw-1,DATA.GUI.custom_sendctrl_nameh-1) end
-    x_offs = x_offs + ctrlbutw 
-    if srct then GUI_MODULE_BuildSends_ControlStuff_phase(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw-1,DATA.GUI.custom_sendctrl_nameh-1) end
-  end
-  -------------------------------------------------------------------- 
-  function DATA2:GetSendIdx(destGUID0,allowcreate)
-    local dest_trptr
-    -- get send id
-    local tr = DATA2.tracks[1].ptr
-    local sendidx_out
-    for sendidx = 1, GetTrackNumSends( tr, 0 ) do 
-      dest_trptr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
-      if ValidatePtr(dest_trptr, 'MediaTrack*') then
-        local retval, destGUID = reaper.GetSetMediaTrackInfo_String( dest_trptr, 'GUID', '', false )
-        if destGUID == destGUID0 then sendidx_out = sendidx-1 break end
-      end
-    end
-    if not sendidx_out and allowcreate==true  then
-      dest_trptr = VF_GetMediaTrackByGUID(0,destGUID0)
-      if ValidatePtr(dest_trptr, 'MediaTrack*') then 
-        sendidx_out = CreateTrackSend( tr, dest_trptr ) 
-        SetTrackSendInfo_Value( tr, 0, sendidx_out, 'D_VOL', 0 )
-      end
-    end
-    return sendidx_out,dest_trptr
-  end
-  -------------------------------------------------------------------- 
-  function DATA2:GetReceiveIdx(srcGUID0) 
-    local src_trptr = VF_GetMediaTrackByGUID(0,srcGUID0)
-    if not src_trptr then return end
-    local desttr = DATA2.tracks[1].ptr
-    local destGUID0 = DATA2.tracks[1].GUID
-    local sendidx_out
-    for sendidx = 1, GetTrackNumSends( src_trptr, 0 ) do 
-      local dest_trptr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
-      if ValidatePtr(dest_trptr, 'MediaTrack*') then
-        local retval, destGUID = GetSetMediaTrackInfo_String( dest_trptr, 'GUID', '', false )
-        if destGUID == destGUID0 then sendidx_out = sendidx-1 break end
-      end
-    end
-    return sendidx_out,src_trptr
-  end
-  -------------------------------------------------------------------- 
-  function DATA2:Convert_Fader2Val(fader_val)
-    local fader_val = VF_lim(fader_val,0,1)
-    local gfx_c, coeff = DATA.GUI.custom_fader_scale_lim,DATA.GUI.custom_fader_coeff 
-    local val
-    if fader_val <=gfx_c then
-      local lin2 = fader_val/gfx_c
-      local real_dB = coeff*math.log(lin2, 10)
-      val = 10^(real_dB/20)
+      end  
      else
-      local real_dB = 12 * (fader_val  / (1 - gfx_c) - gfx_c/ (1 - gfx_c))
-      val = 10^(real_dB/20)
+      if not (ValidatePtr2(proj or -1, tr, 'MediaTrack*')) then return end
+      local fxcnt_main = TrackFX_GetCount( tr ) 
+      local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
+      for fx = 1, fxcnt do
+        local fx_dest = fx
+        if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
+        if TrackFX_GetFXGUID( tr, fx_dest-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_dest-1 end 
+      end
+    end    
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends() 
+    if not (DATA.tracks and DATA.srctr and DATA.srctr.sends) then return end 
+    for sendID = 1, #DATA.srctr.sends do 
+      UI.draw_sends_sub(DATA.srctr.sends[sendID])  
+      ImGui.SameLine(ctx)
     end
-    if val > 4 then val = 4 end
-    if val < 0 then val = 0 end
-    return val
   end
-  -------------------------------------------------------------------- 
-  function DATA2:Convert_Val2Fader(rea_val)
-    if not rea_val then return end 
-    local rea_val = VF_lim(rea_val, 0, 4)
-    local val 
-    local gfx_c, coeff = DATA.GUI.custom_fader_scale_lim,DATA.GUI.custom_fader_coeff 
-    local real_dB = 20*math.log(rea_val, 10)
-    local lin2 = 10^(real_dB/coeff)  
-    if lin2 <=1 then val = lin2*gfx_c else val = gfx_c + (real_dB/12)*(1-gfx_c) end
-    if val > 1 then val = 1 end
-    return VF_lim(val, 0.0001, 1)
-  end
-  ---------------------------------------------------------------------
-  function GUI_RESERVED_draw_data_fader(DATA, b)
-    if not (b.data.destGUID or b.data.receiveGUID ) then return end
-    local trcol=b.data.trcol
-    
-    local x=b.x*DATA.GUI.default_scale
-    local y=b.y*DATA.GUI.default_scale
-    local w=b.w*DATA.GUI.default_scale
-    local h=b.h*DATA.GUI.default_scale
-    
-    --[[local fader_norm = b.data.srct.vol
-    if not fader_norm then return end
-    fader_norm = DATA2:Convert_Val2Fader(fader_norm)]]
-    local fader_norm = b.val
-    
-    -- define scale entries
-      local t = { 
-        '-40',
-        '-18',
-        '-6',
-        '0',
-        '+6',
-        }  
-    
-    -- value
-      DATA:GUIhex2rgb('#FFFFFF',true)
-      if trcol then 
-        if trcol==0 then trcol = 0xFFFFFF end
-        local r, g, b = reaper.ColorFromNative( trcol )
-        gfx.set(r/255,g/255,b/255)
-      end
-      gfx.a = 0.3
-      local hfade = math.floor(h*fader_norm)
-      gfx.rect(x,y+1+h-hfade,w,hfade,1)
-    
-    --if b.w<=DATA.GUI.custom_sendfaderWmin then return end
-    
-    --line 
-      DATA:GUIhex2rgb('#FFFFFF',true)
-      gfx.a = 0.3
-      gfx.line(x, y, x, y + h-1 )
-    
-    
-    -- scale levels
-      local line_w = 10
-      local y_offsscale = 2
-      gfx.a = 0.8
-      for i = 1, #t do
-        local t_val = tonumber(t[i])
-        local rea_val = WDL_DB2VAL(t_val)
-        local y1 = DATA2:Convert_Val2Fader(rea_val)
-        if y1 < 0.004 then y1 = 0 end 
-        gfx.setfont(1, DATA.GUI.default_txt_font, DATA.GUI.custom_txtsz_scalelevels)
-        gfx.line(x+1, y+y_offsscale + h - h *y1, x+line_w/2, y+y_offsscale + h - h *y1)
-        gfx.x = x + w - gfx.measurestr(t[i]..'dB')-- - 2
-        gfx.y = y + h - h *y1- gfx.texth/2-1
-        gfx.drawstr(t[i]..'dB')
-      end
-  end
-  ---------------------------------------------------------------------
-  function GUI_RESERVED_draw_data_filter(DATA, b)
-    local pos = b.data.filtFpos
-    local width = b.data.filtFwidth
-    
-    if not (pos and width )  then return end 
-    local x0=b.x*DATA.GUI.default_scale
-    local y0=b.y*DATA.GUI.default_scale
-    local w=b.w*DATA.GUI.default_scale
-    local h0=b.h*DATA.GUI.default_scale
-    
-    -- center line
-      DATA:GUIhex2rgb('#FFFFFF',true)
-      gfx.a = 0.2
-      local xmid = math.ceil(x0+ pos*w)
-      gfx.line(xmid,y0,xmid,y0+DATA.GUI.custom_filter_centerH)
-      gfx.line(xmid,y0+h0-1,xmid,y0+h0+1-DATA.GUI.custom_filter_centerH)
-      gfx.rect(xmid-w*width/2,y0,math.ceil(w*width),h0,1)
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_FX(t)
+    local str_id = t.destGUID 
+    if ImGui.Button(ctx, 'FX##destFX'..str_id,UI.faderW) then 
+      local PreEQ = TrackFX_AddByName( t.destPtr, 'PreEQ', false, 0 )
+      local PostEQ = TrackFX_AddByName( t.destPtr, 'PostEQ', false, 0 )
       
+      if (PreEQ == -1 and PostEQ == -1) or (PreEQ == 0 and PostEQ == 1) then  
+        TrackFX_Show( t.destPtr, 0, 1 )  
+       else
+        if TrackFX_GetCount( t.destPtr ) > 2 then TrackFX_Show( t.destPtr, PreEQ+1, 3) else TrackFX_Show( t.destPtr, 0,1 )  end
+      end
+    end
   end
-  ---------------------------------------------------------------------
-  function GUI_RESERVED_draw_data_slider(DATA, b)
-    local pos = DATA2.scroll_x
-    local width = DATA2.scroll_w
+  --------------------------------------------------------------------------------  
+  function UI.draw_setbuttoncolor(col) 
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button,col<<8|math.floor(255*0.5 ))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,col<<8|math.floor(255*1))
+    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,col<<8|math.floor(255*0.8 ))
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_monophase(t)
+    local str_id = t.destGUID
     
-    if not (pos and width )  then return end 
-    local x=b.x*DATA.GUI.default_scale
-    local y=b.y*DATA.GUI.default_scale
-    local w=b.w*DATA.GUI.default_scale
-    local h=b.h*DATA.GUI.default_scale
+    if t.B_MONO == 1 then 
+      UI.draw_setbuttoncolor(0x0FFF00) 
+     else
+      UI.draw_setbuttoncolor(UI.main_col)
+    end
+    if ImGui.Button(ctx, 'Mono##destmono'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'B_MONO', t.B_MONO~1) DATA.upd = true end
+    ImGui.PopStyleColor(ctx,3)
+    ImGui.SameLine(ctx)
     
-    x = x + w*(1-width)*pos
-    w = w * width
-    -- center line
-      DATA:GUIhex2rgb('#FFFFFF',true)
-      a_init = 0.4
-      local halfw = math.ceil(w/2)
-      local dxa = (1-a_init)/halfw
-      gfx.gradrect(x,y,halfw,h, 1,1,1,a_init, 0, 0, 0, dxa, 0, 0, 0, 0 )
-      gfx.gradrect(x+halfw,y,halfw,h, 1,1,1,1, 0, 0, 0, -dxa, 0, 0, 0, 0 )
+    if t.B_PHASE == 1 then 
+      UI.draw_setbuttoncolor(0x0FFF00) 
+     else
+      UI.draw_setbuttoncolor(UI.main_col)
+    end
+    if ImGui.Button(ctx, 'Ø##destphase'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'B_PHASE', t.B_PHASE~1) DATA.upd = true end
+    ImGui.PopStyleColor(ctx,3)
+    
+  end
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub(t)
+    local str_id = t.destGUID
+    
+    local destCol = t.destCol
+    if destCol == 0 then 
+      ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg, UI.main_col<<8|math.floor(0.2*255))
+     else
+      destCol = ImGui.ColorConvertNative(destCol)
+      destCol = (destCol << 8) | math.floor(0.5*255)
+      ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,destCol)
+    end
+    if ImGui.BeginChild( ctx, str_id, 0, 0, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
+       
+      UI.draw_sends_sub_slider(t)
+      UI.draw_sends_sub_destname(t) 
+      UI.draw_sends_sub_chan(t)
+      UI.draw_sends_sub_muteremove(t)
+      UI.draw_sends_sub_mode(t)
+      UI.draw_sends_sub_pan(t)
+      UI.draw_sends_sub_filt(t)
+      UI.draw_sends_sub_filt(t, true)
+      UI.draw_sends_sub_FX(t)
+      UI.draw_sends_sub_monophase(t)
       
+      
+      ImGui.EndChild( ctx)
+    end
+    ImGui.PopStyleColor(ctx)
+  end
+  -----------------------------------------------------------------------------------------
+  function DATA:CollectData_ReadProject_ReadReceives()
+    DATA.receives = {}
+    local CONF_definebygroup = tostring(EXT.CONF_definebygroup)
+    local CONF_definebyname = tostring(EXT.CONF_definebyname)
+    
+    -- parse group names
+      local names_group = {} 
+      if CONF_definebygroup ~= '' then
+        for word in CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
+      end
+      
+    -- parse group names
+      local names_track = {}
+      if CONF_definebyname ~= '' then
+        for word in CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
+      end   
+    
+    for i = 1, CountTracks(-1) do
+      local tr = GetTrack(-1,i-1) 
+      local ret, trname = GetTrackName(tr)
+      local ispath =  GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) 
+      
+      if  ispath~=1 and
+        (DATA:CollectData_ReadProject_ReadReceives_IsMarkedAsReceive(tr)  or
+        DATA:CollectData_ReadProject_ReadReceives_MatchName(trname,names_track) or
+        DATA:CollectData_ReadProject_ReadReceives_MatchGroupName(tr,names_group) 
+        )
+        and not DATA:CollectData_ReadProject_ReadReceives_Checkpointers(tr)
+       then
+        
+        DATA.receives[#DATA.receives+1] = {
+            trname=trname,
+            ptr = tr,
+          }
+      end
+    end
+    
   end
   ---------------------------------------------------------------------  
-  function GUI_RESERVED_draw_data(DATA, b)
-    if not b.data then return end 
-    
-    if b.data.slider_2dir then GUI_RESERVED_draw_data_filter(DATA, b) end
-    if b.data.fader_cust then GUI_RESERVED_draw_data_fader(DATA, b) end
-    if b.data.horslider then GUI_RESERVED_draw_data_slider(DATA, b) end
+  function DATA:CollectData_ReadProject_ReadReceives_Checkpointers(tr)
+    for i = 1, #DATA.srctr.sends do
+      if tr == DATA.srctr.sends[i].destPtr then return true end
+    end
   end
   ---------------------------------------------------------------------  
-  function GUI_RESERVED_BuildSettings(DATA)
-    local readoutw_extw = 150
-    
-    local  t = 
-    { 
-      {str = 'General' ,                                        group = 1, itype = 'sep'},
-        {str = 'Preset',                                        group = 1, itype = 'button', level = 1, func_onrelease = function() DATA:GUIbut_preset() end},
-        {str = 'Dock / undock',                                 group = 1, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
-          function()  
-            local state = gfx.dock(-1)
-            if state&1==1 then
-              state = 0
-             else
-              state = DATA.extstate.dock 
-              if state == 0 then state = 1 end
-            end
-            local title = DATA.extstate.mb_title or ''
-            if DATA.extstate.version then title = title..' '..DATA.extstate.version end
-            gfx.quit()
-            gfx.init( title,
-                      DATA.extstate.wind_w or 100,
-                      DATA.extstate.wind_h or 100,
-                      state, 
-                      DATA.extstate.wind_x or 100, 
-                      DATA.extstate.wind_y or 100)
-            
-            
-          end},
-      {str = 'Sends definition' ,                                 group = 2, itype = 'sep'},   
-        {str = 'Show sends that marked as sends in SendFader',    group = 2, itype = 'check', confkey = 'CONF_marksendint', level = 1},
-            {str = '[Action] Mark selected tracks as receives',       group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0,func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
-            {str = '[Action] Unmark selected tracks as receives',     group = 2, itype = 'button', level = 2, hide=DATA.extstate.CONF_marksendint==0, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
-        {str = 'Show sends of selected track',                    group = 2, itype = 'check', confkey = 'CONF_marksendregular', level = 1},
-        {str = 'Show sends match following words',                group = 2, itype = 'check', confkey = 'CONF_marksendwordsmatch', level = 1},
-            {str = 'Send name: '..DATA.extstate.CONF_definebyname, group = 2, itype = 'button',level = 2, hide=DATA.extstate.CONF_marksendwordsmatch==0,  func_onrelease = function() 
-              local retval, retvals_csv = GetUserInputs( 'Send name', 1, ',separator=|', DATA.extstate.CONF_definebyname )
-              if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebyname = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
-            end},
-        {str = 'Show sends with parent match following words',    group = 2, itype = 'check', confkey = 'CONF_marksendparentwordsmatch', level = 1},
-          {str = 'Folder name: '..DATA.extstate.CONF_definebygroup,group = 2, itype = 'button',level = 2, hide=DATA.extstate.CONF_marksendparentwordsmatch==0,  func_onrelease = function() 
-            local retval, retvals_csv = GetUserInputs( 'Folder name', 1, ',separator=|', DATA.extstate.CONF_definebygroup )
-            if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebygroup = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
-          end},
-      --{str = 'UI',                                              group = 3, itype = 'sep'},
-        --{str = 'Show send/receive names vertically',              group = 3, itype = 'check', confkey = 'UI_showsendrecnamevertically', level = 1},  
-        
-        --[[{str = 'Float RS5k instance',                           group = 1, itype = 'check', confkey = 'CONF_onadd_float', level = 1},
-        {str = 'Set obey notes-off',                            group = 1, itype = 'check', confkey = 'CONF_onadd_obeynoteoff', level = 1},
-        
-        {str = 'Copy samples to project path',                  group = 1, itype = 'check', confkey = 'CONF_onadd_copytoprojectpath', level = 1},
-        {str = 'Custom track template: '..customtemplate,       group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RTrackTemplate') if retval then DATA.extstate.CONF_onadd_customtemplate=  fp GUI_MODULE_SETTINGS(DATA) end end},
-        {str = 'Custom track template [clear]',                  group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
-        
-      {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
-        {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
-        {str = 'MIDI bus channel',                        group = 2, itype = 'readout', confkey = 'CONF_midichannel', level = 1, menu = {[0]='All channels',[1]='Channel 1',[2]='Channel 2',[3]='Channel 3',[4]='Channel 4',[5]='Channel 5',[6]='Channel 6',[7]='Channel 7',[8]='Channel 8',[9]='Channel 9',[10]='Channel 10',
-        [11]='Channel 11',[12]='Channel 12',[13]='Channel 13',[14]='Channel 14',[15]='Channel 15',[16]='Channel 16'},readoutw_extw = readoutw_extw},
-        {str = 'Initialize MIDI bus',                           group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:TrackDataRead_ValidateMIDIbus() end},
-        
-      {str = 'UI',                                              group = 3, itype = 'sep'},
-        {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_showsendrecnamevertically', level = 1},
-        {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
-        {str = 'Key format',                                    group = 3, itype = 'readout', confkey = 'UI_keyformat_mode', level = 1,menu = {[0]='C-C#-D',[2]='Do-Do#-Re',[7]='Russian'}},
-        {str = 'Pad overview quantize',                         group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
-        {str = 'Undo tab state change',                         group = 3, itype = 'check', confkey = 'UI_addundototabclicks', level = 1,}, 
-        {str = 'Drumrack: Click on pad select track',           group = 3, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
-      
-      {str = 'Tab defaults',                                    group = 6, itype = 'sep'},
-        {str = 'Drumrack',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},
-        {str = 'Device',                                        group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 1},
-        {str = 'Sampler',                                       group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 2},
-        {str = 'Padview',                                       group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 3},
-        --{str = 'Tab defaults: macro',                           group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 4},
-        {str = 'Database',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 5},
-        {str = 'MIDI / OSC learn',                              group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 6},
-        {str = 'Children chain',                                group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 7},
-      
-      {str = 'Various',                                         group = 5, itype = 'sep'},    
-        {str = 'Sampler: Crop threshold',                       group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
-        
-  ]]
-        
-    } 
-    return t
-    
-  end    
-  ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.58) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
+  function DATA:CollectData_ReadProject_ReadReceives_IsMarkedAsReceive(tr)
+    if EXT.CONF_marksendint ~= 1 then return end
+    local retval, issend = reaper.GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_SENDMIX', '', false )
+    if retval and  issend and tonumber(issend) and tonumber(issend)  == 1 then return true end
+  end
+  ---------------------------------------------------------------------  
+  function DATA:CollectData_ReadProject_ReadReceives_MatchName(trname,names_track)
+    if EXT.CONF_marksendwordsmatch ~= 1 then  return end
+    if trname:match('Track') then return end 
+    for sendnameID = 1, #names_track do 
+      if trname:lower():match(names_track[sendnameID]:lower()) then return true end
+    end 
+  end
+  ---------------------------------------------------------------------  
+  function DATA:CollectData_ReadProject_ReadReceives_MatchGroupName(tr,names_group)
+    if EXT.CONF_marksendparentwordsmatch ~= 1 then  return end 
+    local par_track = GetParentTrack( tr ) 
+    if par_track and ispath~=1 then
+      local retval, parname = GetTrackName( par_track )
+      for sendnameID = 1, #names_group do 
+        if parname:lower():match(names_group[sendnameID]:lower()) then return true end
+      end
+    end
+  end
+  -----------------------------------------------------------------------------------------
+  main()  
