@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d93bfb67272964a646d31adff6a0cc11c74b40ee" name="MPL Scripts">
+<index version="1" commit="38409147caf9e47c839137f3b9b4680188ab5268" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13003,6 +13003,10 @@ various fixes]]></changelog>
 + Allow to disable peaks
 - Remove receive mode for consistency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d93bfb67272964a646d31adff6a0cc11c74b40ee/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.01" author="MPL" time="2025-01-11T19:52:03Z">
+        <changelog><![CDATA[# fix error on empty sends]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38409147caf9e47c839137f3b9b4680188ab5268/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Spectral editing tools - perform.lua" type="script" desc="Spectral editing tools - perform">
