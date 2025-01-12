@@ -1,11 +1,10 @@
 -- @description Sampling tool
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Ported to ReaImGui
---    - Removed schedule mode, not really stable
+--    # fixed note limits
     
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -523,7 +522,7 @@
       ImGui.SetNextItemWidth(ctx,sliderw) local retval, v = ImGui.SliderInt( ctx, 'Note length, beats', EXT.CONF_notelen_beats, 1, 64, '%d', ImGui.SliderFlags_None ) if retval then EXT.CONF_notelen_beats = v EXT:save() end
       ImGui.SetNextItemWidth(ctx,sliderw) local retval, v = ImGui.SliderInt( ctx, 'Note tail, beats', EXT.CONF_notetail_beats, 1, 64, '%d', ImGui.SliderFlags_None ) if retval then EXT.CONF_notetail_beats = v EXT:save() end
       ImGui.SetNextItemWidth(ctx,sliderw) local retval, v = ImGui.SliderInt( ctx, 'Note start', EXT.CONF_notestart, 0, EXT.CONF_noteend, '%d', ImGui.SliderFlags_None ) if retval then EXT.CONF_notestart = v EXT:save() end
-      ImGui.SetNextItemWidth(ctx,sliderw) local retval, v = ImGui.SliderInt( ctx, 'Note start', EXT.CONF_noteend, EXT.CONF_notestart, 127, '%d', ImGui.SliderFlags_None ) if retval then EXT.CONF_noteend = v EXT:save() end
+      ImGui.SetNextItemWidth(ctx,sliderw) local retval, v = ImGui.SliderInt( ctx, 'Note end', EXT.CONF_noteend, EXT.CONF_notestart, 127, '%d', ImGui.SliderFlags_None ) if retval then EXT.CONF_noteend = v EXT:save() end
     
     -- Adding RS5k instances
       ImGui.SeparatorText(ctx,'Adding RS5k instances')      
