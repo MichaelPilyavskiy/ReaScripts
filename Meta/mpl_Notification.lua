@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # use time_precise() instead os.clock()
+--    # reduce time of saving XYWH
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -560,7 +560,7 @@ function DATA:handleViewportXYWH()
     DATA.display_schedule_save = os.clock() 
     DATA.updXYWH = true
   end
-  if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.3 then 
+  if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.05 then 
     EXT.viewport_posX = DATA.display_x
     EXT.viewport_posY = DATA.display_y
     EXT.viewport_posW = DATA.display_w
