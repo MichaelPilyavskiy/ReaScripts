@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # reduce time of saving XYWH
+--    # шьзкщму ешьштп
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -47,7 +47,7 @@ DATA = {
           factory= {},
           user= {}, 
           },
-        CONF_autoterminatetime2 = 1, -- seconds, script will close after this time
+        CONF_autoterminatetime2 = 1.5, -- seconds, script will close after this time
         CONF_autoterminate_fadetime2 = 0.5,-- seconds, fade time to make script fully transparent before close
         }
 --[[if reaper.GetOS():match('Win') == nil then 
@@ -393,28 +393,13 @@ function DATA:CollectData_Always()
 end
 -------------------------------------------------------------------------------- 
 function UI.MAINloop() 
+  if not DATA.TS_start then DATA.TS_start = time_precise()  end
+  DATA.TS_current = time_precise() 
   DATA.transparencyratio_inverted = 0
-  -- calc timer
-  if not DATA.clock then 
-    DATA.timerTS = reaper.time_precise() 
-    DATA.timer = 0
-   else
-    DATA.timer = DATA.clock - DATA.timerTS
-  end
-  if DATA.timer> DATA.CONF_autoterminatetime2 then  
-    return 
-  end
-  
-  -- calc transparency ratio
-  if DATA.timer> DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2 then 
-    DATA.transparencyratio_inverted = (DATA.timer - (DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2)) / (DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2)
-   else
-    
-    DATA.transparencyratio_inverted = 0
-  end
-  
-  
-  DATA.clock = reaper.time_precise()  
+  if DATA.TS_current - DATA.TS_start > DATA.CONF_autoterminatetime2 - DATA.CONF_autoterminate_fadetime2 then 
+    DATA.transparencyratio_inverted = ((DATA.TS_current - DATA.TS_start - (DATA.CONF_autoterminatetime2- DATA.CONF_autoterminate_fadetime2)) / DATA.CONF_autoterminate_fadetime2)
+  end 
+  if DATA.transparencyratio_inverted > 1 then return end 
   DATA:handleProjUpdates()
   
   if DATA.upd == true then  DATA:CollectData()  end 
