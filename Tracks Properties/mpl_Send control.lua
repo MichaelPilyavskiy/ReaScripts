@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.26
+-- @version 1.27
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # show mono plugins
+--    + UI_slidergrab in extsstate.ini change slider color
 
 
 
@@ -28,6 +28,9 @@
 EXT = {
         viewport_posX = 0,
         viewport_posY = 0,
+        
+        UI_slidergrab = '',
+        
       }
 -------------------------------------------------------------------------------- INIT data
 DATA = {
@@ -70,7 +73,7 @@ UI = {}
   UI.textcol = 0xFFFFFF
   UI.but_hovered = 0x878787
   UI.windowBg = 0x303030
-  UI.sliderbackcol = 0x4F6C97
+  UI.sliderbackcol_postfxmode = 0x4F6C97
 -- alpha
   UI.textcol_a_enabled = 1
   UI.textcol_a_disabled = 0.5
@@ -118,7 +121,7 @@ function UI.MAIN_draw(open)
     --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar()
     --window_flags = window_flags | ImGui.WindowFlags_NoScrollbar()
     --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
-    --window_flags = window_flags | ImGui.WindowFlags_NoMove()
+    --window_flags = window_flags | ImGui.WindowFlags_NoMove
     --window_flags = window_flags | ImGui.WindowFlags_NoReSize
     window_flags = window_flags | ImGui.WindowFlags_NoCollapse
     --window_flags = window_flags | ImGui.WindowFlags_NoNav()
@@ -209,6 +212,11 @@ function UI.MAIN_draw(open)
     --Constant: Col_SeparatorHovered
     --Constant: Col_SliderGrab
     --Constant: Col_SliderGrabActive
+    local col = EXT.UI_slidergrab
+    if col~='' then
+      UI.MAIN_PushStyle(ImGui.Col_SliderGrab,col, 0.5, true) 
+      UI.MAIN_PushStyle(ImGui.Col_SliderGrabActive,col, 0.8, true) 
+    end
     UI.MAIN_PushStyle(ImGui.Col_Tab,UI.main_col, 0.37, true) 
     UI.MAIN_PushStyle(ImGui.Col_TabActive,UI.main_col, 1, true) 
     UI.MAIN_PushStyle(ImGui.Col_TabHovered,UI.main_col, 0.8, true) 
@@ -703,9 +711,9 @@ function UI.draw_send(send_t, id)
     end
     
     if send_t.I_SENDMODE~=0 then  
-      UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.sliderbackcol, 0.7, true)
-      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.sliderbackcol,0.8, true)
-      UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.sliderbackcol,1, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.sliderbackcol_postfxmode, 0.7, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.sliderbackcol_postfxmode,0.8, true)
+      UI.MAIN_PushStyle(ImGui.Col_FrameBgActive,UI.sliderbackcol_postfxmode,1, true)
      else
       UI.MAIN_PushStyle(ImGui.Col_FrameBg,UI.main_col, 0.2, true)
       UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.5, true)
