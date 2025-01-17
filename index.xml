@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="21a774aeebf068652b47b883405c3619ce28f8f4" name="MPL Scripts">
+<index version="1" commit="dd7efb1fc12d94876af6e3007b5b6af6bf47b5a7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6408,6 +6408,11 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21a774aeebf068652b47b883405c3619ce28f8f4/Meta/mpl_Notification.lua</source>
         <source main="main" file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21a774aeebf068652b47b883405c3619ce28f8f4/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
       </version>
+      <version name="1.09" author="MPL" time="2025-01-13T09:46:06Z">
+        <changelog><![CDATA[# шьзкщму ешьштп]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/43547016e55d1c01fc92874cc2036d0409b9e5f0/Meta/mpl_Notification.lua</source>
+        <source main="main" file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/43547016e55d1c01fc92874cc2036d0409b9e5f0/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Repeat the most recent action for all background tabs.lua" type="script" desc="Repeat the most recent action for all background tabs">
       <metadata>
@@ -9354,6 +9359,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# show mono plugins]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/341755602c01e2bdc5d458ba6fcef6dcdd729304/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
+      <version name="1.27" author="MPL" time="2025-01-16T06:21:09Z">
+        <changelog><![CDATA[+ UI_slidergrab in extsstate.ini change slider color]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d702eceec10e250208087a1a9560987e9f121c26/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
       <metadata>
@@ -10076,6 +10085,10 @@ various fixes]]></changelog>
       <version name="3.08" author="MPL" time="2024-10-11T22:24:30Z">
         <changelog><![CDATA[# fix ReaImGui API version requirement]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7b34722dfa7cda7df293bb76349ccd9e73cacc9c/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="3.09" author="MPL" time="2025-01-17T11:09:13Z">
+        <changelog><![CDATA[+ Add Vocals2 preset]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd7efb1fc12d94876af6e3007b5b6af6bf47b5a7/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete non-existing scripts from ActionList.lua" type="script" desc="Delete non-existing scripts from Action List">
