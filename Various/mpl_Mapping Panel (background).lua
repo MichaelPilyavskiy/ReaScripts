@@ -1,15 +1,16 @@
 -- @description MappingPanel
--- @version 4.07
+-- @version 4.08
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    # fix error at losing context
+--    # fix initial baseline for denormalized JSFX faders
+--    # exit on losing context state
 
 
 
 
-  local vrs = 4.07
+  local vrs = 4.08
 
   --[[ gmem map: 
   Master
@@ -125,6 +126,7 @@
                   (math.floor(t.hexarray_scale_min*255)<<16) + 
                   (math.floor(t.hexarray_scale_max*255)<<24)
         TrackFX_SetParam( tr, t.slave_jsfx_ID, t.slave_jsfx_paramID+16*3, out_hex2) 
+        --TrackFX_SetNamedConfigParm( tr, t.destfx_FXID, 'param.'..t.destfx_paramID..'.mod.baseline',0 )
     end
     
     if EXT.CONF_mode == 1 then
@@ -369,9 +371,13 @@
       
     -- link to that slider
       local prelinkedparamvalue = TrackFX_GetParamNormalized( tr, fxnumber, paramnumber)
+      local retval, minval, maxval = TrackFX_GetParam( tr, fxnumber, paramnumber)
       TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.active', 1 )
       TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.effect', slavefx_id )
       TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.param', freeslider )
+      
+      -- set base
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.mod.baseline', minval )
      
     -- link slider to selected knob
       
@@ -1067,7 +1073,7 @@
     DATA.upd = false
     
     -- refresh at losing context
-    if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then ctx = ImGui.CreateContext(DATA.UI_name)  end
+    if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end --ctx = ImGui.CreateContext(DATA.UI_name)  end
     
     -- draw UI
     UI.open = UI.MAIN_styledefinition(true)  
