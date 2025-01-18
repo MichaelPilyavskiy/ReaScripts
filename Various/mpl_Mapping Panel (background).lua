@@ -1,15 +1,15 @@
 -- @description MappingPanel
--- @version 4.06
+-- @version 4.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @changelog
---    # reverted to 4.03
+--    # fix error at losing context
 
 
 
 
-  local vrs = 4.06
+  local vrs = 4.07
 
   --[[ gmem map: 
   Master
@@ -33,7 +33,7 @@
      
      if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
      package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-     ImGui = require 'imgui' '0.9.2'
+     ImGui = require 'imgui' '0.9.3.2'
      
      
      
@@ -1065,6 +1065,9 @@
     if DATA.upd == true then DATA:CollectData() end 
     DATA:CollectData_eachloop()
     DATA.upd = false
+    
+    -- refresh at losing context
+    if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then ctx = ImGui.CreateContext(DATA.UI_name)  end
     
     -- draw UI
     UI.open = UI.MAIN_styledefinition(true)  
