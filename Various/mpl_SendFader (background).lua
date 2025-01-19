@@ -1,9 +1,11 @@
 ﻿-- @description SendFader
--- @version 3.01
+-- @version 3.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix error on empty sends
+--    # improve panning
+--    # always show db scale
+--    + Settings: add option to always show marked recieves
 
 
   --------------------------------------------------------------------------------  init globals
@@ -30,6 +32,7 @@
           CONF_marksendint = 1,
           CONF_marksendwordsmatch = 1,
           CONF_marksendparentwordsmatch = 1,
+          CONF_alwaysshowreceives = 1,
           
           CONF_showpeaks = 1,
         }
@@ -636,7 +639,7 @@
       
       if DATA.srctr.ptr and ImGui.Selectable( ctx,  DATA.srctr.name,false, ImGui.SelectableFlags_None, UI.calc_trnamew, 0 )then  end
       
-      if DATA.srctr and DATA.srctr.ptr then 
+      if EXT.CONF_alwaysshowreceives~=1 and DATA.srctr and DATA.srctr.ptr then 
         if ImGui.BeginMenu( ctx, 'Add', true ) then
           for i = 1, #DATA.receives do
             if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
@@ -649,6 +652,8 @@
           end
           ImGui.EndMenu( ctx)
         end
+       else
+        ImGui.Dummy(ctx, 27,0)
       end
       
       
@@ -715,6 +720,7 @@
         end
         ImGui.SeparatorText(ctx, 'Other')
         if ImGui.MenuItem( ctx, 'Show peaks', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Always show merker receives', '', EXT.CONF_alwaysshowreceives==1, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~1 EXT:save() DATA.upd = true end
         
         ImGui.EndMenu( ctx)
       end
@@ -759,6 +765,12 @@
     local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
     if retval then 
       local outvol = DATA:Convert_Fader2Val(v)
+      
+      if not t.sendidx then
+        CreateTrackSend( DATA.srctr.ptr, t.ptr )
+        DATA.upd = true 
+        return
+      end
       SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_VOL', outvol)
       SetTrackSendUIVol( DATA.srctr.ptr, t.sendidx, outvol,0)
       DATA.upd = true
@@ -788,9 +800,9 @@
       }
     end
     
-    if hovered == true then 
+    --if hovered == true then 
       UI.draw_sends_sub_slider_scale(t,x, y, UI.faderW, UI.calc_faderH) 
-    end
+    --end
     if EXT.CONF_showpeaks == 1 then 
       UI.draw_sends_sub_slider_peaks(t,x, y, UI.faderW, UI.calc_faderH) 
     end
@@ -974,11 +986,42 @@
     local str_id = t.destGUID
     ImGui.SetNextItemWidth(ctx,UI.faderW) 
     local formatIn = 'Center' if t.D_PAN > 0.01 then formatIn = math.ceil(t.D_PAN*100)..'%%R' elseif t.D_PAN < -0.01 then formatIn = -math.floor(t.D_PAN*100)..'%%L' end 
+    ImGui.PushStyleColor(ctx,ImGui.Col_SliderGrab,0) 
+    ImGui.PushStyleColor(ctx,ImGui.Col_SliderGrabActive,0) 
+    local absx, absy = ImGui.GetCursorScreenPos( ctx )
     local retval, v = reaper.ImGui_SliderDouble( ctx, '##pan'..str_id, t.D_PAN, -1, 1, formatIn, ImGui.SliderFlags_None )
-    if retval then 
+    local bw, bh = ImGui.GetItemRectSize( ctx )
+    local offs = 5
+    absx = absx + offs/2
+    bw = bw -offs
+    ImGui.PopStyleColor(ctx,2)
+    local absx = absx + 0.5*(t.D_PAN+1)*bw
+    if math.abs(t.D_PAN)<0.55 then
+      ImGui.DrawList_AddRectFilled( ImGui.GetWindowDrawList( ctx ),absx, absy+bh-4, absx+2, absy+bh, 0xF0F0F0BF, 1, ImGui.DrawFlags_None )
+      ImGui.DrawList_AddRectFilled( ImGui.GetWindowDrawList( ctx ),absx, absy, absx+2, absy+4, 0xF0F0F0BF, 1, ImGui.DrawFlags_None )
+     else
+      ImGui.DrawList_AddRectFilled( ImGui.GetWindowDrawList( ctx ),absx, absy, absx+2, absy+bh, 0xF0F0F0BF, 1, ImGui.DrawFlags_None )
+    end
+    --[[if retval then 
       SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN', v)
       DATA.upd = true
+    end]]
+    
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then 
+      DATA.temp_latchstate = t.D_PAN
     end
+    if ImGui.IsItemActive( ctx ) then
+      local x, y = ImGui.GetMouseDragDelta( ctx )
+      local outval = DATA.temp_latchstate + x/200
+      outval = math.max(-1,math.min(outval,1))
+      local dx, dy = ImGui.GetMouseDelta( ctx )
+      if dx~=0 then
+        t.D_PAN = outval
+        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN', outval)
+        DATA.upd = true
+      end
+    end
+    
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN',0) DATA.upd = true end
   end
   
@@ -1092,6 +1135,13 @@
       UI.draw_sends_sub(DATA.srctr.sends[sendID])  
       ImGui.SameLine(ctx)
     end
+    
+    if EXT.CONF_alwaysshowreceives == 1 then
+      for recID = 1, #DATA.receives do
+        UI.draw_sends_sub(DATA.receives[recID]) 
+
+      end
+    end
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_FX(t)
@@ -1149,17 +1199,18 @@
     end
     if ImGui.BeginChild( ctx, str_id, 0, 0, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
        
-      UI.draw_sends_sub_slider(t)
+      UI.draw_sends_sub_slider(t) 
       UI.draw_sends_sub_destname(t) 
-      UI.draw_sends_sub_chan(t)
-      UI.draw_sends_sub_muteremove(t)
-      UI.draw_sends_sub_mode(t)
-      UI.draw_sends_sub_pan(t)
-      UI.draw_sends_sub_filt(t)
-      UI.draw_sends_sub_filt(t, true)
-      UI.draw_sends_sub_FX(t)
-      UI.draw_sends_sub_monophase(t)
-      
+      if t.is_receive ~= true then
+        UI.draw_sends_sub_chan(t)
+        UI.draw_sends_sub_muteremove(t)
+        UI.draw_sends_sub_mode(t)
+        UI.draw_sends_sub_pan(t)
+        UI.draw_sends_sub_filt(t)
+        UI.draw_sends_sub_filt(t, true)
+        UI.draw_sends_sub_FX(t)
+        UI.draw_sends_sub_monophase(t)
+      end
       
       ImGui.EndChild( ctx)
     end
@@ -1196,9 +1247,29 @@
         and not DATA:CollectData_ReadProject_ReadReceives_Checkpointers(tr)
        then
         
+        --[[local destPtr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
+        local B_MUTE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MUTE' )
+        local vol = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_VOL' )
+        local B_MONO = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_MONO' )
+        local D_PAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'D_PAN' )
+        local B_PHASE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_PHASE' )
+        local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' )
+        local I_AUTOMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_AUTOMODE' )
+        local I_SRCCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SRCCHAN' )
+        local I_DSTCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_DSTCHAN' )
+        local destI_NCHAN  = GetMediaTrackInfo_Value( destPtr, 'I_NCHAN' ) 
+         ]]
+        local ret, destName  = reaper.GetTrackName( tr )
+        local retval, destGUID = GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
+        local destCol  = GetTrackColor( tr ) 
+        
         DATA.receives[#DATA.receives+1] = {
+            is_receive =true,
             trname=trname,
             ptr = tr,
+            destCol = destCol,
+            destGUID = destGUID,
+            destName = destName,
           }
       end
     end
