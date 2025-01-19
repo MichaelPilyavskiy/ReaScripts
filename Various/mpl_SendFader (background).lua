@@ -1,11 +1,9 @@
 ﻿-- @description SendFader
--- @version 3.02
+-- @version 3.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve panning
---    # always show db scale
---    + Settings: add option to always show marked recieves
+--    # improve reaeq parsing
 
 
   --------------------------------------------------------------------------------  init globals
@@ -373,7 +371,8 @@
   end 
   ---------------------------------------------------------------------  
   function DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(dest_tr,t)
-    t.sendEQ = {}
+    t.sendEQ = {} 
+        
     local fx_cnt = TrackFX_GetCount( dest_tr )
     for fx_i = 1, fx_cnt do
       local _, fx_name = TrackFX_GetFXName( dest_tr, fx_i-1, '' )
@@ -381,8 +380,8 @@
         local HP, LP
         for paramidx = 1, TrackFX_GetNumParams(dest_tr, fx_i-1 ) do
           local _, bandtype, _, paramtype, normval = TrackFX_GetEQParam( dest_tr, fx_i-1, paramidx-1 )
-          if bandtype == 0 and paramtype == 0 then HP = normval end
-          if bandtype == 5 and paramtype == 0 then LP = normval end
+          if not HP and bandtype == 0 and paramtype == 0 then HP = normval end
+          if not LP and  bandtype == 5 and paramtype == 0 then LP = normval end
         end
         
         if HP and LP then 
@@ -1085,7 +1084,7 @@
       DATA.temp_p = filtFpos
       DATA.temp_w = filtFwidth
     end
-    if DATA.temp_w and ImGui.IsItemActive( ctx ) then 
+    if DATA.temp_w and ImGui.IsItemActive( ctx ) and t.sendEQ[key] then 
       local x, y = reaper.ImGui_GetMouseDragDelta( ctx, DATA.temp_x, DATA.temp_y, ImGui.MouseButton_Left, -1 )
       local out_pos = DATA.temp_p + x /100
       local out_width = DATA.temp_w - y /100
