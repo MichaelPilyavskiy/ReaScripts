@@ -1,10 +1,10 @@
 -- @description Sampling tool
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fixed note limits
+--    # fixed wildcards input
     
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -538,7 +538,7 @@
       end]]
       ImGui.SetNextItemWidth(ctx,sliderw)local retval, current_item = ImGui.Combo( ctx, 'Show FX', EXT.CONF_showflag+1, 'Show chain, hide floating\0Show FX chain\0Hide floating window\0Show floating window\0', 50 )
       if retval then EXT.CONF_showflag = current_item-1 EXT:save() end
-      ImGui.SetNextItemWidth(ctx,340)local retval, buf = ImGui.InputText( ctx, 'Wildcards', EXT.CONF_rename_wildcard, ImGui.InputTextFlags_EnterReturnsTrue )
+      ImGui.SetNextItemWidth(ctx,340)local retval, buf = ImGui.InputText( ctx, 'Wildcards', EXT.CONF_rename_wildcard, ImGui.InputTextFlags_None )
       if retval then EXT.CONF_rename_wildcard = buf  EXT:save() end
       if ImGui.Selectable( ctx, 'Clear', false, reaper.ImGui_SelectableFlags_None(), 40, 0 ) then EXT.CONF_rename_wildcard = '#fxname sampled - #note ' EXT:save() end 
       ImGui.SameLine(ctx) if ImGui.Selectable( ctx, '#note', false, reaper.ImGui_SelectableFlags_None(), 40, 0 ) then EXT.CONF_rename_wildcard = EXT.CONF_rename_wildcard..' #note' EXT:save() end 
