@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0a99f76bba125edcf6ce5363f9f1f4137e2d40c" name="MPL Scripts">
+<index version="1" commit="07ae2567932a7a181bc4eb56db34010e27f134c7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13064,6 +13064,10 @@ various fixes]]></changelog>
 # always show db scale
 + Settings: add option to always show marked recieves]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0a99f76bba125edcf6ce5363f9f1f4137e2d40c/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.03" author="MPL" time="2025-01-19T20:34:31Z">
+        <changelog><![CDATA[# improve reaeq parsing]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07ae2567932a7a181bc4eb56db34010e27f134c7/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Spectral editing tools - perform.lua" type="script" desc="Spectral editing tools - perform">
