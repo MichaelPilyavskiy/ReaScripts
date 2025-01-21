@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e77c3c327290091c8a3d0ee2b5dc0c8b52bf7b36" name="MPL Scripts">
+<index version="1" commit="3df015318baba13232cd5f33af24bcfeef8d5740" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8268,6 +8268,10 @@
 # offset audio accessor position a bit, for some reason it doesn`t give correct results
 + Pan mono take if source is panned mono]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b437abc0db9599abb4684635e0090248a9cb91f/Takes%20Properties/mpl_Check%20if%20multichannel%20item%20has%20mono%20source,%20convert%20to%20mono%20item%20if%20need%20.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2025-01-21T19:10:56Z">
+        <changelog><![CDATA[# improve math]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3df015318baba13232cd5f33af24bcfeef8d5740/Takes%20Properties/mpl_Check%20if%20multichannel%20item%20has%20mono%20source,%20convert%20to%20mono%20item%20if%20need%20.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Color drums shots by spectral content.lua" type="script" desc="Color drums shots by content">
