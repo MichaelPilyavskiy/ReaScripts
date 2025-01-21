@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="07ae2567932a7a181bc4eb56db34010e27f134c7" name="MPL Scripts">
+<index version="1" commit="e77c3c327290091c8a3d0ee2b5dc0c8b52bf7b36" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12613,6 +12613,11 @@ various fixes]]></changelog>
         <changelog><![CDATA[# use amplitude and baseline AI instead points scaling and offset
 # fix preFX error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1a1f1659d21f0a7825d41731c56a2c1502afce17/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="2.03" author="MPL" time="2025-01-21T18:09:45Z">
+        <changelog><![CDATA[# fix copyatnle error
++ Add option to apply parameters at every change]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e77c3c327290091c8a3d0ee2b5dc0c8b52bf7b36/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
