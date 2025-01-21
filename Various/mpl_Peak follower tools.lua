@@ -1,11 +1,11 @@
 -- @description Peak follower tools
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # use amplitude and baseline AI instead points scaling and offset
---    # fix preFX error
+--    # fix copyatnle error
+--    + Add option to apply parameters at every change
 
 
 
@@ -80,6 +80,8 @@ EXT = {
         CONF_out_pointsshape = 0,
         CONF_out_AI_D_BASELINE = 0,
         CONF_out_AI_D_AMPLITUDE = 1,
+        
+        CONF_applylive = 0,
         
       }
 -------------------------------------------------------------------------------- INIT data
@@ -383,15 +385,15 @@ function EXT:load()
   DATA.upd = true
 end
 -----------------------------------------------------------------------------------------
-function VF_CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+function CopyTable(orig)--http://lua-users.org/wiki/CopyTable 
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
         copy = {}
         for orig_key, orig_value in next, orig, nil do
-            copy[VF_CopyTable(orig_key)] = VF_CopyTable(orig_value)
+            copy[CopyTable(orig_key)] = CopyTable(orig_value)
         end
-        setmetatable(copy, VF_CopyTable(getmetatable(orig)))
+        setmetatable(copy, CopyTable(getmetatable(orig)))
     else -- number, string, boolean, etc
         copy = orig
     end
@@ -399,7 +401,7 @@ function VF_CopyTable(orig)--http://lua-users.org/wiki/CopyTable
 end
 --------------------------------------------------------------------------------  
 function main() 
-  EXT_defaults = VF_CopyTable(EXT)
+  EXT_defaults = CopyTable(EXT)
   EXT:load()  
   DATA.PRESET_GetExtStatePresets()
   UI.MAIN() 
@@ -534,7 +536,7 @@ function DATA.PRESET_GetExtStatePresets()
       end   
       local name = t[tid].CONF_NAME
       test = t[tid]
-      DATA.presets.user[name] = VF_CopyTable(t[tid])
+      DATA.presets.user[name] = CopyTable(t[tid])
       ::nextpres::
     end
     EXT.update_presets = 0
@@ -742,7 +744,7 @@ end
   end
 ----------------------------------------------------------------------
 function DATA:Process()
-
+  Undo_BeginBlock()
   if EXT.CONF_mode==0 or EXT.CONF_mode==1 or EXT.CONF_mode==2 then
     for i = 1,  CountSelectedMediaItems( -1 ) do
       local item = GetSelectedMediaItem(-1,i-1)
@@ -773,14 +775,11 @@ function DATA:Process()
     end  
   end
   
+  Undo_EndBlock( DATA.UI_name..' - process', 0 )
 end
 --------------------------------------------------------------------------------  
 function UI.draw()  
-  if ImGui.Button(ctx, 'Generate') then 
-    Undo_BeginBlock()
-    DATA:Process()
-    Undo_EndBlock( DATA.UI_name..' - process', 0 )
-  end
+  if ImGui.Button(ctx, 'Generate') then  DATA:Process() end
   ImGui.SameLine(ctx)
   UI.draw_preset()  
   ImGui.Separator(ctx)
@@ -816,6 +815,7 @@ function UI.draw_flow_COMBO(t)
         EXT[t.extstr] = id
         trig_action = true
         EXT:save()
+        if EXT.CONF_applylive == 1 then DATA:Process() end
       end
     end
     ImGui.EndCombo(ctx)
@@ -825,6 +825,7 @@ function UI.draw_flow_COMBO(t)
   if reaper.ImGui_IsItemHovered( ctx, ImGui.HoveredFlags_None ) and ImGui_IsMouseClicked( ctx, ImGui.MouseButton_Right ) then
     DATA.PRESET_RestoreDefaults(t.extstr)
     trig_action = true
+    if EXT.CONF_applylive == 1 then DATA:Process() end
   end  
   if t.tooltip then  ImGui.SetItemTooltip(ctx, t.tooltip) end
   return  trig_action
@@ -846,16 +847,21 @@ function UI.draw_flow_SLIDER(t)
       retval, v = reaper.ImGui_SliderDouble( ctx, t.key..'##'..t.extstr, EXT[t.extstr], t.min, t.max, format )
       if retval then trig_action = true end
     end 
+    
     if reaper.ImGui_IsItemHovered( ctx, ImGui.HoveredFlags_None ) and ImGui_IsMouseClicked( ctx, ImGui.MouseButton_Right ) then
       DATA.PRESET_RestoreDefaults(t.extstr)
       trig_action = true
+      if EXT.CONF_applylive == 1 then DATA:Process() end
      else
       if retval then 
         if t.percent then EXT[t.extstr] = v /100 else EXT[t.extstr] = v  end
         EXT:save() 
-        trig_action = true
       end
     end 
+    if ImGui.IsItemDeactivatedAfterEdit( ctx ) then 
+      if EXT.CONF_applylive == 1 then DATA:Process() end
+    end
+    
     if t.tooltip then  ImGui.SetItemTooltip(ctx, t.tooltip) end
   return trig_action
 end
@@ -866,12 +872,14 @@ function UI.draw_flow_CHECK(t)
   if reaper.ImGui_Checkbox( ctx, t.key, EXT[t.extstr]&(1<<byte)==(1<<byte) ) then 
     EXT[t.extstr] = EXT[t.extstr]~(1<<byte) 
     trig_action = true 
-    EXT:save() 
+    EXT:save()  
+    if EXT.CONF_applylive == 1 then DATA:Process() end
   end
   -- reset
   if reaper.ImGui_IsItemHovered( ctx, ImGui.HoveredFlags_None ) and ImGui_IsMouseClicked( ctx, ImGui.MouseButton_Right ) then
     DATA.PRESET_RestoreDefaults(t.extstr)
     trig_action = true 
+    if EXT.CONF_applylive == 1 then DATA:Process() end
   end
   
   if t.tooltip then  ImGui.SetItemTooltip(ctx, t.tooltip) end
@@ -1336,6 +1344,7 @@ end
     
   
       if ImGui.BeginTabItem(ctx, 'General') then
+        UI.draw_flow_CHECK({['key']='Apply parameters at every change',   ['extstr'] = 'CONF_applylive'}) 
         UI.draw_flow_CHECK({['key']='Bypass',                             ['extstr'] = 'CONF_bypass'}) 
         UI.draw_flow_COMBO({['key']='Mode',                               ['extstr'] = 'CONF_mode',                   ['values'] = {[0]='Peak follower', [1]='Gate', [2] = 'Compressor (by ashcat_lt & SaulT)', [4] = 'Peak fol. difference'} }) 
         UI.draw_flow_COMBO({['key']='Boundaries',                         ['extstr'] = 'CONF_boundary',               ['values'] = {[0]='Item edges', [1]='Time selection' } })  
@@ -1378,7 +1387,8 @@ end
         ImGui.EndTabItem(ctx)
       end
 
-      if ImGui.BeginTabItem(ctx, 'Output') then
+      if ImGui.BeginTabItem(ctx, 'Output') then 
+        
         UI.draw_flow_CHECK({['key']='Reduce points with same values',            ['extstr'] = 'CONF_reducesamevalues'}) 
         if not (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then 
           UI.draw_flow_CHECK({['key']='Invert points',                             ['extstr'] = 'CONF_out_invert'}) 
