@@ -1,11 +1,11 @@
 -- @description Peak follower tools
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix copyatnle error
---    + Add option to apply parameters at every change
+--    # remove peak fol. difference mode
+--    # fix track envelope AI destination
 
 
 
@@ -671,15 +671,13 @@ end
         if not ValidatePtr2( -1, env, 'TrackEnvelope*' ) then 
           SetOnlyTrackSelected(track)
           Main_OnCommand(40406,0) -- show vol envelope
-          env =  GetTrackEnvelopeByName( track, 'Volume' )
-        end
-        AI_idx = DATA:Process_GetEditAIbyEdges(env, boundary_start, boundary_end)  
+          env =  GetTrackEnvelopeByName( track, 'Volume' ) 
+        end 
+        AI_idx = DATA:Process_GetEditAIbyEdges(env, boundary_start, boundary_end)   
         if not AI_idx then AI_idx = InsertAutomationItem( env, -1, boundary_start, boundary_end-boundary_start )end
       end
       
     -- destination
-      local env
-      local AI_idx = -1
       if EXT.CONF_dest == 2 then -- prefx track vol AI
         local track = GetMediaItem_Track(item)
         env =  GetTrackEnvelopeByName( track, 'Volume (Pre-FX)' )
@@ -1346,7 +1344,7 @@ end
       if ImGui.BeginTabItem(ctx, 'General') then
         UI.draw_flow_CHECK({['key']='Apply parameters at every change',   ['extstr'] = 'CONF_applylive'}) 
         UI.draw_flow_CHECK({['key']='Bypass',                             ['extstr'] = 'CONF_bypass'}) 
-        UI.draw_flow_COMBO({['key']='Mode',                               ['extstr'] = 'CONF_mode',                   ['values'] = {[0]='Peak follower', [1]='Gate', [2] = 'Compressor (by ashcat_lt & SaulT)', [4] = 'Peak fol. difference'} }) 
+        UI.draw_flow_COMBO({['key']='Mode',                               ['extstr'] = 'CONF_mode',                   ['values'] = {[0]='Peak follower', [1]='Gate', [2] = 'Compressor (by ashcat_lt & SaulT)'} }) --, [4] = 'Peak fol. difference'} }) 
         UI.draw_flow_COMBO({['key']='Boundaries',                         ['extstr'] = 'CONF_boundary',               ['values'] = {[0]='Item edges', [1]='Time selection' } })  
         UI.draw_flow_COMBO({['key']='Destination',                        ['extstr'] = 'CONF_dest',                   ['values'] = {[0]='Track volume envelope AI', [1]='Take volume envelope', [2]='Track pre-FX volume envelope AI'} }) 
         ImGui.SeparatorText(ctx,'Mode parameters')
