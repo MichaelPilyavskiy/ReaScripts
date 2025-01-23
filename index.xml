@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3df015318baba13232cd5f33af24bcfeef8d5740" name="MPL Scripts">
+<index version="1" commit="c6de6d06eb96982760d7f83916fab7c76b70a870" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12622,6 +12622,11 @@ various fixes]]></changelog>
         <changelog><![CDATA[# fix copyatnle error
 + Add option to apply parameters at every change]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e77c3c327290091c8a3d0ee2b5dc0c8b52bf7b36/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="2.04" author="MPL" time="2025-01-23T14:50:33Z">
+        <changelog><![CDATA[# remove peak fol. difference mode
+# fix track envelope AI destination]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c6de6d06eb96982760d7f83916fab7c76b70a870/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
