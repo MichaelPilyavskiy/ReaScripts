@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8bb43f582d9b89ffd08d4f645d3d7e50f29e54e" name="MPL Scripts">
+<index version="1" commit="4117446d35fbf7596b5bd483f370b5742a189e57" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5700,6 +5700,18 @@
       <version name="1.0" author="MPL" time="2017-06-02T18:11:59Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6f4c2663b9803f4f5fa87ffd5267228caf0c31b9/Items%20Editing/mpl_Convert%20selected%20looped%20items%20to%20multiple%20splits.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Duplicate items bar relative.lua" type="script" desc="Duplicate items bar relative">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="2.01" author="MPL" time="2025-01-26T12:32:20Z">
+        <changelog><![CDATA[# overall cleanup
+# remove SWS dependency
+# handle bar correctly
+# handle time signatures and tempo variations]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4117446d35fbf7596b5bd483f370b5742a189e57/Items%20Editing/mpl_Duplicate%20items%20bar%20relative.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Duplicate items until end of time selection.lua" type="script" desc="Duplicate items until end of time selection">
