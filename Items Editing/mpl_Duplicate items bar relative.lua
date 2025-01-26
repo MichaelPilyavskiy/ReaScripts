@@ -1,5 +1,5 @@
 -- @description Duplicate items bar relative
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 --    # VF independent
