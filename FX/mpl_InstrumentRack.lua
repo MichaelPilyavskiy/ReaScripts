@@ -1,9 +1,10 @@
 -- @description InstrumentRack
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
--- @chansupport legacy format before 2.04
+-- @changelog
+--    # fix support legacy format before 2.04
     
     
 --NOT reaper NOT gfx
@@ -461,19 +462,21 @@ function DATA.CtrlsExtState_Read_sub(project)
   for line in val:gmatch('[^\r\n]+') do 
     local fxGUID, paramidx = line:match('(%{.-%})%s+(%d+)') -- 2.04+  
     if legacyformat == true then parent_GUID, fxGUID, paramidx = line:match('(%{.-%})%s+(%{.-%})%s+(%d+)') end
-    paramidx = tonumber(paramidx)
-    if not DATA.extctrls[fxGUID] then DATA.extctrls[fxGUID] = {} end--[paramidx]={}
-
-    -- pass params
-    local ret, tr, fx = VF_GetFXByGUID(fxGUID,nil,project)
-    if ret then  
-      local paramval = TrackFX_GetParamNormalized( tr, fx, paramidx )
-      local retval, paramname = reaper.TrackFX_GetParamName( tr, fx, paramidx )
-      DATA.extctrls[fxGUID][paramidx] = {
-        paramval=paramval,
-        paramname=paramname,
-        project=project
-        }
+    if fxGUID and paramidx then 
+      paramidx = tonumber(paramidx)
+      if not DATA.extctrls[fxGUID] then DATA.extctrls[fxGUID] = {} end--[paramidx]={}
+  
+      -- pass params
+      local ret, tr, fx = VF_GetFXByGUID(fxGUID,nil,project)
+      if ret then  
+        local paramval = TrackFX_GetParamNormalized( tr, fx, paramidx )
+        local retval, paramname = reaper.TrackFX_GetParamName( tr, fx, paramidx )
+        DATA.extctrls[fxGUID][paramidx] = {
+          paramval=paramval,
+          paramname=paramname,
+          project=project
+          }
+      end
     end
   end
 end
