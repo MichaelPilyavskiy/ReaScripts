@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b3d9bc5324cbad7a74fc0dbf204f1ec1cd9a61fb" name="MPL Scripts">
+<index version="1" commit="236ccb42c589e8a999e30a5315bca0391efcfae0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9550,6 +9550,38 @@ various fixes]]></changelog>
       <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Toggle%20MIDI%20hardware%20output%20by%20name%20(UMC).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle mute Drums group.lua" type="script" desc="Toggle mute Drums group">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggle mute group tracks which contain "drums" in their name\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=207971</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-01-28T06:05:53Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/236ccb42c589e8a999e30a5315bca0391efcfae0/Tracks%20Properties/mpl_Toggle%20mute%20Drums%20group.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle mute Vocal group.lua" type="script" desc="Toggle mute Vocal group">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Toggle mute group tracks which contain "vocal" in their name\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=207971</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-01-28T06:05:53Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/236ccb42c589e8a999e30a5315bca0391efcfae0/Tracks%20Properties/mpl_Toggle%20mute%20Vocal%20group.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle parent and regular send for selected tracks, ignore MIDI when regular.lua" type="script" desc="Toggle parent and regular send for selected tracks, ignore MIDI when regular">
