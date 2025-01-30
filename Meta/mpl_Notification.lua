@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # шьзкщму ешьштп
+--    # use set_action_options == 2 to ignore new run (REAPER 7.31rc1+)
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
@@ -567,7 +567,7 @@ function DATA:handleProjUpdates()
 end
 -----------------------------------------------------------------------------------------
 reaper.gmem_attach('mpl_notification_trig' )
-reaper.set_action_options(3)
+reaper.set_action_options(2)
 main()
   
   
