@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="236ccb42c589e8a999e30a5315bca0391efcfae0" name="MPL Scripts">
+<index version="1" commit="3a485899df4b2691990cd48524be340a8381cd10" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12889,6 +12889,12 @@ various fixes]]></changelog>
       <version name="4.04" author="MPL" time="2024-12-03T15:22:37Z">
         <changelog><![CDATA[# fix spamming extstate]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f246fee125fd8813a29662494e3b39c519f114a1/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="4.05" author="MPL" time="2025-01-30T18:53:25Z">
+        <changelog><![CDATA[# minor fixes
+# add tooltip to amount slider
+# Settings/Action: ignore "update at param change option"]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a485899df4b2691990cd48524be340a8381cd10/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
