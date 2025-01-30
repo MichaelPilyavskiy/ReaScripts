@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3a485899df4b2691990cd48524be340a8381cd10" name="MPL Scripts">
+<index version="1" commit="c98391d233e5a393fe755bde4ea2c90d8420d80f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6409,6 +6409,11 @@
         <changelog><![CDATA[# шьзкщму ешьштп]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/43547016e55d1c01fc92874cc2036d0409b9e5f0/Meta/mpl_Notification.lua</source>
         <source main="main" file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/43547016e55d1c01fc92874cc2036d0409b9e5f0/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
+      </version>
+      <version name="1.10" author="MPL" time="2025-01-30T19:13:47Z">
+        <changelog><![CDATA[# use set_action_options == 2 to ignore new run (REAPER 7.31rc1+)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c98391d233e5a393fe755bde4ea2c90d8420d80f/Meta/mpl_Notification.lua</source>
+        <source main="main" file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c98391d233e5a393fe755bde4ea2c90d8420d80f/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Repeat the most recent action for all background tabs.lua" type="script" desc="Repeat the most recent action for all background tabs">
