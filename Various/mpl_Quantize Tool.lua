@@ -1,10 +1,12 @@
 -- @description QuantizeTool
--- @version 4.04
+-- @version 4.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # fix spamming extstate
+--    # minor fixes
+--    # add tooltip to amount slider
+--    # Settings/Action: ignore "update at param change option"
 
 
 
@@ -741,7 +743,7 @@ function UI.draw_knob(t)
   local radiusshift_y = (radius_draw- radius)
   ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_max))
   ImGui.DrawList_PathStroke(draw_list, 0xF0F0F02F,  ImGui.DrawFlags_None, 2)
-  ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
+  ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val))
   ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
   
   local radius_draw2 = radius_draw-1
@@ -825,7 +827,7 @@ function UI.draw()
       if EXT.CONF_act_appbuttoexecute == 0 then DATA:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' ) end 
     end,
   })
-  
+  UI.HelpMarker('Amount')
   --[[
       onmousereleaseR  = function() 
         if not DATA.val1 then DATA.val1 = 0 end
@@ -895,7 +897,15 @@ function UI.draw()
   end
   
 end
-
+  -------------------------------------------------------------------------------- 
+  function UI.HelpMarker(desc)
+    if ImGui.BeginItemTooltip(ctx) then
+      ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+      ImGui.Text(ctx, desc)
+      ImGui.PopTextWrapPos(ctx)
+      ImGui.EndTooltip(ctx)
+    end
+  end
 --------------------------------------------------------------------------------  
 function UI.draw_tab_general()
   if ImGui.BeginTabItem(ctx, 'General') then 
@@ -905,7 +915,7 @@ function UI.draw_tab_general()
     if ImGui.Checkbox(ctx, 'Detect targets on initialization',EXT.CONF_act_initcatchsrc&1==1) then EXT.CONF_act_initcatchsrc = EXT.CONF_act_initcatchsrc~1 EXT:save() end
     if ImGui.Checkbox(ctx, 'Obey time selection for targets',EXT.CONF_act_catchsrctimesel&1==1) then EXT.CONF_act_catchsrctimesel = EXT.CONF_act_catchsrctimesel~1 EXT:save() end
     if ImGui.Checkbox(ctx, 'Knob to set value, Apply to execute',EXT.CONF_act_appbuttoexecute&1==1) then EXT.CONF_act_appbuttoexecute = EXT.CONF_act_appbuttoexecute~1 EXT:save() end
-    if ImGui.Checkbox(ctx, 'Update at parameters change',EXT.UI_appatchange&1==1) then EXT.UI_appatchange = EXT.UI_appatchange~1 EXT:save() end
+    if ImGui.Checkbox(ctx, 'Update at anchor / target change',EXT.UI_appatchange&1==1) then EXT.UI_appatchange = EXT.UI_appatchange~1 EXT:save() end
     
     ImGui.EndTabItem(ctx)
   end
@@ -1180,7 +1190,7 @@ function UI.draw_tab_action()
   if ImGui.BeginTabItem(ctx, 'Action') then 
     UI.activetab = 2 
     
-    trig_action = trig_action or UI.draw_flow_COMBO({['key']='Action type',                       ['extstr'] = 'CONF_act_action',['values'] = {[1]='Position-based alignment', [2]='Ordered alignment'}})
+    UI.draw_flow_COMBO({['key']='Action type',                       ['extstr'] = 'CONF_act_action',['values'] = {[1]='Position-based alignment', [2]='Ordered alignment'}})
     --[[trig_action = trig_action or UI.draw_flow_CHECK({['key']='Envelope points',                   ['extstr'] = 'CONF_src_envpoints',           ['confkeybyte'] = 0})
     if EXT.CONF_src_envpoints&1==1 then
       ImGui.Indent(ctx,UI.indent)
@@ -1189,19 +1199,19 @@ function UI.draw_tab_action()
     end]]
     
     
-    trig_action = trig_action or UI.draw_flow_SLIDER({['key']='Align second value, velocity/gain', ['extstr'] = 'CONF_act_valuealign',   ['min']=0,  ['max']=1, tooltip='Increase to reduce glitches'})
-    trig_action = trig_action or UI.draw_flow_SLIDER({['key']='Offset',                           ['extstr'] = 'CONF_offset_ms',   ['min']=0,  ['max']=0.5})
+    UI.draw_flow_SLIDER({['key']='Align second value, velocity/gain', ['extstr'] = 'CONF_act_valuealign',   ['min']=0,  ['max']=1, tooltip='Increase to reduce glitches'})
+    UI.draw_flow_SLIDER({['key']='Offset',                           ['extstr'] = 'CONF_offset_ms',   ['min']=0,  ['max']=0.5})
     if EXT.CONF_act_action&1==1 then
-      trig_action = trig_action or UI.draw_flow_COMBO({['key']='Direction',                       ['extstr'] = 'CONF_act_aligndir',['values'] = {[0]='Always previous point',[1]='Closest point',[2]='Always next point'}})
-      trig_action = trig_action or UI.draw_flow_SLIDER({['key']='Maximum distance, s',            ['extstr'] = 'CONF_maxquantize_ms',   ['min']=0,  ['max']=0.5})
-      trig_action = trig_action or UI.draw_flow_SLIDER({['key']='Minimum distance, s',            ['extstr'] = 'CONF_minquantize_ms',   ['min']=0,  ['max']=0.5})
+      UI.draw_flow_COMBO({['key']='Direction',                       ['extstr'] = 'CONF_act_aligndir',['values'] = {[0]='Always previous point',[1]='Closest point',[2]='Always next point'}})
+      UI.draw_flow_SLIDER({['key']='Maximum distance, s',            ['extstr'] = 'CONF_maxquantize_ms',   ['min']=0,  ['max']=0.5})
+      UI.draw_flow_SLIDER({['key']='Minimum distance, s',            ['extstr'] = 'CONF_minquantize_ms',   ['min']=0,  ['max']=0.5})
       
-      trig_action = trig_action or UI.draw_flow_CHECK({['key']='Group mode',                      ['extstr'] = 'CONF_act_groupmode',           ['confkeybyte'] = 0})
+      UI.draw_flow_CHECK({['key']='Group mode',                      ['extstr'] = 'CONF_act_groupmode',           ['confkeybyte'] = 0})
       if EXT.CONF_act_groupmode&1==1 then 
         ImGui.Indent(ctx,UI.indent)
-        trig_action = trig_action or UI.draw_flow_COMBO({['key']='Grouping threshold, beats',     ['extstr'] = 'CONF_act_groupmode_valbeats',['values'] = {[1/128]='1/128',[1/64]='1/64',[1/32]='1/32',[1/16]='1/16',[1/8]='1/8',[1/4]='1/4',[1/2]='1/2'}})
-        trig_action = trig_action or UI.draw_flow_CHECK({['key']='Obey same pitch for MIDI notes',['extstr'] = 'CONF_act_groupmode_obeypitch',           ['confkeybyte'] = 0})
-        trig_action = trig_action or UI.draw_flow_COMBO({['key']='Priority',                      ['extstr'] = 'CONF_act_groupmode_direction',['values'] = {[0]='First event',[1]='Between first and last events',[2]='Last event'}})
+        UI.draw_flow_COMBO({['key']='Grouping threshold, beats',     ['extstr'] = 'CONF_act_groupmode_valbeats',['values'] = {[1/128]='1/128',[1/64]='1/64',[1/32]='1/32',[1/16]='1/16',[1/8]='1/8',[1/4]='1/4',[1/2]='1/2'}})
+        UI.draw_flow_CHECK({['key']='Obey same pitch for MIDI notes',['extstr'] = 'CONF_act_groupmode_obeypitch',           ['confkeybyte'] = 0})
+        UI.draw_flow_COMBO({['key']='Priority',                      ['extstr'] = 'CONF_act_groupmode_direction',['values'] = {[0]='First event',[1]='Between first and last events',[2]='Last event'}})
         ImGui.Unindent(ctx,UI.indent)
       end
     end
@@ -1209,10 +1219,10 @@ function UI.draw_tab_action()
     ImGui.EndTabItem(ctx)
   end
   
-  if EXT.UI_appatchange&1==1 and trig_action == true then 
+  --[[if EXT.UI_appatchange&1==1 and trig_action == true then 
     DATA:Execute()  
     trig_action = nil
-  end
+  end]]
 end
 --------------------------------------------------------------------------------  
 function UI.draw_setbuttoncolor(col) 
@@ -2900,7 +2910,7 @@ end
       local t = take_t[i]
       
       local ppq_posOUT = t.ppq_pos
-      
+      if not ppq_posOUT then goto skipnexttake end
       if t.pos_secOUT then
         local pos_secOUT_sec = t.pos_sec + (t.pos_secOUT - t.pos_sec)*val1
         ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, pos_secOUT_sec )
@@ -2942,7 +2952,7 @@ end
           ppq_cur = ppq_cur+ out_offs
         end
       end
-      
+      ::skipnexttake::
     end
     MIDI_SetAllEvts( take, str_per_msg )
     MIDI_Sort(take)
@@ -3013,8 +3023,11 @@ end
       local takes_t = {}
       for i = 1 , #DATA.src do
         local t = DATA.src[i]
-        if not takes_t [t.GUID] then takes_t [t.GUID] = {it_group_master = t.it_group_master, smpoints = {}} end
-        takes_t [t.GUID].smpoints[#takes_t [t.GUID].smpoints + 1 ]  = CopyTable(t)
+        local GUID = t.GUID
+        if GUID then 
+          if not takes_t [GUID] then takes_t [GUID] = {it_group_master = t.it_group_master, smpoints = {}} end
+          takes_t [GUID].smpoints[#takes_t [t.GUID].smpoints + 1 ]  = CopyTable(t)
+        end
       end 
     
     -- align group masters
