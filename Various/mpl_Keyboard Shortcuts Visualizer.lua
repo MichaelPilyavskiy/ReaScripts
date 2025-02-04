@@ -1,14 +1,14 @@
 -- @description Keyboard Shortcuts Visualizer
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @about Script for showing keyboard shortcuts
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # moved combos above categories
+--    # fixed parser
 
 
     
-local vrs = 1.11
+local vrs = 1.12
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -122,7 +122,7 @@ for key in pairs(reaper) do _G[key]=reaper[key] end
 -- font  
   UI.font='Arial'
   UI.font1sz=15
-  UI.font2sz=14
+  UI.font2sz=15
   UI.font3sz=12
 -- style
   UI.pushcnt = 0
@@ -1382,21 +1382,25 @@ function DATA:ValidateLayouts(filename)
           if not KBNAME then KBNAME, BLOCK, LEVEL, IMGUI, BINDINGNAME, EXTW =       line:match('KEY KBNAME (.-) BLOCK (%d+) LEVEL (%d+) IMGUI (.-) BINDINGNAME ([%a%d%p%s]+) EXTW ([%d%.]+)') end
           if not KBNAME then KBNAME, BLOCK, LEVEL, IMGUI, BINDINGNAME =             line:match('KEY KBNAME (.-) BLOCK (%d+) LEVEL (%d+) IMGUI (.-) BINDINGNAME ([%a%d%p%s]+)') end 
           
-          BLOCK = tonumber(BLOCK) or BLOCK
-          LEVEL = tonumber(LEVEL) or LEVEL
-          if not DATA.extlayouts[name].BLOCKS[BLOCK] then DATA.extlayouts[name].BLOCKS[BLOCK] = {} end
-          if not DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS then DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS = {} end
-          if not DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] then DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] = {} end 
-          
-          local id = #DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] +1
-          DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL][id] = {
-            KBNAME=KBNAME,
-            IMGUI=tonumber(IMGUI) or IMGUI, 
-            BINDINGNAME=BINDINGNAME,
-            EXTW=EXTW,
-            EXTH=EXTH,
-          }
-        end 
+          if BLOCK then 
+            BLOCK = tonumber(BLOCK) or BLOCK
+            LEVEL = tonumber(LEVEL) or LEVEL
+            
+            
+            if not DATA.extlayouts[name].BLOCKS[BLOCK] then DATA.extlayouts[name].BLOCKS[BLOCK] = {} end
+            if not DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS then DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS = {} end
+            if not DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] then DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] = {} end 
+            
+            local id = #DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL] +1
+            DATA.extlayouts[name].BLOCKS[BLOCK].LEVELS[LEVEL][id] = {
+              KBNAME=KBNAME,
+              IMGUI=tonumber(IMGUI) or IMGUI, 
+              BINDINGNAME=BINDINGNAME,
+              EXTW=EXTW,
+              EXTH=EXTH,
+            }
+          end 
+        end
       end
     end
   end
