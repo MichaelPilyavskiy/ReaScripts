@@ -1,7 +1,7 @@
 -- @description Copy selected item active take spectral edits
--- @version 1.0
+-- @version 1.01
 -- @author MPL
--- @website httpforum.cockos.comshowthread.phpt=188335
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
 --    + init
 

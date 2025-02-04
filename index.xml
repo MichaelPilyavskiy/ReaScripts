@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c98391d233e5a393fe755bde4ea2c90d8420d80f" name="MPL Scripts">
+<index version="1" commit="570d8d361ac9486c764264ba9c5c1ca83b55da4e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8098,6 +8098,71 @@
       </version>
     </reapack>
   </category>
+  <category name="Spectral edits">
+    <reapack name="mpl_Clear spectral edits from selected items active take.lua" type="script" desc="Clear spectral edits from selected items active take">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Clear%20spectral%20edits%20from%20selected%20items%20active%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Disable bypass for selected items all takes spectral edits.lua" type="script" desc="Disable bypass for selected items all takes spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Disable%20bypass%20for%20selected%20items%20all%20takes%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Enable bypass for selected items all takes spectral edits.lua" type="script" desc="Enable bypass for selected items all takes spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Enable%20bypass%20for%20selected%20items%20all%20takes%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Paste spectral edits to selected items active take.lua" type="script" desc="Paste spectral edits to selected items active take">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Paste%20spectral%20edits%20to%20selected%20items%20active%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Port focused ReaEQ bands to spectral edits on selected items.lua" type="script" desc="Port focused ReaEQ bands to spectral edits on selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Propagate active take spectral edits to other takes.lua" type="script" desc="Propagate active take spectral edits to other takes">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Propagate%20active%20take%20spectral%20edits%20to%20other%20takes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle bypass for selected items all takes spectral edits.lua" type="script" desc="Toggle bypass for selected items all takes spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Toggle%20bypass%20for%20selected%20items%20all%20takes%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
+  </category>
   <category name="Stretch Markers">
     <reapack name="mpl_Copy selected item stretch markers.lua" type="script" desc="Copy selected item stretch markers">
       <metadata>
@@ -13122,62 +13187,6 @@ various fixes]]></changelog>
       <version name="3.03" author="MPL" time="2025-01-19T20:34:31Z">
         <changelog><![CDATA[# improve reaeq parsing]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07ae2567932a7a181bc4eb56db34010e27f134c7/Various/mpl_SendFader%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Spectral editing tools - perform.lua" type="script" desc="Spectral editing tools - perform">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Trigger SETools action while main script GUI is opened\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-06-02T23:49:03Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Various/mpl_Spectral%20editing%20tools%20-%20perform.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Spectral editing tools.lua" type="script" desc="Spectral editing tools">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Various tools for spectral editing\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-06-02T17:11:33Z">
-        <changelog><![CDATA[+ port Script: mpl_Add spectral edit at specified frequency.lua
-# improved parsing item chunk]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ac2619685f78f8cac05476c4765b57cbae51949/Various/mpl_Spectral%20editing%20tools.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2022-06-02T18:16:09Z">
-        <changelog><![CDATA[+ Action: Add user-defined spectral edits pattern]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Various/mpl_Spectral%20editing%20tools.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2022-06-02T23:49:03Z">
-        <changelog><![CDATA[+ Support trigger action externally for item under mouse without main window focus (but still runnung), see mpl_Spectral editing tools - perform.lua
-+ Action: Copy/paste/clear spectral edits
-+ Action: Bypass spectral edits
-# Action / Add SE: increase area limit to 22050
-+ Action / Add SE: add pencil mode
-+ Action / Add SE / pencil mode: add length option
-# Add UD pattern: get mouse position when triggered externally
-# GUI: remove preset button, clean settings frame
-# Performance: internal improvents]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Various/mpl_Spectral%20editing%20tools.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2022-06-05T12:31:02Z">
-        <changelog><![CDATA[+ Action: port focused FX to spectral edits
-+ Manipulate SE: add scaling gain tweak
-+ Manipulate SE: add set gain tweak
-# Add SE: properly handle time selection outside item]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5d18b5360aaf1283df9afef94060cce7a0c054b/Various/mpl_Spectral%20editing%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
