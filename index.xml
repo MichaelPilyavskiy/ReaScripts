@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f2baa52ceb3dfd504aa5bdf41d30061af2923ca8" name="MPL Scripts">
+<index version="1" commit="b27b5b4572b817622b4402935a8fa11c29bef833" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13263,6 +13263,10 @@ various fixes]]></changelog>
       <version name="3.03" author="MPL" time="2025-01-19T20:34:31Z">
         <changelog><![CDATA[# improve reaeq parsing]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07ae2567932a7a181bc4eb56db34010e27f134c7/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.04" author="MPL" time="2025-02-04T20:36:46Z">
+        <changelog><![CDATA[+ Support feedback to fader in touch mode]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b27b5b4572b817622b4402935a8fa11c29bef833/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
