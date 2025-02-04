@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3" name="MPL Scripts">
+<index version="1" commit="f2baa52ceb3dfd504aa5bdf41d30061af2923ca8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12491,6 +12491,10 @@ various fixes]]></changelog>
       <version name="1.11" author="MPL" time="2024-10-24T20:41:28Z">
         <changelog><![CDATA[# moved combos above categories]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a4fd02830f65347a6402b5314d3c0834b7845a45/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2025-02-04T20:15:27Z">
+        <changelog><![CDATA[# fixed parser]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f2baa52ceb3dfd504aa5bdf41d30061af2923ca8/Various/mpl_Keyboard%20Shortcuts%20Visualizer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
