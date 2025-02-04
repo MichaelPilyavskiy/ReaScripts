@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f21a0d22ab287b7182cac1e27f4fc2c4c4f47e28" name="MPL Scripts">
+<index version="1" commit="bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8117,6 +8117,24 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f21a0d22ab287b7182cac1e27f4fc2c4c4f47e28/Spectral%20edits/mpl_Copy%20selected%20item%20active%20take%20spectral%20edits.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Decrease selected spectral edits gain by 0.5 db.lua" type="script" desc="Decrease selected spectral edits gain by 0.5 db">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Decrease%20selected%20spectral%20edits%20gain%20by%200.5%20db.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Decrease selected spectral edits gain by 1 db.lua" type="script" desc="Decrease selected spectral edits gain by 1 db">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Decrease%20selected%20spectral%20edits%20gain%20by%201%20db.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Disable bypass for selected items all takes spectral edits.lua" type="script" desc="Disable bypass for selected items all takes spectral edits">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -8126,6 +8144,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Disable%20bypass%20for%20selected%20items%20all%20takes%20spectral%20edits.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Disable solo for selected items active take selected spectral edits.lua" type="script" desc="Disable solo for selected items active take selected spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Disable%20solo%20for%20selected%20items%20active%20take%20selected%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Enable bypass for selected items all takes spectral edits.lua" type="script" desc="Enable bypass for selected items all takes spectral edits">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -8133,6 +8160,33 @@
       <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Enable%20bypass%20for%20selected%20items%20all%20takes%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Enable solo for selected items active take selected spectral edits.lua" type="script" desc="Enable solo for selected items active take selected spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Enable%20solo%20for%20selected%20items%20active%20take%20selected%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Increase selected spectral edits gain by 0.5 db.lua" type="script" desc="Increase selected spectral edits gain by 0.5 db">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Increase%20selected%20spectral%20edits%20gain%20by%200.5%20db.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Increase selected spectral edits gain by 1 db.lua" type="script" desc="Increase selected spectral edits gain by 1 db">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Increase%20selected%20spectral%20edits%20gain%20by%201%20db.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste spectral edits to selected items active take.lua" type="script" desc="Paste spectral edits to selected items active take">
@@ -8169,6 +8223,15 @@
       <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Toggle%20bypass%20for%20selected%20items%20all%20takes%20spectral%20edits.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle solo for selected items active take selected spectral edits.lua" type="script" desc="Toggle solo for selected items active take selected spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-02-04T19:50:39Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bfd3919611f6a72f02e7bf2466e7a91fc25ab6f3/Spectral%20edits/mpl_Toggle%20solo%20for%20selected%20items%20active%20take%20selected%20spectral%20edits.lua</source>
       </version>
     </reapack>
   </category>
