@@ -1,9 +1,9 @@
 ﻿-- @description SendFader
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve reaeq parsing
+--    + Support feedback to fader in touch mode
 
 
   --------------------------------------------------------------------------------  init globals
@@ -302,8 +302,11 @@
     
       return open
   end
+  -----------------------------------------------------
+  function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
   -------------------------------------------------------------------------------- 
   function DATA:CollectData()
+    DATA.SR = VF_GetProjectSampleRate()
     DATA:CollectData_ReadProject_ReadTracks()
     DATA:CollectData_ReadProject_ReadReceives()
   end
@@ -347,6 +350,16 @@
       local ret, destName  = reaper.GetTrackName( destPtr ) 
       local destCol  = GetTrackColor( destPtr ) 
       local id = #DATA.srctr.sends+1
+      
+      
+      local automode = GetTrackAutomationMode( tr )
+      local automode_global = GetGlobalAutomationOverride()
+      local automode_follow
+      if (automode_global ~= -1 and automode_global > 0 ) or automode > 0  then 
+        automode_follow = true 
+        if automode_global ~= -1 and automode_global > 0 then automode = automode_global end 
+      end
+      
       DATA.srctr.sends[id] = {
             sendidx=sendidx-1,
             vol=vol, 
@@ -364,11 +377,26 @@
             destName=destName,
             destCol=destCol,
             peaks = {},
+            
+            automode_follow=automode_follow,
+            automode_env = DATA:CollectData_GetEnv(tr,destPtr),
+            automode=automode,
+            
             }
       DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(destPtr,DATA.srctr.sends[id]) 
     end
     
   end 
+  --------------------------------------------------------------------------------  
+  function DATA:CollectData_GetEnv(track,desttr0)
+    for envidx = 1, CountTrackEnvelopes( track ) do
+      local envelope = GetTrackEnvelope( track, envidx-1 )
+      local desttr = GetEnvelopeInfo_Value( envelope, 'P_DESTTRACK' )
+      if desttr == desttr0 then
+        return envelope 
+      end
+    end
+  end
   ---------------------------------------------------------------------  
   function DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(dest_tr,t)
     t.sendEQ = {} 
@@ -429,6 +457,24 @@
   -------------------------------------------------------------------------------- 
   function DATA:CollectData_Always()
     if EXT.CONF_showpeaks == 1 then DATA:CollectData_Always_getpeaks() end
+    
+    DATA.timepos = GetCursorPosition()
+    if GetPlayState()&1==1 then DATA.timepos =  GetPlayPosition() end
+    if DATA.srctr and DATA.srctr.ptr and DATA.srctr.sends then
+      for sendid = 1, #DATA.srctr.sends do
+      
+        if DATA.srctr.sends[sendid].automode_follow and ValidatePtr( DATA.srctr.sends[sendid].automode_env, 'TrackEnvelope*') then
+        
+          local envelope = DATA.srctr.sends[sendid].automode_env
+          local scaling_mode = GetEnvelopeScalingMode( envelope )
+          local retval, value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( envelope, DATA.timepos, DATA.SR, 1 )
+          
+          --value
+          local D_VOL = ScaleFromEnvelopeMode( scaling_mode, value )
+          DATA.srctr.sends[sendid].vol = D_VOL
+        end
+      end
+    end
   end
   ------------------------------------------------------------------------------------------------------  
   function VF_GetMediaTrackByGUID(optional_proj, GUID)
