@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="570d8d361ac9486c764264ba9c5c1ca83b55da4e" name="MPL Scripts">
+<index version="1" commit="f21a0d22ab287b7182cac1e27f4fc2c4c4f47e28" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8106,6 +8106,15 @@
       <version name="1.0" author="MPL" time="2025-02-04T19:07:34Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/570d8d361ac9486c764264ba9c5c1ca83b55da4e/Spectral%20edits/mpl_Clear%20spectral%20edits%20from%20selected%20items%20active%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Copy selected item active take spectral edits.lua" type="script" desc="Copy selected item active take spectral edits">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2025-02-04T19:08:32Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f21a0d22ab287b7182cac1e27f4fc2c4c4f47e28/Spectral%20edits/mpl_Copy%20selected%20item%20active%20take%20spectral%20edits.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Disable bypass for selected items all takes spectral edits.lua" type="script" desc="Disable bypass for selected items all takes spectral edits">
