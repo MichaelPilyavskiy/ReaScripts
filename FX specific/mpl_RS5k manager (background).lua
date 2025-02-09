@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.01
+-- @version 4.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,13 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Macro: fix manually entering values
+--    # fix various minor UI bugs
+--    # fix removing pad/layer
+--    # do not allow to import RS5k and macro controls as FX
 
 
 
-rs5kman_vrs = '4.01'
+rs5kman_vrs = '4.02'
 
 
 -- TODO
@@ -194,7 +196,7 @@ rs5kman_vrs = '4.01'
     UI.tab_context = '' -- for context menu
     UI.sampler_peaksH = 60
     UI.col_popup = 0x005300 
-        
+    UI.controls_minH = 40
     
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
   ---------------------------------------------------
@@ -690,6 +692,7 @@ end
         UI.hide_tabs = false 
         if DATA.display_whratio < 1.7 then UI.hide_padoverview = true end
         if DATA.display_w < UI.settingsfixedW * 1.8 then UI.hide_tabs = true end
+        --if DATA.display_w > UI.settingsfixedW * 5 then UI.hide_tabs = true end
         
         -- calc stuff for childs
         UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
@@ -701,21 +704,24 @@ end
         UI.calc_cellside = (DATA.display_h - UI.spacingY*2 - UI.calc_itemH)/32
         UI.calc_padoverviewH = DATA.display_h- UI.spacingY*2- UI.calc_itemH
         UI.calc_padoverviewW = UI.calc_cellside * 4 + UI.spacingX*2
+        if UI.calc_padoverviewW < 30 then UI.hide_padoverview = true end
         if EXT.UI_drracklayout == 1 then --keys
           UI.calc_cellside = (DATA.display_h - UI.spacingY*2 - UI.calc_itemH)/22
           UI.calc_padoverviewW = UI.calc_cellside * 7 + UI.spacingX*2
         end 
-        UI.calc_rackX = DATA.display_x + UI.calc_padoverviewW 
-        UI.calc_rackY = DATA.display_y + UI.calc_itemH+UI.spacingY
         local calc_padoverviewW = UI.calc_padoverviewW
+        
+        -- rack
+        UI.calc_rackX = DATA.display_x + UI.calc_padoverviewW 
+        UI.calc_rackY = DATA.display_y + UI.calc_itemH+UI.spacingY 
         local settingsfixedW = UI.settingsfixedW
         if UI.hide_padoverview == true then 
           calc_padoverviewW = 0
           UI.calc_rackX = DATA.display_x+UI.spacingX*2
         end
         if UI.hide_tabs == true then settingsfixedW = UI.spacingX*4 end 
-        UI.calc_rackW = DATA.display_w - settingsfixedW - calc_padoverviewW
-        UI.calc_rackH = math.floor(DATA.display_h  - UI.calc_itemH-UI.spacingY*2 )-1
+        UI.calc_rackW = math.min(DATA.display_w - settingsfixedW - calc_padoverviewW,500)
+        UI.calc_rackH = math.max(math.floor(DATA.display_h  - UI.calc_itemH-UI.spacingY*2 )-1,250)
         UI.calc_rack_padw = math.floor((UI.calc_rackW-UI.spacingX*3) / 4)
         UI.calc_rack_padh = math.floor((UI.calc_rackH-UI.spacingY*3) / 4)
         if EXT.UI_drracklayout == 1 then --keys
@@ -1134,19 +1140,20 @@ end
     for note in pairs(DATA.children) do
       if not DATA.children[note].peaks then DATA.children[note].peaks = {} end
       local track = DATA.children[note].tr_ptr
-      local L = Track_GetPeakInfo( track, 0 )
-      local R = Track_GetPeakInfo( track, 1 )
-      table.insert(DATA.children[note].peaks, 1, {L,R})
-      local sz = #DATA.children[note].peaks
-      local rmsL,rmsR = 0,0
-      for i = 1, sz do
-        rmsL = rmsL + DATA.children[note].peaks[i][1]
-        rmsR = rmsR + DATA.children[note].peaks[i][2]
+      if track and ValidatePtr2(-1,track, 'MediaTrack*') then
+        local L = Track_GetPeakInfo( track, 0 )
+        local R = Track_GetPeakInfo( track, 1 )
+        table.insert(DATA.children[note].peaks, 1, {L,R})
+        local sz = #DATA.children[note].peaks
+        local rmsL,rmsR = 0,0
+        for i = 1, sz do
+          rmsL = rmsL + DATA.children[note].peaks[i][1]
+          rmsR = rmsR + DATA.children[note].peaks[i][2]
+        end
+        DATA.children[note].peaksRMS_L = rmsL / sz
+        DATA.children[note].peaksRMS_R = rmsR / sz
+        if sz>max_sz then DATA.children[note].peaks[max_sz+1] = nil end
       end
-      DATA.children[note].peaksRMS_L = rmsL / sz
-      DATA.children[note].peaksRMS_R = rmsR / sz
-      if sz>max_sz then DATA.children[note].peaks[max_sz+1] = nil end
-      
       
     end
   end
@@ -1221,20 +1228,20 @@ end
   function DATA:Sampler_RemovePad(note, layer) 
     if not (note and DATA.children and DATA.children[note]) then return end 
     local tr_ptr = DATA.children[note].tr_ptr
-    if layer and DATA.children[note].layers and DATA.children[note].layers[layer] then tr_ptr = DATA.children[note].layers[layer].tr_ptr end 
+    if layer and DATA.children[note].layers and DATA.children[note].layers[layer] and DATA.children[note].layers[layer].tr_ptr then tr_ptr = DATA.children[note].layers[layer].tr_ptr end 
     --[[if not layer and not tr_ptr then 
       layer = 1
       if DATA.children[note].layers and DATA.children[note].layers[layer] then tr_ptr = DATA.children[note].layers[layer].tr_ptr end 
     end]]
     
     if not (tr_ptr and ValidatePtr2(-1,tr_ptr,'MediaTrack*')) then return end
-   
     
     Undo_BeginBlock2(DATA.proj )
     --DeleteTrack( tr_ptr )
     Main_OnCommand(40769,0)-- Unselect (clear selection of) all tracks/items/envelope points 
     SetOnlyTrackSelected( tr_ptr )
-    Main_OnCommand(40184,0)-- Remove items/tracks/envelope points (depending on focus) - no prompting // THIS remove device with childrens AND handles keeping structure 
+    --Main_OnCommand(40184,0)-- Remove items/tracks/envelope points (depending on focus) - no prompting // THIS remove device with childrens AND handles keeping structure 
+    Main_OnCommand(40005,0)-- Track: Remove tracks
     Undo_EndBlock2( DATA.proj , 'RS5k manager - Remove pad', 0xFFFFFFFF ) 
     SetOnlyTrackSelected( DATA.parent_track.ptr )
     DATA.upd = true
@@ -2596,6 +2603,7 @@ end
   end
   --------------------------------------------------------------------------------
   function UI.draw_Rack_PadOverview_handlemouse(v) 
+    if not (DATA.parent_track and DATA.parent_track.ext) then return end
     -- pads 
     if EXT.UI_drracklayout == 0 then
       local activerow = math.floor(v*33)
@@ -2799,7 +2807,7 @@ end
     if not UI.tab_last or (UI.tab_last and UI.tab_last ~= UI.tab_current ) then EXT.UI_activeTab = UI.tab_current EXT:save() end
     
     UI.tab_last = UI.tab_current 
-    if ImGui.BeginChild( ctx, '##settingscontent', -1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then 
+    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then 
       ImGui.SeparatorText(ctx, 'Current project settings') 
         ImGui.Indent(ctx, UI.settings_indent)
         --DATA.parent_track.ext.PARENT_MIDIFLAGS
@@ -3018,20 +3026,22 @@ end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_Rack_Pads_controls(note_t,note, x,y,w,h) 
-    
+    local min_h = UI.controls_minH
     -- name background 
       local color
       if note_t and note_t.I_CUSTOMCOLOR then 
         color = ImGui.ColorConvertNative(note_t.I_CUSTOMCOLOR) 
         color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
       end
+      local h_name = h
+      if h > min_h then h_name = UI.calc_rack_padnameH end
       if color then 
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+UI.calc_rack_padnameH, color, 5, ImGui.DrawFlags_RoundCornersTop)
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, color, 5, ImGui.DrawFlags_RoundCornersTop) 
        else 
         if note_t then
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+UI.calc_rack_padnameH, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop)
          else
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+UI.calc_rack_padnameH, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
         end
       end
     
@@ -3043,10 +3053,10 @@ end
         DATA.children[note].layers[1].peaks_arr  then UI.draw_peaks('pad'..note, note_t,x, y+UI.calc_itemH,w, UI.calc_rack_padnameH-UI.calc_itemH,DATA.children[note].layers[1].peaks_arr) end
     
     -- controls background
-      ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom )
+      if h > min_h then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom ) end
       
     -- controls background
-      ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom )
+      --ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom )
     
     -- frame / selection 
       if (DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  == note) then 
@@ -3057,7 +3067,7 @@ end
       
     
     ImGui.SetCursorScreenPos( ctx, x, y )  
-    if ImGui.BeginChild( ctx, '##rackpad'..note, w, h, ImGui.ChildFlags_None , ImGui.WindowFlags_None) then--|ImGui.ChildFlags_Border
+    if ImGui.BeginChild( ctx, '##rackpad'..note, w, h, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then--|ImGui.ChildFlags_Border
       local note_format = VF_Format_Note(note,note_t)
       UI.Tools_setbuttonbackg() 
       
@@ -3071,7 +3081,7 @@ end
         ImGui.TextWrapped( ctx, note_format )
         ImGui.PopStyleVar(ctx)
         
-        
+      if h > min_h then 
       -- mute
         ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y +UI.calc_rack_padnameH)
         local ismute = note_t and note_t.B_MUTE and note_t.B_MUTE == 1
@@ -3114,7 +3124,7 @@ end
           end 
         end   
         if issolo == true then ImGui.PopStyleColor(ctx) end
-        
+      end
       UI.Tools_unsetbuttonstyle()
       ImGui.EndChild( ctx)
     end
@@ -3276,7 +3286,7 @@ end
   --------------------------------------------------------------------------------  
   function UI.draw_tabs()
     if UI.hide_tabs == true then return end
-    
+    if not (DATA.parent_track and DATA.parent_track.ext) then return end
     ImGui.SetCursorPosY(ctx,UI.calc_itemH + UI.spacingY)
     if ImGui.BeginChild( ctx, 'tabs', -1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar ) then
       
@@ -3950,7 +3960,7 @@ end
   end
   --------------------------------------------------------------------------------
   function UI.draw_peaks (id,note_layer_t,plotx_abs,ploty_abs,w,h, arr) 
-    
+    --if h < UI.controls_minH then return end
     if EXT.CONF_showpadpeaks == 0 and not id:match('cur') then return end
     ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
     ImGui.PushStyleColor(ctx,ImGui.Col_FrameBg,0)
@@ -3963,8 +3973,8 @@ end
     local t2 = arr.table(size_new+2,size_new)
     local arr1 = new_array(t1)
     local arr2 = new_array(t2) 
-
-    ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr1, 0,  '', -1, 1, w,h)
+    
+    ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr1, 0,  '', -1, 1,w,h)
     ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
     ImGui.PlotHistogram( ctx, '##sampler_peaks_plot2'..id, arr2, 0,  '', -1, 1, w,h)  
     arr1.clear()
@@ -4770,10 +4780,12 @@ end
       local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
       local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
       local fx_name = VF_ReduceFXname(fx_namesrc)
-      if retval and fx_name then
-      
+      -- prevent control jsfx / rs5k
+      if retval then 
+        if fx_namesrc: match('ReaSampl') or fx_namesrc:match('Macro') then retval = nil end 
       end
-      local fxadd = '\nor click to import ['..fx_name..']'
+      local fxadd = ''
+      if retval then fxadd = '\nor click to import ['..fx_name..']' end
       if ImGui.Button(ctx, 'Drop new layers here'..fxadd, -1,-1) then
         local cntlayers = 0
         if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
@@ -5054,102 +5066,6 @@ end
   
         ]]
         
-        
-        
---[[
-    
-    -----------------------------------------------------------------------
-    function DATA2:Actions_PadOnFileDrop_ExportFXasDeviceInstrument(new_tr, filename,note)
-      local fx_dll = filename:match('@fx%:(.*)'):gsub('\\','/')
-      local fx_dll_sh = VF_GetShortSmplName(fx_dll)
-      --local fx_dll_sh_noext = fx_dll:match('(.*)%.(.*)')
-      local instrument_pos = TrackFX_AddByName( new_tr, fx_dll_sh, false, 1 ) 
-      if instrument_pos == -1 then return end
-      local retval, fxname = TrackFX_GetFXName( new_tr, instrument_pos )
-      local fxname_settrname =  VF_ReduceFXname(fxname) or fxname
-      GetSetMediaTrackInfo_String( new_tr, 'P_NAME', fxname_settrname, true )
-      local instrumentGUID = TrackFX_GetFXGUID( new_tr, instrument_pos)
-      local midifilt_pos = TrackFX_AddByName( new_tr, 'midi_note_filter', false, -1000 ) 
-      local midifilt_GUID = TrackFX_GetFXGUID( new_tr, midifilt_pos)
-      DATA2:TrackDataWrite(new_tr, {MIDIFILT_GUID = midifilt_GUID})
-      DATA2:TrackDataWrite(new_tr, {SET_noteID = note})
-      DATA2:TrackDataWrite(new_tr, {SET_instrFXGUID = instrumentGUID})
-      
-      TrackFX_Show( new_tr, midifilt_pos, 2 )      
-      DATA:DropSample_ExportToRS5kSetNoteRange(new_tr, instrument_pos, note, midifilt_pos)
-      return midifilt_pos
-    end
-    
-    -----------------------------------------------------------------------------------------
-    function DATA:Auto_Reposition_ReorderTrack(src_track, beforeTrackIdx)
-      if not (track and beforeTrackIdx) then return end 
-      
-      SetOnlyTrackSelected( src_track )
-      local trackID = CSurf_TrackToID( src_track, false )
-      local I_FOLDERDEPTH = GetMediaTrackInfo_Value( src_track, 'I_FOLDERDEPTH')
-      
-      local children = {}
-      if I_FOLDERDEPTH == 1 then
-        local depth = 0
-        for trid = trackID, DATA.parent_track.IP_TRACKNUMBER_0basedlast do
-          local tr = GetTrack(DATA.proj, trid-1)
-          local curdepth = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
-          depth = depth + curdepth
-          if depth == 0 then 
-            local GUID = GetTrackGUID( track )
-            --SetTrackSelected( track, true )
-            children[#children+1] = {GUID=GUID, depth=curdepth}
-            break
-          end
-        end
-      end 
-    
-      ReorderSelectedTracks( beforeTrackIdx, 0 )
-      GetMediaTrackInfo_Value( src_track, 'I_FOLDERDEPTH', I_FOLDERDEPTH)
-      for i = 1, children do
-        SetOnlyTrackSelected( src_track )
-        ReorderSelectedTracks( beforeTrackIdx, 0 )
-        depth
-      end
-      
-    end 
-    -------------------------------------------------------------------------------- 
-    function DATA:Auto_Reposition() 
-      if not (DATA.parent_track and DATA.parent_track.valid == true and DATA.parent_track.IP_TRACKNUMBER_0based) then return end 
-      if EXT.CONF_autoreposition == 0 then return end
-      if EXT.CONF_autoreposition == 1 then 
-        DATA:Auto_Reposition_TrackGetSelection()
-        PreventUIRefresh(1)
-        DATA:Auto_Reposition_SortByNote()
-        PreventUIRefresh(-1) 
-        DATA:Auto_Reposition_TrackRestoreSelection()
-      end
-    end 
-    -------------------------------------------------------------------------------- 
-    function DATA:Auto_Reposition_SortByNote() 
-      local beforeTrackIdx = DATA.parent_track.IP_TRACKNUMBER_0based+1
-          
-      for note in spairs(DATA.children) do
-        local track= VF_GetTrackByGUID(DATA.children[note].TR_GUID)
-        
-        if track then 
-          DATA:Auto_Reposition_ReorderTrack(track, beforeTrackIdx)
-          beforeTrackIdx = beforeTrackIdx + 1 
-        end
-        
-        if DATA.children[note].layers then
-          for layer = 1, #DATA.children[note].layers do
-            local track= VF_GetTrackByGUID(DATA.children[note].layers[layer].TR_GUID)
-            if track then 
-              DATA:Auto_Reposition_ReorderTrack(track, beforeTrackIdx)
-              beforeTrackIdx = beforeTrackIdx + 1 
-            end
-          end
-        end
-        
-      end
-      
-    end
-]]    
+       
   _main()
   
