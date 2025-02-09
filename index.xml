@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e46e8b0995de84fa3f89d3734ffc05a78e18a5e8" name="MPL Scripts">
+<index version="1" commit="a2f756fd5470a275b35e7c42102e730fbb32f171" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1602,6 +1602,10 @@
       <version name="1.03" author="MPL" time="2024-12-22T20:34:22Z">
         <changelog><![CDATA[+ Allow to transfer vst data directly]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3752cd7baa0a7f64565e9e962db8acc5fa1cdd5/FX/mpl_CopyPaste%20plugin%20data.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2025-02-09T19:33:18Z">
+        <changelog><![CDATA[# improve migrating fab filter 2 to 3/4]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2f756fd5470a275b35e7c42102e730fbb32f171/FX/mpl_CopyPaste%20plugin%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create send from focused FX.lua" type="script" desc="Create send from focused FX">
