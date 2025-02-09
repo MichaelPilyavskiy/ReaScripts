@@ -1,5 +1,5 @@
 -- @description CopyPaste plugin data
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about test
