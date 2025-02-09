@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.0
+-- @version 4.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,47 +15,11 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + General: Ported to ReaImGui
---    + General: UI and core overhaul, lot of cleanups
---    # General / Children definition: limit search down to parent track level, do not scan all project tracks tree 
---    # General: ExtState: explode stuff into lines for parent track
---    + Settings: allow to set hardware MIDI input as default input
---    + Settings: auto refresh midi notenames everywhere in the rack
---    + Settings: allow to stick current rack to current project (so you don`t need to select track anymore)
---    + Settings: Add option to auto set folder to normal/collapsed/fullycollapsed state
---    + Settings: Add action to clear all choke flags for all children
---    + Settings: Add action to auto hide children in TCP and MCP
---    # Settings: 'white keys priority' renamed to 'Drop to white keys only', disabled by default
---    - Settings: Remove pad overview quantize setting, use always page scroll
---    + Padoverview: support direct dropping pads from rack or explorer or MediaExplorer
---    # Database: overhaul, use per-sample attached database, store by database name
---    # MIDI routing: auto validate/build midi routing
---    # MIDI routing: make sure there is no MIDI send to device  
---    + Sampler: add check to tweak all parameters of current layer or all rack
---    + Sampler/3rd party: overhaul
---    + Sampler/3rd party: use global per-plugin mapping
---    + Sampler/3rd party: allow to manually define control parameters
---    # Sampler: make sure temporary source is destroying after measuring length at Export to RS5k
---    # Sampler/FX: hide filter gain if not applicable
---    # Sampler/FX: choke setting moved here
---    - Sampler: remove voice setting
---    + Pads: ReaImGui doesn`t support FX drop from browser, so added an rightclick action to import last touched FX
---    + Pads: show peaks
---    # Pads: on drop always share samples as regular childs at free slots
---    # Pads: do not allow to drop samples at devices
---    + Macro: support custom name
---    + Macro: support custom color
---    + Macro: use min-max instead scale-offset
---    + Macro: use reverse formatted values if possible (and brutforce set back)
---    - Actions: remove clear rack, select, deselect pads actions
---    - Actions: remove action to move to specific pad
---    - Device: remove On button
---    - MIDI learn: remove midi learn tab for now
---    - Children: remove Children tab
+--    # Macro: fix manually entering values
 
 
 
-rs5kman_vrs = '4.0'
+rs5kman_vrs = '4.01'
 
 
 -- TODO
@@ -3438,7 +3402,7 @@ end
     local ret, scale = TrackFX_GetNamedConfigParm(note_layer_t.tr_ptr, link_t.fx_dest, 'param.'..link_t.param_dest..'plink.scale')  scale = tonumber(scale)
     
     if baseline + scale < 0 or baseline + scale > 1 then 
-      UI_max = VF_lim(baseline + plink_scale)
+      UI_max = VF_lim(baseline + scale)
       TrackFX_SetNamedConfigParm(note_layer_t.tr_ptr, link_t.fx_dest, 'param.'..link_t.param_dest..'plink.scale', UI_max - baseline)  
      else
       TrackFX_SetNamedConfigParm(note_layer_t.tr_ptr, link_t.fx_dest, 'param.'..link_t.param_dest..'plink.scale', UI_max - baseline)  
