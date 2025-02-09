@@ -4,7 +4,7 @@
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about test
 -- @changelog
---    # improve migrating fab filter 2 to 3/4
+--    # improve migrating FabFilter slope
 
 
 
@@ -1067,15 +1067,18 @@ function DATA:Transfer_Parameters( dest_track, dest_fx)
   for paramid = 1, cnt do
     local retval, pname = TrackFX_GetParamName( dest_track, dest_fx, paramid-1 ) 
     local src_pname = pname
+    
+    -- overrides
     local overrides = {}
+    -- fab filter pro q
     if proq2_to_4 and src_pname:match('Shape') then overrides.maxval_src = 7/9 end
     if proq2_to_3 and src_pname:match('Shape') then overrides.maxval_src = 7/8 end 
-    if proq3_to_4 and src_pname:match('Shape') then overrides.maxval_src = 8/9 end -- fix 8 vs 9 shapes but the limits still 0...1 
-    
+    if proq3_to_4 and src_pname:match('Shape') then overrides.maxval_src = 8/9 end -- fix 8 vs 9 shapes but the limits still 0...1  
     if proq2_to_3 and pname:match('Used') then src_pname = pname:gsub('Used','State') overrides.minval = 1 overrides.maxval = 0.5  end
     if proq2_to_3 and pname:match('Enabled') then src_pname = pname:gsub('Enabled','State') overrides.minval = 0 overrides.maxval = 0.5 end
     if proq2_to_3 and pname:match('Stereo') then overrides.minval = 0 overrides.maxval_src = 2/4 end
-    
+    if proq2_to_3 and src_pname:match('Slope') then overrides.maxval_src = 8/9 end
+    if proq2_to_4 and src_pname:match('Slope') then overrides.maxval_src = 8/9 end
     if DATA.fx.PARAMS.param_data[src_pname] then DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid-1, DATA.fx.PARAMS.param_data[src_pname], overrides, src_pname) end
      
   end
