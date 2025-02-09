@@ -1,11 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.04
+-- @version 3.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Support feedback to fader in touch mode
+--    # improve metering
+--    + Add option to auto adjust width
 
-
+    vrs = 3.05
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -33,6 +34,7 @@
           CONF_alwaysshowreceives = 1,
           
           CONF_showpeaks = 1,
+          CONF_autoadjustwidth = 0,
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -262,12 +264,19 @@
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
+      --
+      if EXT.CONF_autoadjustwidth == 1 and  DATA.srctr and DATA.srctr.sends then
+        local fullw = UI.faderW + UI.spacingX*3
+        local innerspacing = UI.spacingX * (#DATA.srctr.sends)
+        ImGui.SetNextWindowSize(ctx, math.max(fullw*2+UI.spacingX*3, fullw * #DATA.srctr.sends + innerspacing), h, ImGui.Cond_Always)
+       else
+        ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      end
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name..' v'..vrs..'##'..DATA.UI_name, open, window_flags) 
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -765,7 +774,8 @@
         end
         ImGui.SeparatorText(ctx, 'Other')
         if ImGui.MenuItem( ctx, 'Show peaks', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Always show merker receives', '', EXT.CONF_alwaysshowreceives==1, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Always show marked receives', '', EXT.CONF_alwaysshowreceives==1, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
         
         ImGui.EndMenu( ctx)
       end
@@ -866,8 +876,8 @@
       end
     end]]
     local alpha = 0x60
-    if t.peaks.peaksRMS_L then ImGui_DrawList_AddRectFilled( draw_list, x+5, y+h-h*t.peaks.peaksRMS_L, x+10, y+h, 0xFFFFFF<<8|alpha, 2, ImGui.DrawFlags_None ) end
-    if t.peaks.peaksRMS_R then ImGui_DrawList_AddRectFilled( draw_list, x+10, y+h-h*t.peaks.peaksRMS_R, x+15, y+h, 0xFFFFFF<<8|alpha, 2, ImGui.DrawFlags_None ) end
+    if t.peaks.peaksRMS_L and t.peaks.peaksRMS_L > 0.001 then ImGui_DrawList_AddRectFilled( draw_list, x+5, y+h-h*t.peaks.peaksRMS_L, x+10, y+h, 0xFFFFFF<<8|alpha, 2, ImGui.DrawFlags_None ) end
+    if t.peaks.peaksRMS_R and t.peaks.peaksRMS_R > 0.001  then ImGui_DrawList_AddRectFilled( draw_list, x+10, y+h-h*t.peaks.peaksRMS_R, x+15, y+h, 0xFFFFFF<<8|alpha, 2, ImGui.DrawFlags_None ) end
     
   end
   ----------------------------------------------------------------------------------------- 
