@@ -1,10 +1,10 @@
 -- @description CopyPaste plugin data
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
--- @about test
+-- @about Script for migrating over plugin versions and formats
 -- @changelog
---    # improve migrating FabFilter slope
+--    # fix header
 
 
 
