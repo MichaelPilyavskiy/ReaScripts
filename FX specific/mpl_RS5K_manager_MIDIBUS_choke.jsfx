@@ -1,12 +1,12 @@
 desc:RS5K_manager_MIDIBUS_choke
 noindex
-version: 1.02
+version: 1.03
 author: MPL
 website: http://forum.cockos.com/showthread.php?t=207971
 about:
   Choke groups handler
 changelog: 
-  https://github.com/MichaelPilyavskiy/ReaScripts/issues/52
+  fix wrong offset
 
  
 options:gmem=RS5K_manager
@@ -127,7 +127,7 @@ NUM_CHOKE_GROUPS = 4;
       );
       
       // pass through note on
-      midisend(offset,msg1,msg2,msg3);
+      midisend(msgoffs,msg1,msg2,msg3);
       
     );
 
@@ -141,7 +141,7 @@ NUM_CHOKE_GROUPS = 4;
         chokegroupactive_incnote = (currentnote_chokeflags>>(chokegroup-1)) & 1;
         chokegroupactive_incnote ? in_choke_group = 1;
       );
-      in_choke_group != 1 ? midisend(offset,msg1,msg2,msg3);
+      in_choke_group != 1 ? midisend(msgoffs,msg1,msg2,msg3);
     );
 
   );
