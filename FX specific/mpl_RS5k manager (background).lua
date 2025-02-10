@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.02
+-- @version 4.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,26 +15,21 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix various minor UI bugs
---    # fix removing pad/layer
---    # do not allow to import RS5k and macro controls as FX
+--    # various minor UI tweaks
 
 
 
-rs5kman_vrs = '4.02'
+rs5kman_vrs = '4.03'
 
 
 -- TODO
 --[[  
-
-      auto switch midi bus record arm if playing with another rack
-      
-      SYSEX feedback to launchpad
-      
-      sampler / sampl / import // or hot record from master bus
-      
-      sequencer
-      
+      knob for samples in path
+      macro quick link from parameter
+      auto switch midi bus record arm if playing with another rack 
+      SYSEX feedback to launchpad 
+      sampler / sampl / import // or hot record from master bus 
+      sequencer 
       auto color tracks by parent folder
       auto color tracks by name
         https://live.mrbillstunes.com/project-file-standards/
@@ -42,19 +37,15 @@ rs5kman_vrs = '4.02'
         Kicks & Other Low Percussion = Tomato
         Snares & Claps = Rust
         Hi-Hats & Cymbals = Peru
-        Top-Kit & Grooves = Dark Olive
-          
+        Top-Kit & Grooves = Dark Olive 
       wildcards - device name
       wildcards - children - #notenuber #noteformat #samplename
-      wildcards - samples path
-      
-      launchpad layout
-      
+      wildcards - samples path 
+      launchpad layout 
       compressor
       transient
       fx rack
-      fx send
-      
+      fx send 
       ADSR show as curve
       pitch buttons tooltip
 ]]
@@ -685,7 +676,7 @@ end
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
         DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
-        
+        DATA.display_x_work, DATA.display_y_work = ImGui.Viewport_GetWorkPos(Viewport)
         -- hidingwindgets
         DATA.display_whratio = DATA.display_w / DATA.display_h
         UI.hide_padoverview = false
@@ -712,8 +703,9 @@ end
         local calc_padoverviewW = UI.calc_padoverviewW
         
         -- rack
-        UI.calc_rackX = DATA.display_x + UI.calc_padoverviewW 
-        UI.calc_rackY = DATA.display_y + UI.calc_itemH+UI.spacingY 
+        UI.calc_rackX = DATA.display_x + UI.calc_padoverviewW
+        UI.calc_rackY = DATA.display_y + UI.spacingY + UI.calc_itemH
+        if ImGui_IsWindowDocked( ctx ) then UI.calc_rackY = DATA.display_y + UI.spacingY end
         local settingsfixedW = UI.settingsfixedW
         if UI.hide_padoverview == true then 
           calc_padoverviewW = 0
@@ -726,7 +718,7 @@ end
         UI.calc_rack_padh = math.floor((UI.calc_rackH-UI.spacingY*3) / 4)
         if EXT.UI_drracklayout == 1 then --keys
           UI.calc_rack_padw = math.floor((UI.calc_rackW) / 7)-- -UI.spacingX
-          UI.calc_rack_padh = math.floor((UI.calc_rackH-UI.spacingY*3) / 4)
+          UI.calc_rack_padh = math.floor((UI.calc_rackH) / 4)
         end
         UI.calc_rack_padctrlW = UI.calc_rack_padw / 3 
         UI.calc_rack_padctrlH = UI.calc_rack_padh*0.3
@@ -1084,10 +1076,14 @@ end
     
     if not peaks then 
       peaks = DATA:CollectData_GetPeaks_sub(filename)
-      DATA:WriteData_Child(t.tr_ptr, {
+      if peaks then 
+        DATA:WriteData_Child(t.tr_ptr, {
         SET_PEAKS=table.concat(peaks,'|'),
-      }) 
+        }) 
+      end
     end
+    local arr
+    if peaks then arr = new_array(peaks) end
     --for i =1, #peaks do peaks[i] = peaks[i]^0.8 end
     
     DATA.current_sample_peaks = 
@@ -1095,7 +1091,7 @@ end
                         src_len=src_len,
                         note=note,
                         layer=layer,
-                        arr = new_array(peaks),
+                        arr = arr,
                         offs_start = t.instrument_samplestoffs,
                         offs_end = t.instrument_sampleendoffs,
                         instrument_loopoffs_norm = t.instrument_loopoffs_norm,
@@ -2938,7 +2934,8 @@ end
     ImGui.SameLine(ctx) 
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,0,0)  
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0) 
-        ImGui.SetCursorScreenPos( ctx, UI.calc_rackX, UI.calc_rackY )
+    
+    ImGui.SetCursorScreenPos(ctx,UI.calc_rackX,UI.calc_rackY)
     if ImGui.BeginChild( ctx, 'rack', UI.calc_rackW, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None |ImGui.WindowFlags_NoScrollbar ) then--|ImGui.ChildFlags_Border --|ImGui.WindowFlags_MenuBar
       UI.draw_Rack_Pads()  
       ImGui.EndChild( ctx)
@@ -2975,7 +2972,7 @@ end
     --ImGui.DrawList_AddRectFilled( UI.draw_list, UI.calc_rackX, UI.calc_rackY, UI.calc_rackX+UI.calc_rackW, UI.calc_rackY+UI.calc_rackH, 0xFFFFFFA0, 0, 0 )
     if layout_mode == 0 then
       local layout_pads_cnt = 16
-      local yoffs = UI.calc_rackY + UI.calc_rackH - UI.calc_rack_padh+1
+      local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
       local xoffs= UI.calc_rackX
       local padID0 = 0
       for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
@@ -2993,8 +2990,8 @@ end
       local layout_pads_cnt = 24
         
       local xoffs0 = UI.calc_rackX
-      local yoffs0 = UI.calc_rackY + UI.calc_rackH - UI.calc_rack_padh
-        
+      --local yoffs0 = UI.calc_rackY + UI.calc_rackH - UI.calc_rack_padh
+      local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*3 --+ UI.spacingY*3
       local padID0 = 0
       local oct = -1
       local xoffs, yoffs
@@ -3287,8 +3284,13 @@ end
   function UI.draw_tabs()
     if UI.hide_tabs == true then return end
     if not (DATA.parent_track and DATA.parent_track.ext) then return end
-    ImGui.SetCursorPosY(ctx,UI.calc_itemH + UI.spacingY)
-    if ImGui.BeginChild( ctx, 'tabs', -1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar ) then
+    local xabs,yabs = ImGui.GetCursorScreenPos(ctx)
+    ImGui.SetCursorScreenPos(ctx,xabs,UI.calc_rackY)
+    
+    local tabW = -1
+    local cur_w = DATA.display_w - ImGui.GetCursorPosX(ctx)
+    if cur_w > UI.settingsfixedW then tabW = UI.settingsfixedW end
+    if ImGui.BeginChild( ctx, 'tabs', tabW, 0, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then --|ImGui.ChildFlags_Border
       
       if ImGui.BeginTabBar( ctx, 'tabsbar', ImGui.TabItemFlags_None ) then
         
