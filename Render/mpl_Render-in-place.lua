@@ -1,10 +1,10 @@
 -- @description Render-in-place
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # fix sapmming extstate.ini
+--    # Do not add date to render name
 
 
 
@@ -14,7 +14,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.14
+local vrs = 1.15
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -60,7 +60,7 @@ EXT = {
         CONF_tail_len = 0,
         CONF_extendtotail = 0,
         CONF_bitdepth = 1,        
-        CONF_outputname = 'render', 
+        CONF_outputname = 'render_$datetime', 
         CONF_outputpath = 'renderinplace', 
         CONF_source_flags = 0, -- 1 mute items under RA -- 2 mute selected items -- 4 mute tracks
         
@@ -294,7 +294,7 @@ function UI.MAIN_draw(open)
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
-    local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+    local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
       DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -1307,7 +1307,7 @@ function DATA:Render_GetFileOutput()
   local project = DATA.rend_temp.project
   local outputpath = GetProjectPathEx( project )..'/'
   if EXT.CONF_outputpath ~= '' then outputpath = outputpath..EXT.CONF_outputpath..'/' end
-  local outputfile = EXT.CONF_outputname..os.date('%d%m%y_%H%M%S') 
+  local outputfile = EXT.CONF_outputname--..os.date('%d%m%y_%H%M%S') 
   local outputfp = outputpath..outputfile..'.wav'
   if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten
     local msec = math.floor(1000*(reaper.time_precise()%1))
