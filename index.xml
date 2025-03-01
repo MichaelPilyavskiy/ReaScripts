@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67623c547d814e44a712455832046e3a297db744" name="MPL Scripts">
+<index version="1" commit="5150f9f64ad7fd8318e8827aab00240750a5c8c7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13410,6 +13410,10 @@ various fixes]]></changelog>
 + Add option to show marked receives in a combo
 + Add VCA style control multiple sends]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/67623c547d814e44a712455832046e3a297db744/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.08" author="MPL" time="2025-03-01T22:08:18Z">
+        <changelog><![CDATA[# ignore VCA if not enabled]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5150f9f64ad7fd8318e8827aab00240750a5c8c7/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
