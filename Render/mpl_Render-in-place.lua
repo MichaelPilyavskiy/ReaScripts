@@ -1,17 +1,17 @@
 -- @description Render-in-place
--- @version 1.17
+-- @version 1.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # allow sub folder to be empty (i.e. render to project path)
+--    # patch for track and item wildcards
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.17
+local vrs = 1.19
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1310,16 +1310,35 @@ end
     return fn
   end  
 -------------------------------------------------------------------------------
-function DATA:Render_GetFileOutput()
+function DATA:Render_GetFileOutput(t)
   local project = DATA.rend_temp.project
   local outputpath = GetProjectPathEx( project )..'/'
   if EXT.CONF_outputpath ~= '' then outputpath = outputpath..EXT.CONF_outputpath..'/' end
   
+  if EXT.CONF_outputname:match('%$track') then
+    if t and t.trGUID then
+      local tr =  VF_GetMediaTrackByGUID(-1,t.trGUID)
+      if not tr then return end
+      local ret, trname = GetTrackName(tr)
+      EXT.CONF_outputname = EXT.CONF_outputname:gsub('%$track', trname)
+    end
+  end 
+  
+  if EXT.CONF_outputname:match('%$item') then
+    if t and t.itGUID then
+      local it =  VF_GetMediaItemByGUID(-1, t.itGUID)
+      if not it then return end
+      local tk = GetActiveTake(it)
+      if not tk then return end
+      local retval, itname = reaper.GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '', false )
+      EXT.CONF_outputname = EXT.CONF_outputname:gsub('%$item', itname)
+    end
+  end
   
   GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputname, true ) 
   local ret, outputfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false ) 
   local outputfile = VF_GetShortSmplName(outputfp)
-  
+  if not outputfile then return end
   
   if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten 
     outputfile = VF_GetShortSmplName(outputfp)
@@ -1589,8 +1608,11 @@ function DATA:Render_Piece_State_Restore(t)
 end
 -------------------------------------------------------------------------------
 function DATA:Render_Piece_SetRenderConfig(t) 
-    local outputpath,outputfile,outputfp = DATA:Render_GetFileOutput()
+    local outputpath,outputfile,outputfp = DATA:Render_GetFileOutput(t)
+    if not outputpath then return end
+    
     t.outputfp = outputfp 
+    
     GetSetProjectInfo( project, 'RENDER_CHANNELS', 2, true ) -- chan cnt
     GetSetProjectInfo( project, 'RENDER_STARTPOS', t.boundary_st, true ) -- bound start
     GetSetProjectInfo( project, 'RENDER_ENDPOS', t.boundary_end, true ) -- bound end
