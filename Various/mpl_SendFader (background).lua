@@ -1,12 +1,13 @@
 ﻿-- @description SendFader
--- @version 3.05
+-- @version 3.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve metering
---    + Add option to auto adjust width
+--    # fix always show receives
+--    + Add option to show marked receives in a combo
+--    + Add VCA style control multiple sends
 
-    vrs = 3.05
+    vrs = 3.07
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -31,10 +32,11 @@
           CONF_marksendint = 1,
           CONF_marksendwordsmatch = 1,
           CONF_marksendparentwordsmatch = 1,
-          CONF_alwaysshowreceives = 1,
+          CONF_alwaysshowreceives = 1,-- 0 off 1 in list 2 right side 
           
           CONF_showpeaks = 1,
-          CONF_autoadjustwidth = 0,
+          --CONF_autoadjustwidth = 0,
+          CONF_showselection = 0,
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -264,15 +266,19 @@
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
-      --
-      if EXT.CONF_autoadjustwidth == 1 and  DATA.srctr and DATA.srctr.sends then
+      
+      
+      --[[if EXT.CONF_autoadjustwidth == 1 and  DATA.srctr and DATA.srctr.sends then
         local fullw = UI.faderW + UI.spacingX*3
         local innerspacing = UI.spacingX * (#DATA.srctr.sends)
-        ImGui.SetNextWindowSize(ctx, math.max(fullw*2+UI.spacingX*3, fullw * #DATA.srctr.sends + innerspacing), h, ImGui.Cond_Always)
+        local add = 0 
+        if EXT.CONF_alwaysshowreceives == 2 then add = fullw+UI.spacingX*2 end
+        ImGui.SetNextWindowSize(ctx, math.max(fullw*2+UI.spacingX*3, fullw * #DATA.srctr.sends + innerspacing + add), h, ImGui.Cond_Always)
        else
         ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
-      end
+      end]]
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
@@ -291,6 +297,9 @@
         UI.calc_itemH = calcitemh + frameh * 2
         UI.calc_trnamew = DATA.display_w - UI.menubutw*2
         UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*8-UI.spacingY*13
+        if EXT.CONF_showselection == 1 then
+          UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*9-UI.spacingY*14
+        end
         UI.calc_comboW = math.floor(UI.faderW - UI.spacingY*2)/2
       -- draw stuff
         UI.draw()
@@ -360,6 +369,8 @@
       local destCol  = GetTrackColor( destPtr ) 
       local id = #DATA.srctr.sends+1
       
+      local retval, ext_vcasel = GetSetMediaTrackInfo_String( destPtr, 'P_EXT:vcasel', '', false )
+      ext_vcasel = tonumber(ext_vcasel) or 0
       
       local automode = GetTrackAutomationMode( tr )
       local automode_global = GetGlobalAutomationOverride()
@@ -386,6 +397,8 @@
             destName=destName,
             destCol=destCol,
             peaks = {},
+            
+            ext_vcasel = ext_vcasel,
             
             automode_follow=automode_follow,
             automode_env = DATA:CollectData_GetEnv(tr,destPtr),
@@ -693,7 +706,7 @@
       
       if DATA.srctr.ptr and ImGui.Selectable( ctx,  DATA.srctr.name,false, ImGui.SelectableFlags_None, UI.calc_trnamew, 0 )then  end
       
-      if EXT.CONF_alwaysshowreceives~=1 and DATA.srctr and DATA.srctr.ptr then 
+      if EXT.CONF_alwaysshowreceives==0 and DATA.srctr and DATA.srctr.ptr then 
         if ImGui.BeginMenu( ctx, 'Add', true ) then
           for i = 1, #DATA.receives do
             if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
@@ -774,8 +787,21 @@
         end
         ImGui.SeparatorText(ctx, 'Other')
         if ImGui.MenuItem( ctx, 'Show peaks', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Always show marked receives', '', EXT.CONF_alwaysshowreceives==1, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
+        
+        local t = {
+          [0] = 'Hide',
+          [1] = 'List',
+          [2] = 'Combo',
+        }
+        local preview_value = 'Marked receives view: '..t[EXT.CONF_alwaysshowreceives]
+        if ImGui.BeginCombo( ctx, '##Marked receives', preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then 
+          for val in pairs(t ) do 
+            if ImGui.Selectable( ctx, t[val]..'##markreccombo'..val, val == EXT.CONF_alwaysshowreceives, ImGui.SelectableFlags_None) then EXT.CONF_alwaysshowreceives=val EXT:save() DATA.upd = true end
+          end
+          ImGui.EndCombo( ctx)
+        end
+        --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Show VCA selection marks', '', EXT.CONF_showselection==1, true ) then EXT.CONF_showselection=EXT.CONF_showselection~1 EXT:save() DATA.upd = true end
         
         ImGui.EndMenu( ctx)
       end
@@ -809,6 +835,54 @@
       if UI.popups[key] and UI.popups[key].draw == true then UI.GetUserInputMB_replica(UI.popups[key].mode or 1, key, DATA.UI_name, 1, UI.popups[key].captions_csv, UI.popups[key].func_getval, UI.popups[key].func_setval) end 
     end
   end
+  ---------------------------------------------------
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_slider_handlevca(t, sendidx_master) 
+    if not DATA.temp_vca then return end
+    if relation == 1 or relation == 0 then return end
+    
+    local src_vol,dest_vol
+    for i = 1, #DATA.temp_vca do
+      local sendidx = DATA.temp_vca[i].sendidx
+      if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master == sendidx then 
+        src_vol = DATA.temp_vca[i].vol
+        dest_vol = t.vol
+        break
+      end 
+    end
+    
+    if not src_vol and dest_vol then return end
+    local src_vol_fader = DATA:Convert_Val2Fader(src_vol)
+    local dest_vol_fader = DATA:Convert_Val2Fader(dest_vol)
+    local fader_diff =   dest_vol_fader / src_vol_fader
+    
+    for i = 1, #DATA.temp_vca do
+      local sendidx = DATA.temp_vca[i].sendidx
+      local src_vol = DATA.temp_vca[i].vol
+      if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master ~= sendidx then 
+        local src_vol_fader = DATA:Convert_Val2Fader(src_vol)
+        local dest_vol_fader = fader_diff * src_vol_fader
+        local dest_vol = DATA:Convert_Fader2Val(dest_vol_fader)
+        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, sendidx, 'D_VOL', dest_vol)
+        SetTrackSendUIVol( DATA.srctr.ptr, sendidx, dest_vol,0)
+      end 
+    end
+    
+  end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_slider(t) 
     local str_id = t.destGUID
@@ -818,9 +892,12 @@
     -- slider
     local faderval = DATA:Convert_Val2Fader(t.vol)
     local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
+    
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA.temp_vca = CopyTable(DATA.srctr.sends) end
+    if ImGui.IsItemDeactivated( ctx ) then DATA.temp_vca = CopyTable(DATA.srctr.sends) end
+    
     if retval then 
-      local outvol = DATA:Convert_Fader2Val(v)
-      
+      local outvol = DATA:Convert_Fader2Val(v) 
       if not t.sendidx then
         CreateTrackSend( DATA.srctr.ptr, t.ptr )
         DATA.upd = true 
@@ -828,8 +905,10 @@
       end
       SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_VOL', outvol)
       SetTrackSendUIVol( DATA.srctr.ptr, t.sendidx, outvol,0)
+      t.vol = outvol
       DATA.upd = true
       hovered = true
+      if t.ext_vcasel == 1 then UI.draw_sends_sub_slider_handlevca(t, t.sendidx) end
     end
     hovered = ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None )
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
@@ -1186,6 +1265,21 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends() 
     if not (DATA.tracks and DATA.srctr and DATA.srctr.sends) then return end 
+    
+    
+    if EXT.CONF_alwaysshowreceives == 2 then
+      for i = 1, #DATA.receives do
+        if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Border) then
+          if ImGui.Button( ctx, DATA.receives[i].trname,-1) then 
+            CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
+            DATA.upd = true 
+          end
+          ImGui.EndChild(ctx)
+        end
+        ImGui.SameLine(ctx)
+      end
+    end
+    
     for sendID = 1, #DATA.srctr.sends do 
       UI.draw_sends_sub(DATA.srctr.sends[sendID])  
       ImGui.SameLine(ctx)
@@ -1194,9 +1288,11 @@
     if EXT.CONF_alwaysshowreceives == 1 then
       for recID = 1, #DATA.receives do
         UI.draw_sends_sub(DATA.receives[recID]) 
-
+        ImGui.SameLine(ctx)
       end
     end
+    
+    
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_FX(t)
@@ -1241,6 +1337,18 @@
     
   end
   ----------------------------------------------------------------------------------------- 
+  function UI.draw_sends_sub_vcacheck(t) 
+    if EXT.CONF_showselection ~= 1 then return end
+    local str_id = t.destGUID
+    local destPtr = t.destPtr
+    
+    local state = t.ext_vcasel == 1
+    if ImGui.Checkbox(ctx,'##sel'..str_id, state) then
+      GetSetMediaTrackInfo_String( destPtr, 'P_EXT:vcasel', t.ext_vcasel~1, true )
+      DATA.upd = true
+    end
+  end
+  ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub(t)
     local str_id = t.destGUID
     
@@ -1253,7 +1361,7 @@
       ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,destCol)
     end
     if ImGui.BeginChild( ctx, str_id, 0, 0, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
-       
+      UI.draw_sends_sub_vcacheck(t) 
       UI.draw_sends_sub_slider(t) 
       UI.draw_sends_sub_destname(t) 
       if t.is_receive ~= true then
