@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bef55c23ce5cff2c11344bab739144bd20fb639d" name="MPL Scripts">
+<index version="1" commit="e3fb841eb4999450f9ee2316df8af866d0351f6f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9954,6 +9954,10 @@ various fixes]]></changelog>
 + restore hidden track state on enabling TCP view back]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20edit%20cursor%20crossing%20any%20of%20their%20items.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2025-03-01T19:17:57Z">
+        <changelog><![CDATA[+ use external state]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e3fb841eb4999450f9ee2316df8af866d0351f6f/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20edit%20cursor%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle show tracks if play cursor crossing any of their items.lua" type="script" desc="Toggle show tracks if play cursor crossing any of their items">
       <metadata>
@@ -9962,6 +9966,11 @@ various fixes]]></changelog>
       <version name="1.0" author="MPL" time="2018-05-22T19:42:17Z">
         <changelog><![CDATA[+ init split from same version for edit cursor ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82cbc769bf1999f168ea139b048d5957d4fdb3d3/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20play%20cursor%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2025-03-01T19:17:57Z">
+        <changelog><![CDATA[+ use ext state
+# use edit cursor at stop]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e3fb841eb4999450f9ee2316df8af866d0351f6f/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20play%20cursor%20crossing%20any%20of%20their%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle show tracks if time selection crossing any of their items.lua" type="script" desc="Toggle show tracks if time selection crossing any of their items">
