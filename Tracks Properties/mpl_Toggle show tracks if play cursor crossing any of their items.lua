@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @description Toggle show tracks if play cursor crossing any of their items
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---   + init split from same version for edit cursor 
+--    + use ext state
+--    # use edit cursor at stop
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ----------------------------------
@@ -18,9 +19,12 @@
   -------------------------------------------------------
   function main_ShowTracksWithItems()  
     local curpos =  GetPlayPosition()
+    local playstate = reaper.GetPlayState()
+    if playstate &1~=1 then curpos = GetCursorPosition(0) end
+    
     local tcp_hide_ext_str = ''
-    for i_tr = 1, CountTracks(0) do
-      local tr = GetTrack(0,i_tr-1) 
+    for i_tr = 1, CountTracks(-1) do
+      local tr = GetTrack(-1,i_tr-1) 
       local show
       local is_visibleTCP = math.floor(GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP' ))
       local is_visibleMCP = math.floor(GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER'))
@@ -39,14 +43,14 @@
   end
   ------------------------------------------------------- 
   function main_RestoreTracks()
-    local _, ext_s = GetProjExtState(0, 'MPL_TOGGLESHOWTRWITHITEMS', 'playpos') 
+    local _, ext_s = GetProjExtState(-1, 'MPL_TOGGLESHOWTRWITHITEMS', 'playpos') 
     local t = {}
     for line in ext_s:gmatch('[^\r\n]+') do
       local t2 = {} for val in line:gmatch('[^%s]+') do t2[#t2+1] = val end
       if #t2 == 3 then t[t2[1]] = {tcp=tonumber(t2[2]),mcp = tonumber(t2[3])} end
     end
-    for i_tr = 1, CountTracks(0) do
-      local tr = GetTrack(0,i_tr-1)  
+    for i_tr = 1, CountTracks(-1) do
+      local tr = GetTrack(-1,i_tr-1)  
       local trGUID = GetTrackGUID( tr ) 
       if t[trGUID] then
         SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', t[trGUID].mcp )
@@ -66,13 +70,18 @@
       if (it_pos <= loop_st and it_pos+it_len >= loop_st) or (it_pos >= loop_st and it_pos <=loop_end) then return true end
     end
   end
+
   -------------------------------------------------------
-  local is_new_value,filename,sectionID,cmdID,mode,resolution,val = reaper.get_action_context()
-  state = reaper.GetToggleCommandState( cmdID )
-  if state == -1 then state = 0 end
-  reaper.SetToggleCommandState( sectionID, cmdID, math.abs(1-state) )
+  local is_new_value,filename,sectionID,cmdID,mode,resolution,val = reaper.get_action_context() 
+   _, ext_state = GetProjExtState(-1, 'MPL_TOGGLESHOWTRWITHITEMS', 'state') 
+  if ext_state == '' then 
+    ext_state = 0 
+    SetProjExtState(-1, 'MPL_TOGGLESHOWTRWITHITEMS', 'playpos', '' )    
+  end
+  ext_state = tonumber(ext_state)
+  SetProjExtState(-1, 'MPL_TOGGLESHOWTRWITHITEMS', 'state', math.abs(1-ext_state)  )    
   -------------------------------------------------------
-  if state == 0 then 
+  if ext_state == 0 then 
     main_ShowTracksWithItems() 
    else
     main_RestoreTracks()
