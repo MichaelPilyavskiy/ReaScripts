@@ -1,18 +1,17 @@
 -- @description Render-in-place
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # do not add date to render name (if not preventing overwrite)
---    # Properties/Filename: support wilcards
+--    # allow sub folder to be empty (i.e. render to project path)
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.16
+local vrs = 1.17
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -795,9 +794,11 @@ function UI.draw_tab_properties()
       --UI.draw_setbuttonbackgtransparent() 
       if ImGui.Button(ctx, 'Sub folder') then
         local project = DATA.rend_temp.project
-        local outputpath = GetProjectPathEx( project )..'/'
-        if EXT.CONF_outputpath ~= '' then outputpath = outputpath..EXT.CONF_outputpath end
-        outputpath = outputpath:gsub('\\','/')
+        local outputpath = GetProjectPathEx( project )
+        if EXT.CONF_outputpath ~= '' then 
+          outputpath = outputpath..'/'..EXT.CONF_outputpath 
+        end
+        outputpath = outputpath:gsub('\\','/'):gsub('//','/')
         reaper.RecursiveCreateDirectory(outputpath,0)
         os.execute('start "" "'..outputpath..'"')
       end
@@ -806,7 +807,7 @@ function UI.draw_tab_properties()
       ImGui.SetNextItemWidth( ctx, UI.combo_w ) 
       ImGui.SetCursorPosX( ctx, UI.calc_comb_sel_x )
       local ret, buf = ImGui.InputText(ctx,'##custpath',EXT.CONF_outputpath)
-      if ret and buf and buf ~= '' then  
+      if ret and buf then --and buf ~= '' then  
         EXT.CONF_outputpath = buf:gsub('[%/%\\%:%*%?%<%>%|%"]', '') -- prevent wrong names
         EXT:save() 
       end
@@ -1314,6 +1315,7 @@ function DATA:Render_GetFileOutput()
   local outputpath = GetProjectPathEx( project )..'/'
   if EXT.CONF_outputpath ~= '' then outputpath = outputpath..EXT.CONF_outputpath..'/' end
   
+  
   GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputname, true ) 
   local ret, outputfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false ) 
   local outputfile = VF_GetShortSmplName(outputfp)
@@ -1338,6 +1340,7 @@ function DATA:Render_GetFileOutput()
     --outputfp = outputpath..'/'..outputfile..'.wav'
   end  ]]
   outputfp = outputpath..'/'..outputfile
+  outputfp = outputfp:gsub('\\','/'):gsub('//','/')
   return outputpath,outputfile,outputfp
 end
 -------------------------------------------------------------------------------
