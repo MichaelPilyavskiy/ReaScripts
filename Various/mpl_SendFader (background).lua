@@ -1,13 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.07
+-- @version 3.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix always show receives
---    + Add option to show marked receives in a combo
---    + Add VCA style control multiple sends
+--    # ignore VCA if not enabled
 
-    vrs = 3.07
+
+    vrs = 3.08
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -41,7 +40,7 @@
   -------------------------------------------------------------------------------- INIT data
   DATA = {
           ES_key = 'MPL_SendFader',
-          UI_name = 'MPL SendFader', 
+          UI_name = 'SendFader', 
           upd = true, 
           
           tracks  = {},
@@ -853,6 +852,7 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_slider_handlevca(t, sendidx_master) 
     if not DATA.temp_vca then return end
+    if EXT.CONF_showselection~=1 then return end
     if relation == 1 or relation == 0 then return end
     
     local src_vol,dest_vol
