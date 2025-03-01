@@ -1,20 +1,18 @@
 -- @description Render-in-place
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # Do not add date to render name
+--    # do not add date to render name (if not preventing overwrite)
+--    # Properties/Filename: support wilcards
 
 
-
--- move render sends separately to postprocessing
--- add each new render as new lane / take if in each piece mode
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.15
+local vrs = 1.16
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1302,18 +1300,44 @@ function DATA:CollectData_GetTrackSelection()
    
   
 end 
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_GetShortSmplName(path) 
+    local fn = path
+    fn = fn:gsub('%\\','/')
+    if fn then fn = fn:reverse():match('(.-)/') end
+    if fn then fn = fn:reverse() end
+    return fn
+  end  
 -------------------------------------------------------------------------------
 function DATA:Render_GetFileOutput()
   local project = DATA.rend_temp.project
   local outputpath = GetProjectPathEx( project )..'/'
   if EXT.CONF_outputpath ~= '' then outputpath = outputpath..EXT.CONF_outputpath..'/' end
-  local outputfile = EXT.CONF_outputname--..os.date('%d%m%y_%H%M%S') 
-  local outputfp = outputpath..outputfile..'.wav'
-  if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten
-    local msec = math.floor(1000*(reaper.time_precise()%1))
-    outputfile = 'mixdown'..os.date('%d%m%y_%H%M%S') ..msec
-    outputfp = outputpath..'/'..outputfile..'.wav'
-  end  
+  
+  GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputname, true ) 
+  local ret, outputfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false ) 
+  local outputfile = VF_GetShortSmplName(outputfp)
+  
+  
+  if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten 
+    outputfile = VF_GetShortSmplName(outputfp)
+    local msec = math.floor(1000*(reaper.time_precise()%1)) 
+    local body,ext = outputfile:match('(.-)%.(.*)')
+    if body and ext then  
+      outputfile = body..'_'..os.date('%d%m%y_%H%M%S')..msec..'.'..ext
+    end
+  end
+  --local outputfile = EXT.CONF_outputname..os.date('%d%m%y_%H%M%S') 
+  --local outputfp = outputpath..outputfile..'.wav'
+  --[[if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten
+  
+    local msec = math.floor(1000*(reaper.time_precise()%1)) 
+    GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputname..'_1', true ) 
+    ret, outputfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false )  
+    --outputfile = 'mixdown'..os.date('%d%m%y_%H%M%S') ..msec
+    --outputfp = outputpath..'/'..outputfile..'.wav'
+  end  ]]
+  outputfp = outputpath..'/'..outputfile
   return outputpath,outputfile,outputfp
 end
 -------------------------------------------------------------------------------
