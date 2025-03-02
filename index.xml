@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="02ddb4544de03ebbb579d94420ca3d23a9442fa4" name="MPL Scripts">
+<index version="1" commit="62d51c36b9f2035a78c3062d02c5b3336eea35f5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7857,6 +7857,10 @@
       <version name="1.20" author="MPL" time="2025-03-02T05:21:56Z">
         <changelog><![CDATA[# another patch for track and item wildcards]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/02ddb4544de03ebbb579d94420ca3d23a9442fa4/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.21" author="MPL" time="2025-03-02T07:00:44Z">
+        <changelog><![CDATA[+ Add option to offline FX]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/62d51c36b9f2035a78c3062d02c5b3336eea35f5/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
