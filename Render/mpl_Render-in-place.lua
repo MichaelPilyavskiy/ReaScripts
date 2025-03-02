@@ -1,17 +1,18 @@
 -- @description Render-in-place
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Add option to offline FX
+--    # another patch
+--    - revert back supporting wildcard, not everything working correcty yet
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.21
+local vrs = 1.22
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1355,13 +1356,14 @@ function DATA:Render_GetFileOutput(t)
     outputfile = outputfile:gsub('%$item', 'item')
   end
   
-  outputfp = outputpath..'/'..outputfile
+  outputfile = outputfile:gsub('%$[%a%d]+','')
+  outputfp = outputpath..'/'..outputfile..'.wav'
   
-  -- pass to render window + feedback
-  GetSetProjectInfo_String( project, 'RENDER_PATTERN', outputfile, true ) 
-  local ret, targfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false ) 
-  if ret then 
-    outputfile_feedb = VF_GetShortSmplName(targfp)
+  --[[ pass to render window + feedback
+  GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputpath, true ) 
+  local ret, targfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false )
+  if ret and targfp ~= '' then 
+    outputfile_feedb = VF_GetShortSmplName(targfp) 
     if outputfile_feedb then
       outputfile = outputfile_feedb:reverse()  outputfile = outputfile:match('%.(.*)')   outputfile = outputfile:reverse() -- remove extension
       outputfile = outputfile..'.wav'
@@ -1370,18 +1372,18 @@ function DATA:Render_GetFileOutput(t)
       outputfile = outputfile..'.wav'
       outputfp = outputpath..'/'..outputfile
     end
-  end
+  end]]
   
   -- prevent files rendered in the same second be overwritten 
   if file_exists(outputfp) then 
-    outputfile = VF_GetShortSmplName(outputfp)
     local msec = math.floor(1000*(reaper.time_precise()%1)) 
-    outputfile = outputfile..'_'..os.date('%d%m%y_%H%M%S')..msec ..'.wav'
-    outputfp = outputpath..'/'..outputfile
+    outputfile = outputfile..'_'..os.date('%d%m%y_%H%M%S')..msec
+    outputfp = outputpath..'/'..outputfile ..'.wav'
   end
   
+   
   outputfp = outputfp:gsub('\\','/'):gsub('//','/') -- fix possible doubles
-  return outputpath,outputfile,outputfp
+  return outputpath,outputfile ..'.wav',outputfp
 end
 -------------------------------------------------------------------------------
 function DATA:Render_Piece_State_StoreAndSet(t) 
@@ -1729,6 +1731,25 @@ function DATA:CollectData()
   end 
 end
 -------------------------------------------------------------------------------
+function DATA:Render_CurrentConfig_SetGlobalParams_format()
+  --[[
+   '16bit PCM',
+   '24bit PCM',
+   '32bit FP',
+   '64bit FP',
+  ]]
+  local form_conf = { [1]=16, [2]=1} 
+  if EXT.CONF_bitdepth == 1 then form_conf[1] = 16 
+    elseif EXT.CONF_bitdepth == 2 then form_conf[1] = 24 
+    elseif EXT.CONF_bitdepth == 3 then form_conf[1] = 32 
+    elseif EXT.CONF_bitdepth == 4 then form_conf[1] = 64 
+  end
+  
+  local out_str = '' for i = 1, #form_conf do if not form_conf[i] then form_conf[i] = 0 end out_str = out_str..tostring(form_conf[i]):char() end
+  GetSetProjectInfo_String(0, 'RENDER_FORMAT', base64_enc('evaw'..out_str), true)
+  GetSetProjectInfo_String(0, 'RENDER_FORMAT2', '', true) -- reset secondary format
+end
+-------------------------------------------------------------------------------
 function DATA:Render_CurrentConfig_SetGlobalParams()
   local project = DATA.rend_temp.project
   
@@ -1753,30 +1774,16 @@ function DATA:Render_CurrentConfig_SetGlobalParams()
   GetSetProjectInfo( project, 'RENDER_NORMALIZE', 0, true ) -- normalize off
   GetSetProjectInfo( project, 'RENDER_FADEIN', 0, true )
   GetSetProjectInfo( project, 'RENDER_FADEOUT', 0, true )
-  --[[
-   '16bit PCM',
-   '24bit PCM',
-   '32bit FP',
-   '64bit FP',
-  ]]
-  local form_conf = { [1]=16, [2]=1} 
-  if EXT.CONF_bitdepth == 1 then form_conf[1] = 16 
-    elseif EXT.CONF_bitdepth == 2 then form_conf[1] = 24 
-    elseif EXT.CONF_bitdepth == 3 then form_conf[1] = 32 
-    elseif EXT.CONF_bitdepth == 4 then form_conf[1] = 64 
-  end
-  local out_str = '' for i = 1, #form_conf do if not form_conf[i] then form_conf[i] = 0 end out_str = out_str..tostring(form_conf[i]):char() end
-  GetSetProjectInfo_String(0, 'RENDER_FORMAT', base64_enc('evaw'..out_str), true)
-  GetSetProjectInfo_String(0, 'RENDER_FORMAT2', '', true) -- reset secondary format
+  DATA:Render_CurrentConfig_SetGlobalParams_format()
 end
 -------------------------------------------------------------------------------
 function DATA:Render()
   if not DATA.rend.pieces then return end
-  
   PreventUIRefresh( 1 )
   DATA:Render_CurrentConfig_Store()
   DATA:Render_CurrentConfig_SetGlobalParams() 
   
+   
   DATA.rend_temp.schedule = true -- start waiting 
   DATA.rend_temp.transportstopTS = nil -- reset TS
 end
