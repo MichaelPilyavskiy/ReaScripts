@@ -1,17 +1,17 @@
 -- @description Render-in-place
--- @version 1.19
+-- @version 1.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # patch for track and item wildcards
+--    # another patch for track and item wildcards
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.19
+local vrs = 1.20
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1309,57 +1309,68 @@ end
     if fn then fn = fn:reverse() end
     return fn
   end  
+    function GetParentFolder(dir) return dir:match('(.*)[%\\/]') end
 -------------------------------------------------------------------------------
 function DATA:Render_GetFileOutput(t)
   local project = DATA.rend_temp.project
+  
+  -- get path
   local outputpath = GetProjectPathEx( project )..'/'
   if EXT.CONF_outputpath ~= '' then outputpath = outputpath..EXT.CONF_outputpath..'/' end
   
-  if EXT.CONF_outputname:match('%$track') then
+  -- get filename
+  local outputfile = EXT.CONF_outputname
+  if outputfile:match('%$track') then
     if t and t.trGUID then
       local tr =  VF_GetMediaTrackByGUID(-1,t.trGUID)
-      if not tr then return end
-      local ret, trname = GetTrackName(tr)
-      EXT.CONF_outputname = EXT.CONF_outputname:gsub('%$track', trname)
+      if tr then
+        local ret, trname = GetTrackName(tr)
+        outputfile = outputfile:gsub('%$track', trname)
+      end
     end
+    outputfile = outputfile:gsub('%$track', 'track')
   end 
   
-  if EXT.CONF_outputname:match('%$item') then
+  if outputfile:match('%$item') then
     if t and t.itGUID then
       local it =  VF_GetMediaItemByGUID(-1, t.itGUID)
-      if not it then return end
-      local tk = GetActiveTake(it)
-      if not tk then return end
-      local retval, itname = reaper.GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '', false )
-      EXT.CONF_outputname = EXT.CONF_outputname:gsub('%$item', itname)
+      if it then
+        local tk = GetActiveTake(it)
+        if tk then
+          local retval, itname = reaper.GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '', false )
+          outputfile = outputfile:gsub('%$item', itname)
+        end
+      end
+    end
+    outputfile = outputfile:gsub('%$item', 'item')
+  end
+  
+  outputfp = outputpath..'/'..outputfile
+  
+  -- pass to render window + feedback
+  GetSetProjectInfo_String( project, 'RENDER_PATTERN', outputfile, true ) 
+  local ret, targfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false ) 
+  if ret then 
+    outputfile_feedb = VF_GetShortSmplName(targfp)
+    if outputfile_feedb then
+      outputfile = outputfile_feedb:reverse()  outputfile = outputfile:match('%.(.*)')   outputfile = outputfile:reverse() -- remove extension
+      outputfile = outputfile..'.wav'
+      outputfp = outputpath..'/'..outputfile
+     else
+      outputfile = outputfile..'.wav'
+      outputfp = outputpath..'/'..outputfile
     end
   end
   
-  GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputname, true ) 
-  local ret, outputfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false ) 
-  local outputfile = VF_GetShortSmplName(outputfp)
-  if not outputfile then return end
-  
-  if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten 
+  -- prevent files rendered in the same second be overwritten 
+  if file_exists(outputfp) then 
     outputfile = VF_GetShortSmplName(outputfp)
     local msec = math.floor(1000*(reaper.time_precise()%1)) 
-    local body,ext = outputfile:match('(.-)%.(.*)')
-    if body and ext then  
-      outputfile = body..'_'..os.date('%d%m%y_%H%M%S')..msec..'.'..ext
-    end
+    outputfile = outputfile..'_'..os.date('%d%m%y_%H%M%S')..msec ..'.wav'
+    outputfp = outputpath..'/'..outputfile
   end
-  --local outputfile = EXT.CONF_outputname..os.date('%d%m%y_%H%M%S') 
-  --local outputfp = outputpath..outputfile..'.wav'
-  --[[if file_exists(outputfp) then -- prevent files rendered in the same second be overwritten
   
-    local msec = math.floor(1000*(reaper.time_precise()%1)) 
-    GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputname..'_1', true ) 
-    ret, outputfp = GetSetProjectInfo_String( project, 'RENDER_TARGETS', '', false )  
-    --outputfile = 'mixdown'..os.date('%d%m%y_%H%M%S') ..msec
-    --outputfp = outputpath..'/'..outputfile..'.wav'
-  end  ]]
-  outputfp = outputpath..'/'..outputfile
-  outputfp = outputfp:gsub('\\','/'):gsub('//','/')
+  outputfp = outputfp:gsub('\\','/'):gsub('//','/') -- fix possible doubles
   return outputpath,outputfile,outputfp
 end
 -------------------------------------------------------------------------------
@@ -1781,6 +1792,7 @@ function DATA:Render_Queue()
 end
 -------------------------------------------------------------------------------
 function DATA:Render_InsertMedia(t) 
+  if not  t.outputfp then return end
   -- project / source
     --if not DATA.rend.destinationtrID then return end 
     local project = DATA.rend_temp.project
