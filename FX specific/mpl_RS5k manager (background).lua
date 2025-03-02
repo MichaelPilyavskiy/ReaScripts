@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.04
+-- @version 4.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -12,18 +12,14 @@
 --    [main] mpl_RS5k_manager_DrumRack_Solo.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Mute.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Clear.lua 
---    mpl_RS5k_manager_MacroControls.jsfx 
---    mpl_RS5K_manager_MIDIBUS_choke.jsfx
+--    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
+--    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    - Info: remove donate button
---    + Info: add links text 
---    + Automation: auto obey note off when setting choke flag 
---    # fix various errors
---    + Add ordering options for new regular children
+--    # include JSFX into metapackage
 
 
 
-rs5kman_vrs = '4.04'
+rs5kman_vrs = '4.05'
 
 
 -- TODO
