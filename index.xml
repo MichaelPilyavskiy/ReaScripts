@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="59400c0005b7720ec68832d6c2cbe9b2dd55b085" name="MPL Scripts">
+<index version="1" commit="2f5d6cfeb019887fd52e5e17eb51f8d0ae72386f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12810,37 +12810,11 @@ various fixes]]></changelog>
         <source file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/59400c0005b7720ec68832d6c2cbe9b2dd55b085/Various/mpl_MappingPanel_master.jsfx</source>
         <source file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/59400c0005b7720ec68832d6c2cbe9b2dd55b085/Various/mpl_MappingPanel_slave.jsfx</source>
       </version>
-    </reapack>
-    <reapack name="mpl_MappingPanel_master.jsfx" type="effect" desc="MappingPanel_master">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 JSFX for controlling parameters across tracks\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2025-03-02T09:52:43Z">
-        <changelog><![CDATA[+ initial state]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/4620350827cd6a8597f7923aed80fd2646455c2a/Various/mpl_MappingPanel_master.jsfx</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_MappingPanel_slave.jsfx" type="effect" desc="MappingPanel_slave">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 JSFX for controlling parameters across tracks\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="4.01" author="MPL" time="2025-03-02T09:52:43Z">
-        <changelog><![CDATA[# revert slave sliders back]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/4620350827cd6a8597f7923aed80fd2646455c2a/Various/mpl_MappingPanel_slave.jsfx</source>
+      <version name="4.11" author="MPL" time="2025-03-02T10:10:22Z">
+        <changelog><![CDATA[# fix metaheader]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2f5d6cfeb019887fd52e5e17eb51f8d0ae72386f/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2f5d6cfeb019887fd52e5e17eb51f8d0ae72386f/Various/mpl_MappingPanel_master.jsfx</source>
+        <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2f5d6cfeb019887fd52e5e17eb51f8d0ae72386f/Various/mpl_MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
