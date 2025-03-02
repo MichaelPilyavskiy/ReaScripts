@@ -1,11 +1,15 @@
 -- @description Peak follower tools
--- @version 2.04
+-- @version 2.10
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # remove peak fol. difference mode
---    # fix track envelope AI destination
+--    - Normalize check removed, always start from 0dB or -inf depending on mode
+--    - Scale, offset, AI amp, AI baseline removed
+--    - Remove mode, always use peak follower
+--    + Invert: working on dB values based on collected min/max dB values
+--    + Gate: use slider to reset values below defined dB level
+--    + Scale: use slider to scale values relative to the normalized baseline
 
 
 
@@ -39,7 +43,7 @@ EXT = {
 
         -- mode
         CONF_bypass = 0,
-        CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed 4 rms peak difference
+        --CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed 4 rms peak difference
         CONF_boundary = 0, -- 0 item edges 1 time selection
         
         -- audio data
@@ -49,38 +53,18 @@ EXT = {
         CONF_FFTsz = -1,
         CONF_FFT_min = 0,
         CONF_FFT_max = 1,
-        CONF_normalize = 0,
-        CONF_scale = 1,
-        CONF_offset = 0,
-        CONF_smoothblock = 1, 
-        
-        -- gate
-        CONF_gate_threshold = 0.538,
-        CONF_gate_inv=0,
-        CONF_gate_hold = 0,
-        
-        -- comp
-        CONF_comp_threshold = 0.923, -- linear
-        CONF_comp_attack = 0, -- s
-        CONF_comp_release = 0.1, -- s
-        CONF_comp_Ratio = 2, -- 1:2 to 1:20, >20 == inf
-        CONF_comp_knee = 0,-- 0...20db
-        CONF_comp_lookahead = 0,--  s
+        CONF_gate_threshold_dB = -90,
         
         -- dest
         CONF_dest = 1, -- 0 AI track vol 1 take vol env 2 AI pre-fx track vol
         
         -- output
         CONF_reducesamevalues = 1, -- do not add point if previous point has same value
-        CONF_reducesamevalues_mindiff = 0.1, -- db
-        CONF_zeroboundary = 1, -- zero reset for boundaries
-        CONF_out_invert = 1, 
+        CONF_zeroboundary = 1, -- zero reset for boundaries 
+        CONF_out_pointsshape = 0, 
+        CONF_out_inv = 0,
         CONF_out_scale = 1, 
-        CONF_out_offs = 0, 
-        CONF_out_pointsshape = 0,
-        CONF_out_AI_D_BASELINE = 0,
-        CONF_out_AI_D_AMPLITUDE = 1,
-        
+        CONF_out_shift_ms = 0, 
         CONF_applylive = 0,
         
       }
@@ -551,7 +535,15 @@ function UI.MAIN_shortcuts()
   end
   if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then  reaper.Main_OnCommand(40044,0) end
 end
-  
+  ------------------------------------------------------------------------------------------------------
+  function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+  ------------------------------------------------------------------------------------------------------
+  function WDL_VAL2DB(x)   --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+    if not x or x < 0.0000000298023223876953125 then return -150.0 end
+    local v=math.log(x)*8.6858896380650365530225783783321
+    if v<-150.0 then return -150.0 end 
+    return v 
+  end  
   -------------------------------------------------------------------  
   function DATA:Process_GetAudioData(item)
     local window_sec = EXT.CONF_window
@@ -579,20 +571,6 @@ end
       local ret, boundary_start, boundary_end = DATA:Process_GetBoundary(item)
       if not ret then return end
       
-    -- compressor 
-      if EXT.CONF_mode==2 then -- compressor/deeeser
-        local bufsz = SR_spls
-        for pos = boundary_start, boundary_end, 1 do 
-          local samplebuffer = new_array(bufsz);
-          GetAudioAccessorSamples( accessor, SR_spls, 1, pos, bufsz, samplebuffer )
-          for i = 1, bufsz do data[id+i] = samplebuffer[i] end
-          id=id+bufsz
-          samplebuffer.clear()
-        end
-        reaper.DestroyAudioAccessor( accessor )
-        return data
-      end
-      
       
     -- peak follower in RMS mode
       if EXT.CONF_FFTsz==-1 then 
@@ -606,7 +584,7 @@ end
           end 
           samplebuffer.clear()
           id = id + 1
-          data[id] = sum / bufsz -- get RMS
+          data[id] = WDL_VAL2DB(sum / bufsz) -- get RMS
         end
         reaper.DestroyAudioAccessor( accessor )
       end
@@ -630,26 +608,9 @@ end
           end 
           samplebuffer.clear()
           id = id + 1
-          data[id] = sum / (fftend-fftst)
+          data[id] = WDL_VAL2DB(sum / (fftend-fftst))
         end
         reaper.DestroyAudioAccessor( accessor )
-      end
-      
-      if EXT.CONF_normalize ==1 then
-        local max_val = 0
-        for i = 1, #data do max_val = math.max(max_val, data[i]) end -- abs all values 
-        for i = 1, #data do data[i] = (data[i]/max_val) end -- normalize 
-      end
-      
-      for i = 1, #data do data[i] = data[i]^EXT.CONF_scale + EXT.CONF_offset end
-      local block =EXT.CONF_smoothblock
-      if block > 1 then
-        local data0 = CopyTable(data)
-        for i = block+1, #data do 
-          avg = 0
-          for j = i-block, i do avg = avg + data0[j] end
-          data[i] = avg /block
-        end
       end
       
     return data
@@ -743,35 +704,12 @@ end
 ----------------------------------------------------------------------
 function DATA:Process()
   Undo_BeginBlock()
-  if EXT.CONF_mode==0 or EXT.CONF_mode==1 or EXT.CONF_mode==2 then
-    for i = 1,  CountSelectedMediaItems( -1 ) do
-      local item = GetSelectedMediaItem(-1,i-1)
-      local t0 = DATA:Process_GetAudioData(item)
-      local ret, env, AI_idx =  DATA:Process_GenerateAI(item)
-      if ret then DATA:Process_InsertData(item, env, AI_idx, t0) end
-    end  
-  end
-  
-  if EXT.CONF_mode==4 then
-    local audio = {}
-    if CountSelectedMediaItems( 0 ) == 2 then
-      local item1 = GetSelectedMediaItem(0,0)
-      local item2 = GetSelectedMediaItem(0,1)
-      local t0 = DATA:Process_GetAudioData(item1)
-      local t1 = DATA:Process_GetAudioData(item2)
-       tdiff = {}
-      local min = math.huge
-      for i = 1, #t0 do 
-        if t0[i] and  t1[i]  then
-          tdiff[i] = t0[i] - t1[i] 
-          min = math.min(min, tdiff[i] )
-        end
-      end
-      for i = 1, #tdiff do tdiff[i] = tdiff[i] - min end
-      local ret, env, AI_idx =  DATA:Process_GenerateAI(item2)
-      if ret then DATA:Process_InsertData(item2, env, AI_idx, tdiff) end
-    end  
-  end
+  for i = 1,  CountSelectedMediaItems( -1 ) do
+    local item = GetSelectedMediaItem(-1,i-1)
+    local t0 = DATA:Process_GetAudioData(item)
+    local ret, env, AI_idx =  DATA:Process_GenerateAI(item)
+    if ret then DATA:Process_InsertData(item, env, AI_idx, t0) end
+  end 
   
   Undo_EndBlock( DATA.UI_name..' - process', 0 )
 end
@@ -1111,36 +1049,29 @@ end
       local wind_offs = 0--window_ms
       
     -- get output points
-       output = {}
-      if EXT.CONF_mode ==0 or EXT.CONF_mode == 4 then output = DATA:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx) end -- peak follow 
-      if EXT.CONF_mode ==1 then output = DATA:Process_InsertData_Gate(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate
-      if EXT.CONF_mode ==2 then output = DATA:Process_InsertData_Compressor(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate 
+      local output = DATA:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx)
       if EXT.CONF_bypass == 1 then output = nil end
-       
+      
     -- add points
       if output then 
         DATA:Process_InsertData_reduceSameVal(output)
         local valout
         local sz = #output  
-        for i = 1, sz do if output[i] and (not output[i].ignore or output[i].ignore==false) then 
-          if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then
-            valout = VF_lim(output[i].val)
-           else
-            valout = VF_lim(output[i].val*EXT.CONF_out_scale - EXT.CONF_out_offs)
-          end
-          local valout = ScaleToEnvelopeMode( scaling_mode, valout) 
-          if EXT.CONF_out_invert ==1 and (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then  
-            local valout_max = ScaleToEnvelopeMode( scaling_mode, 1) 
-            valout = valout_max- valout 
-          end
-          local shape = EXT.CONF_out_pointsshape 
-          InsertEnvelopePointEx( env, AI_idx, output[i].tpos, valout, shape, 0, 0, true ) 
-        end end 
+        for i = 1, sz do 
+          if output[i] and (not output[i].ignore or output[i].ignore==false) then 
+            valout = output[i].val
+            if valout < EXT.CONF_gate_threshold_dB then valout = -150 end
+            local shape = EXT.CONF_out_pointsshape 
+            local valout = ScaleToEnvelopeMode( scaling_mode, WDL_DB2VAL(valout))
+            InsertEnvelopePointEx( env, AI_idx, output[i].tpos+ EXT.CONF_out_shift_ms, valout, shape, 0, 0, true )
+          end 
+        end 
+        
         Envelope_SortPointsEx( env, AI_idx ) 
-        if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then -- if AI set scale offset for AI
+        --[[if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then -- if AI set scale offset for AI
           GetSetAutomationItemInfo( env, AI_idx, 'D_BASELINE', EXT.CONF_out_AI_D_BASELINE, true )
           GetSetAutomationItemInfo( env, AI_idx, 'D_AMPLITUDE', EXT.CONF_out_AI_D_AMPLITUDE, true )
-        end
+        end]]
       end
       
       
@@ -1156,164 +1087,34 @@ end
     -- sort 2nd pass
       Envelope_SortPointsEx( env, AI_idx ) 
   end
------------------------------------------------------------------------------------------
-  function DATA:Process_InsertData_Gate(t, boundary_start, boundary_end, offs, env, AI_idx) 
-    local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
-    local scaling_mode = GetEnvelopeScalingMode( env )
-    local gateDb = (math.floor(SLIDER2DB((EXT.CONF_gate_threshold*1000))*10)/10)
-    local output = {}
-    local window_sec = EXT.CONF_window/EXT.CONF_windowoverlap
-    --if EXT.CONF_FFTsz~=-1 then  window_sec = EXT.CONF_FFTsz / SR_spls end 
-    local gate_on,last_gate_on
-    for i = 1, #t do   
-      local tpos = (i-1)*window_sec+boundary_start-offs 
-      local val = ScaleToEnvelopeMode( scaling_mode, t[i] ) 
-      local valdB = SLIDER2DB(val)
-      if valdB > gateDb then 
-        setval = 1 
-        gate_on = i
-       else 
-        setval = 0 
-      end
-      
-      if EXT.CONF_gate_hold > 0 then
-        if setval == 0 and gate_on and i-gate_on< EXT.CONF_gate_hold then setval = 1 end
-      end
-      
-      last_gate_on = gate_on
-      if EXT.CONF_gate_inv == 1 then setval = 1- setval end
-      output[#output+1] = {tpos=tpos,val=setval}
-        
-    end
-    return output
-  end
   -------------------------------------------------------------------
   function DATA:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx)
     local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
-    local scaling_mode = GetEnvelopeScalingMode( env )
     local output = {}
     local val_norm
     local window_sec = EXT.CONF_window/EXT.CONF_windowoverlap
-    --if EXT.CONF_FFTsz~=-1 then  window_sec = EXT.CONF_FFTsz / SR_spls end 
-    for i = #t-1,1,-1 do  
-      local tpos = (i-1)*window_sec+boundary_start-offs
-      output[#output+1] = {tpos=tpos,val=t[i]}
-    end 
-    return output
-  end  
-  -------------------------------------------------------------------
-  function DATA:Process_InsertData_Compressor(t, boundary_start, boundary_end, offs, env, AI_idx)
-    -- init functions
-    local dbc = 20/math.log(10);
-    function int(x) return x|0 end;
-    function db2ratio(d) return math.exp(math.log(10)/20*d) end; 
-    function ratio2db(r) return math.log(math.abs(r))*dbc end
-    function spline2(mu,dv1,dv2) return mu*dv1 + mu*mu*0.5*(dv2-dv1); end
-    function derivative (mu, dv1, dv2) return dv1 + mu * (dv2 - dv1); end
     
-    local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
-    local scaling_mode = GetEnvelopeScalingMode( env )
-    local threshold_db = (math.floor(SLIDER2DB((EXT.CONF_comp_threshold*1000))*10)/10)
-    local thresh_r = db2ratio(threshold_db);
-    local att_ms = math.floor(EXT.CONF_comp_attack*1000)
-    local rel_ms = math.floor(EXT.CONF_comp_release*1000)
-    local lookahead_ms =EXT.CONF_comp_lookahead
-    local Grelease = math.exp(-3/(rel_ms / 1000 * SR_spls));
-    local Girelease = 1-Grelease;
-    local ratio = EXT.CONF_comp_Ratio
-    local iratio if ratio > 40 then iratio = 0 else iratio = 1 / ratio end
-    local knee = EXT.CONF_comp_knee
-    local rms_ms = EXT.CONF_window*1000
-    local RMScoeff = math.exp(-1/(rms_ms / 1000 * SR_spls));
-    local RMSicoeff = 1-RMScoeff;
-    local kneeL = threshold_db - knee/2;
-    local kneeR = threshold_db + knee/2;
-    
-    --[[
-    desc:LT_Comp
-    A ReaComp "clone" hacked together by ashcat_lt
-    mostly from SaulT's code
-    ]]
-    
-    -- methods
-      local innitvar= {} 
-      function innitvar:new()
-        local obj= {}
-        setmetatable(obj, self)
-        self.__index = self; return obj
+    if EXT.CONF_out_inv == 0 then
+      local max_dB = -math.huge
+      for i = 1,#t do max_dB = math.max(t[i],max_dB) end 
+      for i = 1,#t do  
+        local tpos = (i-1)*window_sec+boundary_start-offs
+        local norm_out = t[i]-max_dB*EXT.CONF_out_scale
+        output[#output+1] = {tpos=tpos,val=norm_out}
       end 
-      function innitvar:attack_set(att_ms)
-        self.attack = math.exp(-3/(att_ms / 1000 * SR_spls));
-        self.iattack = 1-self.attack;
-      end
-      function innitvar:RMS(input)
-        self.rms_s = ((self.rms_s or 0) * RMScoeff) + (RMSicoeff * input);
-        return math.sqrt(self.rms_s);
-      end 
-      function innitvar:att_rel(input)
-        if attacking == 1 then
-          self.coeff = self.attack;
-          self.icoeff = self.iattack;
-         else
-          self.coeff = Grelease;
-          self.icoeff = Girelease;
-        end
-        self.output = ((self.output or 0 ) * self.coeff) + (self.icoeff * input);
-        return self.output
-      end
-      function innitvar:process(input)
-        in0 = ratio2db(input);
-        if in0 <= kneeL then self.out = in0 end
-        if in0 >= kneeR then self.out = threshold_db + (in0 -threshold_db) * iratio end
-        if in0 > kneeL and in0 < kneeR then
-          self.mu = (in0 - kneeL)/knee;  
-          self.out = kneeL + spline2(self.mu,1,iratio)*knee;
-        end
-        if self.out then 
-          diff = self.out - in0;
-          return db2ratio(diff)
-        end
-      end
-    
-    
-    -- init table values
-      att_rel0 = innitvar:new()
-      att_rel0:attack_set(att_ms); 
-      process0 =  innitvar:new()
-    
-    -- compressor
-      local gain_t = {}
-      tsz = #t
-      local rms_out0 = 0
-      for i = 1, tsz do
-        main_inputL = t[i]; 
-        rms_in = main_inputL;
-        rms_out0 = (rms_out0 * RMScoeff) + (RMSicoeff * math.abs(rms_in))
-        rms_out =  math.sqrt(rms_out0); 
-        if math.abs(rms_out) >= thresh_r then attacking = 1 else attacking =0 end 
-        ar_out = att_rel0:att_rel (rms_out); 
-        proc_gain = process0:process(ar_out);
-        if not proc_gain then proc_gain = 1 end
-        proc_outputL = main_inputL*proc_gain; 
-        spl0 = proc_outputL;
-        gain_t[i] = proc_gain
-      end
+      
+     else
      
-    -- add points
-      
-      --wind_spls = 1
-      local wind_spls = math.ceil(EXT.CONF_window/2 * SR_spls) 
-      local output = {}
-      local spl_time = 1/SR_spls
-      for i = 1, tsz, wind_spls do  
-        local val = ScaleToEnvelopeMode( scaling_mode, gain_t[i] ) 
-        tpos = boundary_start + i*spl_time-offs+lookahead_ms
-        if tpos > 0 then --and val >= 0 and val <= 1000 then
-          output[#output+1] = {tpos=tpos,val=VF_lim(gain_t[i])}
-        end
-      end
-      
-      
+      local min_dB = math.huge
+      for i = 1,#t do min_dB = math.min(t[i],min_dB) end 
+      for i = 1,#t do  
+        local tpos = (i-1)*window_sec+boundary_start-offs
+        local norm_out = -(t[i]-min_dB)*EXT.CONF_out_scale
+        output[#output+1] = {tpos=tpos,val=norm_out}
+      end 
+    end
+    
+    
     return output
   end  
   -------------------------------------------------------------------
@@ -1344,63 +1145,32 @@ end
       if ImGui.BeginTabItem(ctx, 'General') then
         UI.draw_flow_CHECK({['key']='Apply parameters at every change',   ['extstr'] = 'CONF_applylive'}) 
         UI.draw_flow_CHECK({['key']='Bypass',                             ['extstr'] = 'CONF_bypass'}) 
-        UI.draw_flow_COMBO({['key']='Mode',                               ['extstr'] = 'CONF_mode',                   ['values'] = {[0]='Peak follower', [1]='Gate', [2] = 'Compressor (by ashcat_lt & SaulT)'} }) --, [4] = 'Peak fol. difference'} }) 
         UI.draw_flow_COMBO({['key']='Boundaries',                         ['extstr'] = 'CONF_boundary',               ['values'] = {[0]='Item edges', [1]='Time selection' } })  
         UI.draw_flow_COMBO({['key']='Destination',                        ['extstr'] = 'CONF_dest',                   ['values'] = {[0]='Track volume envelope AI', [1]='Take volume envelope', [2]='Track pre-FX volume envelope AI'} }) 
-        ImGui.SeparatorText(ctx,'Mode parameters')
-        if EXT.CONF_mode==1 then
-          UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_gate_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-          UI.draw_flow_CHECK({['key']='Invert',                             ['extstr'] = 'CONF_gate_inv',               }) 
-          UI.draw_flow_SLIDER({['key']='Hold',                              ['extstr'] = 'CONF_gate_hold',              int=true,['format']=function(x) return (math.floor(1000*x*EXT.CONF_window/EXT.CONF_windowoverlap)/1000)..'s' end,    ['min']=1,  ['max']=40})  --val_format_rev = function(x) return math.floor(tonumber(x/(EXT.CONF_window/EXT.CONF_windowoverlap))) end, },  
-        end
-        if EXT.CONF_mode==2 then
-          UI.draw_flow_SLIDER({['key']='Threshold',                         ['extstr'] = 'CONF_comp_threshold',         ['format']=function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-          UI.draw_flow_SLIDER({['key']='Lookahead / delay',                 ['extstr'] = 'CONF_comp_lookahead',         ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=-0.05,  ['max']=0.05})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0)/1000, -0.05,0.05) end, 
-          UI.draw_flow_SLIDER({['key']='Attack',                            ['extstr'] = 'CONF_comp_attack',            ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=0,  ['max']=0.5})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
-          UI.draw_flow_SLIDER({['key']='Release',                           ['extstr'] = 'CONF_comp_release',           ['format']=function(x) return (math.floor(x*10000)/10)..'ms' end,    ['min']=0,  ['max']=0.5})  --val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
-          UI.draw_flow_SLIDER({['key']='Ratio',                             ['extstr'] = 'CONF_comp_Ratio',             ['format']=function(x) if x == 41 then return '-inf' else return (math.floor(x*10)/10)..' : 1' end end,    ['min']=1,  ['max']=41})  --val_format_rev = function(x)  local y= x:match('[%d%.]+') if not y then return 2 end y = tonumber(y) if y then return VF_lim(y, 1,21) end  end, 
-          UI.draw_flow_SLIDER({['key']='Knee',                             ['extstr'] = 'CONF_comp_knee',             ['format']=function(x) return (math.floor(x*10)/10)..'dB' end,    ['min']=0,  ['max']=20})  --val_format_rev = function(x) return VF_lim(      math.floor((tonumber(x) or 0)*10)/10      , 0,20) end, 
-        end
-        UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4})  
-        if EXT.CONF_mode==0 then
-          UI.draw_flow_SLIDER({['key']='Window overlap',                    ['extstr'] = 'CONF_windowoverlap',           ['min']=1,  ['max']=16, hide=EXT.CONF_mode==2, int = true})  
-        end
+        UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4})   
+        UI.draw_flow_CHECK({['key']='Invert values',                      ['extstr'] = 'CONF_out_inv',               }) 
+        UI.draw_flow_SLIDER({['key']='Gate threshold',                    ['extstr'] = 'CONF_gate_threshold_dB',       int=true, ['format']=function(x) return x..'dB' end,    ['min']=-90,  ['max']=0})
+        UI.draw_flow_SLIDER({['key']='Scale',                             ['extstr'] = 'CONF_out_scale',              ['format']=function(x) return math.floor(100*x)..'%%' end,    ['min']=0,  ['max']=1})
+        UI.draw_flow_SLIDER({['key']='Shift',                             ['extstr'] = 'CONF_out_shift_ms',           ['format']=function(x) return (math.floor(100*x)/100)..'ms' end,    ['min']=-0.1,  ['max']=0.1})
         ImGui.EndTabItem(ctx)
       end
       
       
       if ImGui.BeginTabItem(ctx, 'Audio data reader') then
         UI.draw_flow_CHECK({['key']='Clear take volume envelope before',  ['extstr'] = 'CONF_removetkenvvol'}) 
-        UI.draw_flow_COMBO({['key']='FFT size',                           ['extstr'] = 'CONF_FFTsz',                   ['values'] = {[-1]='[disabled]', [1024]='1024', [2048] ='2048'},hide=EXT.CONF_mode==2 })
-        --val_format_rev = function(x) return VF_lim(x/(SR_spls/2),0,SR_spls) end, 
-        UI.draw_flow_SLIDER({['key']='FFT min freq',                      ['extstr'] = 'CONF_FFT_min',                 ['format']=function(x) return math.floor(x*DATA.SR/2)..'Hz' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_FFTsz==-1 or  EXT.CONF_mode==2})  
-        UI.draw_flow_SLIDER({['key']='FFT max freq',                      ['extstr'] = 'CONF_FFT_max',                 ['format']=function(x) return math.floor(x*DATA.SR/2)..'Hz' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_FFTsz==-1 or  EXT.CONF_mode==2})  
-        UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4,hide=EXT.CONF_mode==2})  
-        UI.draw_flow_SLIDER({['key']='Window overlap',                    ['extstr'] = 'CONF_windowoverlap',           ['min']=1,  ['max']=16, hide=EXT.CONF_mode==2, int = true})  
-        UI.draw_flow_CHECK({['key']='Normalize envelope',                 ['extstr'] = 'CONF_normalize',                hide=EXT.CONF_mode==2}) 
-        UI.draw_flow_SLIDER({['key']='Scale envelope x^[0.5...4]',        ['extstr'] = 'CONF_scale',                    ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=0.5,  ['max']=4,hide=EXT.CONF_mode==2})  
-        UI.draw_flow_SLIDER({['key']='Offset',                            ['extstr'] = 'CONF_offset',                  ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=-1,  ['max']=1,hide=EXT.CONF_mode==2})  
-        UI.draw_flow_SLIDER({['key']='Smooth',                            ['extstr'] = 'CONF_smoothblock',             ['format']=function(x) return (math.floor(1000*x*EXT.CONF_window/EXT.CONF_windowoverlap)/1000)..'s' end, ['min']=1,  ['max']=15, hide=EXT.CONF_mode==2, int = true})
-          --val_format_rev = function(x) return math.floor(tonumber(x/(EXT.CONF_window/EXT.CONF_windowoverlap))) end
+        UI.draw_flow_COMBO({['key']='FFT size',                           ['extstr'] = 'CONF_FFTsz',                   ['values'] = {[-1]='[disabled]', [1024]='1024', [2048] ='2048'}})
+        UI.draw_flow_SLIDER({['key']='FFT min freq',                      ['extstr'] = 'CONF_FFT_min',                 ['format']=function(x) return math.floor(x*DATA.SR/2)..'Hz' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_FFTsz==-1})  
+        UI.draw_flow_SLIDER({['key']='FFT max freq',                      ['extstr'] = 'CONF_FFT_max',                 ['format']=function(x) return math.floor(x*DATA.SR/2)..'Hz' end,    ['min']=0,  ['max']=1,hide=EXT.CONF_FFTsz==-1 })  
+        UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4})  
+        UI.draw_flow_SLIDER({['key']='Window overlap',                    ['extstr'] = 'CONF_windowoverlap',           ['min']=1,  ['max']=16,  int = true})  
         ImGui.EndTabItem(ctx)
       end
 
       if ImGui.BeginTabItem(ctx, 'Output') then 
         
         UI.draw_flow_CHECK({['key']='Reduce points with same values',            ['extstr'] = 'CONF_reducesamevalues'}) 
-        if not (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then 
-          UI.draw_flow_CHECK({['key']='Invert points',                             ['extstr'] = 'CONF_out_invert'}) 
-          UI.draw_flow_SLIDER({['key']='Scale',                                    ['extstr'] = 'CONF_out_scale',         ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=0,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-          UI.draw_flow_SLIDER({['key']='Offset',                                   ['extstr'] = 'CONF_out_offs',         ['format']=function(x) return math.floor(x*1000)/1000 end,    ['min']=-1,  ['max']=1})  --val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-        end
-         
         UI.draw_flow_CHECK({['key']='Reset boundary edges',                      ['extstr'] = 'CONF_zeroboundary'}) 
         UI.draw_flow_COMBO({['key']='Points shape',                              ['extstr'] = 'CONF_out_pointsshape',                   ['values'] = {[0]='Linear',[1]='Square',[2]='Slow start/end',[5]='Bezier'} }) 
-        
-        if (EXT.CONF_dest == 0 or EXT.CONF_dest == 2) then 
-          UI.draw_flow_SLIDER({['key']='Automation item baseline',                                    ['extstr'] = 'CONF_out_AI_D_BASELINE',         ['format']=function(x) return x end,    ['min']=0,  ['max']=1})
-          UI.draw_flow_SLIDER({['key']='Automation item amplitude',                                    ['extstr'] = 'CONF_out_AI_D_AMPLITUDE',         ['format']=function(x) return x end,    ['min']=-2,  ['max']=2})
-        end
         
         ImGui.EndTabItem(ctx)
       end
