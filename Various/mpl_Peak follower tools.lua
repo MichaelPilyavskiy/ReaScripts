@@ -1,19 +1,14 @@
 -- @description Peak follower tools
--- @version 2.10
+-- @version 2.11
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    - Normalize check removed, always start from 0dB or -inf depending on mode
---    - Scale, offset, AI amp, AI baseline removed
---    - Remove mode, always use peak follower
---    + Invert: working on dB values based on collected min/max dB values
---    + Gate: use slider to reset values below defined dB level
---    + Scale: use slider to scale values relative to the normalized baseline
+--    + Gate: add gate quantize to 0dB
 
 
 
-
+vrs = 2.11
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -54,6 +49,7 @@ EXT = {
         CONF_FFT_min = 0,
         CONF_FFT_max = 1,
         CONF_gate_threshold_dB = -90,
+        CONF_gate_quantize =0,
         
         -- dest
         CONF_dest = 1, -- 0 AI track vol 1 take vol env 2 AI pre-fx track vol
@@ -263,7 +259,7 @@ function UI.MAIN_draw(open)
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
-    local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+    local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
       DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -1056,12 +1052,16 @@ end
       if output then 
         DATA:Process_InsertData_reduceSameVal(output)
         local valout
+        local valout_max = ScaleToEnvelopeMode( scaling_mode,1)
         local sz = #output  
         for i = 1, sz do 
           if output[i] and (not output[i].ignore or output[i].ignore==false) then 
             valout = output[i].val
             if valout < EXT.CONF_gate_threshold_dB then valout = -150 end
             local shape = EXT.CONF_out_pointsshape 
+            if EXT.CONF_gate_quantize == 1 then
+              if valout > -150 then valout = 0 end
+            end 
             local valout = ScaleToEnvelopeMode( scaling_mode, WDL_DB2VAL(valout))
             InsertEnvelopePointEx( env, AI_idx, output[i].tpos+ EXT.CONF_out_shift_ms, valout, shape, 0, 0, true )
           end 
@@ -1150,6 +1150,10 @@ end
         UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4})   
         UI.draw_flow_CHECK({['key']='Invert values',                      ['extstr'] = 'CONF_out_inv',               }) 
         UI.draw_flow_SLIDER({['key']='Gate threshold',                    ['extstr'] = 'CONF_gate_threshold_dB',       int=true, ['format']=function(x) return x..'dB' end,    ['min']=-90,  ['max']=0})
+        if EXT.CONF_gate_threshold_dB > -90 then 
+          ImGui.SameLine(ctx)
+          UI.draw_flow_CHECK({['key']='Quantize to 0dB',                    ['extstr'] = 'CONF_gate_quantize',        })
+        end
         UI.draw_flow_SLIDER({['key']='Scale',                             ['extstr'] = 'CONF_out_scale',              ['format']=function(x) return math.floor(100*x)..'%%' end,    ['min']=0,  ['max']=1})
         UI.draw_flow_SLIDER({['key']='Shift',                             ['extstr'] = 'CONF_out_shift_ms',           ['format']=function(x) return (math.floor(100*x)/100)..'ms' end,    ['min']=-0.1,  ['max']=0.1})
         ImGui.EndTabItem(ctx)
