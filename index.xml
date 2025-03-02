@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1b3c5d46d1b47f2018b783dbfbf37513b6da8a21" name="MPL Scripts">
+<index version="1" commit="dfddb37d31132f7b58ed415565ab6d02fc099217" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12951,6 +12951,15 @@ various fixes]]></changelog>
         <changelog><![CDATA[# remove peak fol. difference mode
 # fix track envelope AI destination]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c6de6d06eb96982760d7f83916fab7c76b70a870/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="2.10" author="MPL" time="2025-03-02T09:43:47Z">
+        <changelog><![CDATA[- Normalize check removed, always start from 0dB or -inf depending on mode
+- Scale, offset, AI amp, AI baseline removed
+- Remove mode, always use peak follower
++ Invert: working on dB values based on collected min/max dB values
++ Gate: use slider to reset values below defined dB level
++ Scale: use slider to scale values relative to the normalized baseline]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dfddb37d31132f7b58ed415565ab6d02fc099217/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
