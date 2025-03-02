@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.05
+-- @version 4.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,13 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # include JSFX into metapackage
+--    # Device: fix crop long names
+--    # Sampler/General: add tune buttons (doesnt work correctly for VCA mode so disabled)
+--    + Knobs: support scroll with mouse
 
 
 
-rs5kman_vrs = '4.05'
+rs5kman_vrs = '4.06'
 
 
 -- TODO
@@ -2376,7 +2378,6 @@ end
             beforeTrackIdx = DATA.parent_track.IP_TRACKNUMBER_0based+1 -- goes after parent
           end
         end
-        function _ord() end
         
         if EXT.CONF_onadd_ordering == 0 then -- 0 sorted by note 1 at the top 2 at the bottom
           DATA:Auto_Reposition_TrackGetSelection()
@@ -2835,7 +2836,7 @@ end
     if not UI.tab_last or (UI.tab_last and UI.tab_last ~= UI.tab_current ) then EXT.UI_activeTab = UI.tab_current EXT:save() end
     
     UI.tab_last = UI.tab_current 
-    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then 
+    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
       ImGui.SeparatorText(ctx, 'Current project settings') 
         ImGui.Indent(ctx, UI.settings_indent)
         --DATA.parent_track.ext.PARENT_MIDIFLAGS
@@ -3867,10 +3868,19 @@ end
       end
     end
     
-    if ImGui.IsItemDeactivated( ctx ) then
+    if ImGui.IsItemDeactivated( ctx )then
       if t.appfunc_atrelease then t.appfunc_atrelease() DATA.upd = true end
     end
     
+    
+    local vertical, horizontal = ImGui.GetMouseWheel( ctx )
+    if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None )  and vertical ~= 0 then
+      local outval = paramval + (math.abs(vertical)/vertical)/(t.knob_resY or UI.knob_resY)
+      outval = math.max(0,math.min(outval,1))
+      if t.appfunc_atdrag then t.appfunc_atdrag(outval) end
+    end
+    --
+    function _wheel() end
   end
   -------------------------------------------------------------------------------- 
   function UI.HelpMarker(desc)
@@ -4340,7 +4350,6 @@ end
     
     
     local diff = v - note_layer_t['instrument_'..str_id]
-    
     for note0 in pairs(DATA.children) do
       if DATA.children[note0].layers then 
         for layer0  = 1, #DATA.children[note0].layers do
@@ -4360,7 +4369,8 @@ end
            else
             
             local out = v--note_layer_t['instrument_'..str_id]
-            if str_id == 'attack' or str_id == 'decay' or str_id == 'release' then out = out / 10 end
+            if str_id == 'attack' or str_id == 'decay' or str_id == 'release' then out = out / 10 end 
+            
             TrackFX_SetParamNormalized( note_layer_t0.tr_ptr, note_layer_t0.instrument_pos, note_layer_t0['instrument_'..str_id..'ID'], out)  
           end
           
@@ -4572,6 +4582,17 @@ end
     UI.draw_tabs_Sampler_tabs_3rdpartycontrols_store(curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*6,curposy_abs+UI.calc_knob_h_small+UI.spacingY,note_layer_t,'instrument_releaseID')
   end  
     ----------------------------------------------------------------------------------------- 
+  function UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t, val)
+    local note_layer_t,note,layer = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end
+    
+    local out = note_layer_t.instrument_tune + val/160 
+    --UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('tune',out,note_layer_t,note,layer) 
+    note_layer_t.instrument_tune =v 
+    TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_tuneID, out )    
+    DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
+    
+  end
+    ----------------------------------------------------------------------------------------- 
   function UI.draw_tabs_Sampler_tabs_rs5kcontrols()
     local note_layer_t,note,layer = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end
     if not note_layer_t.instrument_pos then return end
@@ -4632,6 +4653,32 @@ end
       end,
       })  
     
+    if DATA.VCA_mode == 0 then
+      local labelw = 40
+      ImGui.SetCursorScreenPos(ctx, curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, curposy_abs + UI.spacingY)
+      if ImGui.Button(ctx, '-##oct-') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,-12) end
+      ImGui.SameLine(ctx)
+      ImGui.Button(ctx, 'oct', labelw)
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, '+##oct+') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,12) end
+      
+      ImGui.SetCursorScreenPos(ctx, curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, curposy_abs + UI.calc_knob_h_small*1/3 + UI.spacingY)
+      if ImGui.Button(ctx, '-##semi-') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,-1) end
+      ImGui.SameLine(ctx)
+      ImGui.Button(ctx, 'semi', labelw)
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, '+##semi+') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,1) end
+      
+      ImGui.SetCursorScreenPos(ctx, curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, curposy_abs + UI.calc_knob_h_small*2/3 + UI.spacingY)
+      if ImGui.Button(ctx, '-##cent-') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,-0.01) end
+      ImGui.SameLine(ctx)
+      ImGui.Button(ctx, 'cent', labelw)
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, '+##cent+') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,0.01) end
+    end
+    
+    ImGui.SetCursorScreenPos(ctx, curposx_abs , curposy_abs + UI.calc_knob_h_small +  UI.spacingY)
+    
     if ImGui.Checkbox(ctx, 'Tweak ALL samples ',(DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~1 end
     if ImGui.Checkbox(ctx, 'Tweak ony current pad layers',(DATA.VCA_mode or 0 )&2==2 or (DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~2 end
     
@@ -4639,7 +4686,7 @@ end
       {str_id = '##note_layer_instrument_attack',
       is_small_knob = true,
       val = note_layer_t.instrument_attack_norm,
-      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*3, 
+      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
       h = UI.calc_knob_h_small,
@@ -4666,7 +4713,7 @@ end
       {str_id = '##note_layer_instrument_decay',
       is_small_knob = true,
       val = note_layer_t.instrument_decay_norm,
-      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, 
+      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*5, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
       h = UI.calc_knob_h_small,
@@ -4694,7 +4741,7 @@ end
       {str_id = '##note_layer_instrument_sustain',
       is_small_knob = true,
       val = note_layer_t.instrument_sustain,
-      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*5, 
+      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*6, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
       h = UI.calc_knob_h_small,
@@ -4721,7 +4768,7 @@ end
       {str_id = '##note_layer_instrument_release',
       is_small_knob = true,
       val = note_layer_t.instrument_release_norm,
-      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*6, 
+      x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*7, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
       h = UI.calc_knob_h_small,
@@ -4745,11 +4792,17 @@ end
       }) 
             
   end
+  --------------------------------------------------------------------------------  
+  function UI.draw_setbuttonbackgtransparent() 
+      ImGui.PushStyleColor(ctx, ImGui.Col_Button,0) 
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,0) 
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,0) 
+  end
   --------------------------------------------------------------------------------
   function UI.draw_tabs_Sampler_tabs_device()
     local note_layer_t, note, layer0 = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end  
     
-    if ImGui.BeginChild( ctx, 'device' ) then
+    if ImGui.BeginChild( ctx, 'device' ,0,-UI.spacingY) then--,ImGui.ChildFlags_None, ImGui.WindowFlags_NoScrollWithMouse
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY) 
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,5)
       
@@ -4763,11 +4816,15 @@ end
         
         -- name
         ImGui.SetNextItemWidth(ctx, name_w)
-        if ImGui.Checkbox(ctx, layer_t.P_NAME..'##layer'..layer, layer == layer0) then
+        if ImGui.Checkbox(ctx, '##layer'..layer, layer == layer0) then
           DATA.parent_track.ext.PARENT_LASTACTIVENOTE_LAYER = layer
           DATA:WriteData_Parent()
           DATA.upd = true
         end
+        ImGui.SameLine(ctx)
+        UI.draw_setbuttonbackgtransparent() 
+        ImGui.Button(ctx, layer_t.P_NAME..'##layerbut'..layer,  name_w-30)
+        ImGui.PopStyleColor(ctx,3)
         
         -- D_VOL
         ImGui.SetCursorPos(ctx,posx+name_w,posy)
