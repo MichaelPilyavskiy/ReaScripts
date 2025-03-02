@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4620350827cd6a8597f7923aed80fd2646455c2a" name="MPL Scripts">
+<index version="1" commit="59400c0005b7720ec68832d6c2cbe9b2dd55b085" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12803,6 +12803,12 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4620350827cd6a8597f7923aed80fd2646455c2a/Various/mpl_Mapping%20Panel%20(background).lua</source>
         <source file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4620350827cd6a8597f7923aed80fd2646455c2a/Various/mpl_MappingPanel_master.jsfx</source>
         <source file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4620350827cd6a8597f7923aed80fd2646455c2a/Various/mpl_MappingPanel_slave.jsfx</source>
+      </version>
+      <version name="4.10" author="MPL" time="2025-03-02T09:55:33Z">
+        <changelog><![CDATA[# fix metaheader]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/59400c0005b7720ec68832d6c2cbe9b2dd55b085/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/59400c0005b7720ec68832d6c2cbe9b2dd55b085/Various/mpl_MappingPanel_master.jsfx</source>
+        <source file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/59400c0005b7720ec68832d6c2cbe9b2dd55b085/Various/mpl_MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_MappingPanel_master.jsfx" type="effect" desc="MappingPanel_master">
