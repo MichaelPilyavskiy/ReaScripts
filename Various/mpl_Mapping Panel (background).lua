@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.09
+-- @version 4.10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    mpl_MappingPanel_master.jsfx 
 --    mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # pack JSFX into common package
+--    # fix metaheader
 
 
 
 
-  local vrs = 4.09
+  local vrs = 4.10
 
   --[[ gmem map: 
   Master
