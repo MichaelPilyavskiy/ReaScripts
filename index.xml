@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="65170a003615ff76d0332b1abce23fbd69c96048" name="MPL Scripts">
+<index version="1" commit="225858cefa12b9794e95d9d0a33253b1b1aa81d4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12928,6 +12928,10 @@ various fixes]]></changelog>
 + Gate: use slider to reset values below defined dB level
 + Scale: use slider to scale values relative to the normalized baseline]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dfddb37d31132f7b58ed415565ab6d02fc099217/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="2.11" author="MPL" time="2025-03-02T12:35:44Z">
+        <changelog><![CDATA[+ Gate: add gate quantize to 0dB]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/225858cefa12b9794e95d9d0a33253b1b1aa81d4/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
