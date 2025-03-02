@@ -1,11 +1,11 @@
 -- @description MappingPanel
--- @version 4.10
+-- @version 4.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
 -- @provides
---    mpl_MappingPanel_master.jsfx 
---    mpl_MappingPanel_slave.jsfx
+--    [jsfx] mpl_MappingPanel_master.jsfx 
+--    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
 --    # fix metaheader
 
