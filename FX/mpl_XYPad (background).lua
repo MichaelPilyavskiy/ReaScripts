@@ -1,11 +1,12 @@
 -- @description XYPad
--- @version 3.0
+-- @version 3.01
 -- @author MPL 
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + Ported to ReaimGui
+--    + Add support for 2 points XY mode
 
-
+  
+  vrs = 3.01
   --------------------------------------------------------------------------------  init globals
    for key in pairs(reaper) do _G[key]=reaper[key] end
    app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -184,7 +185,7 @@
     
     -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
-    local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+    local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
     if rv then
     local Viewport = ImGui.GetWindowViewport(ctx)
     DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -305,13 +306,6 @@
   end
 --------------------------------------------------------------------------------  
   function UI.draw() 
-    --[[ menu
-    if ImGui.BeginMenu( ctx, 'Menu', true ) then
-      ImGui.SeparatorText(ctx, 'Points count')
-      if ImGui_MenuItem( ctx, '4', '', EXT.CONF_pointscnt==4, true ) then EXT.CONF_pointscnt = 4 EXT:save() DATA:InitPoints() end
-      if ImGui_MenuItem( ctx, '8', '', EXT.CONF_pointscnt==8, true ) then EXT.CONF_pointscnt = 8 EXT:save() DATA:InitPoints() end
-      ImGui.EndMenu( ctx  )
-    end]]
     
     -- area
     local draw_list = ImGui.GetWindowDrawList( ctx )
@@ -339,8 +333,13 @@ end
   function DATA:Points_WriteData() 
     local x = DATA.refpoint.xpos
     local y = DATA.refpoint.ypos 
-    for i = 1, #DATA.points do if DATA.points[i] then DATA.points[i].val = DATA:Points_WriteData_GetValue(i) end end
     
+    if EXT.CONF_pointscnt == 2 then
+      DATA.points[2].val = x
+      DATA.points[1].val = 1-y
+     else
+      for i = 1, #DATA.points do if DATA.points[i] then DATA.points[i].val = DATA:Points_WriteData_GetValue(i) end end
+    end
     -- apply
       for i = 1, #DATA.points do 
         if DATA.points[i] and DATA.points[i].isvalid then
@@ -378,21 +377,23 @@ end
     
     for i = 1, EXT.CONF_pointscnt do
       local ang = math.floor(startangle-angle_step*(i-1))
-      DATA.points[i].ptx = UI.calc_fieldX + UI.calc_fieldside/2 + r_circle*math.sin(math.rad(ang))-UI.point_sz/2
-      DATA.points[i].pty = UI.calc_fieldY + UI.calc_fieldside/2 + r_circle*math.cos(math.rad(ang))-UI.point_sz/2
-      ImGui.SetCursorScreenPos( ctx, DATA.points[i].ptx, DATA.points[i].pty )
-      local alpha = (DATA.points[i].val or 0.5)*0.5+0.2
-      alpha = math.floor(alpha*0xFF)
-      ImGui.PushStyleColor(ctx, ImGui.Col_Button,0xF0F0F0<<8|alpha)
-      if ImGui.Button(ctx,i..'##pt'..i,UI.point_sz,UI.point_sz) then ImGui.OpenPopup(ctx, 'ptpopup'..i) end
-      UI.draw_params_pointmenu(i) 
-      ImGui.PopStyleColor(ctx)
-      if DATA.points[i] and DATA.points[i].info then ImGui.SetItemTooltip( ctx, DATA.points[i].info ) else ImGui.SetItemTooltip( ctx, 'No attached FX parameter' ) end
-      if DATA.points[i].isvalid then
-        local draw_list = ImGui.GetWindowDrawList( ctx )
-        local sz = 10
-        local offs = 5 
-        ImGui.DrawList_AddRectFilled( draw_list, DATA.points[i].ptx+offs, DATA.points[i].pty+offs, DATA.points[i].ptx+sz+offs , DATA.points[i].pty+sz+offs, 0x00FF00A0, 2, ImGui.DrawFlags_None )
+      if DATA.points[i] then 
+        DATA.points[i].ptx = UI.calc_fieldX + UI.calc_fieldside/2 + r_circle*math.sin(math.rad(ang))-UI.point_sz/2
+        DATA.points[i].pty = UI.calc_fieldY + UI.calc_fieldside/2 + r_circle*math.cos(math.rad(ang))-UI.point_sz/2
+        ImGui.SetCursorScreenPos( ctx, DATA.points[i].ptx, DATA.points[i].pty )
+        local alpha = (DATA.points[i].val or 0.5)*0.5+0.2
+        alpha = math.floor(alpha*0xFF)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button,0xF0F0F0<<8|alpha)
+        if ImGui.Button(ctx,i..'##pt'..i,UI.point_sz,UI.point_sz) then ImGui.OpenPopup(ctx, 'ptpopup'..i) end
+        UI.draw_params_pointmenu(i) 
+        ImGui.PopStyleColor(ctx)
+        if DATA.points[i] and DATA.points[i].info then ImGui.SetItemTooltip( ctx, DATA.points[i].info ) else ImGui.SetItemTooltip( ctx, 'No attached FX parameter' ) end
+        if DATA.points[i].isvalid then
+          local draw_list = ImGui.GetWindowDrawList( ctx )
+          local sz = 10
+          local offs = 5 
+          ImGui.DrawList_AddRectFilled( draw_list, DATA.points[i].ptx+offs, DATA.points[i].pty+offs, DATA.points[i].ptx+sz+offs , DATA.points[i].pty+sz+offs, 0x00FF00A0, 2, ImGui.DrawFlags_None )
+        end
       end
     end
     
@@ -430,6 +431,16 @@ end
 -------------------------------------------------------------------------------- 
   function UI.draw_params_pointmenu(i)  
     if ImGui.BeginPopup(ctx, 'ptpopup'..i) then
+      -- menu
+      if ImGui.BeginMenu( ctx, 'Menu', true ) then
+        ImGui.SeparatorText(ctx, 'Points count')
+        if ImGui_MenuItem( ctx, '2 XY mode', '', EXT.CONF_pointscnt==2, true ) then EXT.CONF_pointscnt = 2 EXT:save() DATA:InitPoints() end
+        if ImGui_MenuItem( ctx, '4 equdistant', '', EXT.CONF_pointscnt==4, true ) then EXT.CONF_pointscnt = 4 EXT:save() DATA:InitPoints() end
+        --if ImGui_MenuItem( ctx, '8', '', EXT.CONF_pointscnt==8, true ) then EXT.CONF_pointscnt = 8 EXT:save() DATA:InitPoints() end
+        ImGui.EndMenu( ctx  )
+      end
+      
+      
       -- get ltp
       local LTP_t = VF2_GetLTP()
       local param_txt = '[tweak some plugin parameter]'
@@ -453,6 +464,7 @@ end
       
       -- store param
       if ImGui.Button(ctx, 'Get last touched parameter') then--: '..param_txt) then 
+      
         if not point_t then return end
         for key in pairs(point_t) do DATA.proj_extstate['PT'..i..'_'..key] = point_t[key] end
         VF_ExtState_SaveProj(DATA.proj_extstate, DATA.ES_key)
