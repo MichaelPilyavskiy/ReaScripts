@@ -1,17 +1,17 @@
 -- @description Render-in-place
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # another patch for track and item wildcards
+--    + Add option to offline FX
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.20
+local vrs = 1.21
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -77,6 +77,7 @@ EXT = {
         CONF_mutedesttrack = 0,
         CONF_mutesrcitem = 0,
         CONF_disabletrfx = 0,
+        CONF_offlinetrfx = 0,
         
         
       }
@@ -464,6 +465,14 @@ function DATA:Render_Finish()
     if EXT.CONF_disabletrfx&1==1 then
       local firsttr = VF_GetMediaTrackByGUID(project, DATA.rend.firsttrGUID)
       SetMediaTrackInfo_Value( firsttr, 'I_FXEN', 0 ) 
+    end
+    
+  -- offline fx
+    if EXT.CONF_offlinetrfx&1==1 then
+      local firsttr = VF_GetMediaTrackByGUID(project, DATA.rend.firsttrGUID)
+      for fx = 1, TrackFX_GetCount( firsttr ) do
+        TrackFX_SetOffline( firsttr, fx-1, true )
+      end
     end
      
   -- refresh arrange
@@ -902,6 +911,7 @@ function UI.draw_tab_postprocessing()
     
     -- FX
     if ImGui.Checkbox(ctx, 'Disable source track FX',EXT.CONF_disabletrfx&1==1) then EXT.CONF_disabletrfx = EXT.CONF_disabletrfx~1 EXT:save() end 
+    if ImGui.Checkbox(ctx, 'Offline source track FX',EXT.CONF_offlinetrfx&1==1) then EXT.CONF_offlinetrfx = EXT.CONF_offlinetrfx~1 EXT:save() end 
     
      -- glue
     if EXT.CONF_destination == 3 and EXT.CONF_unmutesends&2~=2 then
