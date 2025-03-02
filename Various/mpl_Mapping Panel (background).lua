@@ -1,16 +1,18 @@
 -- @description MappingPanel
--- @version 4.08
+-- @version 4.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
+-- @provides
+--    mpl_MappingPanel_master.jsfx 
+--    mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # fix initial baseline for denormalized JSFX faders
---    # exit on losing context state
+--    # pack JSFX into common package
 
 
 
 
-  local vrs = 4.08
+  local vrs = 4.09
 
   --[[ gmem map: 
   Master
@@ -203,11 +205,11 @@
   function DATA:SlaveJSFX_Validate(tr) 
     for fx = 1, TrackFX_GetCount(tr) do
       local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-      if fxname:match('MappingPanel_slave') then return fx-1 end
+      if fxname:match('mpl_MappingPanel_slave') then return fx-1 end
     end 
     -- add if not found
     reaper.PreventUIRefresh( 1 )
-    local fx_new =  TrackFX_AddByName( tr, 'JS:MappingPanel_slave.jsfx', false, -1000 ) 
+    local fx_new =  TrackFX_AddByName( tr, 'JS:mpl_MappingPanel_slave.jsfx', false, -1000 ) 
     reaper.TrackFX_Show( tr, fx_new, 2 ) -- add and hide
     reaper.PreventUIRefresh( -1 )
     return fx_new
@@ -218,7 +220,7 @@
       local tr = GetMasterTrack(DATA.ReaProj,0)
       if tr then  
         reaper.PreventUIRefresh( 1 ) 
-        local fx_new =  TrackFX_AddByName( tr, 'JS:MappingPanel_master.jsfx', false, -1000 ) 
+        local fx_new =  TrackFX_AddByName( tr, 'JS:mpl_MappingPanel_master.jsfx', false, -1000 ) 
         reaper.TrackFX_Show( tr, fx_new, 2 ) -- add and hide
         reaper.PreventUIRefresh( -1 ) 
       end
@@ -228,7 +230,7 @@
       local tr = GetSelectedTrack(DATA.ReaProj,0)
       if tr then  
         reaper.PreventUIRefresh( 1 ) 
-        local fx_new =  TrackFX_AddByName( tr, 'JS:MappingPanel_slave.jsfx', false, -1000 ) 
+        local fx_new =  TrackFX_AddByName( tr, 'JS:mpl_MappingPanel_slave.jsfx', false, -1000 ) 
         reaper.TrackFX_Show( tr, fx_new, 2 ) -- add and hide
         reaper.PreventUIRefresh( -1 ) 
       end
@@ -292,7 +294,7 @@
     
     -- prevent utilities from link
       local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fxnumber, 'original_name' )
-      if fxname:match('MappingPanel') then return end
+      if fxname:match('mpl_MappingPanel') then return end
     
     
     -- check if parameter already linked
@@ -540,7 +542,7 @@
     local tr = GetMasterTrack(DATA.ReaProj) 
     for fx = 1,  TrackFX_GetCount( tr ) do
       local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-      if fxname:match('MappingPanel_master') then
+      if fxname:match('mpl_MappingPanel_master') then
         TrackFX_Delete( tr, fx-1 )
         return true
       end
@@ -557,7 +559,7 @@
         if i==0 then tr = GetMasterTrack(DATA.ReaProj) end 
         for fx = 1,  TrackFX_GetCount( tr ) do
           local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-          if fxname:match('MappingPanel_master') then
+          if fxname:match('mpl_MappingPanel_master') then
             DATA.masterJSFX_trGUID = GetTrackGUID( tr )
             DATA.masterJSFX_tr = tr
             DATA.masterJSFX_FXid = fx-1 
@@ -573,7 +575,7 @@
       if not tr then return end
       for fx = 1,  TrackFX_GetCount( tr ) do
         local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-        if fxname:match('MappingPanel_slave') then
+        if fxname:match('mpl_MappingPanel_slave') then
           DATA.masterJSFX_trGUID = GetTrackGUID( tr )
           DATA.masterJSFX_tr = tr
           DATA.masterJSFX_FXid = fx-1 
@@ -794,7 +796,7 @@
         local tr = GetTrack(DATA.ReaProj,i-1)
         for fx = 1, TrackFX_GetCount(tr) do
           local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-          if fxname:match('MappingPanel_slave') then DATA:SlaveJSFX_Read_Routing(DATA.ReaProj, tr, fx-1, selectedknob,i-1) break end
+          if fxname:match('mpl_MappingPanel_slave') then DATA:SlaveJSFX_Read_Routing(DATA.ReaProj, tr, fx-1, selectedknob,i-1) break end
         end
       end
     end
@@ -804,7 +806,7 @@
       if not tr then return end
       for fx = 1, TrackFX_GetCount(tr) do
         local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-        if fxname:match('MappingPanel_slave') then DATA:SlaveJSFX_Read_Routing(DATA.ReaProj, tr, fx-1, selectedknob) break end
+        if fxname:match('mpl_MappingPanel_slave') then DATA:SlaveJSFX_Read_Routing(DATA.ReaProj, tr, fx-1, selectedknob) break end
       end
     end
   end
