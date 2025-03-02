@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.03
+-- @version 4.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,15 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # various minor UI tweaks
+--    - Info: remove donate button
+--    + Info: add links text 
+--    + Automation: auto obey note off when setting choke flag 
+--    # fix various errors
+--    + Add ordering options for new regular children
 
 
 
-rs5kman_vrs = '4.03'
+rs5kman_vrs = '4.04'
 
 
 -- TODO
@@ -79,6 +83,7 @@ rs5kman_vrs = '4.03'
           CONF_onadd_newchild_trackheightflags = 0, -- &1 folder collapsed &2 folder supercollapsed &4 hide tcp &8 hide mcp
           CONF_onadd_newchild_trackheight = 0,
           CONF_onadd_whitekeyspriority = 0,
+          CONF_onadd_ordering = 0, -- 0 sorted by note 1 at the top 2 at the bottom
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -190,6 +195,8 @@ rs5kman_vrs = '4.03'
     UI.controls_minH = 40
     
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_GetParentFolder(dir) return dir:match('(.*)[%\\/]') end
   ---------------------------------------------------
   function VF_ReduceFXname(s)
     local s_out = s:match('[%:%/%s]+(.*)')
@@ -2146,6 +2153,19 @@ end
       local out_mixed = (flags2<<8) + flags1
       TrackFX_SetParamNormalized( tr, fx, slider, out_mixed/65535 )
     end 
+    
+    -- auto set obey note off
+    for note = 0, 127 do
+      if DATA.children[note] and DATA.children[note].layers then
+        for layer = 1, #DATA.children[note].layers do
+          if DATA.children[note].layers[layer].ISRS5K == true then
+            local tr_ptr = DATA.children[note].layers[layer].tr_ptr
+            local instrument_pos = DATA.children[note].layers[layer].instrument_pos
+            TrackFX_SetParamNormalized( tr_ptr, instrument_pos, 11, 1 )
+          end
+        end
+      end
+    end
     Undo_EndBlock2( DATA.proj , 'RS5k manager - update choke', 0xFFFFFFFF ) 
   end
   ---------------------------------------------------------------------
@@ -2272,8 +2292,8 @@ end
   -----------------------------------------------------------------------  
   function DATA:DropSample_ExportToRS5k_CopySrc(filename)
     local prpath = reaper.GetProjectPathEx( 0 )
-    local filename_path = GetParentFolder(filename)
-    local filename_name = VF_VF_GetShortSmplName(filename)
+    local filename_path = VF_GetParentFolder(filename)
+    local filename_name = VF_GetShortSmplName(filename)
     if prpath and filename_path and filename_name then
       prpath = prpath..'/RS5kmanager_samples/'
       RecursiveCreateDirectory( prpath, 0 )
@@ -2360,10 +2380,26 @@ end
             beforeTrackIdx = DATA.parent_track.IP_TRACKNUMBER_0based+1 -- goes after parent
           end
         end
-        DATA:Auto_Reposition_TrackGetSelection()
-        SetOnlyTrackSelected( new_tr )
-        ReorderSelectedTracks( beforeTrackIdx, 0 )
-        DATA:Auto_Reposition_TrackRestoreSelection()
+        function _ord() end
+        
+        if EXT.CONF_onadd_ordering == 0 then -- 0 sorted by note 1 at the top 2 at the bottom
+          DATA:Auto_Reposition_TrackGetSelection()
+          SetOnlyTrackSelected( new_tr )
+          ReorderSelectedTracks( beforeTrackIdx, 0 )
+          DATA:Auto_Reposition_TrackRestoreSelection()
+         elseif EXT.CONF_onadd_ordering == 1 then
+          -- after parent
+         elseif EXT.CONF_onadd_ordering == 2 then
+          if (DATA.MIDIbus and DATA.MIDIbus.IP_TRACKNUMBER_0based) then
+            DATA:Auto_Reposition_TrackGetSelection()
+            SetOnlyTrackSelected( new_tr ) 
+            beforeTrackIdx = DATA.MIDIbus.IP_TRACKNUMBER_0based+2 -- goes after midi bus 
+            ReorderSelectedTracks( beforeTrackIdx, 0 )
+            SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_FOLDERDEPTH', 0 )-- set midi bus to normal child
+            SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH', -1 )-- set new_tr to enclose parent
+            DATA:Auto_Reposition_TrackRestoreSelection()
+          end
+        end
       end
     
     -- new layer
@@ -2846,6 +2882,7 @@ end
         local ret, buf = ImGui.InputText( ctx, 'Custom template file',                    EXT.CONF_onadd_customtemplate, ImGui.InputTextFlags_EnterReturnsTrue) if ret then EXT.CONF_onadd_customtemplate =buf EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('Path to file')
+        UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order') 
         ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
         
@@ -2951,7 +2988,7 @@ end
   RS5k manager quick tips: 
       1. Select parent track. It will be parent track for drum rack.
       2. Once parent track is selected, drum rack is ready for adding samples to it.
-      3. Drop sample to pads from OS browsr or MediaExplorer to pad.  
+      3. Drop sample to pads from OS browser or MediaExplorer to pad.  
       4. RS5k manager will automatically initialize all needed routing setup.
       ]])
       if ImGui.Button(ctx, 'Feature requests and bug reports at Cockos forum') then VF_Open_URL('http://forum.cockos.com/showthread.php?t=207971') end
@@ -3313,7 +3350,7 @@ end
   --------------------------------------------------------------------------------  
   function UI.Link(txt, url)
     local color = ImGui.GetStyleColor(ctx, ImGui.Col_CheckMark)
-    ImGui.TextColored(ctx, color, txt)
+    ImGui.Button(ctx, txt)
     if ImGui.IsItemClicked(ctx) then
       VF_Open_URL(url)
     elseif ImGui.IsItemHovered(ctx) then
@@ -3326,10 +3363,10 @@ end
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0)  
     ImGui.Dummy(ctx,10,10)
     UI.Link('Forum thread', 'https://forum.cockos.com/showthread.php?t=207971')
-    ImGui.Dummy(ctx,10,10)
-    UI.Link('Donate', 'ton://transfer/UQBddyjnQwCm7kK-4Fj-y0Tplj5Alm17hCUqQiI6TC7fOq4d')
+    ImGui.SameLine(ctx) ImGui_InputText(ctx,'##forumlink','https://forum.cockos.com/showthread.php?t=207971', ImGui.InputTextFlags_AutoSelectAll)
     ImGui.Dummy(ctx,10,10)
     UI.Link('Telegram chat', 'https://t.me/mplscripts_chat')
+    ImGui.SameLine(ctx) ImGui_InputText(ctx,'##telegrchat','https://t.me/mplscripts_chat', ImGui.InputTextFlags_AutoSelectAll)
     
     ImGui.PopStyleVar(ctx,2)
   end  
@@ -4276,27 +4313,27 @@ end
     
     
     
-    
-    
     -- choke flags
-    for groupID = 1, EXT.CONF_chokegr_limit do
-      local byte = 1<<(groupID-1)
-      ImGui.SetCursorScreenPos(ctx,curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, curposy_abs + (UI.calc_itemH + UI.spacingY)*(groupID-1))
-      local retval, v = ImGui.Checkbox( ctx, 'Choke group '..groupID, DATA.MIDIbus.CHOKE_flags[note]&byte==byte )
-      if retval then 
-        DATA.MIDIbus.CHOKE_flags[note] = DATA.MIDIbus.CHOKE_flags[note]~byte
-        DATA:WriteData_UpdateChoke()
-      end
-      local tooltip = ''
-      for i = 0, 127 do 
-        if DATA.MIDIbus.CHOKE_flags[i]&byte==byte and DATA.children[i]then
-          tooltip = tooltip..string.format('%02d',i)..' '..DATA.children[i].P_NAME..'\n'
+    if DATA.MIDIbus and DATA.MIDIbus.CHOKE_flags then
+      for groupID = 1, EXT.CONF_chokegr_limit do
+        local byte = 1<<(groupID-1)
+        ImGui.SetCursorScreenPos(ctx,curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, curposy_abs + (UI.calc_itemH + UI.spacingY)*(groupID-1))
+        local retval, v = ImGui.Checkbox( ctx, 'Choke group '..groupID, DATA.MIDIbus.CHOKE_flags[note]&byte==byte )
+        if retval then 
+          DATA.MIDIbus.CHOKE_flags[note] = DATA.MIDIbus.CHOKE_flags[note]~byte
+          DATA:WriteData_UpdateChoke()
         end
-      end
-      if tooltip ~= '' then 
-        ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(UI.col_popup, 1) )
-        ImGui.SetItemTooltip( ctx, tooltip ) 
-        ImGui.PopStyleColor(ctx )
+        local tooltip = ''
+        for i = 0, 127 do 
+          if DATA.MIDIbus.CHOKE_flags[i]&byte==byte and DATA.children[i]then
+            tooltip = tooltip..string.format('%02d',i)..' '..DATA.children[i].P_NAME..'\n'
+          end
+        end
+        if tooltip ~= '' then 
+          ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(UI.col_popup, 1) )
+          ImGui.SetItemTooltip( ctx, tooltip ) 
+          ImGui.PopStyleColor(ctx )
+        end
       end
     end
     
