@@ -1,12 +1,12 @@
 -- @description XYPad
--- @version 3.01
+-- @version 3.02
 -- @author MPL 
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + Add support for 2 points XY mode
+--    # end param edit at release
 
   
-  vrs = 3.01
+  vrs = 3.02
   --------------------------------------------------------------------------------  init globals
    for key in pairs(reaper) do _G[key]=reaper[key] end
    app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -328,9 +328,17 @@ end
       DATA.refpoint.ypos = VF_lim((mousey - UI.calc_fieldY) / UI.calc_fieldside)  
       DATA:Points_WriteData() 
     end
+    
+    if ImGui.IsItemDeactivated( ctx ) then
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
+      DATA.refpoint.xpos = VF_lim((mousex - UI.calc_fieldX) / UI.calc_fieldside)
+      DATA.refpoint.ypos = VF_lim((mousey - UI.calc_fieldY) / UI.calc_fieldside)  
+      DATA:Points_WriteData(true) 
+    end
+    
   end
   -----------------------------------------------------------------------------------------
-  function DATA:Points_WriteData() 
+  function DATA:Points_WriteData(endedit) 
     local x = DATA.refpoint.xpos
     local y = DATA.refpoint.ypos 
     
@@ -349,6 +357,11 @@ end
                                       DATA.points[i].FXID, 
                                       DATA.points[i].PID, 
                                       value)
+          
+          if endedit then TrackFX_EndParamEdit(DATA.points[i].TR, 
+                                      DATA.points[i].FXID, 
+                                      DATA.points[i].PID )
+          end
         end
       end   
   end
