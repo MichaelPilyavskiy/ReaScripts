@@ -1,14 +1,16 @@
 -- @description Peak follower tools
--- @version 2.11
+-- @version 2.12
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Gate: add gate quantize to 0dB
+--    # shifting envelope points moved to output
+--    + Revert back Gate/PF/Compressor mode
+--    + Compressor: implement attack/release quantized to window
 
 
 
-vrs = 2.11
+vrs = 2.12
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -38,7 +40,7 @@ EXT = {
 
         -- mode
         CONF_bypass = 0,
-        --CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed 4 rms peak difference
+        CONF_mode2 = 0, -- 0 peak follower 1 compressor 2 gate
         CONF_boundary = 0, -- 0 item edges 1 time selection
         
         -- audio data
@@ -49,7 +51,7 @@ EXT = {
         CONF_FFT_min = 0,
         CONF_FFT_max = 1,
         CONF_gate_threshold_dB = -90,
-        CONF_gate_quantize =0,
+        CONF_gate_quantize =1,
         
         -- dest
         CONF_dest = 1, -- 0 AI track vol 1 take vol env 2 AI pre-fx track vol
@@ -58,10 +60,18 @@ EXT = {
         CONF_reducesamevalues = 1, -- do not add point if previous point has same value
         CONF_zeroboundary = 1, -- zero reset for boundaries 
         CONF_out_pointsshape = 0, 
-        CONF_out_inv = 0,
-        CONF_out_scale = 1, 
+        CONF_gate_inv = 0, 
+        
+        CONF_PF_inv = 0,
+        CONF_PF_scale = 1, 
+        
         CONF_out_shift_ms = 0, 
         CONF_applylive = 0,
+        
+        CONF_comp_thresh = -2,
+        CONF_comp_attack_wind = 0,
+        CONF_comp_release_wind = 0,
+        CONF_comp_mult = 0.2,
         
       }
 -------------------------------------------------------------------------------- INIT data
@@ -1045,7 +1055,7 @@ end
       local wind_offs = 0--window_ms
       
     -- get output points
-      local output = DATA:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx)
+       output = DATA:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx)
       if EXT.CONF_bypass == 1 then output = nil end
       
     -- add points
@@ -1056,14 +1066,15 @@ end
         local sz = #output  
         for i = 1, sz do 
           if output[i] and (not output[i].ignore or output[i].ignore==false) then 
-            valout = output[i].val
-            if valout < EXT.CONF_gate_threshold_dB then valout = -150 end
-            local shape = EXT.CONF_out_pointsshape 
-            if EXT.CONF_gate_quantize == 1 then
-              if valout > -150 then valout = 0 end
-            end 
+            valout = output[i].val 
+            
+            if EXT.CONF_mode2 == 2 then 
+              if valout < EXT.CONF_gate_threshold_dB  then valout = -150 end
+              if EXT.CONF_gate_quantize == 1 then if valout > -150 then valout = 0 end end  
+            end
+            
             local valout = ScaleToEnvelopeMode( scaling_mode, WDL_DB2VAL(valout))
-            InsertEnvelopePointEx( env, AI_idx, output[i].tpos+ EXT.CONF_out_shift_ms, valout, shape, 0, 0, true )
+            InsertEnvelopePointEx( env, AI_idx, output[i].tpos+ EXT.CONF_out_shift_ms, valout, EXT.CONF_out_pointsshape , 0, 0, true )
           end 
         end 
         
@@ -1093,24 +1104,99 @@ end
     local output = {}
     local val_norm
     local window_sec = EXT.CONF_window/EXT.CONF_windowoverlap
+    local scale = 1 
+    if EXT.CONF_mode2 == 0 then scale = EXT.CONF_PF_scale end
+    local compressorstate =0
+    local compressorstate_latchID
+    local compressorstate_latchval
+    local norm_out_last
+    if 
+      (EXT.CONF_mode2 == 0 and EXT.CONF_PF_inv == 0) or  
+      (EXT.CONF_mode2 == 2 and EXT.CONF_gate_inv == 0) 
     
-    if EXT.CONF_out_inv == 0 then
+      then
+    
+    
+    
+    
       local max_dB = -math.huge
       for i = 1,#t do max_dB = math.max(t[i],max_dB) end 
       for i = 1,#t do  
         local tpos = (i-1)*window_sec+boundary_start-offs
-        local norm_out = t[i]-max_dB*EXT.CONF_out_scale
+        local norm_out = t[i]-max_dB*scale
         output[#output+1] = {tpos=tpos,val=norm_out}
       end 
       
      else
-     
+      -- default section for comressor EXT.mode2 == 1
       local min_dB = math.huge
       for i = 1,#t do min_dB = math.min(t[i],min_dB) end 
       for i = 1,#t do  
         local tpos = (i-1)*window_sec+boundary_start-offs
-        local norm_out = -(t[i]-min_dB)*EXT.CONF_out_scale
-        output[#output+1] = {tpos=tpos,val=norm_out}
+        local norm_out = -(t[i]-min_dB)*scale
+        
+        -- compressor section
+        if EXT.CONF_mode2 == 1 then
+          if norm_out > EXT.CONF_comp_thresh then norm_out = 0 end
+          if norm_out_last then
+            --compressorstate 0 idle 1 attack 2 working 3 release
+            
+            -- open attack state
+            if compressorstate == 0 and norm_out_last == 0 and norm_out < 0 then
+              compressorstate = 1
+              compressorstate_latchID = i
+              compressorstate_latchval = norm_out_last
+            end
+            
+            -- close attack state by release state
+            if compressorstate == 1 and norm_out == 0 then
+              compressorstate_latchID = i
+              compressorstate = 3
+            end
+
+            -- open working state
+            if compressorstate == 1 and i> compressorstate_latchID + EXT.CONF_comp_attack_wind then
+              compressorstate = 2
+            end
+
+            -- close working state  by release state
+            if compressorstate == 2 and norm_out == 0 then
+              compressorstate_latchID = i
+              compressorstate_latchval = norm_out_last
+              compressorstate = 3
+            end
+
+            
+            -- close release state by attack state
+            if compressorstate == 3 and norm_out < 0 then
+              compressorstate = 1
+            end
+
+           -- close release state by idle state
+           if compressorstate == 3 and i> compressorstate_latchID + EXT.CONF_comp_release_wind then
+             compressorstate = 0
+           end
+          
+          
+          -- handle attack level
+          if compressorstate == 1 and EXT.CONF_comp_attack_wind ~= 0 then 
+            local latchedval = compressorstate_latchval
+            local attackratio = (i- compressorstate_latchID) / EXT.CONF_comp_attack_wind
+            norm_out = norm_out * attackratio
+          end
+          
+          -- handle attack level
+          if compressorstate == 3 and EXT.CONF_comp_release_wind ~= 0 then 
+            local latchedval = compressorstate_latchval
+            local releaseratio = 1-((i- compressorstate_latchID) / EXT.CONF_comp_release_wind)
+            norm_out =latchedval * releaseratio
+          end
+          
+          end
+          norm_out_last = norm_out
+        end
+        
+        output[#output+1] = {tpos=tpos,val=norm_out*EXT.CONF_comp_mult}
       end 
     end
     
@@ -1148,14 +1234,34 @@ end
         UI.draw_flow_COMBO({['key']='Boundaries',                         ['extstr'] = 'CONF_boundary',               ['values'] = {[0]='Item edges', [1]='Time selection' } })  
         UI.draw_flow_COMBO({['key']='Destination',                        ['extstr'] = 'CONF_dest',                   ['values'] = {[0]='Track volume envelope AI', [1]='Take volume envelope', [2]='Track pre-FX volume envelope AI'} }) 
         UI.draw_flow_SLIDER({['key']='RMS window',                        ['extstr'] = 'CONF_window',                  ['format']=function(x) return (math.floor(x*1000)/1000)..'s' end,    ['min']=0.001,  ['max']=0.4})   
-        UI.draw_flow_CHECK({['key']='Invert values',                      ['extstr'] = 'CONF_out_inv',               }) 
-        UI.draw_flow_SLIDER({['key']='Gate threshold',                    ['extstr'] = 'CONF_gate_threshold_dB',       int=true, ['format']=function(x) return x..'dB' end,    ['min']=-90,  ['max']=0})
-        if EXT.CONF_gate_threshold_dB > -90 then 
-          ImGui.SameLine(ctx)
-          UI.draw_flow_CHECK({['key']='Quantize to 0dB',                    ['extstr'] = 'CONF_gate_quantize',        })
+        
+        if ImGui.BeginChild(ctx, '##modes',0,0,ImGui.ChildFlags_Border) then
+          UI.draw_flow_COMBO({['key']='Mode',                              ['extstr'] = 'CONF_mode2',                   ['values'] = {[0]='Peak follower', [1]='Compressor',[2]='Gate'} }) 
+           
+          if EXT.CONF_mode2 == 0 then -- pf
+            UI.draw_flow_SLIDER({['key']='Scale',                             ['extstr'] = 'CONF_PF_scale',              ['format']=function(x) return math.floor(100*x)..'%%' end,    ['min']=0,  ['max']=1})
+            UI.draw_flow_CHECK({['key']='Invert values',                      ['extstr'] = 'CONF_PF_inv',               }) 
+          end
+          
+          if EXT.CONF_mode2 == 1 then -- comp
+            UI.draw_flow_SLIDER({['key']='Threshold',                    ['extstr'] = 'CONF_comp_thresh',       int=true, ['format']=function(x) return x..'dB' end,    ['min']=-60,  ['max']=0})
+            UI.draw_flow_SLIDER({['key']='Attack',                        ['extstr'] = 'CONF_comp_attack_wind',       int=true, ['format']=function(x) return x*EXT.CONF_window..'s' end,    ['min']=0,  ['max']=40})
+            UI.draw_flow_SLIDER({['key']='Release',                        ['extstr'] = 'CONF_comp_release_wind',       int=true, ['format']=function(x) return x*EXT.CONF_window..'s' end,    ['min']=0,  ['max']=40}) 
+            UI.draw_flow_SLIDER({['key']='Scale',                             ['extstr'] = 'CONF_comp_mult',              ['format']=function(x) return math.floor(100*x)..'%%' end,    ['min']=0,  ['max']=1})
+          end
+          
+          if EXT.CONF_mode2 == 2 then -- gate
+            UI.draw_flow_SLIDER({['key']='Threshold',                    ['extstr'] = 'CONF_gate_threshold_dB',       int=true, ['format']=function(x) return x..'dB' end,    ['min']=-90,  ['max']=0})
+            UI.draw_flow_CHECK({['key']='Quantize to 0dB',                    ['extstr'] = 'CONF_gate_quantize',        })
+            UI.draw_flow_CHECK({['key']='Invert values',                      ['extstr'] = 'CONF_gate_inv',               }) 
+          end
+          
+          
+          
+          
+          
+          ImGui.EndChild(ctx)
         end
-        UI.draw_flow_SLIDER({['key']='Scale',                             ['extstr'] = 'CONF_out_scale',              ['format']=function(x) return math.floor(100*x)..'%%' end,    ['min']=0,  ['max']=1})
-        UI.draw_flow_SLIDER({['key']='Shift',                             ['extstr'] = 'CONF_out_shift_ms',           ['format']=function(x) return (math.floor(100*x)/100)..'ms' end,    ['min']=-0.1,  ['max']=0.1})
         ImGui.EndTabItem(ctx)
       end
       
@@ -1175,7 +1281,7 @@ end
         UI.draw_flow_CHECK({['key']='Reduce points with same values',            ['extstr'] = 'CONF_reducesamevalues'}) 
         UI.draw_flow_CHECK({['key']='Reset boundary edges',                      ['extstr'] = 'CONF_zeroboundary'}) 
         UI.draw_flow_COMBO({['key']='Points shape',                              ['extstr'] = 'CONF_out_pointsshape',                   ['values'] = {[0]='Linear',[1]='Square',[2]='Slow start/end',[5]='Bezier'} }) 
-        
+        UI.draw_flow_SLIDER({['key']='Shift envelope points',                             ['extstr'] = 'CONF_out_shift_ms',           ['format']=function(x) return (math.floor(100*x)/100)..'ms' end,    ['min']=-0.1,  ['max']=0.1})
         ImGui.EndTabItem(ctx)
       end
       
