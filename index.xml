@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f4f77786066002dd280ac499b14d3879f01d71fd" name="MPL Scripts">
+<index version="1" commit="37dbbd29c28d4546795bd0e1c59b626ef393b7d9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3251,6 +3251,10 @@
       <version name="3.01" author="MPL" time="2025-03-02T10:31:01Z">
         <changelog><![CDATA[+ Add support for 2 points XY mode]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/65170a003615ff76d0332b1abce23fbd69c96048/FX/mpl_XYPad%20(background).lua</source>
+      </version>
+      <version name="3.02" author="MPL" time="2025-03-09T10:05:12Z">
+        <changelog><![CDATA[# end param edit at release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/37dbbd29c28d4546795bd0e1c59b626ef393b7d9/FX/mpl_XYPad%20(background).lua</source>
       </version>
     </reapack>
   </category>
