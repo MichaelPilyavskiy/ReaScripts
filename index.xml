@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1da62141e9041e1d8bc86d9f4cc1d9dba902327a" name="MPL Scripts">
+<index version="1" commit="1496045cc6c4d077f30d76845b73e225c9c86a9e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12936,6 +12936,12 @@ various fixes]]></changelog>
       <version name="2.11" author="MPL" time="2025-03-02T12:35:44Z">
         <changelog><![CDATA[+ Gate: add gate quantize to 0dB]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/225858cefa12b9794e95d9d0a33253b1b1aa81d4/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="2.12" author="MPL" time="2025-03-09T07:37:03Z">
+        <changelog><![CDATA[# shifting envelope points moved to output
++ Revert back Gate/PF/Compressor mode
++ Compressor: implement attack/release quantized to window]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1496045cc6c4d077f30d76845b73e225c9c86a9e/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
