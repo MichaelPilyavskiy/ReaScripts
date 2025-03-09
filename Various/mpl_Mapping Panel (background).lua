@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.11
+-- @version 4.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,18 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # fix metaheader
+--    + Show formatted param value for selected knob (take first link)
+--    + Update values on change
+--    + Show menu by left click in main page
+--    + Snapback: support snapback value
+--    + Snapback: support setup snapback transition time
+--    + Snapback: support setup snapback value as current value
+--    # improve storing slider color
 
 
 
 
-  local vrs = 4.10
+  local vrs = 4.12
 
   --[[ gmem map: 
   Master
@@ -63,7 +69,8 @@
            activetab = 0, -- !=1 knobs  1 menu  2 varilist 3 links 4 actions  
            knobscollapsed = 0, 
            LTP={}, 
-           
+           touchstate = false,
+           snapback = {},
            }
            
    -------------------------------------------------------------------------------- UI init variables
@@ -189,9 +196,14 @@
     for link = 1, #DATA.slaveJSFXlinks do
       local tr = DATA.slaveJSFXlinks[link].slave_jsfx_tr
       if ValidatePtr2(DATA.ReaProj,tr,'MediaTrack*') then
+        local destfx_paramformatted = ({TrackFX_GetFormattedParamValue(tr, DATA.slaveJSFXlinks[link].destfx_FXID, DATA.slaveJSFXlinks[link].destfx_paramID,'' )})[2] 
         DATA.slaveJSFXlinks[link].destfx_param = TrackFX_GetParamNormalized( tr, DATA.slaveJSFXlinks[link].destfx_FXID, DATA.slaveJSFXlinks[link].destfx_paramID )
-        DATA.slaveJSFXlinks[link].destfx_paramformatted = ({TrackFX_GetFormattedParamValue(tr, DATA.slaveJSFXlinks[link].destfx_FXID, DATA.slaveJSFXlinks[link].destfx_paramID,'' )})[2] 
-        DATA.slaveJSFXlinks[link].slave_jsfx_param = TrackFX_GetParamNormalized( tr, DATA.slaveJSFXlinks[link].slave_jsfx_ID, DATA.slaveJSFXlinks[link].slave_jsfx_paramID ) 
+        DATA.slaveJSFXlinks[link].destfx_paramformatted = destfx_paramformatted
+        DATA.slaveJSFXlinks[link].slave_jsfx_param = TrackFX_GetParamNormalized( tr, DATA.slaveJSFXlinks[link].slave_jsfx_ID, DATA.slaveJSFXlinks[link].slave_jsfx_paramID )  
+        if DATA.slaveJSFXlinks[link].slaveJSFXlinksID == 1 and DATA.slaveJSFXlinks[link].knob then 
+          DATA.masterJSFX_sliders[DATA.slaveJSFXlinks[link].knob].destfx_paramformatted = destfx_paramformatted
+        end
+        
       end
     end
   end 
@@ -435,7 +447,18 @@
       --if EXT.CONF_mode == 0 and DATA.masterJSFX_FXid then TrackFX_SetParam( extstate_tr, DATA.masterJSFX_FXid, id+16-1, id0 ) end
       if DATA.masterJSFX_FXid then TrackFX_SetParamNormalized( extstate_tr, DATA.masterJSFX_FXid, id-1, DATA.masterJSFX_sliders[id].val )   end
       local col = DATA.masterJSFX_sliders[id].col if not col then col = '' end
-      if DATA.masterJSFX_sliders[id] then GetSetMediaTrackInfo_String( extstate_tr, 'P_EXT:MPLMAPPAN_MACRO'..id, DATA.masterJSFX_sliders[id].name..'|'..DATA.masterJSFX_sliders[id].scroll..'|'..DATA.masterJSFX_sliders[id].flags..'|'..col, true )  end
+      
+
+      local outstr = 
+        DATA.masterJSFX_sliders[id].name..'|'..
+        DATA.masterJSFX_sliders[id].scroll..'|'..
+        DATA.masterJSFX_sliders[id].flags..'|'..
+        (DATA.masterJSFX_sliders[id].col or -1)..'|'..
+        (DATA.masterJSFX_sliders[id].ext_snapback_use or 0)..'|'..
+        (DATA.masterJSFX_sliders[id].ext_snapback_val or 0)..'|'..
+        (DATA.masterJSFX_sliders[id].ext_snapback_time or 0)
+        
+      if DATA.masterJSFX_sliders[id] then GetSetMediaTrackInfo_String( extstate_tr, 'P_EXT:MPLMAPPAN_MACRO'..id, outstr, true )  end
     end 
     
     GetSetMediaTrackInfo_String( extstate_tr, 'P_EXT:MPLMAPPAN_SLSELMASK', DATA.masterJSFX_slselectionmask, true )
@@ -602,8 +625,11 @@
       for i = 1, 16 do
         local name = 'Macro '..i
         local scroll = 0
-        local col
+        local col = -1
         local flags = 0
+        local ext_snapback_use = 0
+        local ext_snapback_val = 0
+        local ext_snapback_time = 0
         
         local retval, chunk = GetSetMediaTrackInfo_String( extstate_tr, 'P_EXT:MPLMAPPAN_MACRO'..i, '', false )
         if retval==true then 
@@ -613,6 +639,9 @@
           scroll=tonumber(t[2])
           flags=tonumber(t[3])
           col=t[4]
+          ext_snapback_use=tonumber(t[5]) or 0
+          ext_snapback_val=tonumber(t[6]) or 0
+          ext_snapback_time=tonumber(t[7]) or 0
         end 
         
         local val = 0--gmem_read(i)
@@ -631,6 +660,10 @@
           col=col,
           scroll=scroll,
           flags=flags,
+          
+          ext_snapback_use = ext_snapback_use,
+          ext_snapback_val = ext_snapback_val,
+          ext_snapback_time = ext_snapback_time,
           
           midi1=tonumber(midi1),
           midi2=tonumber(midi2),
@@ -692,6 +725,9 @@
           local fxname = VF_ReduceFXname(fxname_full)
           local param_name = ({ TrackFX_GetParamName( tr,  fx-1, param-1, '' )})[2]
           local slaveJSFXlinksID = #DATA.slaveJSFXlinks+1
+          local destfx_paramformatted = ({TrackFX_GetFormattedParamValue( tr, fx-1, param-1 ,'' )})[2]
+          
+          
           DATA.slaveJSFXlinks[slaveJSFXlinksID] = 
                 { 
                   slaveJSFXlinksID = slaveJSFXlinksID,
@@ -712,7 +748,7 @@
                   destfx_paramID =param-1,
                   destfx_paramname = param_name,
                   destfx_param = TrackFX_GetParamNormalized( tr, fx-1, param-1 ),
-                  destfx_paramformatted = ({TrackFX_GetFormattedParamValue( tr, fx-1, param-1 ,'' )})[2],
+                  destfx_paramformatted = destfx_paramformatted ,
                   
                   flags = flags,
                   flags_mute = flags&1,--==1,
@@ -933,7 +969,7 @@
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -1048,6 +1084,8 @@
     DATA:Link_Extstate_Get()
     DATA:Link_Extstate_Validate() 
     
+    DATA:SlaveJSFX_UpdateParameters() 
+    
     DATA.sel_knob = DATA:GetSelectedKnob()
   end 
   -------------------------------------------------------------------------------- 
@@ -1063,6 +1101,45 @@
         DATA.last_inc_MIDI1_str = 'CC '..id..' Chan '..chan
       end
     end
+    
+    -- refresh slider values
+    if not DATA.touchstate then 
+      local extstate_tr = GetMasterTrack(DATA.ReaProj) 
+      if EXT.CONF_mode == 1 then extstate_tr = GetSelectedTrack(DATA.ReaProj,0)  end 
+      if not extstate_tr then return end
+      for i = 1, #DATA.masterJSFX_sliders do 
+        local val = TrackFX_GetParamNormalized( extstate_tr, DATA.masterJSFX_FXid, i-1 ) 
+        if val ~= DATA.masterJSFX_sliders[i].val then
+          DATA.masterJSFX_sliders[i].val = val 
+          DATA:SlaveJSFX_UpdateParameters() 
+        end
+      end
+    end
+    
+    -- handle snapback
+      for sliderID in pairs(DATA.snapback) do
+        local TS = DATA.snapback[sliderID].TS
+        local time_transition = DATA.masterJSFX_sliders[sliderID].ext_snapback_time / 1000
+        local srcval = DATA.snapback[sliderID].init_val
+        local destval = DATA.masterJSFX_sliders[sliderID].ext_snapback_val
+        
+        local cur_time = time_precise()
+        local time_ratio = (cur_time - TS) / time_transition
+        if time_ratio > 1 then 
+          DATA.snapback[sliderID] = nil
+          time_ratio = 1
+        end
+        local val = srcval + (destval - srcval) * time_ratio
+        
+        local extstate_tr = GetMasterTrack(DATA.ReaProj) 
+        if EXT.CONF_mode == 1 then extstate_tr = GetSelectedTrack(DATA.ReaProj,0) end
+        if extstate_tr then 
+          gmem_write(100,1 )
+          if DATA.masterJSFX_FXid then TrackFX_SetParamNormalized( extstate_tr, DATA.masterJSFX_FXid, sliderID-1, val ) end
+        end
+          
+          
+      end
   end
   -------------------------------------------------------------------------------- 
   function UI.MAIN_UIloop() 
@@ -1196,11 +1273,11 @@
       local draw_list = ImGui.GetWindowDrawList( ctx )
       
       local slcol
-      if col then
+      if col and col ~= -1 then
         slcol = col:gsub('%#','')
         slcol = tonumber(slcol,16)
       end
-      if slcol then 
+      if slcol and slcol ~= -1  then 
         slcol = slcol<<8|0xCF
        else
         slcol  = 0xFFFFFF0F
@@ -1211,7 +1288,7 @@
       if not iscollapsed then ImGui.DrawList_AddRectFilled(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+UI.main_knobtxth, 0xFFFFFF2F, 5, ImGui.DrawFlags_RoundCornersTopRight) end
       if selected then 
         local selcolframe = 0xFFFFFF4F
-        if not iscollapsed then ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+UI.main_knobtxth, selcolframe, 5, ImGui.DrawFlags_RoundCornersTopRight) 
+        if not iscollapsed then ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW-1, posy_abs+UI.main_knobtxth, selcolframe, 5, ImGui.DrawFlags_RoundCornersTopRight) 
           else                  ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+sliderH, selcolframe, 5)--, ImGui.DrawFlags_RoundCornersTop) 
         end
       end
@@ -1231,12 +1308,21 @@
           ImGui.Button(ctx, '##name'..sliderID, namew, nameh)
         end 
         if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) then
-          if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 1 ) then
-            DATA:Macro_Select(sliderID) 
-           elseif ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right, 1 ) then
-            DATA:Macro_Select(sliderID) 
-            ImGui.OpenPopup( ctx, 'ppupmacro')
+        
+          if iscollapsed == true then
+            if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 1 ) then
+              DATA:Macro_Select(sliderID) 
+             elseif ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right, 1 ) then
+              DATA:Macro_Select(sliderID) 
+              ImGui.OpenPopup( ctx, 'ppupmacro')
+            end
+           else
+            if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 1 ) then
+             DATA:Macro_Select(sliderID) 
+             ImGui.OpenPopup( ctx, 'ppupmacro')
+            end
           end
+          
         end
         ImGui.PopStyleColor(ctx, 3)
         ImGui.PopStyleVar(ctx,1)
@@ -1269,9 +1355,11 @@
           if  ImGui.IsItemActivated( ctx ) then 
             temp[sliderID].latchstate = paramval 
             app_func_onmouseclick(sliderID)
+            DATA.touchstate = true
             goto drawknob 
           end 
           if  ImGui.IsItemActive( ctx ) and temp[sliderID].latchstate then
+            
             local x, y = ImGui.GetMouseDragDelta( ctx )
             local outval = temp[sliderID].latchstate - y/500
             outval = math.max(0,math.min(outval,1))
@@ -1279,12 +1367,20 @@
             if dy~=0 and app_func_onmousedrag then 
               app_func_onmousedrag(sliderID, outval) 
             end
+           else
           end
           if ImGui_IsItemDeactivated( ctx ) then
             local x, y = ImGui.GetMouseDragDelta( ctx )
             local outval = temp[sliderID].latchstate - y/500
             outval = math.max(0,math.min(outval,1))
             app_func_onmousedrag(sliderID, outval, true)
+            
+            DATA.touchstate = false
+            if DATA.masterJSFX_sliders[sliderID].ext_snapback_use == 1 then
+              DATA.snapback[sliderID] = 
+                {init_val = outval,
+                TS = time_precise()}
+            end
           end
         end
         
@@ -1330,8 +1426,20 @@
             ImGui.DrawList_PathStroke(draw_list, knob_handle<<8|0xFF,  ImGui.DrawFlags_None, handlethickness)
           
         end
+        
+        -- draw val
+        if not iscollapsed and DATA.masterJSFX_sliders[sliderID].destfx_paramformatted then
+          ImGui.PushStyleColor(ctx, ImGui.Col_Button,0)
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,0)
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,0)
+          ImGui.SetCursorScreenPos( ctx,posx_abs,  posy_abs+sliderH-UI.calc_itemH )
+          ImGui.Button(ctx, DATA.masterJSFX_sliders[sliderID].destfx_paramformatted,-1)
+          ImGui.PopStyleColor(ctx,3)
+        end
       
       ImGui.EndChild( ctx )
+      
+      
     end
     
     
@@ -2023,7 +2131,7 @@
     
     if ImGui.Selectable(ctx, 'Reset macro color') then 
       local sliderID = DATA:GetSelectedKnob() 
-      DATA.masterJSFX_sliders[sliderID].col = nil
+      DATA.masterJSFX_sliders[sliderID].col = -1
       DATA:MasterJSFX_WriteSliders(sliderID)
     end
     
@@ -2040,6 +2148,33 @@
       DATA.masterJSFX_sliders[sliderID].flags = DATA.masterJSFX_sliders[sliderID].flags~2
       DATA:MasterJSFX_WriteSliders(sliderID)
     end
+    
+    local ext_snapback_use = DATA.masterJSFX_sliders[sliderID].ext_snapback_use  == 1
+    if ImGui.Checkbox( ctx, 'Use snapback', ext_snapback_use ) then 
+      DATA.masterJSFX_sliders[sliderID].ext_snapback_use = DATA.masterJSFX_sliders[sliderID].ext_snapback_use~1
+      DATA:MasterJSFX_WriteSliders(sliderID)
+    end    
+    
+    if DATA.masterJSFX_sliders[sliderID].ext_snapback_use == 1 then
+      ImGui.SetNextItemWidth( ctx, 100 )
+      local retval, v = ImGui.SliderDouble( ctx, 'Snapback value##snapbackval'..sliderID, DATA.masterJSFX_sliders[sliderID].ext_snapback_val, 0, 1, '%.3f', ImGui.SliderFlags_None )
+      if retval then 
+        DATA.masterJSFX_sliders[sliderID].ext_snapback_val = v
+        DATA:MasterJSFX_WriteSliders(sliderID)
+      end 
+      if ImGui.Button(ctx, 'Use current value##snapbackvalcur'..sliderID) then
+        DATA.masterJSFX_sliders[sliderID].ext_snapback_val = DATA.masterJSFX_sliders[sliderID].val
+        DATA:MasterJSFX_WriteSliders(sliderID)
+      end
+      ImGui.SetNextItemWidth( ctx, 100 )
+      local retval, v = ImGui.SliderDouble( ctx, 'Snapback time##snapbacktime'..sliderID, DATA.masterJSFX_sliders[sliderID].ext_snapback_time, 0, 500, '%.0fms', ImGui.SliderFlags_None )
+      if retval then 
+        DATA.masterJSFX_sliders[sliderID].ext_snapback_time = v
+        DATA:MasterJSFX_WriteSliders(sliderID)
+      end 
+    end
+
+    
     
     ImGui.SeparatorText(ctx,'Actions') 
     if ImGui.Selectable(ctx, 'Show/hide track envelope',nil,flagdis) and valid == true then 
