@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="37dbbd29c28d4546795bd0e1c59b626ef393b7d9" name="MPL Scripts">
+<index version="1" commit="8e10fcfa55afffba908bc19a20cc78a0b7fbd435" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13654,6 +13654,13 @@ various fixes]]></changelog>
         <changelog><![CDATA[# prevent track to be both selected if placed one under another
 + Settings: add option to handle all tracks instead selection]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/708132a984b6cb12fe1c3c1f22ce08b103263e6d/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2025-03-10T20:47:07Z">
+        <changelog><![CDATA[+ Ported to ReaImGui
++ Refresh values immediately
++ Add undo entry on track vol/pan change
+# Move track controls to the info line]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e10fcfa55afffba908bc19a20cc78a0b7fbd435/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
