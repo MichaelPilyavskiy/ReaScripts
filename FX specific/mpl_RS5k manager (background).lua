@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.06
+-- @version 4.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,13 +15,11 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Device: fix crop long names
---    # Sampler/General: add tune buttons (doesnt work correctly for VCA mode so disabled)
---    + Knobs: support scroll with mouse
+--    # fix error on playing sample longer than 15s
 
 
 
-rs5kman_vrs = '4.06'
+rs5kman_vrs = '4.07'
 
 
 -- TODO
@@ -4007,13 +4005,14 @@ end
   function UI.draw_peaks (id,note_layer_t,plotx_abs,ploty_abs,w,h, arr) 
     --if h < UI.controls_minH then return end
     if EXT.CONF_showpadpeaks == 0 and not id:match('cur') then return end
-    ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
-    ImGui.PushStyleColor(ctx,ImGui.Col_FrameBg,0)
-    ImGui.PushStyleColor(ctx,ImGui.Col_PlotHistogram,0xF0F0F0BF)
     if not arr then return end
     
     local size = arr.get_alloc()
     local size_new = math.floor(size/2)-1
+    if size_new < 0 then return end
+    ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
+    ImGui.PushStyleColor(ctx,ImGui.Col_FrameBg,0)
+    ImGui.PushStyleColor(ctx,ImGui.Col_PlotHistogram,0xF0F0F0BF)
     local t1 = arr.table(1,size_new)
     local t2 = arr.table(size_new+2,size_new)
     local arr1 = new_array(t1)
