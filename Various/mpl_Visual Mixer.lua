@@ -1,13 +1,13 @@
 -- @description VisualMixer
--- @version 3.01
+-- @version 3.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # UI tweaks
+--    + Add tooltips to actions
 
 
-vrs = 3.01
+vrs = 3.02
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -1760,10 +1760,12 @@ end
         end
         
     end
+    ImGui.SameLine(ctx)
     ImGui.SetNextItemWidth( ctx, 10 )
     if ImGui.BeginCombo( ctx, '##action', DATA.actionnames[EXT.CONF_action], ImGui.ComboFlags_None|ImGui.ComboFlags_NoPreview|ImGui.ComboFlags_HeightLargest ) then 
       
-      if ImGui.Checkbox(ctx, DATA.actionnames[0],EXT.CONF_action==0) then EXT.CONF_action = 0 EXT:save() end
+      if ImGui.Checkbox(ctx, DATA.actionnames[0],EXT.CONF_action==0) then EXT.CONF_action = 0 EXT:save() end 
+      UI.HelpMarker('Randomize gain / pan chaotically')
       if ImGui.Checkbox(ctx, DATA.actionnames[1],EXT.CONF_action==1) then EXT.CONF_action = 1 EXT:save() end
         if EXT.CONF_action == 1 then  -- symmetric params
           ImGui.Indent(ctx, indent)
@@ -1777,8 +1779,8 @@ end
             if ImGui.Checkbox(ctx, 'Inverted following',EXT.CONF_randsymflags&32==32) then EXT.CONF_randsymflags = EXT.CONF_randsymflags~32 EXT:save() end
           end
           ImGui.Unindent(ctx, indent)
-        end
-      
+      end
+      UI.HelpMarker('Randomize gain / pan symmetrically')
       if ImGui.Checkbox(ctx, DATA.actionnames[2],EXT.CONF_action==2) then EXT.CONF_action = 2 EXT:save() end
         if EXT.CONF_action == 2 then  -- LUFS
           ImGui.Indent(ctx, indent)
@@ -1786,16 +1788,16 @@ end
           ImGui.SetNextItemWidth( ctx, 100 ) local retval, v = ImGui.SliderDouble( ctx, '##lufswait', EXT.CONF_normlufswait, 1,10, 'Wait %.0fs' ) if retval then EXT.CONF_normlufswait = v EXT:save() end
           ImGui.Unindent(ctx, indent)
         end
-        
+      UI.HelpMarker('Calculate LUFS and normalize active tracks')  
       if ImGui.Checkbox(ctx, DATA.actionnames[3],EXT.CONF_action==3) then EXT.CONF_action = 3 EXT:save() end
-      
+      UI.HelpMarker('Reset gain and pan')
       if ImGui.Checkbox(ctx, DATA.actionnames[4],EXT.CONF_action==4) then EXT.CONF_action = 4 EXT:save() end
         --[[if EXT.CONF_action == 4 then  -- spread tracks at center
           ImGui.Indent(ctx, indent)
           if ImGui.Checkbox(ctx, 'Rearrange below 0dB',EXT.CONF_spreadflags&1==1) then EXT.CONF_spreadflags = EXT.CONF_spreadflags~1 EXT:save() end
           ImGui.Unindent(ctx, indent)
         end]]
-        
+      UI.HelpMarker('Spread center panned tracks visually tracks inside center area, the pan would be still center')
       if ImGui.Checkbox(ctx, DATA.actionnames[5],EXT.CONF_action==5) then EXT.CONF_action = 5 EXT:save() end
         if EXT.CONF_action == 5 then  -- LUFS map
           ImGui.Indent(ctx, indent)
@@ -1807,9 +1809,10 @@ end
           end
           ImGui.Unindent(ctx, indent)
         end      
-      
+      UI.HelpMarker('Arrange track by LUFS predefined in arrangemap file')
       ImGui.EndCombo( ctx )
     end
+    
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_menu_controls()
