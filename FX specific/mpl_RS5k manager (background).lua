@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.07
+-- @version 4.08
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,13 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix error on playing sample longer than 15s
+--    # fix adding tracks to the botton
+--    + Settings: add button to show folder for saving samples on import
+--    + Settings/Database maps: add support for loading database maps from v3
+--    + Database maps: increase available db maps count to 8
 
 
-
-rs5kman_vrs = '4.07'
+rs5kman_vrs = '4.08'
 
 
 -- TODO
@@ -75,7 +77,8 @@ rs5kman_vrs = '4.07'
           CONF_onadd_obeynoteoff = 1,
           CONF_onadd_customtemplate = '',
           CONF_onadd_renametrack = 1,
-          CONF_onadd_copytoprojectpath = 0,
+          CONF_onadd_copytoprojectpath = 0, 
+          CONF_onadd_copysubfoldname = 'RS5kmanager_samples' ,
           CONF_onadd_newchild_trackheightflags = 0, -- &1 folder collapsed &2 folder supercollapsed &4 hide tcp &8 hide mcp
           CONF_onadd_newchild_trackheight = 0,
           CONF_onadd_whitekeyspriority = 0,
@@ -98,6 +101,7 @@ rs5kman_vrs = '4.07'
           UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128=children chain
           UI_pads_sendnoteoff = 1,
           UI_drracklayout = 0,
+          UIdatabase_maps_current = 1,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -108,6 +112,16 @@ rs5kman_vrs = '4.07'
           CONF_ignoreDBload = 0, 
           CONF_showplayingmeters = 1,
           CONF_showpadpeaks = 1,
+          
+          CONF_database_map1 = '',
+          CONF_database_map2 = '',
+          CONF_database_map3 = '',
+          CONF_database_map4 = '',
+          CONF_database_map5 = '',
+          CONF_database_map6 = '',
+          CONF_database_map7 = '',
+          CONF_database_map8 = '',
+          
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -943,7 +957,7 @@ end
     --end
   end
   -------------------------------------------------------------------------------- 
-  function DATA:CollectData_ParseREAPERDB()
+  function DATA:CollectDataInit_ParseREAPERDB()
     if EXT.CONF_ignoreDBload == 1 then return end
     local reaperini = get_ini_file()
     local backend = VF_LIP_load(reaperini)
@@ -1335,7 +1349,7 @@ end
       
   end
   --------------------------------------------------------------------------------  
-  function DATA:CollectData_MIDIdevices()
+  function DATA:CollectDataInit_MIDIdevices()
     DATA.MIDI_inputs = {[63]='All inputs',[62]='Virtual keyboard'}
     for dev = 1, reaper.GetNumMIDIInputs() do
       local retval, nameout = reaper.GetMIDIInputName( dev-1, '' )
@@ -2291,7 +2305,8 @@ end
     local filename_path = VF_GetParentFolder(filename)
     local filename_name = VF_GetShortSmplName(filename)
     if prpath and filename_path and filename_name then
-      prpath = prpath..'/RS5kmanager_samples/'
+      prpath = prpath..'/'..EXT.CONF_onadd_copysubfoldname..'/'
+      
       RecursiveCreateDirectory( prpath, 0 )
       local src = filename
       local dest = prpath..filename_name
@@ -2385,15 +2400,25 @@ end
          elseif EXT.CONF_onadd_ordering == 1 then
           -- after parent
          elseif EXT.CONF_onadd_ordering == 2 then
-          if (DATA.MIDIbus and DATA.MIDIbus.IP_TRACKNUMBER_0based) then
+          
+          local last_tr = GetTrack(DATA.proj, DATA.parent_track.IP_TRACKNUMBER_0basedlast+1)
+          if last_tr then
+            local last_trdepth = GetMediaTrackInfo_Value( last_tr, 'I_FOLDERDEPTH' ) 
             DATA:Auto_Reposition_TrackGetSelection()
             SetOnlyTrackSelected( new_tr ) 
-            beforeTrackIdx = DATA.MIDIbus.IP_TRACKNUMBER_0based+2 -- goes after midi bus 
+            beforeTrackIdx = DATA.parent_track.IP_TRACKNUMBER_0basedlast+2 -- goes after last track
+            DATA.parent_track.IP_TRACKNUMBER_0basedlast = DATA.parent_track.IP_TRACKNUMBER_0basedlast + 1 -- MUST refresh otherwise break structure
             ReorderSelectedTracks( beforeTrackIdx, 0 )
-            SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_FOLDERDEPTH', 0 )-- set midi bus to normal child
-            SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH', -1 )-- set new_tr to enclose parent
+            if last_trdepth == -1 then -- last track was 2nd level
+              SetMediaTrackInfo_Value( last_tr, 'I_FOLDERDEPTH', 0)-- set midi bus to normal child
+              SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH', -1 )-- set new_tr to enclose parent
+             else
+              SetMediaTrackInfo_Value( last_tr, 'I_FOLDERDEPTH', last_trdepth + 1 ) -- set midi bus to normal child
+              SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH', last_trdepth )-- set new_tr to enclose parent
+            end
             DATA:Auto_Reposition_TrackRestoreSelection()
           end
+          
         end
       end
     
@@ -2557,7 +2582,6 @@ end
     end
       
     DATA:DropSample_ExportToRS5k(track, instrument_pos, filename, note, drop_data) 
-    
     DATA.autoreposition = true
   end   
   -----------------------------------------------------------------------  
@@ -2598,14 +2622,18 @@ end
           SET_PEAKS=table.concat(peaks,'|'),
         }) 
       end 
-    
+     
     -- rename track
       if EXT.CONF_onadd_renametrack==1 then 
         local filename_sh = VF_GetShortSmplName(filename)
         if filename_sh:match('(.*)%.[%a]+') then filename_sh = filename_sh:match('(.*)%.[%a]+') end -- remove extension
         GetSetMediaTrackInfo_String( track, 'P_NAME', filename_sh, true )
       end
-      
+    
+    
+    if drop_data.set_DB then 
+      DATA:WriteData_Child(track, {SET_useDB_name = drop_data.set_DB})  
+    end
   end
   --------------------------------------------------------------------------------
   function UI.draw_Rack_PadOverview() 
@@ -2826,6 +2854,95 @@ function UI.draw_flow_COMBO(t)
   if t.tooltip then  ImGui.SetItemTooltip(ctx, t.tooltip) end
   return  trig_action
 end
+--------------------------------------------------------------------------------  
+  function UI.draw_tabs_settings_current()
+    ImGui.SeparatorText(ctx, 'Current rack settings') 
+      ImGui.Indent(ctx, UI.settings_indent)
+      --DATA.parent_track.ext.PARENT_MIDIFLAGS
+      
+      local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
+      if DATA.parent_track and DATA.parent_track.trGUID then
+        if ImGui.Checkbox( ctx, 'Stick current rack to this project', stickstate) then 
+          if DATA.parent_track.ext_load == true then 
+            SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID','')
+            DATA.upd = true
+           else
+            SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID',DATA.parent_track.trGUID )
+            DATA.upd = true
+          end
+        end
+      end
+      ImGui.SameLine(ctx)
+      UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
+      
+      -- clear choke
+      if ImGui.Button(ctx, 'Clear ALL rack choke setup') then 
+        for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
+        Undo_BeginBlock2(DATA.proj )
+        DATA:WriteData_UpdateChoke()
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF )  
+      end
+      
+      
+      
+      ImGui.Unindent(ctx, UI.settings_indent)
+      ImGui.Dummy(ctx, 0,UI.spacingY*6)
+      
+      
+      
+  end
+  
+--------------------------------------------------------------------------------  
+  function DATA:Database_Load()
+    if not EXT.UIdatabase_maps_current then return end
+    if not DATA.reaperDB then return end
+    local mapID = EXT.UIdatabase_maps_current
+    if not (DATA.database_maps[mapID] and DATA.database_maps[mapID].map) then return end
+    
+    for note in pairs(DATA.database_maps[mapID].map) do
+      local dbname = DATA.database_maps[mapID].map[note].dbname
+      if DATA.reaperDB[dbname] and DATA.reaperDB[dbname].files then
+        local sz = #DATA.reaperDB[dbname].files
+        local rand_fid = 1 + math.floor(math.random(sz-1))
+        local fp = DATA.reaperDB[dbname].files[rand_fid].fp
+        DATA:DropSample(fp, note, {set_DB = dbname})
+      end
+    end
+  end
+--------------------------------------------------------------------------------  
+  function DATA:Database_Save()  
+    if not EXT.UIdatabase_maps_current then return end
+    if not DATA.reaperDB then return end
+    local mapID = EXT.UIdatabase_maps_current
+    if not (DATA.database_maps[mapID] and DATA.database_maps[mapID].map) then return end
+    
+    for note in pairs(DATA.children) do
+      if DATA.children[note].layers 
+        and DATA.children[note].layers[1] 
+        and DATA.children[note].layers[1].SET_useDB_name
+       then
+        local dbname = DATA.children[note].layers[1].SET_useDB_name
+        if not DATA.database_maps[mapID].map[note] then DATA.database_maps[mapID].map[note] = {} end
+        DATA.database_maps[mapID].map[note].dbname=dbname
+      end
+    end
+    
+    local s = 'DBNAME '..DATA.database_maps[mapID].dbname..'\n'
+    if not DATA.database_maps[mapID].map then return '' end
+    for note in pairs(DATA.database_maps[mapID].map) do
+      s = s..'NOTE'..note
+      for param in pairs(DATA.database_maps[mapID].map[note]) do 
+        local tp =  type(DATA.database_maps[mapID].map[note][param]) 
+        if tp == 'string' or tp == 'number' then 
+          s = s ..' <'..param..'>'..DATA.database_maps[mapID].map[note][param]..'</'..param..'>' 
+        end
+      end
+      s = s..'\n'
+    end
+    
+    EXT['CONF_database_map'..mapID] = VF_encBase64(s)
+    EXT:save() 
+  end
   
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings()
@@ -2835,41 +2952,54 @@ end
     
     UI.tab_last = UI.tab_current 
     if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
-      ImGui.SeparatorText(ctx, 'Current project settings') 
+      
+      UI.draw_tabs_settings_current()
+      
+      -- database
+      if DATA.database_maps then 
+         ImGui.SeparatorText(ctx, 'Database maps') -- ImGui.Text(ctx, 'Database maps') 
         ImGui.Indent(ctx, UI.settings_indent)
-        --DATA.parent_track.ext.PARENT_MIDIFLAGS
+        ImGui.SetNextItemWidth(ctx, UI.settings_itemW )
         
-        local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
-        if DATA.parent_track and DATA.parent_track.trGUID then
-          if ImGui.Checkbox( ctx, 'Stick current rack to this project', stickstate) then 
-            if DATA.parent_track.ext_load == true then 
-              SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID','')
-              DATA.upd = true
-             else
-              SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID',DATA.parent_track.trGUID )
-              DATA.upd = true
+        if DATA.temp_rename == true then 
+          local retval, buf = reaper.ImGui_InputText( ctx, '##dbcurname', DATA.database_maps[EXT.UIdatabase_maps_current].dbname, ImGui.InputTextFlags_AutoSelectAll|ImGui.InputTextFlags_EnterReturnsTrue )
+          if retval and buf ~= '' then 
+            DATA.temp_rename = false
+            DATA.database_maps[EXT.UIdatabase_maps_current].dbname = buf
+            DATA:Database_Save()
+          end
+         else
+         
+          if ImGui.BeginCombo( ctx, '##Loaddatabasemap', DATA.database_maps[EXT.UIdatabase_maps_current].dbname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
+            for i = 1, 8 do
+              if ImGui.Selectable( ctx, DATA.database_maps[i].dbname..'##dbmapsel'..i, i == EXT.UIdatabase_maps_current, ImGui.SelectableFlags_None) then EXT.UIdatabase_maps_current = i EXT:save() end
             end
+            ImGui.EndCombo( ctx)
           end
         end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
-        
-        if ImGui.Button(ctx, 'Clear ALL rack choke setup') then 
-          for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
-          Undo_BeginBlock2(DATA.proj )
-          DATA:WriteData_UpdateChoke()
-          Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF ) 
-          
-        end
+        ImGui.SameLine(ctx) UI.HelpMarker('Database map defines which database is linked to which note')
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load') then DATA:Database_Load() end
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Save') then DATA:Database_Save()  end
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Rename') then DATA.temp_rename = true  end
         
         
+        function _b_dbmaps() end
         ImGui.Unindent(ctx, UI.settings_indent)
-        ImGui.Dummy(ctx, 0,UI.spacingY*10)
-        
+      end
+      ImGui.Dummy(ctx, 0,UI.spacingY*6)
+      
+      
       ImGui.SeparatorText(ctx, 'On sample add')  
         ImGui.Indent(ctx, UI.settings_indent)
         if ImGui.Checkbox( ctx, 'Float RS5k instance',                                    EXT.CONF_onadd_float == 1 ) then EXT.CONF_onadd_float =EXT.CONF_onadd_float~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Copy samples to project path',                           EXT.CONF_onadd_copytoprojectpath == 1 ) then EXT.CONF_onadd_copytoprojectpath =EXT.CONF_onadd_copytoprojectpath~1 EXT:save() end 
+        ImGui.SameLine(ctx)
+        if ImGui.Button(ctx,'Open path') then 
+          local prpath = reaper.GetProjectPathEx( 0 )
+          prpath = prpath..'/'..EXT.CONF_onadd_copysubfoldname..'/'
+          RecursiveCreateDirectory( prpath, 0 )
+          VF_Open_URL(prpath) 
+        end
         if ImGui.Checkbox( ctx, 'Set obey notes-off',                                     EXT.CONF_onadd_obeynoteoff == 1 ) then EXT.CONF_onadd_obeynoteoff =EXT.CONF_onadd_obeynoteoff~1 EXT:save() end 
         if ImGui.Checkbox( ctx, 'Rename track',                                           EXT.CONF_onadd_renametrack == 1 ) then EXT.CONF_onadd_renametrack =EXT.CONF_onadd_renametrack~1 EXT:save() end 
         if ImGui.Checkbox( ctx, 'Drop to white keys only',                                EXT.CONF_onadd_whitekeyspriority == 1 ) then EXT.CONF_onadd_whitekeyspriority =EXT.CONF_onadd_whitekeyspriority~1 EXT:save() end
@@ -3877,8 +4007,6 @@ end
       outval = math.max(0,math.min(outval,1))
       if t.appfunc_atdrag then t.appfunc_atdrag(outval) end
     end
-    --
-    function _wheel() end
   end
   -------------------------------------------------------------------------------- 
   function UI.HelpMarker(desc)
@@ -4175,7 +4303,7 @@ end
     -- database stuff
     local retval, v = ImGui.Checkbox( ctx, 'Use database', note_layer_t.SET_useDB&1==1 )
     if retval then 
-      DATA:CollectData_ParseREAPERDB()
+      DATA:CollectDataInit_ParseREAPERDB()
       DATA:WriteData_Child(note_layer_t.tr_ptr, { SET_useDB = note_layer_t.SET_useDB~1, SET_useDB_lastID = 0, })  
       DATA.upd = true 
     end 
@@ -4390,18 +4518,18 @@ end
     if ImGui.Button(ctx, 'Link##'..key, UI.calc_knob_w_small) then
       if not DATA.plugin_mapping[fx_name] then DATA.plugin_mapping[fx_name] = {} end
       DATA.plugin_mapping[fx_name][key] = parm
-      DATA:CollectData_PluginParametersMapping_Set() 
+      DATA:CollectDataInit_PluginParametersMapping_Set() 
       DATA.upd = true
     end
     --
     --DATA.plugin_mapping
   end
   ------------------------------------------------------------------------------------------   
-  function DATA:CollectData_PluginParametersMapping_Get() 
+  function DATA:CollectDataInit_PluginParametersMapping_Get() 
     DATA.plugin_mapping = table.loadstring(VF_decBase64(EXT.CONF_plugin_mapping_b64)) or {}
   end
   ------------------------------------------------------------------------------------------   
-  function DATA:CollectData_PluginParametersMapping_Set() 
+  function DATA:CollectDataInit_PluginParametersMapping_Set() 
     EXT.CONF_plugin_mapping_b64 = VF_encBase64(table.savestring(DATA.plugin_mapping))
     EXT:save()
   end
@@ -4952,12 +5080,54 @@ end
     local loadtest = time_precise()
     gmem_attach('RS5K_manager')
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
-    DATA:CollectData_MIDIdevices()
-    DATA:CollectData_ParseREAPERDB() 
-    UI.MAIN_definecontext()  
-    DATA:CollectData_PluginParametersMapping_Get() 
-    DATA.loadtest = time_precise() - loadtest
+    DATA:CollectDataInit_MIDIdevices() 
+    
+    DATA:CollectDataInit_ParseREAPERDB()  
+    DATA.loadtest = time_precise() - loadtest -- measure load databases
+    
+    UI.MAIN_definecontext()   -- + EXT:load
+    
+    -- after EXT:load
+    DATA:CollectDataInit_PluginParametersMapping_Get() 
+    DATA:CollectDataInit_ReadDBmaps()
+    
   end   
+  ------------------------------------------------------------------------------------------   
+  function DATA:CollectDataInit_ReadDBmaps()
+    DATA.database_maps = {}
+    for i = 1,8 do
+      DATA.database_maps[i] = {}
+      local dbmapchunk_b64 = EXT['CONF_database_map'..i]
+      if dbmapchunk_b64 then 
+        local dbmapchunk = VF_decBase64(dbmapchunk_b64)
+        local map = {}
+        local dbname = 'Untitled '..i
+        for line in dbmapchunk:gmatch('[^\r\n]+') do 
+          if line:match('NOTE(%d+)') then 
+            local note = line:match('NOTE(%d+)')
+            if note then note =  tonumber(note) end
+            if note then
+              local params = {}
+              for param in line:gmatch('%<.-%>.-%<%/.-%>') do 
+                local key = param:match('%<(.-)%>')
+                local val = param:match('%<.-%>(.-)%<%/.-%>')
+                params[key] = tonumber(val ) or val
+              end
+              map[note] = params
+            end
+          end
+          if line:match('DBNAME (.*)') then dbname = line:match('DBNAME (.*)') end
+        end
+        
+        DATA.database_maps[i] = {
+          valid = true, 
+          dbmapchunk = dbmapchunk,
+          map=map, 
+          dbname = dbname}
+                    
+      end
+    end
+  end
   ------------------------------------------------------------------------------------------   
   function DATA:Sampler_ImportSelectedItems() 
     local note =  0
