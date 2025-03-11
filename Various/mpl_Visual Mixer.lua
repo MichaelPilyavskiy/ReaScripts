@@ -1,16 +1,13 @@
 -- @description VisualMixer
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Ported to ReaImGui
---    + Refresh values immediately
---    + Add undo entry on track vol/pan change
---    # Move track controls to the info line
+--    # UI tweaks
 
 
-vrs = 3.0
+vrs = 3.01
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -224,7 +221,7 @@ vrs = 3.0
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 0.95))      
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 0.99))      
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
@@ -514,7 +511,10 @@ vrs = 3.0
     DATA.upd = false 
     DATA:CollectData_Always()
     
+    
     -- draw UI
+    if not reaper.ImGui_ValidatePtr( ctx, 'ImGui_Context*') then UI.MAIN_definecontext() end
+    
     UI.open = UI.MAIN_styledefinition(true) 
     
     -- handle xy
@@ -829,7 +829,7 @@ vrs = 3.0
   function UI.draw_tracks_mainbody_peaks(GUID,color0)  
     local cnt = #DATA.tracks[GUID].peakL
     local peakvalL,peakvalR,peakval
-    local alpha = 0xBF
+    local alpha = 0xFF
     local color = 0xFFFFFF<<8|alpha
     if color0 then color = color0<<8|alpha end
     for i = 1, cnt  do
@@ -871,10 +871,18 @@ end
     local color = DATA.tracks[GUID].col
     color = ImGui.ColorConvertNative(color) 
     color = color & 0x1000000 ~= 0 and color  -- | 0xFFhttps://forum.cockos.com/showpost.php?p=2799017&postcount=6 
-    if color then UI.draw_setbuttonbackgtransparent(color, 0.3) end
     
     ImGui.SetCursorScreenPos(ctx, DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos)
+    
+    --ImGui.Button(ctx, '##trackrectback'..GUID,DATA.tracks[GUID].wsz,DATA.tracks[GUID].hsz ) 
+    ImGui.SetCursorScreenPos(ctx, DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos)
+    ImGui.DrawList_AddRectFilled( UI.draw_list, DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos,  DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz,0xFFFFFF3F, 5 )--color<<8|0x3F
+    
+    if color then UI.draw_setbuttonbackgtransparent(color, 0.5) end
     ImGui.Button(ctx, '##trackrect'..GUID,DATA.tracks[GUID].wsz,DATA.tracks[GUID].hsz ) 
+    if color then UI.draw_unsetbuttonstyle()end
+    
+    
     if ImGui.IsItemActive( ctx ) then 
       DATA.activeGUID = GUID
       DATA.touch_state = true
@@ -925,8 +933,8 @@ end
     local icon_image = DATA.tracks[GUID].icon_image
     if icon_image then ImGui_DrawList_AddImage( UI.draw_list , icon_image,  DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos,  DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz, 0, 0, 1, 1, 0xFFFFFFFF ) end
     
+    
     UI.draw_tracks_mainbody_peaks(GUID,color) 
-    if color then UI.draw_unsetbuttonstyle()end
   end
   ----------------------------------------------------------------------  
   function DATA:WriteData_Width(GUID, width)
