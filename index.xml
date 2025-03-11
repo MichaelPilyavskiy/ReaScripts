@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8083e7652e2c0b05b157fecf7698e38705442dee" name="MPL Scripts">
+<index version="1" commit="b9332bd353216d6012f189b8dc6e705734300f96" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13675,6 +13675,10 @@ various fixes]]></changelog>
 + Add undo entry on track vol/pan change
 # Move track controls to the info line]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e10fcfa55afffba908bc19a20cc78a0b7fbd435/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="3.01" author="MPL" time="2025-03-11T18:35:41Z">
+        <changelog><![CDATA[# UI tweaks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9332bd353216d6012f189b8dc6e705734300f96/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
