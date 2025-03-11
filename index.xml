@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ed4dee8a75a6245030fc86270ff3bf5688bf0c8a" name="MPL Scripts">
+<index version="1" commit="4233714ffbc47a5860d1d2c9066ac290e450d417" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13696,6 +13696,10 @@ various fixes]]></changelog>
       <version name="3.01" author="MPL" time="2025-03-11T18:35:41Z">
         <changelog><![CDATA[# UI tweaks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9332bd353216d6012f189b8dc6e705734300f96/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="3.02" author="MPL" time="2025-03-11T19:21:12Z">
+        <changelog><![CDATA[+ Add tooltips to actions]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4233714ffbc47a5860d1d2c9066ac290e450d417/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
