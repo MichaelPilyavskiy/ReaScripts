@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.08
+-- @version 4.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,13 +15,15 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix adding tracks to the botton
---    + Settings: add button to show folder for saving samples on import
---    + Settings/Database maps: add support for loading database maps from v3
---    + Database maps: increase available db maps count to 8
+--    + Database maps: allow to load database to selected pad only
+--    + Database maps: allow to edit databse map
+--    + Database maps: when editing database map, click on pad change current note
+--    + DrumRack: show database as blue rectangle instead adding prefix to name
+--    + DrumRack: show database lock as yellow rectangle
+--    + DrumRack: decrease font size
 
 
-rs5kman_vrs = '4.08'
+rs5kman_vrs = '4.09'
 
 
 -- TODO
@@ -49,7 +51,6 @@ rs5kman_vrs = '4.08'
       fx rack
       fx send 
       ADSR show as curve
-      pitch buttons tooltip
 ]]
 
     
@@ -155,6 +156,7 @@ rs5kman_vrs = '4.08'
           actions_popup = {},
           VCA_mode = 0,
           plugin_mapping = {},
+          settings_cur_note_database =0,
           }
   
   -------------------------------------------------------------------------------- INIT UI locals
@@ -184,7 +186,7 @@ rs5kman_vrs = '4.08'
   
     UI.col_maintheme = 0x00B300 
     UI.col_red = 0xB31F0F  
-    UI.w_min = 640
+    UI.w_min = 530
     UI.h_min = 300
     UI.settingsfixedW = 400
     UI.actionsbutW = 60
@@ -526,7 +528,7 @@ end
     
     -- handle names
       if t and t.P_NAME then out_str = t.P_NAME end 
-    -- handle db
+    --[[ handle db
       if t and t.layers then 
         local hasdb
         for layer = 1, #t.layers do
@@ -535,7 +537,7 @@ end
           end
         end
         if hasdb == true then out_str = '[DB] '..out_str  end
-      end
+      end]]
       
       if out_str then return out_str end
       
@@ -1809,6 +1811,9 @@ end
           DATA:CollectData_Children_ExtState          (DATA.children[note].layers[layer])  
           DATA:CollectData_Children_InstrumentParams  (DATA.children[note].layers[layer]) 
           DATA:CollectData_Children_FXParams          (DATA.children[note].layers[layer]) 
+          if DATA.children[note].layers[layer].SET_useDB&1==1 then DATA.children[note].has_setDB = true end
+          if DATA.children[note].layers[layer].SET_useDB&2==2 then DATA.children[note].has_setDBlocked = true end
+          
         end
         
       -- add device data
@@ -2632,7 +2637,9 @@ end
     
     
     if drop_data.set_DB then 
-      DATA:WriteData_Child(track, {SET_useDB_name = drop_data.set_DB})  
+      DATA:WriteData_Child(track, {
+        SET_useDB = 1,
+        SET_useDB_name = drop_data.set_DB})  
     end
   end
   --------------------------------------------------------------------------------
@@ -2893,37 +2900,43 @@ end
   end
   
 --------------------------------------------------------------------------------  
-  function DATA:Database_Load()
+  function DATA:Database_Load(sel_pad_only)
     if not EXT.UIdatabase_maps_current then return end
     if not DATA.reaperDB then return end
     local mapID = EXT.UIdatabase_maps_current
     if not (DATA.database_maps[mapID] and DATA.database_maps[mapID].map) then return end
     
     for note in pairs(DATA.database_maps[mapID].map) do
-      local dbname = DATA.database_maps[mapID].map[note].dbname
-      if DATA.reaperDB[dbname] and DATA.reaperDB[dbname].files then
-        local sz = #DATA.reaperDB[dbname].files
-        local rand_fid = 1 + math.floor(math.random(sz-1))
-        local fp = DATA.reaperDB[dbname].files[rand_fid].fp
-        DATA:DropSample(fp, note, {set_DB = dbname})
+      if not sel_pad_only or (sel_pad_only == true and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and note == DATA.parent_track.ext.PARENT_LASTACTIVENOTE) then
+      
+        local dbname = DATA.database_maps[mapID].map[note].dbname
+        if DATA.reaperDB[dbname] and DATA.reaperDB[dbname].files then
+          local sz = #DATA.reaperDB[dbname].files
+          local rand_fid = 1 + math.floor(math.random(sz-1))
+          local fp = DATA.reaperDB[dbname].files[rand_fid].fp
+          DATA:DropSample(fp, note, {set_DB = dbname})
+        end
+      
       end
     end
   end
 --------------------------------------------------------------------------------  
-  function DATA:Database_Save()  
+  function DATA:Database_Save(ignore_current_rack)  
     if not EXT.UIdatabase_maps_current then return end
     if not DATA.reaperDB then return end
     local mapID = EXT.UIdatabase_maps_current
     if not (DATA.database_maps[mapID] and DATA.database_maps[mapID].map) then return end
     
-    for note in pairs(DATA.children) do
-      if DATA.children[note].layers 
-        and DATA.children[note].layers[1] 
-        and DATA.children[note].layers[1].SET_useDB_name
-       then
-        local dbname = DATA.children[note].layers[1].SET_useDB_name
-        if not DATA.database_maps[mapID].map[note] then DATA.database_maps[mapID].map[note] = {} end
-        DATA.database_maps[mapID].map[note].dbname=dbname
+    if not ignore_current_rack then
+      for note in pairs(DATA.children) do
+        if DATA.children[note].layers 
+          and DATA.children[note].layers[1] 
+          and DATA.children[note].layers[1].SET_useDB_name
+         then
+          local dbname = DATA.children[note].layers[1].SET_useDB_name
+          if not DATA.database_maps[mapID].map[note] then DATA.database_maps[mapID].map[note] = {} end
+          DATA.database_maps[mapID].map[note].dbname=dbname
+        end
       end
     end
     
@@ -2977,10 +2990,48 @@ end
             ImGui.EndCombo( ctx)
           end
         end
-        ImGui.SameLine(ctx) UI.HelpMarker('Database map defines which database is linked to which note')
-        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load') then DATA:Database_Load() end
-        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Save') then DATA:Database_Save()  end
+        ImGui.SameLine(ctx) UI.HelpMarker('Database map defines which database is linked to which note') 
         ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Rename') then DATA.temp_rename = true  end
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Save') then DATA:Database_Save()  end
+        ImGui.SetNextItemWidth(ctx, 100 )
+        local note_format = 'Note '..DATA.settings_cur_note_database..': '..VF_Format_Note(DATA.settings_cur_note_database)
+        if ImGui.BeginCombo( ctx, '##dbselectnote', note_format, ImGui.ComboFlags_None ) then
+          for note = 0, 127 do
+             local note_format = 'Note '..note..': '..VF_Format_Note(note)
+            if ImGui.Selectable( ctx, note_format, false, ImGui.SelectableFlags_None) then 
+              DATA.settings_cur_note_database = note
+            end
+          end 
+          ImGui.EndCombo( ctx )
+        end
+        ImGui.SameLine(ctx) 
+        ImGui.SetNextItemWidth(ctx, -1)
+        local preview = ''
+        if DATA.database_maps
+          and EXT.UIdatabase_maps_current
+          and DATA.database_maps[EXT.UIdatabase_maps_current]
+          and DATA.database_maps[EXT.UIdatabase_maps_current].map
+          and DATA.settings_cur_note_database
+          and DATA.database_maps[EXT.UIdatabase_maps_current].map[DATA.settings_cur_note_database]
+          and DATA.database_maps[EXT.UIdatabase_maps_current].map[DATA.settings_cur_note_database].dbname then
+          preview = DATA.database_maps[EXT.UIdatabase_maps_current].map[DATA.settings_cur_note_database].dbname
+        end
+        if ImGui.BeginCombo( ctx, '##dbselect', preview, ImGui.ComboFlags_None ) then
+          for dbname in pairs(DATA.reaperDB) do
+            if ImGui.Selectable( ctx, dbname, false, ImGui.SelectableFlags_None) then 
+              if not  DATA.database_maps[EXT.UIdatabase_maps_current] then  DATA.database_maps[EXT.UIdatabase_maps_current] = {} end
+              if not  DATA.database_maps[EXT.UIdatabase_maps_current].map then  DATA.database_maps[EXT.UIdatabase_maps_current].map = {} end
+              if not  DATA.database_maps[EXT.UIdatabase_maps_current].map[DATA.settings_cur_note_database] then  DATA.database_maps[EXT.UIdatabase_maps_current].map[DATA.settings_cur_note_database] = {} end
+              DATA.database_maps[EXT.UIdatabase_maps_current].map[DATA.settings_cur_note_database].dbname = dbname
+              local ignore_current_rack = true
+              DATA:Database_Save(ignore_current_rack)
+            end
+          end
+          ImGui.EndCombo( ctx )
+        end
+        if ImGui.Button(ctx, 'Load to all rack') then DATA:Database_Load() end
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then DATA:Database_Load(true) end
+        
         
         
         function _b_dbmaps() end
@@ -3204,7 +3255,18 @@ end
         end
       end
     
-    --
+    -- database
+      if note_t and note_t.has_setDB then
+        local offs = 5
+        local sz = 5
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x+w-offs-sz, y+offs, x+w-offs, y+offs+sz, 0x00FFFFFF, 1, ImGui.DrawFlags_None) 
+        if note_t.has_setDBlocked then
+          ImGui.DrawList_AddRectFilled(UI.draw_list, x+w-offs-sz, y+offs+sz+1, x+w-offs, y+offs+1+sz*2, 0xFF5000FF, 1, ImGui.DrawFlags_None) 
+        end
+      end
+      
+      
+    -- peaks
       if 
         DATA.children[note] and
         DATA.children[note].layers and 
@@ -3231,6 +3293,7 @@ end
       UI.Tools_setbuttonbackg() 
       
       -- name 
+        ImGui.PushFont(ctx, DATA.font3) 
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,UI.spacingX, UI.spacingY)
         local local_pos_x, local_pos_y = ImGui.GetCursorPos( ctx )
         ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
@@ -3239,6 +3302,7 @@ end
         ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
         ImGui.TextWrapped( ctx, note_format )
         ImGui.PopStyleVar(ctx)
+        ImGui.PopFont(ctx) 
         
       if h > min_h then 
       -- mute
@@ -3315,7 +3379,8 @@ end
     
     if ImGui.IsItemClicked(ctx,ImGui.MouseButton_Left) then -- click select track
       if EXT.UI_clickonpadselecttrack == 1 and note_t then SetOnlyTrackSelected( note_t.tr_ptr )  end
-      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
+      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note 
+      DATA.settings_cur_note_database=note
       DATA:WriteData_Parent() 
       DATA.upd = true
     end
