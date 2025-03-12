@@ -1,18 +1,18 @@
 -- @description Render-in-place
--- @version 1.22
+-- @version 1.23
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # another patch
---    - revert back supporting wildcard, not everything working correcty yet
+--    + Add option to set new take active
+--    + Allow save to flac format
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.22
+local vrs = 1.23
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -59,6 +59,7 @@ EXT = {
         CONF_extendtotail = 0,
         CONF_bitdepth = 1,        
         CONF_outputname = 'render_$datetime', 
+        CONF_outputformat = 'wav', 
         CONF_outputpath = 'renderinplace', 
         CONF_source_flags = 0, -- 1 mute items under RA -- 2 mute selected items -- 4 mute tracks
         
@@ -69,7 +70,7 @@ EXT = {
         -- postprocessing
         CONF_destination = 1, -- 1 same track 2 new track 3 common track
         CONF_destination_sametr = 1, -- 1 as new take to existed item 2 - fixed lane 
-        CONF_destination_sametr_flags = 2, -- &1 new fixedlane gets selected &2 do not set active lave
+        CONF_destination_sametr_flags = 2, -- &1 new fixedlane gets selected &2 do not set active lave &4 update active take
         CONF_destination_trposition = 1, -- 1 below source track 2 above source track 3 start of tracklist 4 end of tracklist
         CONF_destination_makeparent = 0,--&1 track above parent to source
         
@@ -767,7 +768,19 @@ function UI.draw_tab_properties()
   if ImGui.BeginTabItem(ctx, 'Properties') then 
     
     -- Properties
-    ImGui.SeparatorText(ctx, 'Render properties / format')  
+    ImGui.SeparatorText(ctx, 'Render properties / format') 
+    
+    -- format
+      UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Format') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx) 
+      ImGui.SetNextItemWidth( ctx, UI.combo_w2 ) 
+      ImGui.SetCursorPosX( ctx, UI.calc_comb_sel_x2 )
+      local names = {
+       'wav',
+       'flac'}
+      if ImGui.BeginCombo(ctx, '##format', EXT.CONF_outputformat) then for i = 1, #names do if ImGui.Selectable(ctx, names[i]) then EXT.CONF_outputformat =names[i] EXT:save() end end ImGui.EndCombo(ctx) end     
+    
+    
+    
     -- tail
       UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Tail mode') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx) 
       ImGui.SetNextItemWidth( ctx, UI.combo_w2 ) 
@@ -777,6 +790,7 @@ function UI.draw_tab_properties()
        'Bars.beats',
        'Seconds'}
       local preview = names[EXT.CONF_tail+1] or '' if ImGui.BeginCombo(ctx, '##tail', preview) then for i = 1, #names do if ImGui.Selectable(ctx, names[i]) then EXT.CONF_tail = i-1 EXT:save() end end ImGui.EndCombo(ctx) end 
+      
     -- tail length
       if EXT.CONF_tail >0 then
         UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Tail length') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx)
@@ -789,17 +803,21 @@ function UI.draw_tab_properties()
         end
         if ImGui.Checkbox(ctx, 'Extend rendered media for tail',EXT.CONF_extendtotail&1==1) then EXT.CONF_extendtotail = EXT.CONF_extendtotail~1 EXT:save() end 
       end
+      
     -- bitdepth
-      UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Bit depth') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx) 
-      ImGui.SetNextItemWidth( ctx, UI.combo_w2 ) 
-      ImGui.SetCursorPosX( ctx, UI.calc_comb_sel_x2 )
-      local names = {
-       '16bit PCM',
-       '24bit PCM',
-       '32bit FP',
-       '64bit FP',
-       }
-      local preview = names[EXT.CONF_bitdepth] or '' if ImGui.BeginCombo(ctx, '##bitdepth', preview) then for i = 1, #names do if ImGui.Selectable(ctx, names[i]) then EXT.CONF_bitdepth = i EXT:save() end end ImGui.EndCombo(ctx) end
+      if EXT.CONF_outputformat == 'wav' then 
+        UI.draw_setbuttonbackgtransparent() ImGui.Button(ctx, 'Bit depth') UI.draw_unsetbuttonstyle() ImGui.SameLine(ctx) 
+        ImGui.SetNextItemWidth( ctx, UI.combo_w2 ) 
+        ImGui.SetCursorPosX( ctx, UI.calc_comb_sel_x2 )
+        local names = {
+         '16bit PCM',
+         '24bit PCM',
+         '32bit FP',
+         '64bit FP',
+         }
+        local preview = names[EXT.CONF_bitdepth] or '' if ImGui.BeginCombo(ctx, '##bitdepth', preview) then for i = 1, #names do if ImGui.Selectable(ctx, names[i]) then EXT.CONF_bitdepth = i EXT:save() end end ImGui.EndCombo(ctx) end
+      end
+      
     -- name
       --UI.draw_setbuttonbackgtransparent() 
       if ImGui.Button(ctx, 'Sub folder') then
@@ -862,12 +880,15 @@ function UI.draw_tab_postprocessing()
       local preview = names[EXT.CONF_destination_sametr] or '' if ImGui.BeginCombo(ctx, '##Destinationtr', preview) then for i = 1, #names do if ImGui.Selectable(ctx, names[i]) then EXT.CONF_destination_sametr = i EXT:save() end end ImGui.EndCombo(ctx) end
     end
     
-    if EXT.CONF_destination == 1 and EXT.CONF_destination_sametr == 2 then 
-      if ImGui.Checkbox(ctx, 'Do not change active lane (otherwise 1st always active)',EXT.CONF_destination_sametr_flags&2==2) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~2 EXT:save() end 
-      if EXT.CONF_destination_sametr_flags&2~=2 then
-        if ImGui.Checkbox(ctx, 'Make new fixed lane selected',EXT.CONF_destination_sametr_flags&1==1) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~1 EXT:save() end 
+      if EXT.CONF_destination == 1 and EXT.CONF_destination_sametr == 2 then 
+        if ImGui.Checkbox(ctx, 'Do not change active lane (otherwise 1st always active)',EXT.CONF_destination_sametr_flags&2==2) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~2 EXT:save() end 
+        if EXT.CONF_destination_sametr_flags&2~=2 then
+          if ImGui.Checkbox(ctx, 'Make new fixed lane selected',EXT.CONF_destination_sametr_flags&1==1) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~1 EXT:save() end 
+        end
+      end 
+      if EXT.CONF_destination == 1 and EXT.CONF_destination_sametr == 1 then 
+        if ImGui.Checkbox(ctx, 'Set rendered take active',EXT.CONF_destination_sametr_flags&4==4) then EXT.CONF_destination_sametr_flags = EXT.CONF_destination_sametr_flags~4 EXT:save() end 
       end
-    end
     
     -- tr properties
     if EXT.CONF_destination==2 or EXT.CONF_destination == 3 then 
@@ -1357,7 +1378,7 @@ function DATA:Render_GetFileOutput(t)
   end
   
   outputfile = outputfile:gsub('%$[%a%d]+','')
-  outputfp = outputpath..'/'..outputfile..'.wav'
+  outputfp = outputpath..'/'..outputfile..'.'..EXT.CONF_outputformat
   
   --[[ pass to render window + feedback
   GetSetProjectInfo_String( project, 'RENDER_PATTERN', EXT.CONF_outputpath, true ) 
@@ -1366,10 +1387,10 @@ function DATA:Render_GetFileOutput(t)
     outputfile_feedb = VF_GetShortSmplName(targfp) 
     if outputfile_feedb then
       outputfile = outputfile_feedb:reverse()  outputfile = outputfile:match('%.(.*)')   outputfile = outputfile:reverse() -- remove extension
-      outputfile = outputfile..'.wav'
+      outputfile = outputfile..'.'..EXT.CONF_outputformat
       outputfp = outputpath..'/'..outputfile
      else
-      outputfile = outputfile..'.wav'
+      outputfile = outputfile..'.'..EXT.CONF_outputformat
       outputfp = outputpath..'/'..outputfile
     end
   end]]
@@ -1378,12 +1399,12 @@ function DATA:Render_GetFileOutput(t)
   if file_exists(outputfp) then 
     local msec = math.floor(1000*(reaper.time_precise()%1)) 
     outputfile = outputfile..'_'..os.date('%d%m%y_%H%M%S')..msec
-    outputfp = outputpath..'/'..outputfile ..'.wav'
+    outputfp = outputpath..'/'..outputfile ..'.'..EXT.CONF_outputformat
   end
   
    
   outputfp = outputfp:gsub('\\','/'):gsub('//','/') -- fix possible doubles
-  return outputpath,outputfile ..'.wav',outputfp
+  return outputpath,outputfile ..'.'..EXT.CONF_outputformat,outputfp
 end
 -------------------------------------------------------------------------------
 function DATA:Render_Piece_State_StoreAndSet(t) 
@@ -1732,22 +1753,36 @@ function DATA:CollectData()
 end
 -------------------------------------------------------------------------------
 function DATA:Render_CurrentConfig_SetGlobalParams_format()
-  --[[
-   '16bit PCM',
-   '24bit PCM',
-   '32bit FP',
-   '64bit FP',
-  ]]
-  local form_conf = { [1]=16, [2]=1} 
-  if EXT.CONF_bitdepth == 1 then form_conf[1] = 16 
-    elseif EXT.CONF_bitdepth == 2 then form_conf[1] = 24 
-    elseif EXT.CONF_bitdepth == 3 then form_conf[1] = 32 
-    elseif EXT.CONF_bitdepth == 4 then form_conf[1] = 64 
+  -- wav
+  if EXT.CONF_outputformat == 'wav' then
+    local form_conf = { [1]=16, [2]=1} 
+    if EXT.CONF_bitdepth == 1 then form_conf[1] = 16 
+      elseif EXT.CONF_bitdepth == 2 then form_conf[1] = 24 
+      elseif EXT.CONF_bitdepth == 3 then form_conf[1] = 32 
+      elseif EXT.CONF_bitdepth == 4 then form_conf[1] = 64 
+    end
+    
+    local out_str = '' for i = 1, #form_conf do if not form_conf[i] then form_conf[i] = 0 end out_str = out_str..tostring(form_conf[i]):char() end
+    GetSetProjectInfo_String(0, 'RENDER_FORMAT', base64_enc('evaw'..out_str), true)
+    GetSetProjectInfo_String(0, 'RENDER_FORMAT2', '', true) -- reset secondary format
+  end
+
+  -- flac
+  if EXT.CONF_outputformat == 'flac' then
+    local form_conf = { [1] = 24,
+                        [5] = 5,
+                        len = 8}
+    
+     out_str = ''
+    for i = 1, form_conf.len do 
+      if not form_conf[i] then form_conf[i] = 0 end 
+      out_str = out_str..tostring(form_conf[i]):char() 
+    end
+    GetSetProjectInfo_String(0, 'RENDER_FORMAT', base64_enc('calf'..out_str), true)
+    GetSetProjectInfo_String(0, 'RENDER_FORMAT2', '', true) -- reset secondary format
   end
   
-  local out_str = '' for i = 1, #form_conf do if not form_conf[i] then form_conf[i] = 0 end out_str = out_str..tostring(form_conf[i]):char() end
-  GetSetProjectInfo_String(0, 'RENDER_FORMAT', base64_enc('evaw'..out_str), true)
-  GetSetProjectInfo_String(0, 'RENDER_FORMAT2', '', true) -- reset secondary format
+  
 end
 -------------------------------------------------------------------------------
 function DATA:Render_CurrentConfig_SetGlobalParams()
@@ -1855,7 +1890,9 @@ function DATA:Render_InsertMedia(t)
     local new_take = AddTakeToMediaItem( new_item )
     SetMediaItemTake_Source( new_take, src ) 
     PCM_Source_BuildPeaks( src, 0 )
-  
+    if EXT.CONF_destination_sametr_flags&4==4 then
+      reaper.SetActiveTake( new_take )
+    end
   -- define lane
     if EXT.CONF_destination == 1 and EXT.CONF_destination_sametr==2 then  -- same track to lanes
       local I_FREEMODE = GetMediaTrackInfo_Value( dest_tr, 'I_FREEMODE') 
