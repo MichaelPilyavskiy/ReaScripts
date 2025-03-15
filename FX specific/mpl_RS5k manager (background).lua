@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.10
+-- @version 4.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,11 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Sampler/FX/Filter: fix disabled gain knob
---    + Sampler/FX/Filter: allow doubleclick to enter values
+--    # when using track template, put RS5k at the end of FX chain 
+--    # remove internal saving XYWHDock state, use ReaImgUi ones instead
 
 
-rs5kman_vrs = '4.10'
+rs5kman_vrs = '4.11'
 
 
 -- TODO
@@ -68,7 +68,7 @@ rs5kman_vrs = '4.10'
           viewport_posY = 10,
           viewport_posW = 800,
           viewport_posH = 300, 
-          
+          viewport_dockID = 0,
           -- rs5k 
           CONF_onadd_float = 0,
           CONF_onadd_obeynoteoff = 1,
@@ -611,13 +611,13 @@ end
       --window_flags = window_flags | ImGui.WindowFlags_NoMove()
       --window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
-      --window_flags = window_flags | ImGui.WindowFlags_NoNav()
+      window_flags = window_flags | ImGui.WindowFlags_NoNav
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground
       --window_flags = window_flags | ImGui.WindowFlags_NoDocking
       --window_flags = window_flags | ImGui.WindowFlags_TopMost
       window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
       --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings
-      --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
+      --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument
       --open = false -- disable the close button
     
     
@@ -678,9 +678,10 @@ end
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
+      --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      --ImGui.SetNextWindowDockID( ctx, EXT.viewport_dockID)
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font2) 
@@ -757,8 +758,10 @@ end
         UI.draw() 
         UI.draw_actions()  
         ImGui.Dummy(ctx,0,0) 
+         
         ImGui.End(ctx)
       end 
+     
      
     -- pop
       ImGui.PopStyleVar(ctx, 22) 
@@ -854,6 +857,7 @@ end
       or DATA.display_y_last~= DATA.display_y 
       or DATA.display_w_last~= DATA.display_w 
       or DATA.display_h_last~= DATA.display_h 
+      --or (DATA.display_dockID and DATA.display_dockID ~= DATA.dockID)
       then 
       DATA.display_schedule_save = os.clock() 
     end
@@ -862,6 +866,7 @@ end
       EXT.viewport_posY = DATA.display_y
       EXT.viewport_posW = DATA.display_w
       EXT.viewport_posH = DATA.display_h
+      --EXT.viewport_dockID = DATA.display_dockID
       EXT:save() 
       DATA.display_schedule_save = nil 
     end
@@ -869,6 +874,8 @@ end
     DATA.display_y_last = DATA.display_y
     DATA.display_w_last = DATA.display_w
     DATA.display_h_last = DATA.display_h
+    
+    --DATA.display_dockID = DATA.dockID
   end
   -------------------------------------------------------------------------------- 
   function DATA:handleProjUpdates()
@@ -2577,7 +2584,7 @@ end
     
     -- insert rs5k
     if not instrument_pos then
-      instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, 1) 
+      instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -2000) 
       if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1000 ) end
       if instrument_pos == -1 then return end
     end
@@ -3051,7 +3058,11 @@ end
         if ImGui.Checkbox( ctx, 'Rename track',                                           EXT.CONF_onadd_renametrack == 1 ) then EXT.CONF_onadd_renametrack =EXT.CONF_onadd_renametrack~1 EXT:save() end 
         if ImGui.Checkbox( ctx, 'Drop to white keys only',                                EXT.CONF_onadd_whitekeyspriority == 1 ) then EXT.CONF_onadd_whitekeyspriority =EXT.CONF_onadd_whitekeyspriority~1 EXT:save() end
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
-        local ret, buf = ImGui.InputText( ctx, 'Custom template file',                    EXT.CONF_onadd_customtemplate, ImGui.InputTextFlags_EnterReturnsTrue) if ret then EXT.CONF_onadd_customtemplate =buf EXT:save() end
+        local ret, buf = ImGui.InputText( ctx, 'Custom template file',                    EXT.CONF_onadd_customtemplate, ImGui.InputTextFlags_EnterReturnsTrue) 
+        if ret then 
+          EXT.CONF_onadd_customtemplate =buf 
+          EXT:save() 
+        end
         ImGui.SameLine(ctx)
         UI.HelpMarker('Path to file')
         UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order') 
