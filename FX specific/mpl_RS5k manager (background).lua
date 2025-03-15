@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.09
+-- @version 4.10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,15 +15,11 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Database maps: allow to load database to selected pad only
---    + Database maps: allow to edit databse map
---    + Database maps: when editing database map, click on pad change current note
---    + DrumRack: show database as blue rectangle instead adding prefix to name
---    + DrumRack: show database lock as yellow rectangle
---    + DrumRack: decrease font size
+--    # Sampler/FX/Filter: fix disabled gain knob
+--    + Sampler/FX/Filter: allow doubleclick to enter values
 
 
-rs5kman_vrs = '4.09'
+rs5kman_vrs = '4.10'
 
 
 -- TODO
@@ -4437,6 +4433,12 @@ end
           DATA:CollectData_Children_FXParams(note_layer_t)  
         end
       end,
+      parseinput = function(str_in)
+        if not str_in then return end
+        local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.fx_reaeq_pos, 0)
+        TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.fx_reaeq_pos, 0, v )    
+        DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
+      end,
       }) 
     
     UI.draw_knob(
@@ -4449,7 +4451,7 @@ end
       h = UI.calc_knob_h_small,
       name = 'Gain',
       --knob_resY = 10000,
-      disabled = true,--(note_layer_t.fx_reaeq_bandtype == -1  or note_layer_t.fx_reaeq_bandtype == 3 or note_layer_t.fx_reaeq_bandtype == 4),
+      disabled = (note_layer_t.fx_reaeq_bandtype == -1  or note_layer_t.fx_reaeq_bandtype == 3 or note_layer_t.fx_reaeq_bandtype == 4),
       val_form = note_layer_t.fx_reaeq_gain_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
@@ -4459,6 +4461,12 @@ end
           TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.fx_reaeq_pos, 1, v ) 
           DATA:CollectData_Children_FXParams(note_layer_t)  
         end
+      end,
+      parseinput = function(str_in)
+        if not str_in then return end
+        local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.fx_reaeq_pos, 1)
+        TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.fx_reaeq_pos, 1, v )  
+        DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
       })
 
