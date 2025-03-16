@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.12
+-- @version 4.13
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,10 +15,11 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Setings / Various: add option to optimize for docker usage
+--    # fix adding RS5k at the beginning of chain
+--    # always show parent track in the tab header (ReaImGui limitation, sorry)
 
 
-rs5kman_vrs = '4.12'
+rs5kman_vrs = '4.13'
 
 
 -- TODO
@@ -98,7 +99,7 @@ rs5kman_vrs = '4.12'
           UI_pads_sendnoteoff = 1,
           UI_drracklayout = 0,
           UIdatabase_maps_current = 1,
-          UI_optimizedockerusage = 0,
+          --UI_optimizedockerusage = 0,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -691,11 +692,9 @@ end
         DATA.titlename = '[Track '..math.floor(DATA.parent_track.IP_TRACKNUMBER_0based+1)..'] '..DATA.parent_track.name..' // '..DATA.UI_name..' '..rs5kman_vrs 
         DATA.titlename_reduced = DATA.parent_track.name
       end
-      local windowname = DATA.titlename..'##'..DATA.UI_name
-      if EXT.UI_optimizedockerusage == 1 then
-        windowname = DATA.UI_name
-      end
-      local rv,open = ImGui.Begin(ctx, windowname, open, window_flags) --
+      -- local windowname = DATA.titlename..'##'..DATA.UI_name
+      --if EXT.UI_optimizedockerusage == 1 then windowname = DATA.UI_name end
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) --
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -2592,7 +2591,7 @@ end
     
     -- insert rs5k
     if not instrument_pos then
-      instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -2000) 
+      instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, 0) -- query
       if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1000 ) end
       if instrument_pos == -1 then return end
     end
@@ -3146,10 +3145,10 @@ end
         if ImGui.Checkbox( ctx, 'Show peaks on pads',            EXT.CONF_showpadpeaks == 1 ) then EXT.CONF_showpadpeaks =EXT.CONF_showpadpeaks~1 EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('May be CPU hungry')
-        if ImGui.Checkbox( ctx, 'Optimize for docker usage',            EXT.UI_optimizedockerusage == 1 ) then EXT.UI_optimizedockerusage =EXT.UI_optimizedockerusage~1 EXT:save() end
+        --[[if ImGui.Checkbox( ctx, 'Optimize for docker usage',            EXT.UI_optimizedockerusage == 1 ) then EXT.UI_optimizedockerusage =EXT.UI_optimizedockerusage~1 EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('Moves a title to a heade above tab, otherwise it doesn`t docked if RS5k manager track is not selected/pinned')
-        
+        ]]
         ImGui.Unindent(ctx, UI.settings_indent)
       
       
@@ -3540,9 +3539,10 @@ end
         
         if ImGui.BeginTabItem( ctx, 'Sampler', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Sampler' UI.draw_tabs_Sampler()  ImGui.EndTabItem( ctx)  end 
         if ImGui.BeginTabItem( ctx, 'Macro', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Macro' UI.draw_tabs_macro() ImGui.EndTabItem( ctx)  end  
-        if ImGui.BeginTabItem( ctx, 'Settings', false, ImGui.TabItemFlags_None ) then UI.tab_context = '' UI.draw_tabs_settings() ImGui.EndTabItem( ctx)  end 
-        if ImGui.BeginTabItem( ctx, 'Info', false, ImGui.TabItemFlags_None ) then UI.tab_context = '' UI.draw_tabs_info() ImGui.EndTabItem( ctx)  end 
-        if EXT.UI_optimizedockerusage == 1 then
+        if ImGui.BeginTabItem( ctx, 'Settings', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Settings' UI.draw_tabs_settings() ImGui.EndTabItem( ctx)  end 
+        if ImGui.BeginTabItem( ctx, 'Info', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Info' UI.draw_tabs_info() ImGui.EndTabItem( ctx)  end 
+        --if EXT.UI_optimizedockerusage == 1 then
+        if UI.tab_context ~= 'Info' then
           ImGui.SameLine(ctx)
           ImGui.Text(ctx, DATA.titlename_reduced)
         end
