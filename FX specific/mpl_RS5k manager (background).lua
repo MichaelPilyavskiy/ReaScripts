@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.11
+-- @version 4.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,10 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # when using track template, put RS5k at the end of FX chain 
---    # remove internal saving XYWHDock state, use ReaImgUi ones instead
+--    + Setings / Various: add option to optimize for docker usage
 
 
-rs5kman_vrs = '4.11'
+rs5kman_vrs = '4.12'
 
 
 -- TODO
@@ -53,7 +52,7 @@ rs5kman_vrs = '4.11'
 --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
-    if app_vrs < 6.73 then return reaper.MB('This script require REAPER 7.0+','',0) end
+    if app_vrs < 6.73 then return reaper.MB('This script require REAPER 6.73+','',0) end
     local ImGui
     
     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
@@ -99,6 +98,7 @@ rs5kman_vrs = '4.11'
           UI_pads_sendnoteoff = 1,
           UI_drracklayout = 0,
           UIdatabase_maps_current = 1,
+          UI_optimizedockerusage = 0,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -685,9 +685,17 @@ end
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font2) 
-      local titlename = ''
-      if DATA.parent_track and DATA.parent_track.name and DATA.parent_track.IP_TRACKNUMBER_0based then titlename = '[Track '..math.floor(DATA.parent_track.IP_TRACKNUMBER_0based+1)..'] '..DATA.parent_track.name..' // '..DATA.UI_name..' '..rs5kman_vrs end
-      local rv,open = ImGui.Begin(ctx, titlename..'##'..DATA.UI_name, open, window_flags) 
+      DATA.titlename = ''
+      DATA.titlename_reduced = ''
+      if DATA.parent_track and DATA.parent_track.name and DATA.parent_track.IP_TRACKNUMBER_0based then 
+        DATA.titlename = '[Track '..math.floor(DATA.parent_track.IP_TRACKNUMBER_0based+1)..'] '..DATA.parent_track.name..' // '..DATA.UI_name..' '..rs5kman_vrs 
+        DATA.titlename_reduced = DATA.parent_track.name
+      end
+      local windowname = DATA.titlename..'##'..DATA.UI_name
+      if EXT.UI_optimizedockerusage == 1 then
+        windowname = DATA.UI_name
+      end
+      local rv,open = ImGui.Begin(ctx, windowname, open, window_flags) --
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -3138,6 +3146,9 @@ end
         if ImGui.Checkbox( ctx, 'Show peaks on pads',            EXT.CONF_showpadpeaks == 1 ) then EXT.CONF_showpadpeaks =EXT.CONF_showpadpeaks~1 EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('May be CPU hungry')
+        if ImGui.Checkbox( ctx, 'Optimize for docker usage',            EXT.UI_optimizedockerusage == 1 ) then EXT.UI_optimizedockerusage =EXT.UI_optimizedockerusage~1 EXT:save() end
+        ImGui.SameLine(ctx)
+        UI.HelpMarker('Moves a title to a heade above tab, otherwise it doesn`t docked if RS5k manager track is not selected/pinned')
         
         ImGui.Unindent(ctx, UI.settings_indent)
       
@@ -3525,14 +3536,16 @@ end
     local cur_w = DATA.display_w - ImGui.GetCursorPosX(ctx)
     if cur_w > UI.settingsfixedW then tabW = UI.settingsfixedW end
     if ImGui.BeginChild( ctx, 'tabs', tabW, 0, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then --|ImGui.ChildFlags_Border
-      
       if ImGui.BeginTabBar( ctx, 'tabsbar', ImGui.TabItemFlags_None ) then
         
         if ImGui.BeginTabItem( ctx, 'Sampler', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Sampler' UI.draw_tabs_Sampler()  ImGui.EndTabItem( ctx)  end 
         if ImGui.BeginTabItem( ctx, 'Macro', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Macro' UI.draw_tabs_macro() ImGui.EndTabItem( ctx)  end  
         if ImGui.BeginTabItem( ctx, 'Settings', false, ImGui.TabItemFlags_None ) then UI.tab_context = '' UI.draw_tabs_settings() ImGui.EndTabItem( ctx)  end 
         if ImGui.BeginTabItem( ctx, 'Info', false, ImGui.TabItemFlags_None ) then UI.tab_context = '' UI.draw_tabs_info() ImGui.EndTabItem( ctx)  end 
-        
+        if EXT.UI_optimizedockerusage == 1 then
+          ImGui.SameLine(ctx)
+          ImGui.Text(ctx, DATA.titlename_reduced)
+        end
         
         
         ImGui.EndTabBar( ctx)
@@ -3558,6 +3571,8 @@ end
   function UI.draw_tabs_info() 
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,0,0)  
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0)  
+    
+    ImGui.Text(ctx, 'Version: '..rs5kman_vrs)
     ImGui.Dummy(ctx,10,10)
     UI.Link('Forum thread', 'https://forum.cockos.com/showthread.php?t=207971')
     ImGui.SameLine(ctx) ImGui_InputText(ctx,'##forumlink','https://forum.cockos.com/showthread.php?t=207971', ImGui.InputTextFlags_AutoSelectAll)
