@@ -1,9 +1,9 @@
 -- @description Syncronize edit cursor beetween parent and subproject (background)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # fix error on closing project
 
 
 for key in pairs(reaper) do _G[key]=reaper[key] end   
@@ -51,6 +51,7 @@ function applyoffsettoparentproj(mainproj, subprojfp, local_editcur)
 end
 ----------------------------------------------------------------
 function onchangetab(previous_proj, current_project) 
+  if not (previous_proj and ValidatePtr(previous_proj, 'ReaProject*') and current_project and ValidatePtr(current_project, 'ReaProject*')) then return end
   local is_previous_subproj = false
   local prname = reaper.GetProjectName( previous_proj )
   local prpath = reaper.GetProjectPathEx( previous_proj )
