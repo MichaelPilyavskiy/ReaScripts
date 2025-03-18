@@ -1,11 +1,24 @@
 -- @description Randomize Track FX parameters
--- @version 3.01
+-- @version 3.50
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    # small tweaks
+--    - remove all the old filtering stuff
+--    + Filter: Add new filtering system
+--    + Filter: Store filter parameters per plugin
+--    + Filter: allow filter toggle
+--    + Parameters: show list
+--    + Parameters: Always block system parameters
+--    + Actions: make sure the plugin is still valid when printing/morphing
+--    + Actions/Print: allow two printing plugin states
+--    + Actions/Print: allow morph between two printing plugin states (this will be probably extended in future)
+--    + Actions/Morph: separate two morphing states internally
+--    + Actions/Morph: autoswitch 2 morhing states
 
 
+
+
+vrs = 3.50
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -24,30 +37,19 @@
           viewport_posH = 480, 
           
           -- filter
-          CONF_filter_all = 0, -- 
-          CONF_filter_untitledparams = 0, -- untitled / reserved
-          CONF_filter_system = 0, -- bypas wet delta
-          CONF_filter_Keywords1str = 'preview solo mute active master dry wet bypass',
-          CONF_filter_Keywords1 = 1,                          
-          CONF_filter_Keywords2str = 'att dec sust rel',
-          CONF_filter_Keywords2 = 1,
-          CONF_filter_Keywords3str = 'lfo osc pitch',
-          CONF_filter_Keywords3 = 1,
-          CONF_filter_Keywords4str = 'arp eq porta chor delay unison pitchbend',
-          CONF_filter_Keywords4 = 0,
-          CONF_filter_Keywords5str = 'gain vol input power feed mix out make level limit peak velocity',
-          CONF_filter_Keywords5 = 0,
-          CONF_filter_Keywords6str = 'ctrl control midi upsmpl upsampl render oversamp alias auto resvd meter depr sign aud dest',
-          CONF_filter_Keywords6 = 0,
-          CONF_filter_Keywords7str = 'sync core',
-          CONF_filter_Keywords7 = 0,
-          CONF_filter_Keywords8str = 'mode type priority',
-          CONF_filter_Keywords8 = 0,
-          CONF_filter_invert = 0 ,
-          CONF_filter_formatstrings = 0,
+          CONF_defaultkeywords = '',
+          CONF_defaultkeywords_use = 0,
+          CONF_defaultuntitled_pass = 0,
+          CONF_defaultstrings_pass = 1,
+          CONF_defaulttoggle_pass = 1,
+          
+          CONF_defaultkeywordsexclude = '',
+          CONF_defaultkeywordsexclude_use = 0,
           
           -- other 
           CONF_smooth = 0, -- seconds
+          
+          CONF_pluginfilter_b64 = '',
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -55,9 +57,20 @@
           UI_name = 'Randomize FX parameters', 
           upd = true, 
           
-          FX={},
-          Keywords_num = 8,
+          FX = {},
           morphstate = 0,
+          morph_value = 0,
+          morph_value2 = 0,
+          
+          FX_filter = {},
+          currentsnapshot = 0,
+          sourcesnapshot = 0,
+          
+          srcstr='', 
+          srcid=0, 
+          deststr='', 
+          destid = 0,
+          
           }
           
   -------------------------------------------------------------------------------- INIT UI locals
@@ -68,6 +81,7 @@
             -- font
               font='Arial',
               font1sz=15,
+              font2sz=13,
             -- mouse
               hoverdelay = 0.8,
               hoverdelayshort = 0.8,
@@ -83,25 +97,11 @@
               windowBg = 0x303030,
           }
 
-          
-UI.main_buth = 60
-              
- --[[   UI.font2sz=14
-    UI.font3sz=12
-  -- special 
-    UI.butBg_green = 0x00B300
-    UI.butBg_red = 0xB31F0F
-  
-  -- MP
-  -- size
-    UI.main_butw = 150
-    UI.main_butclosew = 20
-    UI.flowchildW = 600
-    UI.flowchildH = UI.main_buth*8
-    UI.plotW = UI.flowchildW - 200
-    UI.plotH = UI.main_buth
-  ]]
-  
+
+    UI.col_maintheme = 0x00B300 
+    UI.w_min = 530
+    UI.h_min = 300          
+    UI.main_buth = 60
   
   
   
@@ -109,52 +109,11 @@ UI.main_buth = 60
   
   
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
-  ---------------------------------------------------
-  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
-      local orig_type = type(orig)
-      local copy
-      if orig_type == 'table' then
-          copy = {}
-          for orig_key, orig_value in next, orig, nil do
-              copy[CopyTable(orig_key)] = CopyTable(orig_value)
-          end
-          setmetatable(copy, CopyTable(getmetatable(orig)))
-      else -- number, string, boolean, etc
-          copy = orig
-      end
-      return copy
-  end 
-  -------------------------------------------------------------------------------- 
-  function ImGui.PushStyle(key, value, value2)  
-    if not (ctx and key and value) then return end
-    local iscol = key:match('Col_')~=nil
-    local keyid = ImGui[key]
-    if not iscol then 
-      ImGui.PushStyleVar(ctx, keyid, value, value2)
-      if not UI.pushcnt_var then UI.pushcnt_var = 0 end
-      UI.pushcnt_var = UI.pushcnt_var + 1
-    else 
-      if not value2 then
-        ReaScriptError( key ) 
-       else
-        ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
-        if not UI.pushcnt_col then UI.pushcnt_col = 0 end
-        UI.pushcnt_col = UI.pushcnt_col + 1
-      end
-    end 
+  ------------------------------------------------------------------------------------------------------
+  function VF_lim(val, min,max) --local min,max 
+    if not min or not max then min, max = 0,1 end 
+    return math.max(min,  math.min(val, max) ) 
   end
-  -------------------------------------------------------------------------------- 
-  function ImGui.PopStyle_var()  
-    if not (ctx) then return end
-    ImGui.PopStyleVar(ctx, UI.pushcnt_var)
-    UI.pushcnt_var = 0
-  end
-  -------------------------------------------------------------------------------- 
-  function ImGui.PopStyle_col()  
-    if not (ctx) then return end
-    ImGui.PopStyleColor(ctx, UI.pushcnt_col)
-    UI.pushcnt_col = 0
-  end 
   -------------------------------------------------------------------------------- 
   function UI.MAIN_styledefinition(open)  
     
@@ -162,7 +121,7 @@ UI.main_buth = 60
       local window_flags = ImGui.WindowFlags_None
       --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
       window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
-      --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
+      window_flags = window_flags | ImGui.WindowFlags_MenuBar
       --window_flags = window_flags | ImGui.WindowFlags_NoMove()
       window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
@@ -176,55 +135,59 @@ UI.main_buth = 60
       --open = false -- disable the close button
     
     
-      -- rounding
-        ImGui.PushStyle('StyleVar_FrameRounding',5)   
-        ImGui.PushStyle('StyleVar_GrabRounding',3)  
-        ImGui.PushStyle('StyleVar_WindowRounding',10)  
-        ImGui.PushStyle('StyleVar_ChildRounding',5)  
-        ImGui.PushStyle('StyleVar_PopupRounding',0)  
-        ImGui.PushStyle('StyleVar_ScrollbarRounding',9)  
-        ImGui.PushStyle('StyleVar_TabRounding',4)   
-      -- Borders
-        ImGui.PushStyle('StyleVar_WindowBorderSize',0)  
-        ImGui.PushStyle('StyleVar_FrameBorderSize',0) 
-      -- spacing
-        ImGui.PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
-        ImGui.PushStyle('StyleVar_FramePadding',10,UI.spacingY) 
-        ImGui.PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
-        ImGui.PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
-        ImGui.PushStyle('StyleVar_ItemInnerSpacing',4,0)
-        ImGui.PushStyle('StyleVar_IndentSpacing',20)
-        ImGui.PushStyle('StyleVar_ScrollbarSize',10)
-      -- size
-        ImGui.PushStyle('StyleVar_GrabMinSize',20)
-        ImGui.PushStyle('StyleVar_WindowMinSize',w_min,h_min)
-      -- align
-        ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
-        ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
-      -- alpha
-        ImGui.PushStyle('StyleVar_Alpha',0.98)
-        ImGui.PushStyle('Col_Border',UI.main_col, 0.3)
-      -- colors
-        ImGui.PushStyle('Col_Button',UI.main_col, 0.2) --0.3
-        ImGui.PushStyle('Col_ButtonActive',UI.main_col, 1) 
-        ImGui.PushStyle('Col_ButtonHovered',UI.but_hovered, 0.8)
-        ImGui.PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
-        ImGui.PushStyle('Col_FrameBg',0x1F1F1F, 0.7)
-        ImGui.PushStyle('Col_FrameBgActive',UI.main_col, .6)
-        ImGui.PushStyle('Col_FrameBgHovered',UI.main_col, 0.7)
-        ImGui.PushStyle('Col_Header',UI.main_col, 0.5) 
-        ImGui.PushStyle('Col_HeaderActive',UI.main_col, 1) 
-        ImGui.PushStyle('Col_HeaderHovered',UI.main_col, 0.98) 
-        ImGui.PushStyle('Col_PopupBg',0x303030, 0.9) 
-        ImGui.PushStyle('Col_ResizeGrip',UI.main_col, 1) 
-        ImGui.PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
-        ImGui.PushStyle('Col_SliderGrab',UI.butBg_green, 0.4) 
-        ImGui.PushStyle('Col_Tab',UI.main_col, 0.37) 
-        ImGui.PushStyle('Col_TabHovered',UI.main_col, 0.8) 
-        ImGui.PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
-        ImGui.PushStyle('Col_TitleBg',UI.main_col, 0.7) 
-        ImGui.PushStyle('Col_TitleBgActive',UI.main_col, 0.95) 
-        ImGui.PushStyle('Col_WindowBg',UI.windowBg, 1)
+    -- rounding
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,5)   
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabRounding,3)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding,10)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding,5)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,10)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarRounding,9)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_TabRounding,4)   
+    -- Borders
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize,0)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize,0) 
+    -- spacing
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,UI.spacingX,UI.spacingY)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX*2,UI.spacingY) 
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,UI.spacingX, UI.spacingY) 
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX, UI.spacingY)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemInnerSpacing,4,0)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_IndentSpacing,20)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize,20)
+    -- size
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,20)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowMinSize,UI.w_min,UI.h_min)
+    -- align
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowTitleAlign,0.5,0.5)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,0.5,0.5)
+      
+    -- alpha
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,0.98)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Border,           UI.Tools_RGBA(0x000000, 0.3))
+    -- colors
+      ImGui.PushStyleColor(ctx, ImGui.Col_Button,           UI.Tools_RGBA(UI.main_col, 0.2))
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    UI.Tools_RGBA(UI.but_hovered, 0.8))
+      ImGui.PushStyleColor(ctx, ImGui.Col_DragDropTarget,   UI.Tools_RGBA(0xFF1F5F, 0.6))
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          UI.Tools_RGBA(0x1F1F1F, 0.7))
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,    UI.Tools_RGBA(UI.main_col, .6))
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,   UI.Tools_RGBA(UI.main_col, 0.7))
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,           UI.Tools_RGBA(UI.main_col, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive,     UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    UI.Tools_RGBA(UI.main_col, 0.98) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(0x303030, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,       UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,       UI.Tools_RGBA(UI.col_maintheme, 0.6) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, UI.Tools_RGBA(UI.col_maintheme, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              UI.Tools_RGBA(UI.main_col, 0.37) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,       UI.Tools_RGBA(UI.col_maintheme, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       UI.Tools_RGBA(UI.col_maintheme, 0.8) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 1))
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
@@ -236,7 +199,7 @@ UI.main_buth = 60
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -249,35 +212,37 @@ UI.main_buth = 60
         local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
         UI.calc_itemH = calcitemh + frameh * 2
         UI.calc_butW = math.floor(DATA.display_w - UI.spacingX*3)/2
-        
+        UI.calc_table_paramnameW = math.floor((DATA.display_w - UI.spacingX*2)/3)
+        UI.calc_table_valW = math.floor(((DATA.display_w - UI.spacingX*2) - ((DATA.display_w - UI.spacingX*2)/3)) / 3)
+        UI.calc_butW_print = (UI.calc_butW- UI.spacingX) / 2
       -- draw stuff
         UI.draw()
         ImGui.Dummy(ctx,0,0) 
-        ImGui.PopStyle_var() 
-        ImGui.PopStyle_col() 
         ImGui.End(ctx)
-       else
-        ImGui.PopStyle_var() 
-        ImGui.PopStyle_col() 
       end 
+      
+      ImGui.PopStyleVar(ctx, 22) 
+      ImGui.PopStyleColor(ctx, 23) 
       ImGui.PopFont( ctx ) 
       if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
     
       return open
   end
   -------------------------------------------------------------------------------- 
+  function UI.Tools_RGBA(col, a_dec)if not col then return 0 else return col<<8|math.floor(a_dec*255) end  end
+  -------------------------------------------------------------------------------- 
   function UI.MAIN_UIloop() 
-    DATA.clock = os.clock() 
+    DATA.clock = os.clock()
     DATA:handleProjUpdates()
     DATA.flicker = math.abs(-1+(math.cos(math.pi*(DATA.clock%2)) + 1))
+     
+    if DATA.morphstate == 1 then DATA:Action_Morph_SetParameters() end
     
-    
-    if DATA.morphstate == 1 then DATA:SetParameters() end
-    
-    --if DATA.upd == true then  DATA:CollectData()  end 
+    if DATA.upd == true then DATA:CollectData() end 
     DATA.upd = false
     
     -- draw UI
+    if not reaper.ImGui_ValidatePtr( ctx, 'ImGui_Context*') then UI.MAIN_definecontext() end
     UI.open = UI.MAIN_styledefinition(true) 
     
     -- handle xy
@@ -294,7 +259,7 @@ UI.main_buth = 60
     ctx = ImGui.CreateContext(DATA.UI_name) 
     -- fonts
     DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
-    --DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
+    DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
     --DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
     -- config
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
@@ -370,81 +335,579 @@ UI.main_buth = 60
     ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0 )
   end
   --------------------------------------------------------------------------------  
-  function UI.draw()  
-    -- plugin info
-    local txt = '[open plugin, then press "Print"]'
-    if DATA.FX.UI_name then txt = DATA.FX.UI_name end
-    UI.draw_setbuttonbackgtransparent() 
-    ImGui.Button(ctx, txt) 
-    UI.draw_unsetbuttonstyle()
-    
-    
-    if ImGui.Button(ctx, 'Print plugin state',UI.calc_butW,UI.main_buth) then DATA:GetFocusedFXData() DATA:GetFocusedFXData_Filter() end
-    ImGui.SameLine(ctx)
-    if ImGui.Button(ctx, 'Morph',UI.calc_butW,UI.main_buth) then 
-      DATA:GetFocusedFXData()
-      DATA:GenerateRandomSnapshot()
-      DATA:SetParameters()
+  function UI.draw_menu() 
+    if ImGui.BeginMenuBar( ctx ) then
+      if ImGui.BeginMenu( ctx, '   Settings   ##Settings' ) then
+      
+        local retval, v = ImGui.SliderDouble( ctx, 'Smooth transition', EXT.CONF_smooth, 0, 10, '%.2fs', ImGui.SliderFlags_None)
+        if retval then EXT.CONF_smooth = v EXT:save() end
+        
+        ImGui.SeparatorText(ctx, 'Filter defaults')
+        -- keywords
+        local retval, v = reaper.ImGui_Checkbox( ctx, '##defkeywords_use', EXT.CONF_defaultkeywords_use==1 ) if retval then 
+          local out = 0
+          if v == true then out = 1 end
+          EXT.CONF_defaultkeywords_use = out
+          EXT:save()
+        end
+        ImGui.SameLine(ctx)
+        -- keywords string
+        local retval, buf = reaper.ImGui_InputText( ctx, 'keywords exist##deffiltertxt', EXT.CONF_defaultkeywords, ImGui.InputTextFlags_None )
+        if retval then 
+          EXT.CONF_defaultkeywords = buf
+          EXT:save()
+        end
+        -- empty / untitled / reserv
+        local retval, v = reaper.ImGui_Checkbox( ctx, 'Pass untitled##defuntitled_pass', EXT.CONF_defaultuntitled_pass==1 ) if retval then 
+          local out = 0
+          if v == true then out = 1 end
+          EXT.CONF_defaultuntitled_pass = out
+          EXT:save()
+        end 
+
+        -- empty / untitled / reserv
+        local retval, v = reaper.ImGui_Checkbox( ctx, 'Pass strings##defuntitled_pass', EXT.CONF_defaultstrings_pass==1 ) if retval then 
+          local out = 0
+          if v == true then out = 1 end
+          EXT.CONF_defaultstrings_pass = out
+          EXT:save()
+        end 
+
+        -- toggle
+        local retval, v = reaper.ImGui_Checkbox( ctx, 'Pass toggle##deftoggle_pass', EXT.CONF_defaulttoggle_pass==1 ) if retval then 
+          local out = 0
+          if v == true then out = 1 end
+          EXT.CONF_defaulttoggle_pass = out
+          EXT:save()
+        end
+        
+        
+        ImGui.EndMenu( ctx )
+      end
+      
+      
+      -- plug data
+      local txt = '[open plugin, then press "Print"]'
+      
+      
+      if DATA.FX and DATA.FX.trname and DATA.FX.FXname_short and DATA.FX.cnt_params_filtered and DATA.FX.cnt_params and DATA.FX.cnt_params_active then 
+        txt = DATA.FX.trname..' | '..DATA.FX.FXname_short..' | '..DATA.FX.cnt_params..' parameters, '..DATA.FX.cnt_params_filtered..' filtered, '..DATA.FX.cnt_params_active..' active'
+      end
+      ImGui.Text(ctx, txt) 
+      
+      ImGui.EndMenuBar( ctx )
     end
-    
-    
-    
-    
-    
-    local szw = 35
-    -- catch params
-    if ImGui.Checkbox(ctx, 'Filter FX Bypass / Wet / Delta', EXT.CONF_filter_system==1) then EXT.CONF_filter_system = EXT.CONF_filter_system~ 1 EXT:save() DATA:GetFocusedFXData_Filter() end  
-    if ImGui.Checkbox(ctx, 'Filter untitled params', EXT.CONF_filter_untitledparams==1) then EXT.CONF_filter_untitledparams = EXT.CONF_filter_untitledparams~1 EXT:save() DATA:GetFocusedFXData_Filter() end
-    if ImGui.Checkbox(ctx, 'Filter values without formatted numbers', EXT.CONF_filter_formatstrings==1) then EXT.CONF_filter_formatstrings = EXT.CONF_filter_formatstrings~1 EXT:save() DATA:GetFocusedFXData_Filter() end
-    for key =1, DATA.Keywords_num do
-      local retval, p_selected = ImGui.Selectable( ctx, 'Pass##a'..key, EXT['CONF_filter_Keywords'..key]==1, reaper.ImGui_SelectableFlags_None(), szw, 0 )
-      if retval then
-        if EXT['CONF_filter_Keywords'..key] == 1 then EXT['CONF_filter_Keywords'..key] = 0 else EXT['CONF_filter_Keywords'..key] = 1 end
-        EXT:save() 
-        DATA:GetFocusedFXData_Filter() 
-        DATA.upd = true      
-      end
-      ImGui.SameLine(ctx)
-      local retval, p_selected = ImGui.Selectable( ctx, 'Filter##f'..key, EXT['CONF_filter_Keywords'..key]==2, reaper.ImGui_SelectableFlags_None(), szw, 0 )
-      if retval then
-        if EXT['CONF_filter_Keywords'..key] == 2 then EXT['CONF_filter_Keywords'..key] = 0 else EXT['CONF_filter_Keywords'..key] = 2 end
-        EXT:save() 
-        DATA:GetFocusedFXData_Filter() 
-        DATA.upd = true      
-      end
-      ImGui.SameLine(ctx)
-      ImGui.SetNextItemWidth( ctx, UI.calc_butW*2-szw*2-UI.spacingX )
-      local retval, buf = reaper.ImGui_InputText( ctx, '##keyin'..key, EXT['CONF_filter_Keywords'..key..'str'], flagsIn, callbackIn )
-      if retval then 
-        EXT['CONF_filter_Keywords'..key..'str'] = buf 
-        EXT:save() 
-        DATA:GetFocusedFXData_Filter() 
-        DATA.upd = true
-      end
-      if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then 
-        EXT['CONF_filter_Keywords'..key..'str'] = EXTdefaults['CONF_filter_Keywords'..key..'str']
-        EXT:save() 
-        DATA:GetFocusedFXData_Filter() 
-        DATA.upd = true
-      end
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:Filter_Change(i, v) 
+    local plugname = DATA.FX.FXname
+    if not DATA.FX_filter[plugname] then DATA.FX_filter[plugname] = {} end
+    if v == true then
+      DATA.FX_filter[plugname][i] = nil
+     else
+      DATA.FX_filter[plugname][i] = 0
     end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_list()  
+    if not (DATA.FX and DATA.FX.valid == true) then return end
     
-    if ImGui.BeginChild( ctx, '##options', 0, 0, ImGui.ChildFlags_None|ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
-      local retval, v = ImGui.SliderDouble( ctx, 'Smooth transition', EXT.CONF_smooth, 0, 10, '%.2fs', ImGui.SliderFlags_None)
-      if retval then EXT.CONF_smooth = v EXT:save() end
-      local retval, v = ImGui.SliderDouble( ctx, 'Manual change', DATA.morph_value, 0, 1, '%.2f%', ImGui.SliderFlags_None)
-      if retval then DATA.morph_value = v DATA:SetParameters(true) end
+    ImGui.PushFont(ctx, DATA.font2) 
+    if ImGui.BeginChild( ctx, '##paramlist', -1, -1, ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
+    
+      local outer_size_w = 0
+      local outer_size_h = 0
+      local inner_width = 0
+      if ImGui.BeginTable(ctx, '##paramlisttable', 4, ImGui.TableFlags_None|ImGui.TableFlags_SizingFixedFit, outer_size_w, outer_size_h, inner_width) then
+        ImGui.TableSetupColumn(ctx, 'Param name', ImGui.TableColumnFlags_None, UI.calc_table_paramnameW, 0)
+        ImGui.TableSetupColumn(ctx, 'Value (format)', ImGui.TableColumnFlags_None, UI.calc_table_valW, 1)
+        ImGui.TableSetupColumn(ctx, 'Morph1', ImGui.TableColumnFlags_None, UI.calc_table_valW, 2)
+        ImGui.TableSetupColumn(ctx, 'Morph2', ImGui.TableColumnFlags_None, UI.calc_table_valW, 3)
+        ImGui.TableHeadersRow(ctx)
+        local sz = #DATA.FX.params
+        for i = 1, sz do
+          if DATA.FX.params[i].match_filter ~=true  then goto skipnextparam end
+          
+          ImGui.TableNextRow(ctx, ImGui.TableRowFlags_None, 0)
+          ImGui.TableSetColumnIndex(ctx,0)
+          if DATA.FX.params[i].ignore==true then ImGui.BeginDisabled( ctx, true ) end 
+          local ret, v = ImGui.Checkbox(ctx, DATA.FX.params[i].name , DATA.FX.params[i].active == true)
+          if ret then
+            DATA:Filter_Change(i, v) 
+            DATA:Filter_Save() 
+            DATA:Action_PrintPluginState_UpdateFXData()  
+            DATA:Filter_RefreshCountActive()
+          end
+          if DATA.FX.params[i].ignore==true then ImGui.EndDisabled( ctx) end
+          
+          ImGui.TableSetColumnIndex(ctx,1)
+          ImGui.Text(ctx,DATA.FX.params[i].formatparam)
+          
+          
+          if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[1] then 
+            ImGui.TableSetColumnIndex(ctx,2)
+            local val  = math.floor(DATA.FX.params[i].value_morph[1]*1000)/1000
+            ImGui.Text(ctx,val)
+          end
+          
+          if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[2] then 
+            ImGui.TableSetColumnIndex(ctx,3)
+            local val  = math.floor(DATA.FX.params[i].value_morph[2]*1000)/1000
+            ImGui.Text(ctx,val)
+          end
+          
+          ::skipnextparam::
+        end
+        
+        ImGui.EndTable(ctx)
+      end
+      
       ImGui.EndChild( ctx)
     end
+    ImGui.PopFont(ctx)
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw()  
+    UI.draw_menu()  
+    
+    if ImGui.Button(ctx, 'Print state A',UI.calc_butW_print,UI.main_buth) then DATA:Action_PrintPluginState(1) DATA.morph_value2 = 0 end
+    ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Print state B',UI.calc_butW_print,UI.main_buth) then DATA:Action_PrintPluginState(2) DATA.morph_value2 = 1 end
+    ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Morph',UI.calc_butW,UI.main_buth) then DATA:Action_Morph() end
+    
+    ImGui_SetNextItemWidth( ctx, UI.calc_butW )
+    local retval, v = ImGui.SliderDouble( ctx, '##manchangestate', DATA.morph_value2, 0, 1, 'State morph: %.2f%', ImGui.SliderFlags_None)
+    if retval then 
+      DATA.morph_value2= v 
+      
+      DATA.srcstr = 'value_print'
+      DATA.srcid = 1
+      DATA.deststr = 'value_print'
+      DATA.destid = 2
+      
+      DATA:Action_Morph_SetParameters(true, true) 
+    end
+    
+    
+    ImGui.SameLine(ctx) 
+    ImGui_SetNextItemWidth( ctx, UI.calc_butW )
+    local retval, v = ImGui.SliderDouble( ctx, '##manchange', DATA.morph_value, 0, 1, 'Morph change: %.2f%', ImGui.SliderFlags_None)
+    if retval then DATA.morph_value = v DATA:Action_Morph_SetParameters(true) end
+    
+    UI.draw_filter() 
+    
+    UI.draw_list()  
+  end
+  ---------------------------------------------------------------------------------------------------------------------
+  function DATA:Action_ApplyFilter_SelectAll(bool)
+    if not (DATA.FX and DATA.FX.valid==true) then return end  
+    for i = 1,DATA.FX.cnt_params do 
+      if DATA.FX.params[i].match_filter == true then DATA:Filter_Change(i, bool)  end
+    end
+    DATA:Filter_Save() 
+    DATA:Action_PrintPluginState_UpdateFXData()
+  end
+  ---------------------------------------------------------------------------------------------------------------------
+  function UI.draw_filter() 
+    if not (DATA.FX and DATA.FX.valid==true) then return end 
+     
+    local FXname = DATA.FX.FXname
+    if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname] = {} end
+    
+    local colW = 150
+    if ImGui.BeginChild( ctx, '##filtersection', 0, 150, ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
+      
+      ImGui.Text(ctx,'Filter')
+      
+      local posx, posy = ImGui.GetCursorPos(ctx)
+      if ImGui.Button(ctx, 'Show all', colW) then 
+        for i = 1,DATA.FX.cnt_params do DATA.FX.params[i].match_filter =true end 
+        DATA:Filter_RefreshCountActive() 
+      end
+      if ImGui.Button(ctx, 'Select all', colW) then 
+        DATA:Action_ApplyFilter_SelectAll(true) 
+        DATA:Filter_RefreshCountActive() 
+      end
+      if ImGui.Button(ctx, 'Unselect all', colW) then 
+        DATA:Action_ApplyFilter_SelectAll(false) 
+        DATA:Filter_RefreshCountActive() 
+      end
+      
+      -- keywords
+      local retval, v = reaper.ImGui_Checkbox( ctx, '##keywords_use', (DATA.FX_filter[FXname].keywords_use or EXT.CONF_defaultkeywords_use)==1 ) if retval then 
+        local out = 0
+        if v == true then out = 1 end
+        DATA.FX_filter[FXname].keywords_use = out
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end 
+      ImGui.SameLine(ctx)
+      -- keywords string
+      local retval, buf = reaper.ImGui_InputText( ctx, ' keywords exist##filtertxt', (DATA.FX_filter[FXname].keywords or EXT.CONF_defaultkeywords), ImGui.InputTextFlags_None )
+      if retval then 
+        if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname]  = {} end
+        DATA.FX_filter[FXname].keywords = buf
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end
+      ImGui.SameLine(ctx)UI.HelpMarker('Parameter shown in list if its name contains one of the listed words.\n\nSpace separated,\ncase insensitive,\npunctuation ignored except "_" handled as space for multiword parameter names')
+
+      -- keywords exclude
+      local retval, v = reaper.ImGui_Checkbox( ctx, '##excludekeywords_use', (DATA.FX_filter[FXname].keywordsexclude_use or EXT.CONF_defaultkeywordsexclude_use)==1 ) if retval then 
+        local out = 0
+        if v == true then out = 1 end
+        DATA.FX_filter[FXname].keywordsexclude_use = out
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end 
+      ImGui.SameLine(ctx)
+      -- keywords string
+      local retval, buf = reaper.ImGui_InputText( ctx, ' keywords exclude##excludefiltertxt', (DATA.FX_filter[FXname].keywordsexclude or EXT.CONF_defaultkeywordsexclude), ImGui.InputTextFlags_None )
+      if retval then 
+        if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname]  = {} end
+        DATA.FX_filter[FXname].keywordsexclude = buf
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end
+      ImGui.SameLine(ctx)UI.HelpMarker('Parameter shown in list if its name NOT contains one of the listed words.\n\nSpace separated,\ncase insensitive,\npunctuation ignored except "_" handled as space for multiword parameter names')
+      
+      
+      -- empty / untitled / reserv
+      ImGui.SetCursorPos(ctx, posx + colW+UI.spacingX, posy)
+      local retval, v = reaper.ImGui_Checkbox( ctx, 'Pass untitled##untitled_pass', (DATA.FX_filter[FXname].untitled_pass or EXT.CONF_defaultuntitled_pass)==1 ) if retval then 
+        local out = 0
+        if v == true then out = 1 end
+        DATA.FX_filter[FXname].untitled_pass = out
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end 
+      ImGui.SameLine(ctx)UI.HelpMarker('Filter out empty parameter names, "reserv", "untitled", "resvd"')
+      -- strings
+      ImGui.SetCursorPosX(ctx, posx + colW+UI.spacingX)
+      local retval, v = reaper.ImGui_Checkbox( ctx, 'Pass strings##string_pass', (DATA.FX_filter[FXname].strings_pass or EXT.CONF_defaultstrings_pass)==1 ) if retval then 
+        local out = 0
+        if v == true then out = 1 end
+        DATA.FX_filter[FXname].strings_pass = out
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end 
+      ImGui.SameLine(ctx)UI.HelpMarker('Filter out parameters that contain more than 2 character string')      
+      -- CONF_defaulttoggle_pass
+      ImGui.SetCursorPosX(ctx, posx + colW+UI.spacingX)
+      local retval, v = reaper.ImGui_Checkbox( ctx, 'Pass toggle##toggle_pass', (DATA.FX_filter[FXname].toggle_pass or EXT.CONF_defaulttoggle_pass)==1 ) if retval then 
+        local out = 0
+        if v == true then out = 1 end
+        DATA.FX_filter[FXname].toggle_pass = out
+        DATA:Filter_Save()
+        DATA:Action_FilterParams()
+      end 
+      ImGui.SameLine(ctx)UI.HelpMarker('Filter out parameters that analyzed as toggle')        
+      
+      
+      ImGui.EndChild( ctx)
+    end
+  end
+  ---------------------------------------------------------------------------------------------------------------------
+  function DATA:Action_FilterParams()
+    if not (DATA.FX and DATA.FX.valid==true) then return end
+    DATA.FX.cnt_params_filtered = 0
+    local FXname = DATA.FX.FXname
+    
+    -- keywords
+    local parse_globalfilt = {}
+    local keywords_use = EXT.CONF_defaultkeywords_use
+    if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].keywords_use then keywords_use = DATA.FX_filter[FXname].keywords_use end
+    local keywords = ''
+    if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].keywords then keywords = DATA.FX_filter[FXname].keywords end
+    if keywords then 
+      for word in keywords:gmatch('[^%s]+') do parse_globalfilt[#parse_globalfilt+1] = word end 
+    end
+    if keywords == '' then keywords_use = 0 end -- ignore empty string
+    
+    
+    
+    -- keywordsexclude
+    local parse_globalfiltexclude = {}
+    local keywordsexclude_use = EXT.CONF_defaultkeywordsexclude_use
+    if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].keywordsexclude_use then keywordsexclude_use = DATA.FX_filter[FXname].keywordsexclude_use end
+    local keywordsexclude = ''
+    if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].keywordsexclude then keywordsexclude = DATA.FX_filter[FXname].keywordsexclude end
+    if keywordsexclude then 
+      for word in keywordsexclude:gmatch('[^%s]+') do parse_globalfiltexclude[#parse_globalfiltexclude+1] = word end 
+    end
+    if keywordsexclude == '' then keywordsexclude_use = 0 end -- ignore empty string
+    
+    for i = 1,DATA.FX.cnt_params do 
+      local match_filter = true 
+      local bufparam_check = DATA.FX.params[i].name
+      local formatparam_check = DATA.FX.params[i].formatparam
+      local istoggle = DATA.FX.params[i].istoggle
+      
+      
+      
+      
+      -- untitled
+      local untitled_pass = EXT.CONF_defaultuntitled_pass
+      if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].untitled_pass then untitled_pass = DATA.FX_filter[FXname].untitled_pass end
+      if untitled_pass == 0 and 
+          (
+            bufparam_check:gsub('_','') == '' 
+            or bufparam_check == ''
+            or bufparam_check:match('reserv')
+            or bufparam_check:match('untitled')
+            or bufparam_check:match('resvd')
+          )
+          then 
+        match_filter = false
+      end 
+      
+      -- strings_pass
+      local strings_pass = EXT.CONF_defaultstrings_pass
+      if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].strings_pass then strings_pass = DATA.FX_filter[FXname].strings_pass end
+      if strings_pass == 0 and 
+          (
+            formatparam_check:match('%a%a%a')~=nil
+          )
+          then 
+        match_filter = false
+      end 
+
+      -- strings_pass
+      local toggle_pass = EXT.CONF_defaulttoggle_pass
+      if DATA.FX_filter and DATA.FX_filter[FXname] and DATA.FX_filter[FXname].toggle_pass then toggle_pass = DATA.FX_filter[FXname].toggle_pass end
+      if toggle_pass == 0 and 
+          (
+            istoggle == true
+          )
+          then 
+        match_filter = false
+      end 
+      
+      
+      if keywords_use==1 then 
+        match_filter = false
+        for word = 1, #parse_globalfilt do
+          local excludefilt = parse_globalfilt[word]:lower()
+          excludefilt = excludefilt:gsub('_', ' ')
+          if bufparam_check:lower():match(excludefilt) then 
+            match_filter = true 
+            break
+          end
+        end 
+      end
+      
+      if keywordsexclude_use==1 then 
+        for word = 1, #parse_globalfiltexclude do
+          local excludefilt = parse_globalfiltexclude[word]:lower()
+          excludefilt = excludefilt:gsub('_', ' ')
+          if bufparam_check:lower():match(excludefilt) then 
+            match_filter = false 
+            break
+          end
+        end  
+      end
+      
+      
+      DATA.FX.params[i].match_filter = match_filter
+      if match_filter ~= true then  DATA.FX.cnt_params_filtered = DATA.FX.cnt_params_filtered  + 1 end
+    end
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.HelpMarker(desc)
+    ImGui.TextDisabled(ctx, '(?)')
+    if ImGui.BeginItemTooltip(ctx) then
+      ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+      ImGui.Text(ctx, desc)
+      ImGui.PopTextWrapPos(ctx)
+      ImGui.EndTooltip(ctx)
+    end
+  end
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_encBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+      return ((data:gsub('.', function(x) 
+          local r,b='',x:byte()
+          for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+          return r;
+      end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+          if (#x < 6) then return '' end
+          local c=0
+          for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+          return b:sub(c+1,c+1)
+      end)..({ '', '==', '=' })[#data%3+1])
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_decBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+      data = string.gsub(data, '[^'..b..'=]', '')
+      return (data:gsub('.', function(x)
+          if (x == '=') then return '' end
+          local r,f='',(b:find(x)-1)
+          for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+          return r;
+      end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+          if (#x ~= 8) then return '' end
+          local c=0
+          for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+              return string.char(c)
+      end))
+  end
+-----------------------------------------------------------------------------------------    -- http://lua-users.org/wiki/SaveTableToFile
+function table.exportstring( s ) return string.format("%q", s) end
+
+--// The Save Function
+function table.savestring(  tbl )
+local outstr = ''
+  local charS,charE = "   ","\n"
+
+  -- initiate variables for save procedure
+  local tables,lookup = { tbl },{ [tbl] = 1 }
+  outstr = outstr..'\n'..( "return {"..charE )
+
+  for idx,t in ipairs( tables ) do
+     outstr = outstr..'\n'..( "-- Table: {"..idx.."}"..charE )
+     outstr = outstr..'\n'..( "{"..charE )
+     local thandled = {}
+
+     for i,v in ipairs( t ) do
+        thandled[i] = true
+        local stype = type( v )
+        -- only handle value
+        if stype == "table" then
+           if not lookup[v] then
+              table.insert( tables, v )
+              lookup[v] = #tables
+           end
+           outstr = outstr..'\n'..( charS.."{"..lookup[v].."},"..charE )
+        elseif stype == "string" then
+           outstr = outstr..'\n'..(  charS..table.exportstring( v )..","..charE )
+        elseif stype == "number" then
+           outstr = outstr..'\n'..(  charS..tostring( v )..","..charE )
+        end
+     end
+
+     for i,v in pairs( t ) do
+        -- escape handled values
+        if (not thandled[i]) then
+        
+           local str = ""
+           local stype = type( i )
+           -- handle index
+           if stype == "table" then
+              if not lookup[i] then
+                 table.insert( tables,i )
+                 lookup[i] = #tables
+              end
+              str = charS.."[{"..lookup[i].."}]="
+           elseif stype == "string" then
+              str = charS.."["..table.exportstring( i ).."]="
+           elseif stype == "number" then
+              str = charS.."["..tostring( i ).."]="
+           end
+        
+           if str ~= "" then
+              stype = type( v )
+              -- handle value
+              if stype == "table" then
+                 if not lookup[v] then
+                    table.insert( tables,v )
+                    lookup[v] = #tables
+                 end
+                 outstr = outstr..'\n'..( str.."{"..lookup[v].."},"..charE )
+              elseif stype == "string" then
+                 outstr = outstr..'\n'..( str..table.exportstring( v )..","..charE )
+              elseif stype == "number" then
+                 outstr = outstr..'\n'..( str..tostring( v )..","..charE )
+              end
+           end
+        end
+     end
+     outstr = outstr..'\n'..( "},"..charE )
+  end
+  outstr = outstr..'\n'..( "}" )
+  return outstr
+end
+
+--// The Load Function
+function table.loadstring( str )
+if str == '' then return end
+  local ftables,err = load( str )
+  if err then return _,err end
+  local tables = ftables()
+  for idx = 1,#tables do
+     local tolinki = {}
+     for i,v in pairs( tables[idx] ) do
+        if type( v ) == "table" then
+           tables[idx][i] = tables[v[1]]
+        end
+        if type( i ) == "table" and tables[i[1]] then
+           table.insert( tolinki,{ i,tables[i[1]] } )
+        end
+     end
+     -- link indices
+     for _,v in ipairs( tolinki ) do
+        tables[idx][v[2]],tables[idx][v[1]] =  tables[idx][v[1]],nil
+     end
+  end
+  return tables[1]
+end  
+  ----------------------------------------------------------------------------------------- 
+  function DATA:Filter_Load()
+    DATA.FX_filter = table.loadstring(VF_decBase64(EXT.CONF_pluginfilter_b64)) or {} 
     
   end
   ----------------------------------------------------------------------------------------- 
+  function DATA:Filter_RefreshCountActive()
+    DATA.FX.cnt_params_active = DATA.FX.cnt_params
+    if (DATA.FX and DATA.FX.valid== true) then
+      local FXname = DATA.FX.FXname
+      if DATA.FX_filter[FXname] then
+        for pid in pairs(DATA.FX_filter[FXname]) do
+          if tonumber(pid) then
+            DATA.FX.cnt_params_active = DATA.FX.cnt_params_active - 1
+          end
+        end
+      end
+    end
+  end
+  ----------------------------------------------------------------------------------------- 
+  function DATA:Filter_Save()
+    EXT.CONF_pluginfilter_b64 = VF_encBase64(table.savestring(DATA.FX_filter))
+    EXT:save() 
+  end
+  ----------------------------------------------------------------------------------------- 
   function main() 
-    EXTdefaults = CopyTable(EXT)
-    UI.MAIN_definecontext() 
-    DATA:GetFocusedFXData()
-    DATA:GetFocusedFXData_Filter()
+    UI.MAIN_definecontext()  -- ext:load 
+    DATA:Collectata_GetFocusedFXData() 
+    DATA:Action_PrintPluginState_PrintParameters(1)
+    DATA:Action_FilterParams()
+    DATA:Filter_RefreshCountActive()
   end  
+  ---------------------------------------------------
+  function VF_GetFXByGUID(GUID, tr, proj)
+    if not GUID then return end
+    local pat = '[%p]+'
+    if not tr then
+      for trid = 1, CountTracks(proj or 0) do
+        local tr = GetTrack(proj,trid-1)
+        local fxcnt_main = TrackFX_GetCount( tr ) 
+        local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
+        for fx = 1, fxcnt do
+          local fx_dest = fx
+          if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
+          if TrackFX_GetFXGUID( tr, fx-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx-1 end 
+        end
+      end  
+     else
+      if not (ValidatePtr2(proj or 0, tr, 'MediaTrack*')) then return end
+      local fxcnt_main = TrackFX_GetCount( tr ) 
+      local fxcnt = fxcnt_main + TrackFX_GetRecCount( tr ) 
+      for fx = 1, fxcnt do
+        local fx_dest = fx
+        if fx > fxcnt_main then fx_dest = 0x1000000 + fx - fxcnt_main end  
+        if TrackFX_GetFXGUID( tr, fx_dest-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_dest-1 end 
+      end
+    end    
+  end
   ---------------------------------------------------
   function VF_ReduceFXname(s)
     local s_out = s:match('[%:%/%s]+(.*)')
@@ -458,8 +921,142 @@ UI.main_buth = 60
     end
   end
   --------------------------------------------------------------------  
-  function DATA:GetFocusedFXData() -- also update to current params
-    DATA.FX = {params = {}}
+  function DATA:CollectData() 
+    if not (DATA.FX and DATA.FX.valid == true) then 
+      DATA:Collectata_GetFocusedFXData() 
+    end
+  end
+  
+  ---------------------------------------------------------------------  
+  function DATA:Action_Morph()
+    DATA:Collectata_ValidFocusedFXData()
+    if not (DATA.FX and DATA.FX.valid == true) then return end
+    if DATA.currentsnapshot == 0 then 
+      DATA.sourcesnapshot = 0
+      DATA.currentsnapshot = 1
+     elseif DATA.currentsnapshot == 1 then 
+      DATA.sourcesnapshot = 1
+      DATA.currentsnapshot = 2
+     elseif DATA.currentsnapshot == 2 then 
+      DATA.sourcesnapshot = 2
+      DATA.currentsnapshot = 1      
+    end
+    
+    DATA:Action_Morph_GenerateRandomSnapshot() 
+    local srcstr = 'value_morph'
+    local srcid = DATA.sourcesnapshot
+    local deststr = 'value_morph'
+    local destid = DATA.currentsnapshot
+    
+    
+    if DATA.sourcesnapshot == 0  then
+      srcstr = 'value_print'
+      srcid = 1
+    end
+    
+    
+    DATA.srcstr, DATA.srcid, DATA.deststr, DATA.destid = srcstr, srcid, deststr, destid
+    
+    DATA:Action_Morph_SetParameters() 
+  end
+  ----------------------------------------------------------------------  
+  function DATA:Action_Morph_SetParameters(ignore_morph, useval2) 
+    
+    local srcstr, srcid, deststr, destid = DATA.srcstr, DATA.srcid, DATA.deststr, DATA.destid
+    
+    if not (DATA.FX.cnt_params and DATA.FX.params) then return end 
+    if EXT.CONF_smooth > 0 and not ignore_morph == true then
+    
+      if DATA.morphstate == 0 then
+        DATA.morphstate_TS = os.clock()
+        DATA.morphstate = 1
+        return
+      end
+      
+      if DATA.morphstate == 1 then
+        DATA.morph_value = (os.clock() - DATA.morphstate_TS) / EXT.CONF_smooth
+        DATA.morph_value = VF_lim(DATA.morph_value)
+        if DATA.morph_value == 1 then DATA.morphstate = 0 end
+      end      
+    end
+    
+    if not (EXT.CONF_smooth ==0 or ignore_morph == true or (EXT.CONF_smooth > 0  and DATA.morphstate == 1)) then return end
+    
+    for paramid = 1, DATA.FX.cnt_params do  
+      if DATA.FX.params[paramid].ignore == true then goto nextparam end
+      if DATA.FX.params[paramid].active ~= true then goto nextparam end
+      if not (DATA.FX.params[paramid] and DATA.FX.params[paramid][srcstr] and DATA.FX.params[paramid][srcstr][srcid]) then return end
+      local init_value = DATA.FX.params[paramid][srcstr][srcid]
+      local dest_value = DATA.FX.params[paramid][deststr][destid]
+      local out_val = init_value + ((dest_value - init_value) * (DATA.morph_value or 1)) 
+      if useval2 then out_val = init_value + ((dest_value - init_value) * (DATA.morph_value2 or 1)) end
+      _G[DATA.FX.func_str..'SetParamNormalized'](DATA.FX.ptr, DATA.FX.fxnum, paramid-1, out_val)
+      
+      ::nextparam::
+    end 
+  end
+  ---------------------------------------------------------------------  
+  function DATA:Action_Morph_GenerateRandomSnapshot()
+    local snapshot_id = DATA.currentsnapshot
+    if not (DATA.FX.cnt_params and DATA.FX.params) then return end
+    for paramid = 1, DATA.FX.cnt_params do
+      if  DATA.FX.params[paramid].ignore == true then goto nextparam end
+      if  DATA.FX.params[paramid].active ~= true then goto nextparam end
+        
+      local outv = 1
+      if DATA.FX.params[paramid].istoggle == false then
+        --outv = DATA.FX.params[paramid].minval + math.random() * (DATA.FX.params[paramid].maxval-DATA.FX.params[paramid].minval)
+        outv = math.random()
+       else
+        local out = math.random()
+        outv = 1
+        if out<0.5 then outv = 0 end
+      end 
+      if not DATA.FX.params[paramid].value_morph then DATA.FX.params[paramid].value_morph = {} end
+      if not DATA.FX.params[paramid].value_morph[snapshot_id] then DATA.FX.params[paramid].value_morph[snapshot_id] = {} end
+      DATA.FX.params[paramid].value_morph[snapshot_id]= outv 
+      ::nextparam::
+    end
+  end
+  --------------------------------------------------------------------  
+  function DATA:Collectata_ValidFocusedFXData()
+    
+    local retval, trackidx, itemidx, takeidx, fxnum, parm = reaper.GetTouchedOrFocusedFX( 1 )
+    if not retval then DATA.FX.valid = false return end
+    local tr = GetTrack(-1, trackidx)
+    if trackidx == -1 then tr = GetMasterTrack(-1) end
+    local it = GetMediaItem( -1, itemidx ) 
+    local func_str = 'TrackFX_'
+    local ptr = tr 
+    local ret, trname = GetTrackName(tr)
+    local fx_GUID = _G[func_str..'GetFXGUID'](ptr, fxnum&0xFFFF)    
+    if DATA.FX.fx_GUID and DATA.FX.fx_GUID == fx_GUID then return true else DATA.FX.valid = false return end
+    
+  end
+  --------------------------------------------------------------------  
+  function DATA:Action_PrintPluginState(stateID)
+    DATA:Collectata_ValidFocusedFXData()
+    if not (DATA.FX and DATA.FX.valid== true)  then DATA:Collectata_GetFocusedFXData() end
+    DATA:Action_PrintPluginState_PrintParameters(stateID)
+  end
+  --------------------------------------------------------------------  
+  function DATA:Action_PrintPluginState_UpdateFXData() 
+    if not (DATA.FX and DATA.FX.FXname) then return end 
+    if not (DATA.FX_filter) then return end 
+    local buf = DATA.FX.FXname
+          
+    for i = 1, #DATA.FX.params do 
+      if DATA.FX.params[i].ignore ~= true then 
+        local active = true
+        if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i] == 0 then active = false end
+        DATA.FX.params[i].active = active
+      end
+    end
+  end
+  --------------------------------------------------------------------  
+  function DATA:Collectata_GetFocusedFXData() -- also update to current params
+    
+    DATA:Filter_Load() -- load ext state of filter per plugin 
     
     -- get main stuff
     local retval, trackidx, itemidx, takeidx, fxnum, parm = reaper.GetTouchedOrFocusedFX( 1 )
@@ -469,13 +1066,6 @@ UI.main_buth = 60
     
     local it = GetMediaItem( -1, itemidx ) 
     local func_str = 'TrackFX_'
-    --[[if it then 
-      local takeidx = (fxnum>>16)&0xFFFF 
-      ptr = GetTake( it, takeidx ) 
-      func_str = 'TakeFX_'
-     else
-      ptr = tr  
-    end]]
     local ptr = tr 
     
     local ret, trname = GetTrackName(tr)
@@ -490,171 +1080,55 @@ UI.main_buth = 60
     DATA.FX.ptr = ptr
     DATA.FX.fx_GUID = fx_GUID
     DATA.FX.FXname_short = VF_ReduceFXname(buf)
+    DATA.FX.fxnum = fxnum
+    DATA.FX.FXname = buf
     DATA.FX.trname = trname
     DATA.FX.params = {}
     DATA.FX.fxnum = fxnum&0xFFFF
     
     
-    DATA.FX.UI_name = trname..' | '..DATA.FX.FXname_short..' | '..cnt_params..' parameters, '..DATA.FX.cnt_params_filtered..' filtered'
-    
-    for i = 1, cnt_params do
-      local value = _G[func_str..'GetParamNormalized'](ptr, fxnum, i-1) 
-      local retval, bufparam = _G[func_str..'GetParamName'](ptr, fxnum, i-1) 
-      local retval, formatparam = _G[func_str..'GetFormattedParamValue'](ptr, fxnum, i-1) 
-      local retval, step, smallstep, largestep, istoggle = _G[func_str..'GetParameterStepSizes'](ptr, fxnum, i-1) 
-       
-      local bufparam_check = bufparam:lower():gsub('%s+','_')
-      
-      DATA.FX.params[i] =
-      { value = value,
-        name=bufparam,
-        formatparam=formatparam,
-        istoggle=istoggle,
-        bufparam_check=bufparam_check
-      }
-    end 
-  end
-  -------------------------------------------------------------------- 
-  function DATA:GetFocusedFXData_Filter_Strings(formatparam)
-    if EXT.CONF_filter_formatstrings == 1 and formatparam:match('[%d%.]+')==nil then return true end
-  end
-  -------------------------------------------------------------------- 
-  function DATA:GetFocusedFXData_Filter()
-    if not DATA.FX.func_str then return end
     local param_bypass = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':bypass' )
     local param_wet = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':wet' )
     local param_delta = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':delta' )  
-    DATA.FX.cnt_params_filtered = 0
     
-    -- custom keywords
-    local parse_globalfilt = {}
-    for key = 1, DATA.Keywords_num do
-      parse_globalfilt[key] = {}
-      if EXT['CONF_filter_Keywords'..key..'str'] ~= '' then for word in EXT['CONF_filter_Keywords'..key..'str']:gmatch('[^%s]+') do parse_globalfilt[key][#parse_globalfilt[key]+1] = word end  end
-    end
-    
-    
-    local haspass for key = 1, DATA.Keywords_num do if EXT['CONF_filter_Keywords'..key] == 1 then  haspass = true break end end
-    local hasfilt for key = 1, DATA.Keywords_num do if EXT['CONF_filter_Keywords'..key] == 2 then  hasfilt = true break end end
-    
-    -- loop through params
-    for i = 1 , #DATA.FX.params do
-      local bufparam_check = DATA.FX.params[i].bufparam_check
-      local pass_temp1 = DATA:GetFocusedFXData_Filter_System(i-1,param_bypass,param_wet,param_delta)
-      local pass_temp2 = DATA:GetFocusedFXData_Filter_Untitled(bufparam_check)
-      local pass_temp3 = DATA:GetFocusedFXData_Filter_Strings(DATA.FX.params[i].formatparam) 
-      DATA.FX.params[i].ignore =(pass_temp1 or pass_temp2 or pass_temp3)
-    end
-
-    -- pass filter
-    if haspass == true then 
-      for i = 1 , #DATA.FX.params do
-        if DATA.FX.params[i].ignore == true then goto nextparam end 
-        local bufparam_check = DATA.FX.params[i].bufparam_check
-        local set_ignore
-        for key = 1, DATA.Keywords_num do
-          local val = EXT['CONF_filter_Keywords'..key]
-          if val == 1 then
-            local ret = DATA:GetFocusedFXData_Filter_CustomKeyWords(bufparam_check, parse_globalfilt, key)
-            if ret==true then set_ignore = true end
-          end
-        end 
-        if set_ignore ~= true then DATA.FX.params[i].ignore = true end
-        ::nextparam::
-      end
-    end
-
-    -- filter out kwords 
-    if hasfilt == true then 
-      for i = 1 , #DATA.FX.params do
-        if DATA.FX.params[i].ignore == true then goto nextparam end 
-        local bufparam_check = DATA.FX.params[i].bufparam_check
-        for key = 1, DATA.Keywords_num do
-          local val = EXT['CONF_filter_Keywords'..key]
-          if val == 2 then
-            local ret = DATA:GetFocusedFXData_Filter_CustomKeyWords(bufparam_check, parse_globalfilt, key)
-            if ret==true then DATA.FX.params[i].ignore = true end
-          end
-        end 
-        ::nextparam::
-      end
-    end
-    
-    -- count
-    for i = 1 , #DATA.FX.params do 
-      if DATA.FX.params[i].ignore == true then  DATA.FX.cnt_params_filtered = DATA.FX.cnt_params_filtered  + 1 end
-    end
-    
-    DATA.FX.UI_name = DATA.FX.trname..' | '..DATA.FX.FXname_short..' | '..DATA.FX.cnt_params..' parameters, '..DATA.FX.cnt_params_filtered..' filtered'
-  end
-  --------------------------------------------------------------------  
-  function DATA:GetFocusedFXData_Filter_System(i,param_bypass,param_wet,param_delta)
-    if EXT.CONF_filter_system == 1 and (i==param_bypass or  i==param_wet or i==param_delta ) then return true end
-  end
-  -------------------------------------------------------------------- 
-  function DATA:GetFocusedFXData_Filter_CustomKeyWords(bufparam_check, parse_globalfilt, key)
-    for word = 1, #parse_globalfilt[key] do
-      local excludefilt = parse_globalfilt[key][word]:lower()
-      excludefilt = excludefilt:gsub('_', ' ')
-      if bufparam_check:lower():match(excludefilt) then return true end
-    end 
-  end
-  --------------------------------------------------------------------  
-  function DATA:GetFocusedFXData_Filter_Untitled(bufparam)
-    if EXT.CONF_filter_untitledparams == 1 and 
-      (
-        bufparam:gsub('_','') == '' 
-        or bufparam == ''
-        or bufparam:match('reserv')
-        or bufparam:match('untitled')
-      )
-      then 
-      return true
-    end
-  end 
-  ------------------------------------------------------------------------------------------------------
-  function VF_lim(val, min,max) --local min,max 
-    if not min or not max then min, max = 0,1 end 
-    return math.max(min,  math.min(val, max) ) 
-  end
-  ----------------------------------------------------------------------  
-  function DATA:SetParameters(ignore_morph)
-    if not (DATA.FX.cnt_params and DATA.FX.params) then return end
-    
-    if EXT.CONF_smooth > 0 and not ignore_morph == true then
-      if DATA.morphstate == 0 then
-        DATA.morphstate_TS = os.clock()
-        DATA.morphstate = 1
-        return
-      end
+    for i = 1, cnt_params do
+      local valuenorm, minval, maxval = _G[func_str..'GetParam'](ptr, fxnum, i-1) 
+      local value = _G[func_str..'GetParamNormalized'](ptr, fxnum, i-1) 
       
-      if DATA.morphstate == 1 then
-        DATA.morph_value = (os.clock() - DATA.morphstate_TS) / EXT.CONF_smooth
-        DATA.morph_value = VF_lim(DATA.morph_value)
-        if DATA.morph_value == 1 then DATA.morphstate = 0 end
-      end      
-    end
-    
-    for paramid = 1, DATA.FX.cnt_params do  
-      if DATA.FX.params[paramid].ignore == true then goto nextparam end
-      if not DATA.FX.params[paramid].value_morph then goto nextparam end 
-      if EXT.CONF_smooth ==0 or 
-        ignore_morph == true or
-        (EXT.CONF_smooth > 0 and DATA.morph_value and DATA.morphstate == 1) then 
-        local out_val = DATA.FX.params[paramid].value - (DATA.FX.params[paramid].value - DATA.FX.params[paramid].value_morph ) * (DATA.morph_value or 1)
-        _G[DATA.FX.func_str..'SetParamNormalized'](DATA.FX.ptr, DATA.FX.fxnum, paramid-1, out_val) 
-      end
-      ::nextparam::
+      local retval, bufparam = _G[func_str..'GetParamName'](ptr, fxnum, i-1) 
+      local retval, formatparam = _G[func_str..'GetFormattedParamValue'](ptr, fxnum, i-1) 
+      local retval, step, smallstep, largestep, istoggle = _G[func_str..'GetParameterStepSizes'](ptr, fxnum, i-1) 
+      
+      local system =  (param_bypass == i-1 or param_wet == i-1 or param_delta == i-1)
+      local active = true 
+      
+      if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i] == 0 then active = false end
+      if system == true then active = false end
+      DATA.FX.params[i] =
+        { value_init = value,
+          minval = minval,
+          maxval = maxval,
+          name=bufparam,
+          formatparam=formatparam,
+          istoggle=istoggle,
+          ignore =system,
+          active = active,
+          match_filter = true,
+        }
     end 
-  end 
-  ---------------------------------------------------------------------  
-  function DATA:GenerateRandomSnapshot()
-    if not (DATA.FX.cnt_params and DATA.FX.params) then return end
-    for paramid = 1, DATA.FX.cnt_params do
-      if  DATA.FX.params[paramid].ignore ~= true then
-        DATA.FX.params[paramid].value_morph = math.random()
-      end
-    end
-  end 
-  -----------------------------------------------------------------------------------------
-  main()
+    
+    DATA.FX.valid= true
+  end  
+  --------------------------------------------------------------------    
+  function DATA:Action_PrintPluginState_PrintParameters(stateID0)
+    if not (DATA.FX and DATA.FX.valid==true) then return end
+    local stateID = stateID0 or 1
+    for i = 1, DATA.FX.cnt_params do
+      local value = _G[DATA.FX.func_str..'GetParamNormalized'](DATA.FX.ptr, DATA.FX.fxnum, i-1) 
+      if not DATA.FX.params[i].value_print then DATA.FX.params[i].value_print = {} end
+      DATA.FX.params[i].value_print[stateID] = value
+    end 
+    
+  end
+  ------------------------------------------------------------------  
+  main()  
