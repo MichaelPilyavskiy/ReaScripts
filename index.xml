@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="56654f9c4fbffce29b533f00be510fb3114c1182" name="MPL Scripts">
+<index version="1" commit="16919ab37269a1291ba7cf21e1e2a4c09163f984" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2484,6 +2484,20 @@
       <version name="3.01" author="MPL" time="2025-01-07T16:56:54Z">
         <changelog><![CDATA[# small tweaks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/39b49c1d36b4023fa9a75ddbce7e12acea9a19a6/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+      </version>
+      <version name="3.50" author="MPL" time="2025-03-18T19:41:21Z">
+        <changelog><![CDATA[- remove all the old filtering stuff
++ Filter: Add new filtering system
++ Filter: Store filter parameters per plugin
++ Filter: allow filter toggle
++ Parameters: show list
++ Parameters: Always block system parameters
++ Actions: make sure the plugin is still valid when printing/morphing
++ Actions/Print: allow two printing plugin states
++ Actions/Print: allow morph between two printing plugin states (this will be probably extended in future)
++ Actions/Morph: separate two morphing states internally
++ Actions/Morph: autoswitch 2 morhing states]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/16919ab37269a1291ba7cf21e1e2a4c09163f984/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove MIDI learn from focused FX.lua" type="script" desc="Remove MIDI learn from focused FX">
