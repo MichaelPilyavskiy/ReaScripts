@@ -1,4 +1,4 @@
--- @description Syncronize edit cursor beetween parent and subproject
+-- @description Syncronize edit cursor beetween parent and subproject (background)
 -- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -35,7 +35,7 @@ function applyoffsettoparentproj(mainproj, subprojfp, local_editcur)
       end
       if typebuf == 'RPP_PROJECT' then
         filenamebuf = reaper.GetMediaSourceFileName( source )
-        if filenamebuf:gsub('%p+','') == subprojfp:gsub('%p+','')  then
+        if filenamebuf:gsub('%p+','') == subprojfp:gsub('%p+',''):gsub('PROX','')  then
           D_POSITION = GetMediaItemInfo_Value( item, 'D_POSITION' )
           D_STARTOFFS = reaper.GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
           srclen = reaper.GetMediaSourceLength( source )
@@ -55,14 +55,21 @@ function onchangetab(previous_proj, current_project)
   local prname = reaper.GetProjectName( previous_proj )
   local prpath = reaper.GetProjectPathEx( previous_proj )
   local fp = prpath..'/'..prname
-  if file_exists(fp..'-PROX') then is_previous_subproj = true end 
+  
+  local test1 = fp..'-PROX'
+  local test2 = fp:gsub('Audio[%\\%/]','')..'-PROX'
+  local valid_fp
+  if file_exists(test1) then valid_fp = test1 end
+  if file_exists(test2) then valid_fp = test2 end
+  
+  if valid_fp then is_previous_subproj = true end 
   
   
   -- if previous tab was subproject
     if is_previous_subproj == true then 
       local_editcur = getsubprojlocaleditcursor(previous_proj)
       if not local_editcur then return end
-      applyoffsettoparentproj(current_project, fp, local_editcur)
+      applyoffsettoparentproj(current_project, valid_fp, local_editcur) 
       return
     end
   
