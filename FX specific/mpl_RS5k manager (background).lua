@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.13
+-- @version 4.14
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,10 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix adding RS5k at the beginning of chain
---    # always show parent track in the tab header (ReaImGui limitation, sorry)
+--    + Settings / Macro actions: add action to fix GUID of parent track after import
 
 
-rs5kman_vrs = '4.13'
+rs5kman_vrs = '4.14'
 
 
 -- TODO
@@ -119,6 +118,8 @@ rs5kman_vrs = '4.13'
           CONF_database_map6 = '',
           CONF_database_map7 = '',
           CONF_database_map8 = '',
+          
+          CONF_lastmacroaction = 0,
           
          }
         
@@ -1571,7 +1572,7 @@ end
           end
         end
       end 
-      
+       
     -- init ext data
       DATA.parent_track.ext = {
           PARENT_DRRACKSHIFT = 36,
@@ -1595,13 +1596,15 @@ end
       end
     
     -- v4
-      local ret, DRRACKSHIFT = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_DRRACKSHIFT', 0, false)          if ret then DATA.parent_track.ext.PARENT_DRRACKSHIFT = tonumber(DRRACKSHIFT) end
-      local ret, MACROCNT = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACROCNT', 0, false)               if ret then DATA.parent_track.ext.PARENT_MACROCNT = tonumber(MACROCNT) end
-      local ret, LASTACTIVENOTE = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_LASTACTIVENOTE', 0, false)   if ret then DATA.parent_track.ext.PARENT_LASTACTIVENOTE = tonumber(LASTACTIVENOTE) end
+      
+      local ret, GUIDINTERNAL = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', '', false)         if ret then DATA.parent_track.ext.PARENT_GUID_INTERNAL = GUIDINTERNAL end
+      local ret, DRRACKSHIFT = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_DRRACKSHIFT', 0, false)            if ret then DATA.parent_track.ext.PARENT_DRRACKSHIFT = tonumber(DRRACKSHIFT) end
+      local ret, MACROCNT = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACROCNT', 0, false)                  if ret then DATA.parent_track.ext.PARENT_MACROCNT = tonumber(MACROCNT) end
+      local ret, LASTACTIVENOTE = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_LASTACTIVENOTE', 0, false)      if ret then DATA.parent_track.ext.PARENT_LASTACTIVENOTE = tonumber(LASTACTIVENOTE) end
       local ret, LASTACTIVENOTE_LAYER = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_LASTACTIVENOTE_LAYER', 0, false)  if ret then DATA.parent_track.ext.PARENT_LASTACTIVENOTE_LAYER = tonumber(LASTACTIVENOTE_LAYER ) end
-      local ret, LASTACTIVEMACRO = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_LASTACTIVEMACRO', 0, false)  if ret then DATA.parent_track.ext.PARENT_LASTACTIVEMACRO = tonumber(LASTACTIVEMACRO ) end
-      local ret, MIDIFLAGS = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MIDIFLAGS', 0, false)               if ret then DATA.parent_track.ext.PARENT_MIDIFLAGS = tonumber(MIDIFLAGS) end
-      local ret, MACRO_GUID = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false)             if ret then DATA.parent_track.ext.PARENT_MACRO_GUID = MACRO_GUID end
+      local ret, LASTACTIVEMACRO = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_LASTACTIVEMACRO', 0, false)    if ret then DATA.parent_track.ext.PARENT_LASTACTIVEMACRO = tonumber(LASTACTIVEMACRO ) end
+      local ret, MIDIFLAGS = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MIDIFLAGS', 0, false)                if ret then DATA.parent_track.ext.PARENT_MIDIFLAGS = tonumber(MIDIFLAGS) end
+      local ret, MACRO_GUID = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false)              if ret then DATA.parent_track.ext.PARENT_MACRO_GUID = MACRO_GUID end
       local ret, MACROEXT_B64 = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACROEXT_B64', 0, false)
        if ret then 
         DATA.parent_track.ext.PARENT_MACROEXT_B64 = MACROEXT_B64      
@@ -1620,8 +1623,9 @@ end
   end
   ---------------------------------------------------------------------
   function DATA:CollectData_IsChildOwnedByParent(track)  
-    local ret, parGUID = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', '', false)
+    local ret, parGUID = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', '', false) 
     if DATA.parent_track.trGUID and parGUID == DATA.parent_track.trGUID then ret = true else ret = false end 
+    
     return ret, parGUID
   end
   --------------------------------------------------------------------- 
@@ -2143,9 +2147,16 @@ end
   function DATA:WriteData_Parent() 
     if not (DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.valid == true) then return end
     GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_VERSION', DATA.version, true)
-      
+    
+    -- v4.14+
+    if DATA.parent_track.trGUID  then  
+      local ret, GUIDINTERNAL = GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', '', false) 
+      if not ret then GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', DATA.parent_track.trGUID, true) end
+    end
+    
     -- v4 separate stuff from chunk
     if DATA.parent_track.ext then 
+      
       if DATA.parent_track.ext.PARENT_DRRACKSHIFT  then GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_DRRACKSHIFT', DATA.parent_track.ext.PARENT_DRRACKSHIFT or '', true) end
       if DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_LASTACTIVENOTE', DATA.parent_track.ext.PARENT_LASTACTIVENOTE or '', true) end
       if DATA.parent_track.ext.PARENT_LASTACTIVENOTE_LAYER  then GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_LASTACTIVENOTE_LAYER', DATA.parent_track.ext.PARENT_LASTACTIVENOTE_LAYER or '', true) end
@@ -2197,6 +2208,12 @@ end
   function DATA:WriteData_Child(tr, t) 
     if not ValidatePtr2(DATA.proj,tr,'MediaTrack*') then return end
     GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_VERSION', DATA.version, true)
+    
+    -- v4.14+
+    if DATA.parent_track.trGUID  then  
+      local ret, GUIDINTERNAL = GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', '', false) 
+      if not ret then GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', DATA.parent_track.trGUID, true) end
+    end
     
     -- meta FX
       if t.MACRO_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_MACRO_GUID', t.MACRO_GUID, true) end
@@ -2892,12 +2909,47 @@ end
       ImGui.SameLine(ctx)
       UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
       
-      -- clear choke
-      if ImGui.Button(ctx, 'Clear ALL rack choke setup') then 
-        for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
-        Undo_BeginBlock2(DATA.proj )
-        DATA:WriteData_UpdateChoke()
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF )  
+      
+      
+      
+      -- macro
+      local fixavailable = ''
+      local available_extGUID = not (DATA.parent_track and DATA.parent_track.valid == true and DATA.parent_track.ext.PARENT_GUID_INTERNAL)
+      if available_extGUID == true then fixavailable = '[not available] ' end
+      ImGui.Text(ctx, 'Macro actions')
+      local t = {
+        [0] = 'Clear ALL rack choke setup',
+        [1] = fixavailable..'Fix GUID of parent track',
+      }
+      local preview_value = t[EXT.CONF_lastmacroaction]
+      if ImGui.BeginCombo( ctx, '##macroact', preview_value, reaper.ImGui_ComboFlags_None() ) then
+        if ImGui.Selectable( ctx, t[0], EXT.CONF_lastmacroaction==0, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then EXT.CONF_lastmacroaction=0 EXT:save() end
+        
+        if available_extGUID ~= true then ImGui.BeginDisabled(ctx, true) end
+        if ImGui.Selectable( ctx, t[1], EXT.CONF_lastmacroaction==1, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then EXT.CONF_lastmacroaction=1 EXT:save() end ImGui.SameLine(ctx) UI.HelpMarker('Use this if rack doesn`t handled by RS5k manager after import template')
+        if available_extGUID ~= true then ImGui.EndDisabled(ctx) end
+        
+        ImGui.EndCombo( ctx)
+      end
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, 'RUN') then 
+        
+        --Clear ALL rack choke setup
+        if EXT.CONF_lastmacroaction == 0 and DATA.MIDIbus and DATA.MIDIbus.CHOKE_flags then 
+          for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
+          Undo_BeginBlock2(DATA.proj )
+          DATA:WriteData_UpdateChoke()
+          Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF ) 
+        end
+        
+        --Fix GUID of parent track
+        if EXT.CONF_lastmacroaction == 1 then 
+          GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'GUID', DATA.parent_track.ext.PARENT_GUID_INTERNAL, true )
+          DATA.upd = true
+        end
+        
+        
+        
       end
       
       
