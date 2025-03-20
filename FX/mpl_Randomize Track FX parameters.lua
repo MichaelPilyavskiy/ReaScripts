@@ -1,24 +1,14 @@
 -- @description Randomize Track FX parameters
--- @version 3.50
+-- @version 3.51
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    - remove all the old filtering stuff
---    + Filter: Add new filtering system
---    + Filter: Store filter parameters per plugin
---    + Filter: allow filter toggle
---    + Parameters: show list
---    + Parameters: Always block system parameters
---    + Actions: make sure the plugin is still valid when printing/morphing
---    + Actions/Print: allow two printing plugin states
---    + Actions/Print: allow morph between two printing plugin states (this will be probably extended in future)
---    + Actions/Morph: separate two morphing states internally
---    + Actions/Morph: autoswitch 2 morhing states
+--    # change internal way of storing of FX filter data, requres re-save filtering
 
 
 
 
-vrs = 3.50
+vrs = 3.51
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -402,10 +392,11 @@ vrs = 3.50
   function DATA:Filter_Change(i, v) 
     local plugname = DATA.FX.FXname
     if not DATA.FX_filter[plugname] then DATA.FX_filter[plugname] = {} end
+    if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end
     if v == true then
-      DATA.FX_filter[plugname][i] = nil
+      DATA.FX_filter[plugname][i].val = nil
      else
-      DATA.FX_filter[plugname][i] = 0
+      DATA.FX_filter[plugname][i].val = 0
     end
   end
   --------------------------------------------------------------------------------  
@@ -441,7 +432,8 @@ vrs = 3.50
           if DATA.FX.params[i].ignore==true then ImGui.EndDisabled( ctx) end
           
           ImGui.TableSetColumnIndex(ctx,1)
-          ImGui.Text(ctx,DATA.FX.params[i].formatparam)
+          local value_init = math.floor(DATA.FX.params[i].value_init*1000)/1000
+          ImGui.Text(ctx,DATA.FX.params[i].formatparam..' / '..value_init)
           
           
           if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[1] then 
@@ -862,7 +854,7 @@ end
       local FXname = DATA.FX.FXname
       if DATA.FX_filter[FXname] then
         for pid in pairs(DATA.FX_filter[FXname]) do
-          if tonumber(pid) then
+          if DATA.FX_filter[FXname][pid] and DATA.FX_filter[FXname][pid].val and DATA.FX_filter[FXname][pid].val == 0 then
             DATA.FX.cnt_params_active = DATA.FX.cnt_params_active - 1
           end
         end
@@ -988,10 +980,11 @@ end
       if not (DATA.FX.params[paramid] and DATA.FX.params[paramid][srcstr] and DATA.FX.params[paramid][srcstr][srcid]) then return end
       local init_value = DATA.FX.params[paramid][srcstr][srcid]
       local dest_value = DATA.FX.params[paramid][deststr][destid]
-      local out_val = init_value + ((dest_value - init_value) * (DATA.morph_value or 1)) 
-      if useval2 then out_val = init_value + ((dest_value - init_value) * (DATA.morph_value2 or 1)) end
-      _G[DATA.FX.func_str..'SetParamNormalized'](DATA.FX.ptr, DATA.FX.fxnum, paramid-1, out_val)
-      
+      if dest_value then
+        local out_val = init_value + ((dest_value - init_value) * (DATA.morph_value or 1)) 
+        if useval2 then out_val = init_value + ((dest_value - init_value) * (DATA.morph_value2 or 1)) end
+        _G[DATA.FX.func_str..'SetParamNormalized'](DATA.FX.ptr, DATA.FX.fxnum, paramid-1, out_val)
+      end
       ::nextparam::
     end 
   end
@@ -1048,7 +1041,7 @@ end
     for i = 1, #DATA.FX.params do 
       if DATA.FX.params[i].ignore ~= true then 
         local active = true
-        if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i] == 0 then active = false end
+        if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i].val and DATA.FX_filter[buf][i].val == 0 then active = false end
         DATA.FX.params[i].active = active
       end
     end
@@ -1102,7 +1095,7 @@ end
       local system =  (param_bypass == i-1 or param_wet == i-1 or param_delta == i-1)
       local active = true 
       
-      if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i] == 0 then active = false end
+      if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i].val and DATA.FX_filter[buf][i].val == 0 then active = false end
       if system == true then active = false end
       DATA.FX.params[i] =
         { value_init = value,
@@ -1114,6 +1107,8 @@ end
           ignore =system,
           active = active,
           match_filter = true,
+          
+          
         }
     end 
     
