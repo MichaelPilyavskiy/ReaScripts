@@ -1,14 +1,14 @@
 -- @description Randomize Track FX parameters
--- @version 3.51
+-- @version 3.53
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    # change internal way of storing of FX filter data, requres re-save filtering
+--    + Add support for random range
 
 
 
 
-vrs = 3.51
+vrs = 3.53
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -389,31 +389,38 @@ vrs = 3.51
     end
   end
   --------------------------------------------------------------------------------  
-  function DATA:Filter_Change(i, v) 
+  function DATA:Filter_Change(i, v, randmin, randmax) 
     local plugname = DATA.FX.FXname
     if not DATA.FX_filter[plugname] then DATA.FX_filter[plugname] = {} end
-    if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end
+    if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end 
+    if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {val = DATA.FX_filter[plugname][i]} end
+    
     if v == true then
       DATA.FX_filter[plugname][i].val = nil
-     else
+     elseif v == false then
       DATA.FX_filter[plugname][i].val = 0
+    end
+    
+    if randmin and randmax then 
+      DATA.FX_filter[plugname][i].randmin = randmin 
+      DATA.FX_filter[plugname][i].randmax = randmax
     end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_list()  
     if not (DATA.FX and DATA.FX.valid == true) then return end
-    
+    local plugname = DATA.FX.FXname
     ImGui.PushFont(ctx, DATA.font2) 
     if ImGui.BeginChild( ctx, '##paramlist', -1, -1, ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
-    
+      UI.calc_table_valW = math.floor(((DATA.display_w - UI.spacingX*2) - ((DATA.display_w - UI.spacingX*2)/3)) / 3)
       local outer_size_w = 0
       local outer_size_h = 0
       local inner_width = 0
-      if ImGui.BeginTable(ctx, '##paramlisttable', 4, ImGui.TableFlags_None|ImGui.TableFlags_SizingFixedFit, outer_size_w, outer_size_h, inner_width) then
+      if ImGui.BeginTable(ctx, '##paramlisttable', 4, ImGui.TableFlags_None|ImGui.TableFlags_SizingFixedFit|ImGui.TableFlags_SizingStretchProp, outer_size_w, outer_size_h, inner_width) then
         ImGui.TableSetupColumn(ctx, 'Param name', ImGui.TableColumnFlags_None, UI.calc_table_paramnameW, 0)
         ImGui.TableSetupColumn(ctx, 'Value (format)', ImGui.TableColumnFlags_None, UI.calc_table_valW, 1)
-        ImGui.TableSetupColumn(ctx, 'Morph1', ImGui.TableColumnFlags_None, UI.calc_table_valW, 2)
-        ImGui.TableSetupColumn(ctx, 'Morph2', ImGui.TableColumnFlags_None, UI.calc_table_valW, 3)
+        ImGui.TableSetupColumn(ctx, 'Rand min', ImGui.TableColumnFlags_None, UI.calc_table_valW, 2)
+        ImGui.TableSetupColumn(ctx, 'Rand max', ImGui.TableColumnFlags_None, UI.calc_table_valW, 3)
         ImGui.TableHeadersRow(ctx)
         local sz = #DATA.FX.params
         for i = 1, sz do
@@ -436,7 +443,39 @@ vrs = 3.51
           ImGui.Text(ctx,DATA.FX.params[i].formatparam..' / '..value_init)
           
           
-          if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[1] then 
+          ImGui.TableSetColumnIndex(ctx,2)
+          local v1 = 0
+          if DATA.FX_filter[plugname] and DATA.FX_filter[plugname][i] and type(DATA.FX_filter[plugname][i]) == 'table' and DATA.FX_filter[plugname][i].randmin then v1 = DATA.FX_filter[plugname][i].randmin end
+          local v_speed = 1.0
+          local v_min = 0
+          local v_max= 1
+          local format = "%.3f"
+          local retval, v1 = ImGui.SliderDouble(ctx, '##paramlisttable_limitsmin'..i, v1,  v_min, v_max, format, ImGui.SliderFlags_None)
+          if retval then 
+            if not DATA.FX_filter[plugname]then DATA.FX_filter[plugname]= {} end
+            if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end
+            if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {} end
+            DATA:Filter_Change(i, nil, v1,DATA.FX_filter[plugname][i].randmax or 1) 
+          end
+          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save()  end
+          
+          ImGui.TableSetColumnIndex(ctx,3)
+          local v1 = 1
+          if DATA.FX_filter[plugname] and DATA.FX_filter[plugname][i] and type(DATA.FX_filter[plugname][i]) == 'table' and DATA.FX_filter[plugname][i].randmax then v1 = DATA.FX_filter[plugname][i].randmax end
+          local v_speed = 1.0
+          local v_min = 0
+          local v_max= 1
+          local format = "%.3f"
+          local retval, v1 = ImGui.SliderDouble(ctx, '##paramlisttable_limitsmax'..i, v1,  v_min, v_max, format, ImGui.SliderFlags_None)
+          if retval then 
+            if not DATA.FX_filter[plugname]then DATA.FX_filter[plugname]= {} end
+            if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end
+            if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {} end
+            DATA:Filter_Change(i, nil, DATA.FX_filter[plugname][i].randmin or 0, v1) 
+          end
+          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save()  end
+          
+          --[[if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[1] then 
             ImGui.TableSetColumnIndex(ctx,2)
             local val  = math.floor(DATA.FX.params[i].value_morph[1]*1000)/1000
             ImGui.Text(ctx,val)
@@ -446,7 +485,9 @@ vrs = 3.51
             ImGui.TableSetColumnIndex(ctx,3)
             local val  = math.floor(DATA.FX.params[i].value_morph[2]*1000)/1000
             ImGui.Text(ctx,val)
-          end
+          end]]
+          
+          
           
           ::skipnextparam::
         end
@@ -854,7 +895,7 @@ end
       local FXname = DATA.FX.FXname
       if DATA.FX_filter[FXname] then
         for pid in pairs(DATA.FX_filter[FXname]) do
-          if DATA.FX_filter[FXname][pid] and DATA.FX_filter[FXname][pid].val and DATA.FX_filter[FXname][pid].val == 0 then
+          if DATA.FX_filter[FXname][pid] and type(DATA.FX_filter[FXname][pid]) == 'table' and DATA.FX_filter[FXname][pid].val and DATA.FX_filter[FXname][pid].val == 0 then
             DATA.FX.cnt_params_active = DATA.FX.cnt_params_active - 1
           end
         end
@@ -990,16 +1031,25 @@ end
   end
   ---------------------------------------------------------------------  
   function DATA:Action_Morph_GenerateRandomSnapshot()
-    local snapshot_id = DATA.currentsnapshot
+    local snapshot_id = DATA.currentsnapshot 
+    local plugname = DATA.FX.FXname
+    
     if not (DATA.FX.cnt_params and DATA.FX.params) then return end
     for paramid = 1, DATA.FX.cnt_params do
       if  DATA.FX.params[paramid].ignore == true then goto nextparam end
       if  DATA.FX.params[paramid].active ~= true then goto nextparam end
-        
+      
+      local randmin = 0
+      local randmax = 1 
+      if DATA.FX_filter[plugname] and DATA.FX_filter[plugname][paramid] and type(DATA.FX_filter[plugname][paramid]) == 'table' and DATA.FX_filter[plugname][paramid].randmin and DATA.FX_filter[plugname][paramid].randmax then 
+        randmin = DATA.FX_filter[plugname][paramid].randmin
+        randmax = DATA.FX_filter[plugname][paramid].randmax 
+      end
+      
       local outv = 1
       if DATA.FX.params[paramid].istoggle == false then
         --outv = DATA.FX.params[paramid].minval + math.random() * (DATA.FX.params[paramid].maxval-DATA.FX.params[paramid].minval)
-        outv = math.random()
+        outv = randmin + math.random() * (randmax - randmin)
        else
         local out = math.random()
         outv = 1
@@ -1041,7 +1091,11 @@ end
     for i = 1, #DATA.FX.params do 
       if DATA.FX.params[i].ignore ~= true then 
         local active = true
-        if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i].val and DATA.FX_filter[buf][i].val == 0 then active = false end
+          
+        if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] then 
+          if type(DATA.FX_filter[buf][i]) == 'number' then DATA.FX_filter[buf][i] = {val = DATA.FX_filter[buf][i]} end
+          if DATA.FX_filter[buf][i].val and DATA.FX_filter[buf][i].val == 0 then active = false end
+        end
         DATA.FX.params[i].active = active
       end
     end
@@ -1095,7 +1149,7 @@ end
       local system =  (param_bypass == i-1 or param_wet == i-1 or param_delta == i-1)
       local active = true 
       
-      if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and DATA.FX_filter[buf][i].val and DATA.FX_filter[buf][i].val == 0 then active = false end
+      if DATA.FX_filter[buf] and DATA.FX_filter[buf][i] and type(DATA.FX_filter[buf][i]) == 'table' and DATA.FX_filter[buf][i].val and DATA.FX_filter[buf][i].val == 0 then active = false end
       if system == true then active = false end
       DATA.FX.params[i] =
         { value_init = value,
