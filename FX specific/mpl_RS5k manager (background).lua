@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.14
+-- @version 4.16
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,10 +15,16 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Settings / Macro actions: add action to fix GUID of parent track after import
+--    # Sampler: fix set layer for device children
+--    # Settings / on add: set child color from parent color
+--    # Settings: pack settings to a collapsed tree
+--    + Sampler/Device: add option to auto set velocity range for newly added layers
+--    + Settings/On sample add: auto-set velocity range option enabled for new devices
+--    + Sampler/Boundary: allow VCA
+--    + Layout: add Launchpad support
 
 
-rs5kman_vrs = '4.14'
+rs5kman_vrs = '4.16'
 
 
 -- TODO
@@ -29,23 +35,17 @@ rs5kman_vrs = '4.14'
       SYSEX feedback to launchpad 
       sampler / sampl / import // or hot record from master bus 
       sequencer 
-      auto color tracks by parent folder
-      auto color tracks by name
-        https://live.mrbillstunes.com/project-file-standards/
-        Drum Group = Salmon
-        Kicks & Other Low Percussion = Tomato
-        Snares & Claps = Rust
-        Hi-Hats & Cymbals = Peru
-        Top-Kit & Grooves = Dark Olive 
+      auto color tracks by note
       wildcards - device name
       wildcards - children - #notenuber #noteformat #samplename
       wildcards - samples path 
       launchpad layout 
       compressor
       transient
-      fx rack
-      fx send 
+      sampler/fx - compression, transient shaper
+      sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
       ADSR show as curve
+      device - add volume control + auto fill velocity range
 ]]
 
     
@@ -79,6 +79,8 @@ rs5kman_vrs = '4.14'
           CONF_onadd_newchild_trackheight = 0,
           CONF_onadd_whitekeyspriority = 0,
           CONF_onadd_ordering = 0, -- 0 sorted by note 1 at the top 2 at the bottom
+          CONF_onadd_takeparentcolor = 0,
+          CONF_onadd_autosetrange = 0,
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -120,13 +122,14 @@ rs5kman_vrs = '4.14'
           CONF_database_map8 = '',
           
           CONF_lastmacroaction = 0,
-          
+          CONF_launchpadsysex = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
   DATA = {
           
           upd = true,
+          upd2 = {},
           ES_key = 'MPL_RS5K manager',
           UI_name = 'RS5K manager', 
           version = 4, -- for ext state save
@@ -744,6 +747,10 @@ end
           UI.calc_rack_padw = math.floor((UI.calc_rackW) / 7)-- -UI.spacingX
           UI.calc_rack_padh = math.floor((UI.calc_rackH) / 4)
         end
+        if EXT.UI_drracklayout == 2 then --launch
+          UI.calc_rack_padw = math.floor(-UI.spacingX+(UI.calc_rackW-UI.spacingX) / 8)-- 
+          UI.calc_rack_padh = math.floor(-UI.spacingY+(UI.calc_rackH) / 8)
+        end
         UI.calc_rack_padctrlW = UI.calc_rack_padw / 3 
         UI.calc_rack_padctrlH = UI.calc_rack_padh*0.3
         UI.calc_rack_padnameH = UI.calc_rack_padh-UI.calc_rack_padctrlH 
@@ -786,6 +793,12 @@ end
     return open
   end
   -------------------------------------------------------------------------------- 
+  function DATA:CollectData2() -- do various stuff after refresh main data 
+    if not (DATA.upd2 and DATA.upd2.refresh == true) then return end
+    if DATA.upd2.updatedevicevelocityrange then DATA:Auto_Device_RefreshVelocityRange(DATA.upd2.updatedevicevelocityrange) end
+    DATA.upd2 = {} 
+  end
+  -------------------------------------------------------------------------------- 
   function UI.MAIN_loop() 
     DATA.clock = os.clock() 
     DATA:handleProjUpdates()
@@ -800,6 +813,9 @@ end
       TrackList_AdjustWindows( false ) 
       DATA.upd_TCP = false
     end
+    
+    DATA:CollectData2() 
+    
     
     -- draw UI
     if not reaper.ImGui_ValidatePtr( ctx, 'ImGui_Context*') then UI.MAIN_definecontext() end
@@ -1370,6 +1386,30 @@ end
     end
   end
   --------------------------------------------------------------------- 
+  function DATA:Auto_Device_RefreshVelocityRange(note)
+    if not (DATA.children and DATA.children[note] and DATA.children[note].layers) then return end
+    if DATA.children[note].TYPE_DEVICE_AUTORANGE == false then return end
+    
+    if #DATA.children[note].layers == 0 then return end
+    
+    local min_velID = 17
+    local max_velID = 18
+    local block_sz = 127 / #DATA.children[note].layers
+    
+    for layer =1, #DATA.children[note].layers do
+      if DATA.children[note].layers[layer].ISRS5K == true then 
+        local track = DATA.children[note].layers[layer].tr_ptr
+        local instrument_pos = DATA.children[note].layers[layer].instrument_pos
+        
+        TrackFX_SetParamNormalized( track, instrument_pos, min_velID, (block_sz*(layer-1))  *1/127)
+        TrackFX_SetParamNormalized( track, instrument_pos, max_velID, (-1+block_sz*(layer))  *1/127 )
+        if layer == #DATA.children[note].layers then 
+          TrackFX_SetParamNormalized( track, instrument_pos, max_velID, 1)
+        end
+      end 
+    end
+  end
+  --------------------------------------------------------------------- 
   function DATA:Auto_MIDInotenames() 
     if not (DATA.parent_track and DATA.parent_track.valid == true) then return end 
     
@@ -1559,6 +1599,7 @@ end
       local retval, name = GetSetMediaTrackInfo_String( parent_track, 'P_NAME', '', false )
       local IP_TRACKNUMBER_0based = GetMediaTrackInfo_Value( parent_track, 'IP_TRACKNUMBER')-1 
       local I_FOLDERDEPTH = GetMediaTrackInfo_Value( parent_track, 'I_FOLDERDEPTH')
+      local I_CUSTOMCOLOR = GetMediaTrackInfo_Value( parent_track, 'I_CUSTOMCOLOR')
       local cnt_tracks = CountTracks( DATA.proj )
       local IP_TRACKNUMBER_0basedlast = IP_TRACKNUMBER_0based
       if I_FOLDERDEPTH == 1 then
@@ -1618,6 +1659,7 @@ end
     DATA.parent_track.IP_TRACKNUMBER_0based = IP_TRACKNUMBER_0based
     DATA.parent_track.IP_TRACKNUMBER_0basedlast = IP_TRACKNUMBER_0basedlast
     DATA.parent_track.I_FOLDERDEPTH = I_FOLDERDEPTH
+    DATA.parent_track.I_CUSTOMCOLOR = I_CUSTOMCOLOR
     
     
   end
@@ -1765,6 +1807,10 @@ end
         local ret, TYPE_REGCHILD =          GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_TYPE_REGCHILD', 0, false) TYPE_REGCHILD = (tonumber(TYPE_REGCHILD) or 0)==1
         local ret, TYPE_DEVICECHILD =       GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_TYPE_DEVICECHILD', 0, false) TYPE_DEVICECHILD = (tonumber(TYPE_DEVICECHILD) or 0)==1
         local ret, TYPE_DEVICE =            GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_TYPE_DEVICE', 0, false) TYPE_DEVICE =  (tonumber(TYPE_DEVICE) or 0)==1 
+        local ret, TYPE_DEVICE_AUTORANGE =            GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_TYPE_DEVICE_AUTORANGE', 0, false) TYPE_DEVICE_AUTORANGE =  (tonumber(TYPE_DEVICE_AUTORANGE) or EXT.CONF_onadd_autosetrange)==1 
+        
+       
+        
         local ret, TYPE_DEVICECHILD_PARENTDEVICEGUID = GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_TYPE_DEVICECHILD_PARENTDEVICEGUID', 0, false)
         local TYPE_DEVICECHILD_valid 
 
@@ -1832,7 +1878,8 @@ end
         
       -- add device data
         if TYPE_DEVICE then 
-          DATA.children[note].TYPE_DEVICE = TYPE_DEVICE 
+          DATA.children[note].TYPE_DEVICE = TYPE_DEVICE  
+          DATA.children[note].TYPE_DEVICE_AUTORANGE=TYPE_DEVICE_AUTORANGE
           DATA.children[note].tr_ptr = track
           DATA.children[note].TR_GUID = trGUID
           DATA.children[note].MACRO_GUID = MACRO_GUID
@@ -2138,7 +2185,13 @@ end
     if not (DATA.current_sample_peaks and DATA.current_sample_peaks.peaks)then return end
     
     local cnt_peaks = #DATA.current_sample_peaks.peaks
-    for i = 1, cnt_peaks do if math.abs(DATA.current_sample_peaks.peaks[i]) ==1 then loopst = i/cnt_peaks break end end
+    --local max,va = 0
+    for i = 1, cnt_peaks do 
+      val = math.abs(DATA.current_sample_peaks.peaks[i])
+      --if val >max then loopst = i/cnt_peaks end 
+      --max = math.max(val,max)
+      if val ==1 then loopst = i/cnt_peaks break end 
+    end
     local note_layer_t = DATA.children[note].layers[layer]
     TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, 13, loopst ) 
     DATA.upd = true
@@ -2236,6 +2289,8 @@ end
         --GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_TYPE_DEVICECHILD', 1, true) 
         GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_TYPE_REGCHILD', '', true)
         GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_TYPE_DEVICECHILD_PARENTDEVICEGUID', t.SET_MarkType_DeviceChild_deviceGUID, true) 
+       elseif t.SET_MarkType_TYPE_DEVICE_AUTORANGE then 
+        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_TYPE_DEVICE_AUTORANGE', t.SET_MarkType_TYPE_DEVICE_AUTORANGE, true)         
       end 
       
     -- rs5k manager data
@@ -2396,6 +2451,7 @@ end
     
     -- print timestamp
     GetSetMediaTrackInfo_String(  new_tr, 'P_EXT:MPLRS5KMAN_TSADD', os.time(), true) 
+    if EXT.CONF_onadd_takeparentcolor == 1 then SetMediaTrackInfo_Value( new_tr, 'I_CUSTOMCOLOR',DATA.parent_track.I_CUSTOMCOLOR ) end
     
     -- move in structure
     DATA:DropSample_AddNewTrack_Move(new_tr, deviceparent, note, SET_MarkType_DeviceChild_deviceGUID)
@@ -2461,6 +2517,8 @@ end
         SetOnlyTrackSelected( new_tr )
         ReorderSelectedTracks( beforeTrackIdx, 0 )--make sure parent is folder
         DATA:Auto_Reposition_TrackRestoreSelection()
+        DATA.upd2.updatedevicevelocityrange = note
+        DATA.upd2.refresh = true
       end
    
     -- new device
@@ -2684,17 +2742,18 @@ end
     if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_DRRACKSHIFT then val = DATA.parent_track.ext.PARENT_DRRACKSHIFT /127 end
     local retval, v = ImGui.VSliderDouble( ctx, '##padoverview', ovrvieww,UI.calc_padoverviewH, val, 0, 1, '', ImGui.SliderFlags_None)
     ImGui.PopStyleColor(ctx,5)
-    if retval then UI.draw_Rack_PadOverview_handlemouse(v) end
+    if retval then UI.Layout_PadOverview_handlemouse(v) end
     local x, y = ImGui.GetItemRectMin(ctx)
     local w, h = ImGui.GetItemRectSize(ctx) 
-    if EXT.UI_drracklayout == 0 then UI.draw_Rack_PadOverview_generategrid_pads(x+1,y,w,h) end
-    if EXT.UI_drracklayout == 1 then UI.draw_Rack_PadOverview_generategrid_keys(x+1,y,w,h) end 
+    if EXT.UI_drracklayout == 0 then UI.Layout_PadOverview_generategrid_pads(x+1,y,w,h) end 
+    if EXT.UI_drracklayout == 1 then UI.Layout_PadOverview_generategrid_keys(x+1,y,w,h) end 
+    if EXT.UI_drracklayout == 2 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
   end
   --------------------------------------------------------------------------------
-  function UI.draw_Rack_PadOverview_handlemouse(v) 
+  function UI.Layout_PadOverview_handlemouse(v)  
     if not (DATA.parent_track and DATA.parent_track.ext) then return end
     -- pads 
-    if EXT.UI_drracklayout == 0 then
+    if EXT.UI_drracklayout == 0 or EXT.UI_drracklayout == 2 then
       local activerow = math.floor(v*33)
       local qblock = 4
       if activerow < 1 then activerow = 0 end
@@ -2718,7 +2777,7 @@ end
     end
   end
   -----------------------------------------------------------------------------  
-  function UI.draw_Rack_PadOverview_generategrid_pads(x,y,w,h)
+  function UI.Layout_PadOverview_generategrid_pads(x,y,w,h)
     if not DATA.children then return end
     local refnote = 127
     for note = 0, 127 do 
@@ -2767,7 +2826,57 @@ end
     
   end
   -----------------------------------------------------------------------------  
-  function UI.draw_Rack_PadOverview_generategrid_keys(x_offs0,y_offs0,w,h)
+  function UI.Layout_PadOverview_generategrid_launchpad(x,y,w,h)
+    if not DATA.children then return end
+    local refnote = 127
+    for note = 0, 127 do 
+      -- handle col
+      local blockcol = 0x757575
+     --[[ if 
+        (note >=0 and note<=3)or
+        (note >=20 and note<=35)or
+        (note >=52 and note<=67)or
+        (note >=84 and note<=99)or
+        (note >=116 and note<=127) 
+      then blockcol =0xD5D5D5 end]]
+      if note %12==0 then blockcol =0xD5D5D5 end
+      
+      local backgr_fill2 = 0.4 
+      if DATA.children[note] then backgr_fill2 = 0.8  blockcol = 0xf3f6f4 end
+      if DATA.playingnote and DATA.playingnote == note  then blockcol = 0xffe494 backgr_fill2 = 0.7 end
+      
+      
+      if note%4 == 0 then x_offs = x end
+      local p_min_x = x_offs
+      local p_min_y = y+h - UI.calc_cellside*(1+(math.floor(note/4)))
+      local p_max_x = p_min_x+UI.calc_cellside-1
+      local p_max_y = p_min_y+UI.calc_cellside-1
+      ImGui.DrawList_AddRectFilled( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, blockcol<<8|math.floor(backgr_fill2*0xFF), 0, ImGui.DrawFlags_None )
+      ImGui_SetCursorScreenPos( ctx, p_min_x, p_min_y )
+      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_cellside, UI.calc_cellside )
+      if ImGui.BeginDragDropTarget( ctx ) then  
+        --DATA:Drop_UI_interaction_padoverview() 
+        DATA:Drop_UI_interaction_pad(note) 
+        ImGui_EndDragDropTarget( ctx )
+      end
+      x_offs = x_offs + UI.calc_cellside
+    end
+    
+    -- selection
+    if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_DRRACKSHIFT then
+      local row_cnt = math.floor(127/4)
+      local activerow = DATA.parent_track.ext.PARENT_DRRACKSHIFT  / 4
+      local p_min_x = x
+      local p_min_y = y+h - w-UI.calc_cellside*(activerow)
+      local p_max_x = p_min_x+w-1
+      local p_max_y = p_min_y+w
+      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 1 )
+    end
+    
+  end
+  
+  -----------------------------------------------------------------------------  
+  function UI.Layout_PadOverview_generategrid_keys(x_offs0,y_offs0,w,h) 
   
     for note = 0, 127 do 
       -- handle col
@@ -2890,8 +2999,9 @@ function UI.draw_flow_COMBO(t)
 end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_current()
-    ImGui.SeparatorText(ctx, 'Current rack settings') 
-      ImGui.Indent(ctx, UI.settings_indent)
+    if ImGui.TreeNode(ctx, 'Current rack settings', ImGui.TreeNodeFlags_None) then
+--    ImGui.SeparatorText(ctx, 'Current rack settings') 
+      --ImGui.Indent(ctx, UI.settings_indent)
       --DATA.parent_track.ext.PARENT_MIDIFLAGS
       
       local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
@@ -2954,10 +3064,12 @@ end
       
       
       
-      ImGui.Unindent(ctx, UI.settings_indent)
+      --ImGui.Unindent(ctx, UI.settings_indent)
       ImGui.Dummy(ctx, 0,UI.spacingY*6)
       
-      
+      ImGui.TreePop(ctx)
+    end    
+    
       
   end
   
@@ -3020,20 +3132,13 @@ end
   end
   
 --------------------------------------------------------------------------------  
-  function UI.draw_tabs_settings()
+  function UI.draw_tabs_settings_database()
+    if ImGui.TreeNode(ctx, 'Database maps', ImGui.TreeNodeFlags_None) then
     
-    UI.tab_current = 'Settings'
-    if not UI.tab_last or (UI.tab_last and UI.tab_last ~= UI.tab_current ) then EXT.UI_activeTab = UI.tab_current EXT:save() end
-    
-    UI.tab_last = UI.tab_current 
-    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
-      
-      UI.draw_tabs_settings_current()
-      
       -- database
       if DATA.database_maps then 
-         ImGui.SeparatorText(ctx, 'Database maps') -- ImGui.Text(ctx, 'Database maps') 
-        ImGui.Indent(ctx, UI.settings_indent)
+        -- ImGui.SeparatorText(ctx, 'Database maps') -- ImGui.Text(ctx, 'Database maps') 
+        --ImGui.Indent(ctx, UI.settings_indent)
         ImGui.SetNextItemWidth(ctx, UI.settings_itemW )
         
         if DATA.temp_rename == true then 
@@ -3095,15 +3200,21 @@ end
         ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then DATA:Database_Load(true) end
         
         
-        
-        function _b_dbmaps() end
-        ImGui.Unindent(ctx, UI.settings_indent)
+        --ImGui.Unindent(ctx, UI.settings_indent)
       end
       ImGui.Dummy(ctx, 0,UI.spacingY*6)
       
       
-      ImGui.SeparatorText(ctx, 'On sample add')  
-        ImGui.Indent(ctx, UI.settings_indent)
+      
+      ImGui.TreePop(ctx)
+    end  
+  end
+--------------------------------------------------------------------------------  
+  function UI.draw_tabs_settings_onsampleadd()
+    if ImGui.TreeNode(ctx, 'On sample add', ImGui.TreeNodeFlags_None) then  
+      
+      --ImGui.SeparatorText(ctx, 'On sample add')  
+        --ImGui.Indent(ctx, UI.settings_indent)
         if ImGui.Checkbox( ctx, 'Float RS5k instance',                                    EXT.CONF_onadd_float == 1 ) then EXT.CONF_onadd_float =EXT.CONF_onadd_float~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Copy samples to project path',                           EXT.CONF_onadd_copytoprojectpath == 1 ) then EXT.CONF_onadd_copytoprojectpath =EXT.CONF_onadd_copytoprojectpath~1 EXT:save() end 
         ImGui.SameLine(ctx)
@@ -3124,12 +3235,22 @@ end
         end
         ImGui.SameLine(ctx)
         UI.HelpMarker('Path to file')
-        UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order') 
-        ImGui.Unindent(ctx, UI.settings_indent)
+        UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order')  
+        if ImGui.Checkbox( ctx, 'Set child color from parent color',                                     EXT.CONF_onadd_takeparentcolor == 1 ) then EXT.CONF_onadd_takeparentcolor =EXT.CONF_onadd_takeparentcolor~1 EXT:save() end 
+        if ImGui.Checkbox( ctx, 'Auto-set velocity range option enabled for new devices',                                     EXT.CONF_onadd_autosetrange == 1 ) then EXT.CONF_onadd_autosetrange =EXT.CONF_onadd_autosetrange~1 EXT:save() end 
+        --ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
         
-      ImGui.SeparatorText(ctx, 'TCP / MCP')  
-        ImGui.Indent(ctx, UI.settings_indent)
+      ImGui.TreePop(ctx)
+    end  
+  end
+--------------------------------------------------------------------------------  
+  function UI.draw_tabs_settings_tcpmcp()
+    if ImGui.TreeNode(ctx, 'TCP / MCP', ImGui.TreeNodeFlags_None) then     
+      
+      
+      --ImGui.SeparatorText(ctx, 'TCP / MCP')  
+        --ImGui.Indent(ctx, UI.settings_indent)
         if ImGui.Checkbox( ctx, 'Collapse parent folder',                                 EXT.CONF_onadd_newchild_trackheightflags&1==1 ) then 
           EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~1 
           if EXT.CONF_onadd_newchild_trackheightflags&2==2 then EXT.CONF_onadd_newchild_trackheightflags = EXT.CONF_onadd_newchild_trackheightflags~2 end
@@ -3154,12 +3275,23 @@ end
         if ImGui.Checkbox( ctx, 'Add childs to the bottom',                               EXT.CONF_trackorderflags==1 ) then EXT.CONF_trackorderflags =1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Add childs according to note, ascending',                EXT.CONF_trackorderflags==2 ) then EXT.CONF_trackorderflags =2 EXT:save() end
         if ImGui.Checkbox( ctx, 'Add childs according to note, descending',               EXT.CONF_trackorderflags==3 ) then EXT.CONF_trackorderflags =3 EXT:save() end]]
-        ImGui.Unindent(ctx, UI.settings_indent)
+        --ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
         
         
-      ImGui.SeparatorText(ctx, 'MIDI bus')  
-        ImGui.Indent(ctx, UI.settings_indent)
+        
+      ImGui.TreePop(ctx)
+    end  
+  end
+  
+  
+--------------------------------------------------------------------------------  
+  function UI.draw_tabs_settings_MIDI()
+    if ImGui.TreeNode(ctx, 'MIDI bus', ImGui.TreeNodeFlags_None) then   
+    
+      
+      --ImGui.SeparatorText(ctx, 'MIDI bus')  
+        --ImGui.Indent(ctx, UI.settings_indent)
         UI.draw_tabs_settings_combo('CONF_midiinput',DATA.MIDI_inputs,'##settings_drracklayout', 'MIDI bus default input') 
         ImGui.SetNextItemWidth(ctx, UI.settings_itemW) 
         local chanformat = 'Channel '..EXT.CONF_midichannel if EXT.CONF_midichannel == 0 then chanformat = 'All channels' end
@@ -3167,13 +3299,21 @@ end
         if ImGui.Button(ctx, 'Initialize MIDI bus') then DATA:Validate_MIDIbus_AND_ParentFolder() end
         if ImGui.Checkbox( ctx, 'Auto rename MIDI bus MIDI notes',                                EXT.CONF_autorenamemidinotenames&1==1 ) then EXT.CONF_autorenamemidinotenames =EXT.CONF_autorenamemidinotenames~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Auto rename devices and children MIDI notes',                    EXT.CONF_autorenamemidinotenames&2==2 ) then EXT.CONF_autorenamemidinotenames =EXT.CONF_autorenamemidinotenames~2 EXT:save() end
-        ImGui.Unindent(ctx, UI.settings_indent)
+        --ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
+        
+        
+      ImGui.TreePop(ctx)
+    end  
+  end
+--------------------------------------------------------------------------------  
+  function UI.draw_tabs_settings_UI()
+    if ImGui.TreeNode(ctx, 'UI interaction', ImGui.TreeNodeFlags_None) then    
       
-
-      ImGui.SeparatorText(ctx, 'UI interaction') 
-        ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys'},'##settings_drracklayout', 'DrumRack layout') 
+      
+      --ImGui.SeparatorText(ctx, 'UI interaction') 
+        --ImGui.Indent(ctx, UI.settings_indent)
+        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad'},'##settings_drracklayout', 'DrumRack layout') 
         if ImGui.Checkbox( ctx, 'Click on pad select track',                              EXT.UI_clickonpadselecttrack == 1 ) then EXT.UI_clickonpadselecttrack =EXT.UI_clickonpadselecttrack~1 EXT:save() end
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
         local ret, v = ImGui.SliderInt( ctx, 'Default playing velocity',                  EXT.CONF_default_velocity, 1, 127, '%d', ImGui.SliderFlags_None ) if ret then EXT.CONF_default_velocity = v EXT:save() end
@@ -3181,11 +3321,18 @@ end
         if ImGui.Checkbox( ctx, 'Active note follow incoming note',                       EXT.UI_incomingnoteselectpad == 1 ) then EXT.UI_incomingnoteselectpad =EXT.UI_incomingnoteselectpad~1 EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('May be CPU hungry')
-        ImGui.Unindent(ctx, UI.settings_indent)
+        --ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
+        
+      ImGui.TreePop(ctx)
+    end  
+  end
+    --------------------------------------------------------------------------------
+  function UI.draw_tabs_settings_various()
+    if ImGui.TreeNode(ctx, 'Various', ImGui.TreeNodeFlags_None) then  
       
       
-      ImGui.SeparatorText(ctx, 'Various') 
+      --ImGui.SeparatorText(ctx, 'Various') 
         ImGui.Indent(ctx, UI.settings_indent)
         if ImGui.Checkbox( ctx, 'Do not load database',            EXT.CONF_ignoreDBload == 1 ) then EXT.CONF_ignoreDBload =EXT.CONF_ignoreDBload~1 EXT:save() end
         ImGui.SameLine(ctx)
@@ -3201,9 +3348,26 @@ end
         ImGui.SameLine(ctx)
         UI.HelpMarker('Moves a title to a heade above tab, otherwise it doesn`t docked if RS5k manager track is not selected/pinned')
         ]]
-        ImGui.Unindent(ctx, UI.settings_indent)
-      
-      
+        --ImGui.Unindent(ctx, UI.settings_indent)
+        
+        ImGui.TreePop(ctx)
+      end  
+    end
+  --------------------------------------------------------------------------------    
+    function UI.draw_tabs_settings()
+    
+    UI.tab_current = 'Settings'
+    if not UI.tab_last or (UI.tab_last and UI.tab_last ~= UI.tab_current ) then EXT.UI_activeTab = UI.tab_current EXT:save() end
+    
+    UI.tab_last = UI.tab_current 
+    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
+      UI.draw_tabs_settings_current()
+      UI.draw_tabs_settings_database()
+      UI.draw_tabs_settings_onsampleadd()
+      UI.draw_tabs_settings_tcpmcp()
+      UI.draw_tabs_settings_MIDI()
+      UI.draw_tabs_settings_UI()
+      UI.draw_tabs_settings_various()
       
       ImGui.EndChild( ctx)
     end
@@ -3224,6 +3388,84 @@ end
     end
     ImGui.PopStyleVar(ctx,2)
   end 
+  --------------------------------------------------------------------------------  
+  function UI.Layout_Pads() 
+    if EXT.UI_drracklayout ~= 0 then return end
+    local layout_pads_cnt = 16
+    local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
+    local xoffs= UI.calc_rackX
+    local padID0 = 0
+    for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
+      UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
+      xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
+      if padID0%4==3 then 
+        xoffs = UI.calc_rackX 
+        yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
+      end
+      padID0 = padID0 + 1
+    end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.Layout_Launchpad() 
+    if EXT.UI_drracklayout ~= 2 then return end
+    local layout_pads_cnt = 64
+    local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
+    local xoffs= UI.calc_rackX
+    local xoffs2 = 0
+    local yoffs2 = 0
+    local padID0 = 0
+    local second_laneshift = false
+    for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do 
+      if padID0 > 31 then second_laneshift = true end
+      if second_laneshift == true then 
+        xoffs2 = UI.calc_rack_padw*4 + UI.spacingX * 4
+        yoffs2 = UI.calc_rack_padh*8 + UI.spacingY*8
+      end
+      UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs + xoffs2, yoffs+yoffs2, UI.calc_rack_padw, UI.calc_rack_padh) 
+      xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
+      if padID0%4==3 then 
+        xoffs = UI.calc_rackX 
+        yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
+      end
+      padID0 = padID0 + 1
+    end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.Layout_Keys() 
+    if EXT.UI_drracklayout ~= 1 then return end
+    
+    local layout_pads_cnt = 24
+      
+    local xoffs0 = UI.calc_rackX
+    --local yoffs0 = UI.calc_rackY + UI.calc_rackH - UI.calc_rack_padh
+    local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*3 --+ UI.spacingY*3
+    local padID0 = 0
+    local oct = -1
+    local xoffs, yoffs
+    for note = DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
+      xoffs = xoffs0
+      yoffs = yoffs0
+      local note_oct = note%12
+      if note_oct ==0 then oct = oct + 1 end
+      if oct == 1 then yoffs = yoffs - UI.calc_rack_padh*2 end
+      if note_oct == 0 then xoffs = xoffs0 end
+      if note_oct == 1 then xoffs = xoffs0+0.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
+      if note_oct == 2 then xoffs = xoffs0+1*UI.calc_rack_padw end
+      if note_oct == 3 then xoffs = xoffs0+1.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
+      if note_oct == 4 then xoffs = xoffs0+UI.calc_rack_padw*2 end
+      if note_oct == 5 then xoffs = xoffs0+UI.calc_rack_padw*3 end
+      if note_oct == 6 then xoffs = xoffs0+3.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
+      if note_oct == 7 then xoffs = xoffs0+UI.calc_rack_padw*4 end
+      if note_oct == 8 then xoffs = xoffs0+4.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
+      if note_oct == 9 then xoffs = xoffs0+UI.calc_rack_padw*5 end
+      if note_oct == 10 then xoffs = xoffs0+5.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
+      if note_oct == 11 then xoffs = xoffs0+UI.calc_rack_padw*6 end
+      if note >= 0 and note <=127 then UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) end
+      padID0=padID0+1
+    end
+      
+    
+  end
   --------------------------------------------------------------------------------  
   function UI.draw_Rack_Pads() 
     
@@ -3250,56 +3492,10 @@ end
       
     
     
-    local layout_mode = EXT.UI_drracklayout
     --ImGui.DrawList_AddRectFilled( UI.draw_list, UI.calc_rackX, UI.calc_rackY, UI.calc_rackX+UI.calc_rackW, UI.calc_rackY+UI.calc_rackH, 0xFFFFFFA0, 0, 0 )
-    if layout_mode == 0 then
-      local layout_pads_cnt = 16
-      local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
-      local xoffs= UI.calc_rackX
-      local padID0 = 0
-      for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
-        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
-        xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
-        if padID0%4==3 then 
-          xoffs = UI.calc_rackX 
-          yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
-        end
-        padID0 = padID0 + 1
-      end
-    end
-    
-    if layout_mode == 1 then
-      local layout_pads_cnt = 24
-        
-      local xoffs0 = UI.calc_rackX
-      --local yoffs0 = UI.calc_rackY + UI.calc_rackH - UI.calc_rack_padh
-      local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*3 --+ UI.spacingY*3
-      local padID0 = 0
-      local oct = -1
-      local xoffs, yoffs
-      for note = DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
-        xoffs = xoffs0
-        yoffs = yoffs0
-        local note_oct = note%12
-        if note_oct ==0 then oct = oct + 1 end
-        if oct == 1 then yoffs = yoffs - UI.calc_rack_padh*2 end
-        if note_oct == 0 then xoffs = xoffs0 end
-        if note_oct == 1 then xoffs = xoffs0+0.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
-        if note_oct == 2 then xoffs = xoffs0+1*UI.calc_rack_padw end
-        if note_oct == 3 then xoffs = xoffs0+1.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
-        if note_oct == 4 then xoffs = xoffs0+UI.calc_rack_padw*2 end
-        if note_oct == 5 then xoffs = xoffs0+UI.calc_rack_padw*3 end
-        if note_oct == 6 then xoffs = xoffs0+3.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
-        if note_oct == 7 then xoffs = xoffs0+UI.calc_rack_padw*4 end
-        if note_oct == 8 then xoffs = xoffs0+4.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
-        if note_oct == 9 then xoffs = xoffs0+UI.calc_rack_padw*5 end
-        if note_oct == 10 then xoffs = xoffs0+5.5*UI.calc_rack_padw yoffs=yoffs-UI.calc_rack_padh end
-        if note_oct == 11 then xoffs = xoffs0+UI.calc_rack_padw*6 end
-        if note >= 0 and note <=127 then UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) end
-        padID0=padID0+1
-      end
-      
-    end
+    UI.Layout_Pads() 
+    UI.Layout_Keys() 
+    UI.Layout_Launchpad() 
     
     
   end
@@ -4213,7 +4409,14 @@ end
         local r, g, b = (col_rgba>>24)&0xFF, (col_rgba>>16)&0xFF, (col_rgba>>8)&0xFF
         col_rgb = ColorToNative( r, g, b )
         DATA.children[note].I_CUSTOMCOLOR  = col_rgb
-        SetMediaTrackInfo_Value( note_layer_t.tr_ptr, 'I_CUSTOMCOLOR', col_rgb|0x1000000 )
+        local tr_ptr = DATA.children[note].tr_ptr
+        SetMediaTrackInfo_Value( tr_ptr, 'I_CUSTOMCOLOR', col_rgb|0x1000000 )
+        if DATA.children[note].layers then 
+          for layerid = 1, #DATA.children[note].layers do
+            local tr_ptr = DATA.children[note].layers[layerid].tr_ptr
+            SetMediaTrackInfo_Value( tr_ptr, 'I_CUSTOMCOLOR', col_rgb|0x1000000 )
+          end
+        end
         DATA.upd = true
       end
     end
@@ -4349,6 +4552,7 @@ end
       val_form = note_layer_t.instrument_samplestoffs_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
+        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('samplestoffs',v,note_layer_t,note,layer,true) 
         note_layer_t.instrument_samplestoffs =v 
         if DATA.current_sample_peaks then DATA.current_sample_peaks.offs_start = v end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_samplestoffsID, v )    
@@ -4369,7 +4573,8 @@ end
       val_form = note_layer_t.instrument_sampleendoffs_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
-        note_layer_t.instrument_samplestoffs =v 
+        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('sampleendoffs',v,note_layer_t,note,layer,true) 
+        note_layer_t.instrument_sampleendoffs =v 
         if DATA.current_sample_peaks then DATA.current_sample_peaks.offs_end = v end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sampleendoffsID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
@@ -4419,6 +4624,10 @@ end
       ImGui.SetCursorScreenPos(ctx, curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*3, curposy_abs + (UI.calc_itemH+ UI.spacingY)*2)
       if ImGui.Button( ctx, 'Set start offset to a loudest peak',-1) then DATA:Sampler_SetStartToLoudestPeak()  end
       
+      ImGui.SetCursorScreenPos(ctx, curposx_abs , curposy_abs + UI.calc_knob_h_small +  UI.spacingY)
+      
+      if ImGui.Checkbox(ctx, 'Tweak ALL samples ',(DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~1 end
+      if ImGui.Checkbox(ctx, 'Tweak ony current pad layers',(DATA.VCA_mode or 0 )&2==2 or (DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~2 end
       --ImGui.EndCombo( ctx )
     --end      
       
@@ -5084,9 +5293,23 @@ end
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY) 
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,5)
       
+      local retval, v = ImGui.Checkbox( ctx, 'Auto-set velocity ranges on add layer', DATA.children[note].TYPE_DEVICE_AUTORANGE )
+      if retval then 
+        local tr = DATA.children[note].tr_ptr
+        local out = 0
+        if v == true then out = 1 end
+        DATA:WriteData_Child(tr, {SET_MarkType_TYPE_DEVICE_AUTORANGE = out}) 
+        DATA.upd = true
+      end
+      
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, 'Refresh##autosetvelrange', 80) then DATA:Auto_Device_RefreshVelocityRange(note) end
+      
       local name_w = 185
       local slider_w = 60
       
+      
+      --- layers list
       for layer = 1, #DATA.children[note].layers do
         
         local posx,posy = ImGui.GetCursorPos(ctx)
@@ -5366,117 +5589,6 @@ end
     end 
     DATA.TrackSelection = {}
   end
-  -----------------------------------------------------------------------------------------    
-  
-    --[[  
-    -----------------------------------------------------------------------
-    function DATA2:Actions_GrabSamplers(note)
-      local cnt = CountSelectedTracks(0)
-      
-      
-      --[[
-      local max_items = 8
-      if cnt > max_items then
-        local ret = MB('There are more than '..max_items..' items to import, continue?', '',3 )
-        if ret~=6 then return end
-      end
-      
-      local itt = {}
-      for selitem = 1, cnt do itt[#itt+1] = GetSelectedMediaItem( 0, selitem -1) end
-      
-      for i = 1, #itt do
-        local item = itt[i]
-        local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
-        local take = reaper.GetActiveTake(item)
-        if not take or reaper.TakeIsMIDI(take) then goto skip_to_next_item end
-        local tk_src =  GetMediaItemTake_Source( take )
-        local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
-        local src_len =GetMediaSourceLength( tk_src )
-        if GetMediaSourceType( tk_src ) == 'SECTION' or GetMediaSourceType( tk_src ) == 'WAVE' and GetMediaSourceParent( tk_src ) then tk_src = GetMediaSourceParent( tk_src ) end
-        local filename = reaper.GetMediaSourceFileName( tk_src, '' )
-        local layer = 1
-        local drop_data = {}
-        drop_data.offs =s_offs
-        drop_data.len =it_len
-        drop_data.src =tk_src
-        drop_data.src_len =src_len
-        drop_data.SOFFS =s_offs/src_len
-        drop_data.EOFFS =(s_offs+it_len)/src_len 
-        DATA:DropSample(note+i-1, layer, filename,drop_data)
-        DeleteTrackMediaItem(  reaper.GetMediaItemTrack( item), item )
-        ::skip_to_next_item::
-      end] ]
-    end
-    
-    
-    --[[
-                 -------------------------------------------------------------
-                 fu nction v2OBJ_Layouts(conf, obj, data, refresh, mouse)
-                     local shifts,w_div ,h_div
-                     if conf.keymode ==0 then 
-                       w_div = 7
-                       h_div = 2
-                       shifts  = {{0,1},{0.5,0},{1,1},{1.5,0},{2,1},{3,1},{3.5,0},{4,1},{4.5,0},{5,1},{5.5,0},{6,1},}
-                     elseif conf.keymode ==1 then 
-                       w_div = 14
-                       h_div = 2
-                       shifts  = {{0,1},{0.5,0},{1,1},{1.5,0},{2,1},{3,1},{3.5,0},{4,1},{4.5,0},{5,1},{5.5,0},{6,1},{7,1},{7.5,0},{8,1},{8.5,0},{9,1},{10,1},{10.5,0},{11,1},{11.5,0},{12,1},{12.5,0},{13,1}                 
-                               }                
-                      elseif conf.keymode == 2 then -- korg nano
-                       w_div = 8
-                       h_div = 2     
-                       shifts  = {{0,1},{0,0},{1,1},{1,0},{2,1},{2,0},{3,1},{3,0},{4,1},{4,0},{5,1},{5,0},{6,1},{6,0},{7,1},{7,0},}   
-                      elseif conf.keymode == 3 then -- live dr rack
-                       w_div = 4
-                       h_div = 4     
-                       shifts  = { {0,3},{1,3},{2,3},{3,3},{0,2},{1,2},{2,2},{3,2},{0,1},{1,1},{2,1},{3,1},{0,0},{1,0},{2,0},{3,0}                                                               
-                               }      
-                      elseif conf.keymode == 4 then -- s1 impact
-                       w_div = 4
-                       h_div = 4 
-                       start_note_shift = -1    
-                       shifts  = { {0,3},{1,3},{2,3},{3,3},{0,2},{1,2},{2,2},{3,2},{0,1},{1,1},{2,1},{3,1},{0,0},{1,0},{2,0},{3,0}                                                               
-                               }  
-                      elseif conf.keymode == 5 then -- ableton push
-                       w_div = 8
-                       h_div = 8  
-                       shifts  = { 
-                                   {0,7},{1,7},{2,7},{3,7},{4,7},{5,7},{6,7},{7,7},{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6},{7,6},{0,5},{1,5},{2,5},{3,5},{4,5},{5,5},{6,5},{7,5},{0,4},{1,4},{2,4},{3,4},{4,4},{5,4},{6,4},{7,4},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},}        
-                      elseif conf.keymode == 6 then -- 8x8 segmented
-                       w_div = 8
-                       h_div = 8  
-                       shifts  = { 
-                                   {0,7},{1,7},{2,7},{3,7},{0,6},{1,6},{2,6},{3,6},{0,5},{1,5},{2,5},{3,5},{0,4},{1,4},{2,4},{3,4},{0,3},{1,3},{2,3},{3,3},{0,2},{1,2},{2,2},{3,2},{0,1},{1,1},{2,1},{3,1},{0,0},{1,0},{2,0},{3,0},{4,7},{5,7},{6,7},{7,7},{4,6},{5,6},{6,6},{7,6},{4,5},{5,5},{6,5},{7,5},{4,4},{5,4},{6,4},{7,4},{4,3},{5,3},{6,3},{7,3},{4,2},{5,2},{6,2},{7,2},{4,1},{5,1},{6,1},{7,1},{4,0},{5,0},{6,0},{7,0},}      
-               elseif conf.keymode == 7 then -- 8x8, vertical columns
-                       w_div = 8
-                       h_div = 8  
-                       shifts  = { 
-                                   {0,7},{0,6},{0,5},{0,4},{0,3},{0,2},{0,1},{0,0},{1,7},{1,6},{1,5},{1,4},{1,3},{1,2},{1,1},{1,0},{2,7},{2,6},{2,5},{2,4},{2,3},{2,2},{2,1},{2,0},{3,7},{3,6},{3,5},{3,4},{3,3},{3,2},{3,1},{3,0},{4,7},{4,6},{4,5},{4,4},{4,3},{4,2},{4,1},{4,0},{5,7},{5,6},{5,5},{5,4},{5,3},{5,2},{5,1},{5,0},{6,7},{6,6},{6,5},{6,4},{6,3},{6,2},{6,1},{6,0},{7,7},{7,6},{7,5},{7,4},{7,3},{7,2},{7,1},{7,0},}  
-               elseif conf.keymode == 8 then -- allkeys
-                       w_div = 12
-                       h_div = 12 
-                       shifts  = { 
-                                   {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{0,4},{1,4},{2,4},{3,4},{4,4},{5,4},{6,4},{7,4},{8,4},{9,4},{10,4},{11,4},{0,5},{1,5},{2,5},{3,5},{4,5},{5,5},{6,5},{7,5},{8,5},{9,5},{10,5},{11,5},{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6},{7,6},{8,6},{9,6},{10,6},{11,6},{0,7},{1,7},{2,7},{3,7},{4,7},{5,7},{6,7},{7,7},{8,7},{9,7},{10,7},{11,7},{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8},{9,8},{10,8},{11,8},{0,9},{1,9},{2,9},{3,9},{4,9},{5,9},{6,9},{7,9},{8,9},{9,9},{10,9},{11,9},{0,10},{1,10},{2,10},{3,10},{4,10},{5,10},{6,10},{7,10},{8,10},{9,10},{10,10},{11,10},{0,11},{1,11},{2,11},{3,11},{4,11},{5,11},{6,11},{7,11},{8,11},{9,11},{10,11},{11,11},}
-               elseif conf.keymode == 9 then -- allkeys bot to top
-                       w_div = 12
-                       h_div = 12 
-                       shifts  = {                      
-                                    
-               {0,11},{1,11},{2,11},{3,11},{4,11},{5,11},{6,11},{7,11},{8,11},{9,11},{10,11},{11,11},{0,10},{1,10},{2,10},{3,10},{4,10},{5,10},{6,10},{7,10},{8,10},{9,10},{10,10},{11,10},{0,9},{1,9},{2,9},{3,9},{4,9},{5,9},{6,9},{7,9},{8,9},{9,9},{10,9},{11,9},{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8},{9,8},{10,8},{11,8},{0,7},{1,7},{2,7},{3,7},{4,7},{5,7},{6,7},{7,7},{8,7},{9,7},{10,7},{11,7},{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6},{7,6},{8,6},{9,6},{10,6},{11,6},{0,5},{1,5},{2,5},{3,5},{4,5},{5,5},{6,5},{7,5},{8,5},{9,5},{10,5},{11,5},{0,4},{1,4},{2,4},{3,4},{4,4},{5,4},{6,4},{7,4},{8,4},{9,4},{10,4},{11,4},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0}}
-                                    
-                     end
-                     return  shifts,w_div ,h_div
-                 end
-                 
-
-               { str = '>Layouts'},
-               { str = 'Korg NanoPad (8x2)',
-                 func = function() conf.keymode = 2 end ,
-                 state = conf.keymode == 2},
-                 
-               { str = 'launchpad},                 
-  
-        ]]
         
        
   _main()
