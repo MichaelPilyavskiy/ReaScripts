@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.17
+-- @version 4.18
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,13 +15,11 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Settings/ UI interaction / Layout: Launchpad MK3 drum mode
---    + Settings/ UI interaction / Layout: Launchpad MK3 programmer mode
---    + Layout / Launchpad MK3: send Key layout SysEx on script close
---    + Layout / Launchpad MK3 programmer mode: feedback pads colors
+--    # SysEx: cleanup
+--    + SysEx: support for LuanchPad Pro MK3
 
 
-rs5kman_vrs = '4.17'
+rs5kman_vrs = '4.18'
 
 
 -- TODO
@@ -29,7 +27,6 @@ rs5kman_vrs = '4.17'
       knob for samples in path
       macro quick link from parameter
       auto switch midi bus record arm if playing with another rack 
-      SYSEX feedback to launchpad 
       sampler / sampl / import // or hot record from master bus 
       sequencer 
       auto color tracks by note
@@ -42,7 +39,6 @@ rs5kman_vrs = '4.17'
       sampler/fx - compression, transient shaper
       sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
       ADSR show as curve
-      device - add volume control + auto fill velocity range
 ]]
 
     
@@ -826,7 +822,7 @@ end
     
     -- data
     if UI.open then defer(UI.MAIN_loop) else  
-      DATA:Auto_StuffSysex_sub('F0h 00h 20h 29h 02h 0Dh 00h 05 F7h') -- send keys layout to launchpad
+      DATA:Auto_StuffSysex_sub('key layout') -- send keys layout to launchpad
     end
   end
   -------------------------------------------------------------------------------- 
@@ -1391,50 +1387,51 @@ end
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
   function DATA:Auto_StuffSysex() 
-    if EXT.UI_drracklayout == 2 then
-      DATA:Auto_StuffSysex_sub('F0h 00h 20h 29h 02h 0Dh 00h 04 F7h')  -- send drum mode to launchpad mk3
-      --[[
-      local colorstr = ''--'00h 0Bh 0Dh 01h 0Ch 15h 17h 02h 0Dh 25h' 
-      
-      for ledId = 0, 81 do
-        if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
-          local lightingtype = 3 
-          local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
-          r = math.floor(((color>>16)&0xFF) * 0.5)
-          g = math.floor(((color>>8)&0xFF) * 0.5)
-          b = math.floor(((color>>0)&0xFF) * 0.5)
-          colorstr = colorstr..
-            DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
-            DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
-            string.format("%X", r)..' '..
-            string.format("%X", g)..' '..
-            string.format("%X", b)..' '
-         else
-          local lightingtype = 0
-          local palettecol = 0
-          colorstr = colorstr..
-            DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
-            DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
-            DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
-        end
+    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('drum layout') end 
+    -- programmer mode -----------------------------------------------------
+    if EXT.UI_drracklayout == 3 then 
+      DATA:Auto_StuffSysex_sub('programmer mode') 
+      DATA:Auto_StuffSysex_sub('programmer mode: set colors') 
+    end 
+  end
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg
+    -- search HW MIDI out 
+      local is_LPminiMK3
+      local is_LPProMK3
+      local LPminiMK3_name = "LPMiniMK3 MIDI"
+      local LPProMK3_name = "LPProMK3 MIDI"
+      for dev = 1, reaper.GetNumMIDIOutputs() do
+        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
+        if retval and nameout:match(LPminiMK3_name) then HWdevoutID =  dev-1 is_LPminiMK3 = true break end 
+        if retval and nameout:match(LPProMK3_name) then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
       end
-      local outhex = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h'
-      DATA:Auto_StuffSysex_sub(outhex)  -- send programmer to launchpad mk3
-      
-      ]]
-      
-      
+      if not HWdevoutID then return end
+    
+    
+    
+    
+    if cmd == 'drum layout' then
+      if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 04 F7h' end
+      if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' end 
     end
     
     
     
+    if cmd == 'programmer mode' then
+      if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' end
+      if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'end
+    end
     
-    -- programmer mode -----------------------------------------------------
-    if EXT.UI_drracklayout == 3 then
-      DATA:Auto_StuffSysex_sub('F0h 00h 20h 29h 02h 0Dh 00h 7F F7h')  -- send programmer to launchpad mk3
+    if cmd == 'key layout' then
+      if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' end
+      if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' end
+    end
+    
+    
+    if cmd == 'programmer mode: set colors' then
       
-        local colorstr = ''--'00h 0Bh 0Dh 01h 0Ch 15h 17h 02h 0Dh 25h' 
-        
+        local colorstr = '' 
         for ledId = 0, 81 do
           if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
             local lightingtype = 3 
@@ -1457,23 +1454,16 @@ end
               DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
           end
         end
-        local outhex = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h'
-        DATA:Auto_StuffSysex_sub(outhex)  -- send programmer to launchpad mk3
+        
+        if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h' end
+        if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 03h '..colorstr..'F7h' end 
+
     end
-  end
-  ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_sub(str) 
-    local CONF_HWoutname = "LPMiniMK3 MIDI"
-    -- search HW MIDI out
-      for dev = 1, reaper.GetNumMIDIOutputs() do
-        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
-        if retval and nameout:match(CONF_HWoutname) then HWdevoutID =  dev-1 break end 
-      end
-      
-    if not HWdevoutID then return end
-      
-    local SysEx_msg = str local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
-    reaper.SendMIDIMessageToHardware(HWdevoutID, SysEx_msg_bin)
+    
+    if SysEx_msg and HWdevoutID then
+      local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
+      SendMIDIMessageToHardware(HWdevoutID, SysEx_msg_bin)
+    end
   end 
   --------------------------------------------------------------------- 
   function DATA:Auto_Device_RefreshVelocityRange(note)
