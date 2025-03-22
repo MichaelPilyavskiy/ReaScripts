@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.18
+-- @version 4.19
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,11 +15,10 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # SysEx: cleanup
---    + SysEx: support for LuanchPad Pro MK3
+--    # SysEx: patch for LuanchPad Pro MK3
 
 
-rs5kman_vrs = '4.18'
+rs5kman_vrs = '4.19'
 
 
 -- TODO
@@ -1403,8 +1402,8 @@ end
       local LPProMK3_name = "LPProMK3 MIDI"
       for dev = 1, reaper.GetNumMIDIOutputs() do
         local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
-        if retval and nameout:match(LPminiMK3_name) then HWdevoutID =  dev-1 is_LPminiMK3 = true break end 
-        if retval and nameout:match(LPProMK3_name) then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
+        if retval and nameout == LPminiMK3_name then HWdevoutID =  dev-1 is_LPminiMK3 = true break end --nameout:match(LPminiMK3_name)
+        if retval and nameout == LPProMK3_name then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
       end
       if not HWdevoutID then return end
     
