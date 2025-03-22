@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.19
+-- @version 4.20
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,10 +15,10 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # SysEx: patch for LuanchPad Pro MK3
+--    # SysEx: remove progremmer mode stuff, use session only
 
 
-rs5kman_vrs = '4.19'
+rs5kman_vrs = '4.20'
 
 
 -- TODO
@@ -114,7 +114,7 @@ rs5kman_vrs = '4.19'
           CONF_database_map8 = '',
           
           CONF_lastmacroaction = 0,
-          CONF_launchpadsysex = 0,
+          CONF_launchpadsendMIDI = 1,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -719,7 +719,7 @@ end
           UI.calc_cellside = (DATA.display_h - UI.spacingY*2 - UI.calc_itemH)/22
           UI.calc_padoverviewW = UI.calc_cellside * 7 + UI.spacingX*2
         end 
-        if EXT.UI_drracklayout == 3 then -- lp programmer mode
+        if EXT.UI_drracklayout == 2 then --LP
           UI.calc_padoverviewW = UI.spacingX*2
         end 
         local calc_padoverviewW = UI.calc_padoverviewW
@@ -742,7 +742,7 @@ end
           UI.calc_rack_padw = math.floor((UI.calc_rackW) / 7)-- -UI.spacingX
           UI.calc_rack_padh = math.floor((UI.calc_rackH) / 4)
         end
-        if EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 then --launch
+        if EXT.UI_drracklayout == 2  then --launch
           UI.calc_rack_padw = math.floor(-UI.spacingX+(UI.calc_rackW-UI.spacingX) / 8)-- 
           UI.calc_rack_padh = math.floor(-UI.spacingY+(UI.calc_rackH) / 8)
         end
@@ -1386,12 +1386,7 @@ end
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
   function DATA:Auto_StuffSysex() 
-    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('drum layout') end 
-    -- programmer mode -----------------------------------------------------
-    if EXT.UI_drracklayout == 3 then 
-      DATA:Auto_StuffSysex_sub('programmer mode') 
-      DATA:Auto_StuffSysex_sub('programmer mode: set colors') 
-    end 
+    if EXT.UI_drracklayout == 2 and EXT.CONF_launchpadsendMIDI == 1 then DATA:Auto_StuffSysex_sub('drum layout') end 
   end
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg
@@ -1411,20 +1406,55 @@ end
     
     
     if cmd == 'drum layout' then
-      if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 04 F7h' end
-      if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' end 
+      
+      if cmd == 'drum mode' then
+        if is_LPminiMK3 ==true then 
+          SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 10h 01 F7h' 
+          DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+        end
+      end
+      
+      
+      if is_LPminiMK3 ==true or is_LPProMK3==true then 
+        for ledId = 0, 81 do
+          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+            local msgtype = 90
+            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then msgtype = 92 end
+            SysEx_msg = msgtype..' '..string.format("%02X", ledId)..' 16'
+            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+           else
+            local col = '00'
+            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then col = '03' end
+            SysEx_msg = '90 '..string.format("%02X", ledId)..' '..col
+            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+          end
+        end
+      end
+      
     end
     
-    
+    --[[
     
     if cmd == 'programmer mode' then
-      if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' end
-      if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'end
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
     end
     
     if cmd == 'key layout' then
-      if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' end
-      if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' end
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
     end
     
     
@@ -1457,13 +1487,16 @@ end
         if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h' end
         if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 03h '..colorstr..'F7h' end 
 
-    end
+    end]]
     
+  end 
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
     if SysEx_msg and HWdevoutID then
       local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
       SendMIDIMessageToHardware(HWdevoutID, SysEx_msg_bin)
     end
-  end 
+  end
   --------------------------------------------------------------------- 
   function DATA:Auto_Device_RefreshVelocityRange(note)
     if not (DATA.children and DATA.children[note] and DATA.children[note].layers) then return end
@@ -2826,13 +2859,13 @@ end
     local w, h = ImGui.GetItemRectSize(ctx) 
     if EXT.UI_drracklayout == 0 then UI.Layout_PadOverview_generategrid_pads(x+1,y,w,h) end 
     if EXT.UI_drracklayout == 1 then UI.Layout_PadOverview_generategrid_keys(x+1,y,w,h) end 
-    if EXT.UI_drracklayout == 2 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
+    --if EXT.UI_drracklayout == 2 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
   end
   --------------------------------------------------------------------------------
   function UI.Layout_PadOverview_handlemouse(v)  
     if not (DATA.parent_track and DATA.parent_track.ext) then return end
     -- pads 
-    if EXT.UI_drracklayout == 0 or EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 then
+    if EXT.UI_drracklayout == 0 or EXT.UI_drracklayout == 2 then
       local activerow = math.floor(v*33)
       local qblock = 4
       if activerow < 1 then activerow = 0 end
@@ -3392,8 +3425,10 @@ end
       
       --ImGui.SeparatorText(ctx, 'UI interaction') 
         --ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='LPad MK3 Drum Layout',[3]='LPad MK3 Programmer mode'},'##settings_drracklayout', 'DrumRack layout', 200) 
+        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='LPad MK3 Drum Layout'},'##settings_drracklayout', 'DrumRack layout', 200) 
         ImGui.Indent(ctx, UI.settings_indent)
+          if ImGui.Checkbox( ctx, 'Send MIDI to device on state change',                              EXT.CONF_launchpadsendMIDI == 1 ) then EXT.CONF_launchpadsendMIDI =EXT.CONF_launchpadsendMIDI~1 EXT:save() end
+        
         ImGui.Unindent(ctx, UI.settings_indent)
         
         if ImGui.Checkbox( ctx, 'Click on pad select track',                              EXT.UI_clickonpadselecttrack == 1 ) then EXT.UI_clickonpadselecttrack =EXT.UI_clickonpadselecttrack~1 EXT:save() end
@@ -3492,7 +3527,7 @@ end
     if not (EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 ) then return end
     
     
-    -- drums 
+    --[[ drums 
     if EXT.UI_drracklayout == 2 then
       local layout_pads_cnt = 64
       local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
@@ -3515,11 +3550,11 @@ end
         end
         padID0 = padID0 + 1
       end
-    end
+    end]]
     
     
     -- programmer
-    if EXT.UI_drracklayout == 3 then
+    if EXT.UI_drracklayout == 2 then
       local layout_pads_cnt = 79
       local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
       local xoffs0= UI.calc_rackX
