@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.16
+-- @version 4.17
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,16 +15,13 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Sampler: fix set layer for device children
---    # Settings / on add: set child color from parent color
---    # Settings: pack settings to a collapsed tree
---    + Sampler/Device: add option to auto set velocity range for newly added layers
---    + Settings/On sample add: auto-set velocity range option enabled for new devices
---    + Sampler/Boundary: allow VCA
---    + Layout: add Launchpad support
+--    + Settings/ UI interaction / Layout: Launchpad MK3 drum mode
+--    + Settings/ UI interaction / Layout: Launchpad MK3 programmer mode
+--    + Layout / Launchpad MK3: send Key layout SysEx on script close
+--    + Layout / Launchpad MK3 programmer mode: feedback pads colors
 
 
-rs5kman_vrs = '4.16'
+rs5kman_vrs = '4.17'
 
 
 -- TODO
@@ -727,6 +724,9 @@ end
           UI.calc_cellside = (DATA.display_h - UI.spacingY*2 - UI.calc_itemH)/22
           UI.calc_padoverviewW = UI.calc_cellside * 7 + UI.spacingX*2
         end 
+        if EXT.UI_drracklayout == 3 then -- lp programmer mode
+          UI.calc_padoverviewW = UI.spacingX*2
+        end 
         local calc_padoverviewW = UI.calc_padoverviewW
         
         -- rack
@@ -747,7 +747,7 @@ end
           UI.calc_rack_padw = math.floor((UI.calc_rackW) / 7)-- -UI.spacingX
           UI.calc_rack_padh = math.floor((UI.calc_rackH) / 4)
         end
-        if EXT.UI_drracklayout == 2 then --launch
+        if EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 then --launch
           UI.calc_rack_padw = math.floor(-UI.spacingX+(UI.calc_rackW-UI.spacingX) / 8)-- 
           UI.calc_rack_padh = math.floor(-UI.spacingY+(UI.calc_rackH) / 8)
         end
@@ -825,7 +825,9 @@ end
     DATA:handleViewportXYWH()
     
     -- data
-    if UI.open then defer(UI.MAIN_loop) end
+    if UI.open then defer(UI.MAIN_loop) else  
+      DATA:Auto_StuffSysex_sub('F0h 00h 20h 29h 02h 0Dh 00h 05 F7h') -- send keys layout to launchpad
+    end
   end
   -------------------------------------------------------------------------------- 
   function UI.MAIN_definecontext()
@@ -940,6 +942,7 @@ end
     -- UI
     DATA:CollectData_GetPeaks()
     
+    DATA:Auto_StuffSysex()
   end
   -------------------------------------------------------------------------------- 
   function DATA:Auto_TCPMCP()
@@ -1385,6 +1388,93 @@ end
       if retval then DATA.MIDI_inputs[dev-1] = nameout end
     end
   end
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
+  function DATA:Auto_StuffSysex() 
+    if EXT.UI_drracklayout == 2 then
+      DATA:Auto_StuffSysex_sub('F0h 00h 20h 29h 02h 0Dh 00h 04 F7h')  -- send drum mode to launchpad mk3
+      --[[
+      local colorstr = ''--'00h 0Bh 0Dh 01h 0Ch 15h 17h 02h 0Dh 25h' 
+      
+      for ledId = 0, 81 do
+        if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+          local lightingtype = 3 
+          local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
+          r = math.floor(((color>>16)&0xFF) * 0.5)
+          g = math.floor(((color>>8)&0xFF) * 0.5)
+          b = math.floor(((color>>0)&0xFF) * 0.5)
+          colorstr = colorstr..
+            DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+            DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+            string.format("%X", r)..' '..
+            string.format("%X", g)..' '..
+            string.format("%X", b)..' '
+         else
+          local lightingtype = 0
+          local palettecol = 0
+          colorstr = colorstr..
+            DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+            DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+            DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
+        end
+      end
+      local outhex = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h'
+      DATA:Auto_StuffSysex_sub(outhex)  -- send programmer to launchpad mk3
+      
+      ]]
+      
+      
+    end
+    
+    
+    
+    
+    -- programmer mode -----------------------------------------------------
+    if EXT.UI_drracklayout == 3 then
+      DATA:Auto_StuffSysex_sub('F0h 00h 20h 29h 02h 0Dh 00h 7F F7h')  -- send programmer to launchpad mk3
+      
+        local colorstr = ''--'00h 0Bh 0Dh 01h 0Ch 15h 17h 02h 0Dh 25h' 
+        
+        for ledId = 0, 81 do
+          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+            local lightingtype = 3 
+            local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
+            r = math.floor(((color>>16)&0xFF) * 0.5)
+            g = math.floor(((color>>8)&0xFF) * 0.5)
+            b = math.floor(((color>>0)&0xFF) * 0.5)
+            colorstr = colorstr..
+              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+              string.format("%X", r)..' '..
+              string.format("%X", g)..' '..
+              string.format("%X", b)..' '
+           else
+            local lightingtype = 0
+            local palettecol = 0
+            colorstr = colorstr..
+              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+              DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
+          end
+        end
+        local outhex = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h'
+        DATA:Auto_StuffSysex_sub(outhex)  -- send programmer to launchpad mk3
+    end
+  end
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_sub(str) 
+    local CONF_HWoutname = "LPMiniMK3 MIDI"
+    -- search HW MIDI out
+      for dev = 1, reaper.GetNumMIDIOutputs() do
+        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
+        if retval and nameout:match(CONF_HWoutname) then HWdevoutID =  dev-1 break end 
+      end
+      
+    if not HWdevoutID then return end
+      
+    local SysEx_msg = str local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
+    reaper.SendMIDIMessageToHardware(HWdevoutID, SysEx_msg_bin)
+  end 
   --------------------------------------------------------------------- 
   function DATA:Auto_Device_RefreshVelocityRange(note)
     if not (DATA.children and DATA.children[note] and DATA.children[note].layers) then return end
@@ -2753,7 +2843,7 @@ end
   function UI.Layout_PadOverview_handlemouse(v)  
     if not (DATA.parent_track and DATA.parent_track.ext) then return end
     -- pads 
-    if EXT.UI_drracklayout == 0 or EXT.UI_drracklayout == 2 then
+    if EXT.UI_drracklayout == 0 or EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 then
       local activerow = math.floor(v*33)
       local qblock = 4
       if activerow < 1 then activerow = 0 end
@@ -2944,8 +3034,8 @@ end
     
   end
   --------------------------------------------------------------------------------  
-  function UI.draw_tabs_settings_combo(extkey, mapt, str_id, name)
-    ImGui.SetNextItemWidth(ctx, UI.settings_itemW )
+  function UI.draw_tabs_settings_combo(extkey, mapt, str_id, name, extw)
+    ImGui.SetNextItemWidth(ctx, extw or UI.settings_itemW )
     if ImGui.BeginCombo( ctx, name..str_id, mapt[EXT[extkey] ], ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
       for key in spairs(mapt) do 
         if ImGui.Selectable( ctx, mapt[key]..str_id..key, EXT[extkey] == key, ImGui.SelectableFlags_None) then EXT[extkey] = key EXT:save() DATA.upd = true end
@@ -3313,7 +3403,10 @@ end
       
       --ImGui.SeparatorText(ctx, 'UI interaction') 
         --ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad'},'##settings_drracklayout', 'DrumRack layout') 
+        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='LPad MK3 Drum Layout',[3]='LPad MK3 Programmer mode'},'##settings_drracklayout', 'DrumRack layout', 200) 
+        ImGui.Indent(ctx, UI.settings_indent)
+        ImGui.Unindent(ctx, UI.settings_indent)
+        
         if ImGui.Checkbox( ctx, 'Click on pad select track',                              EXT.UI_clickonpadselecttrack == 1 ) then EXT.UI_clickonpadselecttrack =EXT.UI_clickonpadselecttrack~1 EXT:save() end
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
         local ret, v = ImGui.SliderInt( ctx, 'Default playing velocity',                  EXT.CONF_default_velocity, 1, 127, '%d', ImGui.SliderFlags_None ) if ret then EXT.CONF_default_velocity = v EXT:save() end
@@ -3407,28 +3500,53 @@ end
   end
   --------------------------------------------------------------------------------  
   function UI.Layout_Launchpad() 
-    if EXT.UI_drracklayout ~= 2 then return end
-    local layout_pads_cnt = 64
-    local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
-    local xoffs= UI.calc_rackX
-    local xoffs2 = 0
-    local yoffs2 = 0
-    local padID0 = 0
-    local second_laneshift = false
-    for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do 
-      if padID0 > 31 then second_laneshift = true end
-      if second_laneshift == true then 
-        xoffs2 = UI.calc_rack_padw*4 + UI.spacingX * 4
-        yoffs2 = UI.calc_rack_padh*8 + UI.spacingY*8
+    if not (EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 ) then return end
+    
+    
+    -- drums 
+    if EXT.UI_drracklayout == 2 then
+      local layout_pads_cnt = 64
+      local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
+      local xoffs= UI.calc_rackX
+      local xoffs2 = 0
+      local yoffs2 = 0
+      local padID0 = 0
+      local second_laneshift = false
+      for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do 
+        if padID0 > 31 then second_laneshift = true end
+        if second_laneshift == true then 
+          xoffs2 = UI.calc_rack_padw*4 + UI.spacingX * 4
+          yoffs2 = UI.calc_rack_padh*8 + UI.spacingY*8
+        end
+        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs + xoffs2, yoffs+yoffs2, UI.calc_rack_padw, UI.calc_rack_padh) 
+        xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
+        if padID0%4==3 then 
+          xoffs = UI.calc_rackX 
+          yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
+        end
+        padID0 = padID0 + 1
       end
-      UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs + xoffs2, yoffs+yoffs2, UI.calc_rack_padw, UI.calc_rack_padh) 
-      xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
-      if padID0%4==3 then 
-        xoffs = UI.calc_rackX 
-        yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
-      end
-      padID0 = padID0 + 1
     end
+    
+    
+    -- programmer
+    if EXT.UI_drracklayout == 3 then
+      local layout_pads_cnt = 79
+      local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
+      local xoffs0= UI.calc_rackX
+      local padID0 = 0
+      local offs = 11
+      for note = offs, layout_pads_cnt-1+offs do 
+      if ((note - offs)-8)%10==0 then  goto skip end
+      if ((note - offs)-9)%10==0 then  goto skip end 
+        xoffs = xoffs0 + (UI.calc_rack_padw + UI.spacingX) * (padID0%8)--xoffs + UI.calc_rack_padw + UI.spacingX
+        yoffs = yoffs0 - (UI.calc_rack_padh+ UI.spacingY) * math.floor(padID0 / 8)
+        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
+        padID0 = padID0 + 1
+        ::skip::
+      end
+    end
+    
   end
   --------------------------------------------------------------------------------  
   function UI.Layout_Keys() 
