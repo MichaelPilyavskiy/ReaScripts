@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="01b720641b83cfea541ec6060c42f9074835895d" name="MPL Scripts">
+<index version="1" commit="cc24bae3f13940be30c00e397d002df2000c2777" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6044,6 +6044,15 @@
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="mpl_Change gain of item audio segment under mouse cursor.lua" type="script" desc="Change gain of item audio segment under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-03-23T17:48:59Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc24bae3f13940be30c00e397d002df2000c2777/Items%20Editing/mpl_Change%20gain%20of%20item%20audio%20segment%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Convert selected looped items to multiple splits.lua" type="script" desc="Convert selected looped items to multiple splits">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -13912,6 +13921,10 @@ various fixes]]></changelog>
       <version name="3.02" author="MPL" time="2025-03-11T19:21:12Z">
         <changelog><![CDATA[+ Add tooltips to actions]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4233714ffbc47a5860d1d2c9066ac290e450d417/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="3.03" author="MPL" time="2025-03-23T17:48:59Z">
+        <changelog><![CDATA[+ Pass space to transport play/stop]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc24bae3f13940be30c00e397d002df2000c2777/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
