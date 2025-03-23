@@ -1,13 +1,13 @@
 -- @description VisualMixer
--- @version 3.02
+-- @version 3.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Add tooltips to actions
+--    + Pass space to transport play/stop
 
 
-vrs = 3.02
+vrs = 3.03
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -269,6 +269,7 @@ vrs = 3.02
         ImGui.PopStyleVar(ctx, 22) 
         ImGui.PopStyleColor(ctx, 23) 
         ImGui.PopFont( ctx ) 
+      if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then reaper.Main_OnCommand( 40044, 0 ) end
       if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
     
       return open
