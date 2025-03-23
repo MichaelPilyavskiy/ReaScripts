@@ -1,12 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.08
+-- @version 3.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # ignore VCA if not enabled
+--    + Add support for showing receives
 
 
-    vrs = 3.08
+    vrs = 3.09
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -253,7 +253,13 @@
         ImGui.PushStyle('Col_PopupBg',0x303030, 0.9) 
         ImGui.PushStyle('Col_ResizeGrip',UI.main_col, 1) 
         ImGui.PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
-        ImGui.PushStyle('Col_SliderGrab',UI.butBg_green, 0.4) 
+        
+        ImGui.PushStyle('Col_SliderGrab',0x3D85E0 , 0.6)  
+        if DATA.selected_track_is_receive == true then  
+          ImGui.PushStyle('Col_SliderGrab',0x00B300 , 0.6)
+        end
+        
+        
         ImGui.PushStyle('Col_Tab',UI.main_col, 0.37) 
         ImGui.PushStyle('Col_TabHovered',UI.main_col, 0.8) 
         ImGui.PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
@@ -324,9 +330,98 @@
   -------------------------------------------------------------------------------- 
   function DATA:CollectData()
     DATA.SR = VF_GetProjectSampleRate()
-    DATA:CollectData_ReadProject_ReadTracks()
-    DATA:CollectData_ReadProject_ReadReceives()
+    
+    DATA:CollectData_ReadProject_ReadTracks()  
+    DATA:CollectData_ReadProject_ReadTracks_Sends()
+    DATA:CollectData_ReadProject_ReadReceives()  
+    if DATA.selected_track_is_receive == true then 
+      DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle()
+     else 
+    end
   end
+  ---------------------------------------------------------------------  
+  function DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle_FindSendIdx(srcPtr,destPtr)
+    for sendidx = 1, GetTrackNumSends( srcPtr, 0 ) do 
+      if GetTrackSendInfo_Value( srcPtr, 0, sendidx-1, 'P_DESTTRACK' ) == destPtr then return sendidx -1 end
+    end
+  end
+  ---------------------------------------------------------------------  
+  function DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle()
+    local tr = DATA.srctr.ptr
+    DATA.srctr.receives = {}
+    
+    
+    
+    for sendidx = 1, GetTrackNumSends( tr, -1 ) do 
+      local id = #DATA.srctr.receives+1
+      
+      local destPtr = tr
+      local srcPtr = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'P_SRCTRACK' )
+      local sendidx_from_src = DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle_FindSendIdx(srcPtr,destPtr)
+      if not sendidx_from_src then goto nextsend end
+      
+      local B_MUTE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'B_MUTE' )
+      local vol = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'D_VOL' )
+      local B_MONO = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'B_MONO' )
+      local D_PAN = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'D_PAN' )
+      local B_PHASE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'B_PHASE' )
+      local I_SENDMODE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_SENDMODE' )
+      local I_AUTOMODE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_AUTOMODE' )
+      local I_SRCCHAN = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_SRCCHAN' )
+      local I_DSTCHAN = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_DSTCHAN' )
+      
+      local retval, destGUID = GetSetMediaTrackInfo_String( destPtr, 'GUID', '', false )
+      local retval, srcGUID = GetSetMediaTrackInfo_String( srcPtr, 'GUID', '', false )
+      local destI_NCHAN  = GetMediaTrackInfo_Value( destPtr, 'I_NCHAN' ) 
+      local ret, destName  = reaper.GetTrackName( srcPtr ) 
+      local destCol  = GetTrackColor( destPtr ) 
+      
+      local retval, ext_vcasel = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:vcasel_source', '', false )
+      ext_vcasel = tonumber(ext_vcasel) or 0
+      
+      local automode = GetTrackAutomationMode( srcPtr )
+      local automode_global = GetGlobalAutomationOverride()
+      local automode_follow
+      if (automode_global ~= -1 and automode_global > 0 ) or automode > 0  then 
+        automode_follow = true 
+        if automode_global ~= -1 and automode_global > 0 then automode = automode_global end 
+      end
+      
+      DATA.srctr.receives[id] = {
+            sendidx=sendidx_from_src,
+            sendidx_vcacheck = sendidx-1,
+            
+            vol=vol, 
+            B_MUTE =B_MUTE,
+            B_MONO =B_MONO,
+            D_PAN =D_PAN,
+            B_PHASE =B_PHASE,
+            I_SENDMODE =I_SENDMODE,
+            I_AUTOMODE =I_AUTOMODE,
+            I_DSTCHAN=I_DSTCHAN,
+            I_SRCCHAN=I_SRCCHAN,
+            destI_NCHAN=destI_NCHAN ,
+            destGUID=destGUID,
+            destPtr=destPtr,
+            destName=destName,
+            destCol=destCol,
+            peaks = {},
+            
+            ext_vcasel = ext_vcasel,
+            
+            automode_follow=automode_follow,
+            automode_env = DATA:CollectData_GetEnv(tr,destPtr),
+            automode=automode,
+            
+            str_id = srcGUID,
+            srcPtr = srcPtr,
+            }
+      DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(destPtr,DATA.srctr.receives[id]) 
+      
+      ::nextsend::
+    end
+    
+  end 
   -------------------------------------------------------------------- 
   function DATA:Convert_Val2Fader(rea_val)
     if not rea_val then return end 
@@ -380,7 +475,11 @@
       end
       
       DATA.srctr.sends[id] = {
+            
+            srcPtr = DATA.srctr.ptr,
             sendidx=sendidx-1,
+            sendidx_vcacheck = sendidx-1,
+            
             vol=vol, 
             B_MUTE =B_MUTE,
             B_MONO =B_MONO,
@@ -402,6 +501,8 @@
             automode_follow=automode_follow,
             automode_env = DATA:CollectData_GetEnv(tr,destPtr),
             automode=automode,
+            
+            str_id = destGUID, 
             
             }
       DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(destPtr,DATA.srctr.sends[id]) 
@@ -473,7 +574,6 @@
       peaks = {},
       }    
     
-    DATA:CollectData_ReadProject_ReadTracks_Sends()
   end
   -------------------------------------------------------------------------------- 
   function DATA:CollectData_Always()
@@ -855,37 +955,43 @@
     if EXT.CONF_showselection~=1 then return end
     if relation == 1 or relation == 0 then return end
     
+    -- get src
     local src_vol,dest_vol
     for i = 1, #DATA.temp_vca do
       local sendidx = DATA.temp_vca[i].sendidx
-      if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master == sendidx then 
+      local sendidx_vcacheck = DATA.temp_vca[i].sendidx_vcacheck
+      local ext_vcasel = DATA.temp_vca[i].ext_vcasel
+      
+      if ext_vcasel == 1 and sendidx_master == sendidx_vcacheck then 
         src_vol = DATA.temp_vca[i].vol
         dest_vol = t.vol
         break
       end 
     end
     
-    if not src_vol and dest_vol then return end
+    if not (src_vol and dest_vol) then return end
     local src_vol_fader = DATA:Convert_Val2Fader(src_vol)
     local dest_vol_fader = DATA:Convert_Val2Fader(dest_vol)
     local fader_diff =   dest_vol_fader / src_vol_fader
-    
+    -- app dest
     for i = 1, #DATA.temp_vca do
       local sendidx = DATA.temp_vca[i].sendidx
+      local sendidx_vcacheck = DATA.temp_vca[i].sendidx_vcacheck
       local src_vol = DATA.temp_vca[i].vol
-      if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master ~= sendidx then 
+      if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master ~= sendidx_vcacheck then 
         local src_vol_fader = DATA:Convert_Val2Fader(src_vol)
         local dest_vol_fader = fader_diff * src_vol_fader
         local dest_vol = DATA:Convert_Fader2Val(dest_vol_fader)
-        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, sendidx, 'D_VOL', dest_vol)
-        SetTrackSendUIVol( DATA.srctr.ptr, sendidx, dest_vol,0)
+        
+        SetTrackSendInfo_Value( t.srcPtr, 0, sendidx, 'D_VOL', dest_vol)
+        SetTrackSendUIVol(t.srcPtr, sendidx, dest_vol,0)
       end 
     end
     
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_slider(t) 
-    local str_id = t.destGUID
+    local str_id = t.str_id
     
     local x, y = reaper.ImGui_GetCursorScreenPos( ctx )
     local hovered 
@@ -893,7 +999,13 @@
     local faderval = DATA:Convert_Val2Fader(t.vol)
     local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
     
-    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then DATA.temp_vca = CopyTable(DATA.srctr.sends) end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then  
+      if DATA.selected_track_is_receive == true then 
+        DATA.temp_vca = CopyTable(DATA.srctr.receives) 
+       else
+        DATA.temp_vca = CopyTable(DATA.srctr.sends) 
+      end
+    end
     if ImGui.IsItemDeactivated( ctx ) then DATA.temp_vca = CopyTable(DATA.srctr.sends) end
     
     if retval then 
@@ -903,12 +1015,18 @@
         DATA.upd = true 
         return
       end
-      SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_VOL', outvol)
-      SetTrackSendUIVol( DATA.srctr.ptr, t.sendidx, outvol,0)
+      SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'D_VOL', outvol)
+      SetTrackSendUIVol( t.srcPtr, t.sendidx, outvol,0)
       t.vol = outvol
       DATA.upd = true
       hovered = true
-      if t.ext_vcasel == 1 then UI.draw_sends_sub_slider_handlevca(t, t.sendidx) end
+      if t.ext_vcasel == 1 then
+        if DATA.selected_track_is_receive == true then 
+          UI.draw_sends_sub_slider_handlevca(t, t.sendidx_vcacheck) 
+         else
+          UI.draw_sends_sub_slider_handlevca(t, t.sendidx) 
+        end
+      end
     end
     hovered = ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None )
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
@@ -925,12 +1043,11 @@
             local dbval = tonumber(retvals_csv)
             if not ( dbval > -90 and dbval < 12) then return end
             local outvol = WDL_DB2VAL(dbval)
-            SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_VOL', outvol)
-            SetTrackSendUIVol( DATA.srctr.ptr, t.sendidx, outvol, 1 )
+            SetTrackSendInfo_Value( t.srcPtr, t.direction, t.sendidx, 'D_VOL', outvol)
+            SetTrackSendUIVol( t.srcPtr, t.sendidx, outvol, 1 )
             DATA.upd = true
           end
         end
-        
       }
     end
     
@@ -976,7 +1093,7 @@
   end
   -----------------------------------------------------------------------------------------
   function UI.draw_sends_sub_chan(t)
-    local str_id = t.destGUID 
+    local str_id = t.str_id 
     
     --I_SRCCHAN : audio source starting channel index or -1 if audio send is disabled (&1024=mono...note that in that case, when reading index, you should do (index XOR 1024) to get starting channel index)
     --I_DSTCHAN : audio destination starting channel index (&1024=mono (and in case of hardware output &512=rearoute)...note that in that case, when reading index, you should do (index XOR (1024 OR 512)) to get starting channel index)
@@ -997,17 +1114,17 @@
     if ImGui.BeginCombo( ctx, '##srcch'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
       -- mono
       if t.I_SRCCHAN ~= -1 and ImGui.Checkbox( ctx, 'Mono', t.I_SRCCHAN&1024 == 1024 ) then
-        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SRCCHAN', t.I_SRCCHAN~1024)
+        SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_SRCCHAN', t.I_SRCCHAN~1024)
         DATA.upd = true
       end
       -- dest offs
-      if ImGui.Selectable( ctx, 'none##srcch'..str_id..-1, t.I_SRCCHAN == -1, ImGui.SelectableFlags_None) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SRCCHAN', -1) DATA.upd = true end
+      if ImGui.Selectable( ctx, 'none##srcch'..str_id..-1, t.I_SRCCHAN == -1, ImGui.SelectableFlags_None) then SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_SRCCHAN', -1) DATA.upd = true end
       for i = 0, 63, step do
         if ImGui.Selectable( ctx, mapt[i]..'##srcch'..str_id..i, t.I_SRCCHAN&0x1FF==i, ImGui.SelectableFlags_None) then
           local mono = 0 if ismono == true then mono =1024 end
           if t.I_SRCCHAN == -1 then t.I_SRCCHAN = i end
-          if t.I_SRCCHAN&0x1FF > DATA.srctr.I_NCHAN-2 then SetMediaTrackInfo_Value(  DATA.srctr.ptr, 'I_NCHAN', (t.I_SRCCHAN&0x1FF+2)|mono ) end -- increase 
-          SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SRCCHAN', i|mono)
+          if t.I_SRCCHAN&0x1FF > DATA.srctr.I_NCHAN-2 then SetMediaTrackInfo_Value( t.srcPtr, 'I_NCHAN', (t.I_SRCCHAN&0x1FF+2)|mono ) end -- increase 
+          SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_SRCCHAN', i|mono)
           DATA.upd = true
         end
       end
@@ -1030,7 +1147,7 @@
     if ImGui.BeginCombo( ctx, '##destch'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
       -- mono
       if ImGui.Checkbox( ctx, 'Mono', t.I_DSTCHAN&1024 == 1024 ) then
-        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_DSTCHAN', t.I_DSTCHAN~1024)
+        SetTrackSendInfo_Value(t.srcPtr, 0, t.sendidx, 'I_DSTCHAN', t.I_DSTCHAN~1024)
         DATA.upd = true
       end
       -- dest offs
@@ -1038,7 +1155,7 @@
         if ImGui.Selectable( ctx, mapt[i]..'##destch'..str_id..i, t.I_DSTCHAN&0x1FF==i, ImGui.SelectableFlags_None) then
           local mono = 0 if ismono == true then mono =1024 end
           if t.I_DSTCHAN&0x1FF > t.destI_NCHAN-2 then SetMediaTrackInfo_Value( t.destPtr, 'I_NCHAN', (t.I_DSTCHAN&0x1FF+2)|mono ) end -- increase 
-          SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_DSTCHAN', i|mono)
+          SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_DSTCHAN', i|mono)
           DATA.upd = true
         end
       end
@@ -1057,7 +1174,7 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_destname(t)
-    local str_id = t.destGUID
+    local str_id = t.str_id
     if ImGui.Button(ctx, t.destName..'##destname'..str_id,-1) then DATA:GoTotrack(t.destPtr) end
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
       UI.popups['Set new name'] = {
@@ -1079,22 +1196,22 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_muteremove(t)
-    local str_id = t.destGUID
+    local str_id = t.str_id
     if t.B_MUTE == 1 then 
       UI.draw_setbuttoncolor(0xFF0000) 
      else
       UI.draw_setbuttoncolor(UI.main_col)
     end
-    if ImGui.Button(ctx, 'Mute##destmute'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'B_MUTE', t.B_MUTE~1) DATA.upd = true end
+    if ImGui.Button(ctx, 'Mute##destmute'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'B_MUTE', t.B_MUTE~1) DATA.upd = true end
     ImGui.PopStyleColor(ctx,3)
     
     ImGui.SameLine(ctx)
-    if ImGui.Button(ctx, 'Del##destrem'..str_id,UI.calc_comboW) then RemoveTrackSend( DATA.srctr.ptr, 0, t.sendidx ) DATA.upd = true end
+    if ImGui.Button(ctx, 'Del##destrem'..str_id,UI.calc_comboW) then RemoveTrackSend( t.srcPtr, 0, t.sendidx ) DATA.upd = true end
     
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_mode(t)
-    local str_id = t.destGUID
+    local str_id = t.str_id
     
     ImGui.SetNextItemWidth(ctx,UI.faderW) 
     local map_t = {
@@ -1107,7 +1224,7 @@
     if ImGui.BeginCombo( ctx, '##srcmode'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
       for key in pairs(map_t) do
         if ImGui.Selectable( ctx, map_t[key]..'##srcch'..str_id..key, t.I_SENDMODE==key, ImGui.SelectableFlags_None) then
-          SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'I_SENDMODE', key)
+          SetTrackSendInfo_Value(  t.srcPtr, 0, t.sendidx, 'I_SENDMODE', key)
           DATA.upd = true
         end
       end
@@ -1117,7 +1234,7 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_pan(t)
-    local str_id = t.destGUID
+    local str_id = t.str_id
     ImGui.SetNextItemWidth(ctx,UI.faderW) 
     local formatIn = 'Center' if t.D_PAN > 0.01 then formatIn = math.ceil(t.D_PAN*100)..'%%R' elseif t.D_PAN < -0.01 then formatIn = -math.floor(t.D_PAN*100)..'%%L' end 
     ImGui.PushStyleColor(ctx,ImGui.Col_SliderGrab,0) 
@@ -1151,12 +1268,12 @@
       local dx, dy = ImGui.GetMouseDelta( ctx )
       if dx~=0 then
         t.D_PAN = outval
-        SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN', outval)
+        SetTrackSendInfo_Value(  t.srcPtr, 0, t.sendidx, 'D_PAN', outval)
         DATA.upd = true
       end
     end
     
-    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'D_PAN',0) DATA.upd = true end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'D_PAN',0) DATA.upd = true end
   end
   
   -------------------------------------------------------------------- 
@@ -1192,7 +1309,7 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_filt(t,ispost)
-    local str_id = t.destGUID 
+    local str_id = t.str_id 
     local UI_txt = 'PreEQ'
     if ispost then str_id=str_id..'post'  UI_txt = 'PostEQ' end
     
@@ -1266,8 +1383,8 @@
   function UI.draw_sends() 
     if not (DATA.tracks and DATA.srctr and DATA.srctr.sends) then return end 
     
-    
-    if EXT.CONF_alwaysshowreceives == 2 then
+    -- show list of available sends
+    if EXT.CONF_alwaysshowreceives == 2 and DATA.selected_track_is_receive ~= true then
       for i = 1, #DATA.receives do
         if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Border) then
           if ImGui.Button( ctx, DATA.receives[i].trname,-1) then 
@@ -1277,26 +1394,37 @@
           ImGui.EndChild(ctx)
         end
         ImGui.SameLine(ctx)
+      end 
+    end
+    
+    -- show existing sends
+    if DATA.selected_track_is_receive ~= true then
+      for sendID = 1, #DATA.srctr.sends do 
+        UI.draw_sends_sub(DATA.srctr.sends[sendID])  
+        ImGui.SameLine(ctx)
       end
     end
     
-    for sendID = 1, #DATA.srctr.sends do 
-      UI.draw_sends_sub(DATA.srctr.sends[sendID])  
-      ImGui.SameLine(ctx)
-    end
-    
-    if EXT.CONF_alwaysshowreceives == 1 then
+    -- show receives in list
+    if EXT.CONF_alwaysshowreceives == 1 and DATA.selected_track_is_receive ~= true then
       for recID = 1, #DATA.receives do
         UI.draw_sends_sub(DATA.receives[recID]) 
         ImGui.SameLine(ctx)
       end
     end
     
+    -- show receives
+    if DATA.selected_track_is_receive == true then
+      for sendID = 1, #DATA.srctr.receives do 
+        UI.draw_sends_sub(DATA.srctr.receives[sendID]) 
+        ImGui.SameLine(ctx)
+      end
+    end
     
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_FX(t)
-    local str_id = t.destGUID 
+    local str_id = t.str_id 
     if ImGui.Button(ctx, 'FX##destFX'..str_id,UI.faderW) then 
       local PreEQ = TrackFX_AddByName( t.destPtr, 'PreEQ', false, 0 )
       local PostEQ = TrackFX_AddByName( t.destPtr, 'PostEQ', false, 0 )
@@ -1316,14 +1444,14 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_monophase(t)
-    local str_id = t.destGUID
+    local str_id = t.str_id
     
     if t.B_MONO == 1 then 
       UI.draw_setbuttoncolor(0x0FFF00) 
      else
       UI.draw_setbuttoncolor(UI.main_col)
     end
-    if ImGui.Button(ctx, 'Mono##destmono'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'B_MONO', t.B_MONO~1) DATA.upd = true end
+    if ImGui.Button(ctx, 'Mono##destmono'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'B_MONO', t.B_MONO~1) DATA.upd = true end
     ImGui.PopStyleColor(ctx,3)
     ImGui.SameLine(ctx)
     
@@ -1332,25 +1460,33 @@
      else
       UI.draw_setbuttoncolor(UI.main_col)
     end
-    if ImGui.Button(ctx, 'Ø##destphase'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value( DATA.srctr.ptr, 0, t.sendidx, 'B_PHASE', t.B_PHASE~1) DATA.upd = true end
+    if ImGui.Button(ctx, 'Ø##destphase'..str_id,UI.calc_comboW) then SetTrackSendInfo_Value(  t.srcPtr, 0, t.sendidx, 'B_PHASE', t.B_PHASE~1) DATA.upd = true end
     ImGui.PopStyleColor(ctx,3)
     
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_vcacheck(t) 
     if EXT.CONF_showselection ~= 1 then return end
-    local str_id = t.destGUID
+    if DATA.selected_track_is_receive == true then ImGui.Dummy(ctx,0,UI.calc_itemH)return end
+    local str_id = t.str_id
     local destPtr = t.destPtr
+    local srcPtr = t.srcPtr
     
     local state = t.ext_vcasel == 1
     if ImGui.Checkbox(ctx,'##sel'..str_id, state) then
-      GetSetMediaTrackInfo_String( destPtr, 'P_EXT:vcasel', t.ext_vcasel~1, true )
+      
+      if DATA.selected_track_is_receive == true then
+        GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:vcasel_source', t.ext_vcasel~1, true )
+       else
+        GetSetMediaTrackInfo_String( destPtr, 'P_EXT:vcasel', t.ext_vcasel~1, true )
+      end 
+      
       DATA.upd = true
     end
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub(t)
-    local str_id = t.destGUID
+    local str_id = t.str_id
     
     local destCol = t.destCol
     if destCol == 0 then 
@@ -1381,6 +1517,8 @@
   end
   -----------------------------------------------------------------------------------------
   function DATA:CollectData_ReadProject_ReadReceives()
+    local seltr = GetSelectedTrack(0,0)
+    DATA.selected_track_is_receive = false
     DATA.receives = {}
     local CONF_definebygroup = tostring(EXT.CONF_definebygroup)
     local CONF_definebyname = tostring(EXT.CONF_definebyname)
@@ -1425,6 +1563,9 @@
         local ret, destName  = reaper.GetTrackName( tr )
         local retval, destGUID = GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
         local destCol  = GetTrackColor( tr ) 
+        
+        
+        if seltr and tr == seltr then DATA.selected_track_is_receive = true end
         
         DATA.receives[#DATA.receives+1] = {
             is_receive =true,
