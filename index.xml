@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="62c54dfcb029d32ba716aabe2154b92a9b34f122" name="MPL Scripts">
+<index version="1" commit="1b7d79df402e8bd6a83024b9fba6a18f7de2843b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1620,6 +1620,10 @@
 # improve migrating FabFilter Pro-Q2 VST2 to Q4 CLAP
 # improve migrating FabFilter Pro-Q2 VST2 to Q4 VST]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/62c54dfcb029d32ba716aabe2154b92a9b34f122/FX/mpl_CopyPaste%20plugin%20data.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2025-03-26T19:28:28Z">
+        <changelog><![CDATA[+ Add support for take FX (no envelopes)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b7d79df402e8bd6a83024b9fba6a18f7de2843b/FX/mpl_CopyPaste%20plugin%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create send from focused FX.lua" type="script" desc="Create send from focused FX">
