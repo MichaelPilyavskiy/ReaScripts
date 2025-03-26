@@ -1,10 +1,12 @@
 -- @description CopyPaste plugin data
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for migrating over plugin versions and formats
 -- @changelog
---    # fix header
+--    # improve porting envelopes
+--    # improve migrating FabFilter Pro-Q2 VST2 to Q4 CLAP
+--    # improve migrating FabFilter Pro-Q2 VST2 to Q4 VST
 
 
 
@@ -1008,15 +1010,21 @@ function DATA:Transfer()
   
 end
 -------------------------------------------------------------------------------- 
-function DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx, paramid, src_val, minval, maxval,minval_src, maxval_src, src_pname)
+function DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx, paramid, src_val, minval, maxval,minval_src, maxval_src, src_pname, overrides)
   local normalized = (src_val-minval) / (maxval - minval) 
   local outval = minval_src + (maxval_src - minval_src) * normalized
-  TrackFX_SetParam( dest_track, dest_fx,  paramid, outval)
+  if overrides and overrides.mapping then 
+    if overrides.mapping[src_val] then 
+      TrackFX_SetParam( dest_track, dest_fx,  paramid, overrides.mapping[src_val]) 
+    end
+   else
+    TrackFX_SetParam( dest_track, dest_fx,  paramid, outval)
+  end
   
   
 end
 -------------------------------------------------------------------------------- 
-function DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid, srcenv,minval, maxval,minval_src, maxval_src )
+function DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid, srcenv,minval, maxval,minval_src, maxval_src,overrides )
   if EXT.CONF_transfer_envelope == 1 and srcenv and #srcenv > 0  then
     local fxenv_exist = GetFXEnvelope( dest_track, dest_fx, paramid , false )~=nil
     local fxenv = GetFXEnvelope( dest_track, dest_fx, paramid , true ) 
@@ -1026,11 +1034,18 @@ function DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid, sr
       local scaling_mode = reaper.GetEnvelopeScalingMode( fxenv )
       for ptidx = 1, pointscnt do
         local pt = srcenv[ptidx]
+        local src_val = pt.value
         local normalized = (pt.value-minval) / (maxval - minval) 
         local outval = minval_src + (maxval_src - minval_src) * normalized
-        InsertEnvelopePoint( fxenv, pt.time, outval, pt.shape, pt.tension, pt.selected, true )
-        Envelope_SortPoints(fxenv)
+        
+        if overrides and overrides.mapping and overrides.mapping[src_val] then 
+          InsertEnvelopePoint( fxenv, pt.time, overrides.mapping[src_val], pt.shape, pt.tension, pt.selected, true )
+         else
+          InsertEnvelopePoint( fxenv, pt.time, outval, pt.shape, pt.tension, pt.selected, true )
+        end
+        
       end
+      Envelope_SortPoints(fxenv)
     end 
   end
 end
@@ -1046,39 +1061,83 @@ function DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid, srct, overr
   if overrides.maxval then maxval = overrides.maxval end
   if overrides.minval_src then minval_src = overrides.minval_src end
   if overrides.maxval_src then maxval_src = overrides.maxval_src end
-  DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx , paramid,src_val,minval, maxval,minval_src, maxval_src,src_pname)
+  DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx , paramid,src_val,minval, maxval,minval_src, maxval_src,src_pname, overrides)
+
   -- envelope
   local srcenv = srct.env
-  DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid,srcenv,minval, maxval,minval_src, maxval_src ) 
-  -- mod/learn
-  if EXT.CONF_transfer_modlearn == 1 then DATA:Transfer_Parameters_ModLearn(dest_track, dest_fx, paramid,srct.pmod) end 
+  DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid,srcenv,minval, maxval,minval_src, maxval_src, overrides ) 
+  
+  if not overrides.mapping then
+    -- mod/learn
+    if EXT.CONF_transfer_modlearn == 1 then DATA:Transfer_Parameters_ModLearn(dest_track, dest_fx, paramid,srct.pmod) end 
+  end
+  
 end
 
 -------------------------------------------------------------------------------- 
 function DATA:Transfer_Parameters( dest_track, dest_fx)
   if not (DATA.fx.PARAMS and DATA.fx.PARAMS.param_data) then return end
   local _, destfxname = GetNamedConfigParm( dest_track, dest_fx, 'fx_name' )
-  local proq3_to_4 = DATA.fx.fx_name:match(literalize('Pro-Q 3')) and destfxname:match(literalize('Pro-Q 4'))
+  local proq3_to_4vst3 = DATA.fx.fx_name:match(literalize('Pro-Q 3')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('VST3'))
+  local proq3_to_4clap = DATA.fx.fx_name:match(literalize('Pro-Q 3')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('CLAP'))
   local proq2_to_3 = DATA.fx.fx_name:match(literalize('Pro-Q 2')) and destfxname:match(literalize('Pro-Q 3'))
-  local proq2_to_4 = DATA.fx.fx_name:match(literalize('Pro-Q 2')) and destfxname:match(literalize('Pro-Q 4'))
+  local proq2_to_4vst3 = DATA.fx.fx_name:match(literalize('Pro-Q 2')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('VST3'))
+  local proq2_to_4clap = DATA.fx.fx_name:match(literalize('Pro-Q 2')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('CLAP'))
    
   -- transfer stuff
   local cnt = TrackFX_GetNumParams(  dest_track, dest_fx)
   for paramid = 1, cnt do
-    local retval, pname = TrackFX_GetParamName( dest_track, dest_fx, paramid-1 ) 
-    local src_pname = pname
+    local retval, dest_pname = TrackFX_GetParamName( dest_track, dest_fx, paramid-1 ) 
+    local src_pname = dest_pname
     
     -- overrides
     local overrides = {}
+    
     -- fab filter pro q
-    if proq2_to_4 and src_pname:match('Shape') then overrides.maxval_src = 7/9 end
-    if proq2_to_3 and src_pname:match('Shape') then overrides.maxval_src = 7/8 end 
-    if proq3_to_4 and src_pname:match('Shape') then overrides.maxval_src = 8/9 end -- fix 8 vs 9 shapes but the limits still 0...1  
-    if proq2_to_3 and pname:match('Used') then src_pname = pname:gsub('Used','State') overrides.minval = 1 overrides.maxval = 0.5  end
-    if proq2_to_3 and pname:match('Enabled') then src_pname = pname:gsub('Enabled','State') overrides.minval = 0 overrides.maxval = 0.5 end
-    if proq2_to_3 and pname:match('Stereo') then overrides.minval = 0 overrides.maxval_src = 2/4 end
-    if proq2_to_3 and src_pname:match('Slope') then overrides.maxval_src = 8/9 end
-    if proq2_to_4 and src_pname:match('Slope') then overrides.maxval_src = 8/9 end
+    if proq2_to_4vst3 then
+      if src_pname:match('Shape') then overrides.maxval_src = 7/9 end
+      if src_pname:match('Slope') then overrides.maxval_src = 8/9 end
+      if dest_pname:match('Used') then src_pname = dest_pname:gsub('Used','State') overrides.minval = 1 overrides.maxval = 0.5  end
+      if dest_pname:match('Enabled') then src_pname = dest_pname:gsub('Enabled','State') overrides.minval = 0 overrides.maxval = 0.5 end
+      if dest_pname:match('Stereo') then overrides.minval = 0 overrides.maxval_src = 2/4 end
+    end
+    
+    if proq2_to_4clap then
+      if dest_pname:match('Used') then src_pname = dest_pname:gsub('Used','State') overrides.minval = 1 overrides.maxval = 0.5  end
+      if dest_pname:match('Enabled') then src_pname = dest_pname:gsub('Enabled','State') overrides.minval = 0 overrides.maxval = 0.5 end
+      if dest_pname:match('Stereo') then 
+        overrides.mapping = {
+          [0] = 0,
+          [0.5] = 1,
+          [1] = 2,
+        } 
+        if DATA.fx.PARAMS.param_data['Channel Mode'] and DATA.fx.PARAMS.param_data['Channel Mode'].val and DATA.fx.PARAMS.param_data['Channel Mode'].val == 1 then 
+        overrides.mapping = {
+          [0] = 3,
+          [0.5] = 4,
+          [1] = 2,
+        }          
+        end
+      end
+      if src_pname:match('Shape') then overrides.minval =0 overrides.maxval = 10/8 end
+    end
+    
+    if proq2_to_3 then
+      if src_pname:match('Shape') then overrides.maxval_src = 7/8 end 
+      if dest_pname:match('Used') then src_pname = dest_pname:gsub('Used','State') overrides.minval = 1 overrides.maxval = 0.5  end
+      if dest_pname:match('Enabled') then src_pname = dest_pname:gsub('Enabled','State') overrides.minval = 0 overrides.maxval = 0.5 end
+      if dest_pname:match('Stereo') then overrides.minval = 0 overrides.maxval_src = 2/4 end
+      if src_pname:match('Slope') then overrides.maxval_src = 8/9 end
+    end
+    
+    if proq3_to_4vst3 then
+      if src_pname:match('Shape') then overrides.maxval_src = 8/9 end 
+    end
+    
+    if proq3_to_4clap then
+      if src_pname:match('Shape') then overrides.maxval = 10/9 end 
+    end
+    
     if DATA.fx.PARAMS.param_data[src_pname] then DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid-1, DATA.fx.PARAMS.param_data[src_pname], overrides, src_pname) end
      
   end
