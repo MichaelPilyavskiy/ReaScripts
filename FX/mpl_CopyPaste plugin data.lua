@@ -1,12 +1,10 @@
 -- @description CopyPaste plugin data
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for migrating over plugin versions and formats
 -- @changelog
---    # improve porting envelopes
---    # improve migrating FabFilter Pro-Q2 VST2 to Q4 CLAP
---    # improve migrating FabFilter Pro-Q2 VST2 to Q4 VST
+--    + Add support for take FX (no envelopes)
 
 
 
@@ -366,6 +364,7 @@ function DATA:CollectData_Get()
    else
     DATA.fx.fxGUID = TrackFX_GetFXGUID(track,fxidx)
   end
+  local GetNamedConfigParm
   
   if DATA.fx.istakefx ~= true then 
     GetNamedConfigParm = TrackFX_GetNamedConfigParm 
@@ -394,20 +393,32 @@ function DATA:CollectData_Get()
 end
 -------------------------------------------------------------------------------- 
 function DATA:CollectData_Get_Parameters(track, fxidx, GetNamedConfigParm) 
+  local funcname = 'TrackFX_'
+  local ptr = track
+  if DATA.fx.istakefx == true then 
+    funcname = 'TakeFX_' 
+    ptr = DATA.fx.srctk
+  end
+  
   DATA.fx.PARAMS = {param_data = {}}
-  local cnt = reaper.TrackFX_GetNumParams( track, fxidx )
+  local cnt = reaper[funcname..'GetNumParams']( ptr, fxidx )
   DATA.fx.PARAMS.cnt=cnt
   
   local duplicates_cnt = 0
   local paramnames = {}
   for paramid = 1, cnt do
-    local retval, pname = reaper.TrackFX_GetParamName( track, fxidx, paramid-1 )
+    local retval, pname = reaper[funcname..'GetParamName']( ptr, fxidx, paramid-1 )
     if not paramnames[pname] then
-      local val, minval, maxval = reaper.TrackFX_GetParam( track, fxidx,  paramid-1 )
+      local val, minval, maxval = reaper[funcname..'GetParam']( ptr, fxidx,  paramid-1 )
+      
+      local fxenv
+      local env
+      local pmod
+      if DATA.fx.istakefx == true then goto skipenv end
       
       -- envelope
-      local fxenv = GetFXEnvelope( track, fxidx, paramid-1, false ) 
-      local env = {} 
+      fxenv = GetFXEnvelope( track, fxidx, paramid-1, false ) 
+      env = {} 
       if fxenv then 
         local scaling_mode = reaper.GetEnvelopeScalingMode( fxenv )
         local pointscnt = CountEnvelopePoints( fxenv )
@@ -418,7 +429,7 @@ function DATA:CollectData_Get_Parameters(track, fxidx, GetNamedConfigParm)
       end
       
       -- pmod
-      local pmod = {mod={},lfo={},acs={},learn={},plink={}}
+      pmod = {mod={},lfo={},acs={},learn={},plink={}}
       _, pmod.lfo.active = GetNamedConfigParm( ptr, fxidx, 'param.'..(paramid-1)..'.lfo.active' )
       _, pmod.lfo.dir = GetNamedConfigParm( ptr, fxidx, 'param.'..(paramid-1)..'.lfo.dir' )
       _, pmod.lfo.phase = GetNamedConfigParm( ptr, fxidx, 'param.'..(paramid-1)..'.lfo.phase' )
@@ -464,6 +475,7 @@ function DATA:CollectData_Get_Parameters(track, fxidx, GetNamedConfigParm)
       _, pmod.plink.midi_msg2 = GetNamedConfigParm( ptr, fxidx, 'param.'..(paramid-1)..'.plink.midi_msg2' )
       
       
+      ::skipenv::
       DATA.fx.PARAMS.param_data[pname] = 
         {
            val=val, 
@@ -993,32 +1005,55 @@ function DATA:Transfer()
   local desttr if trackidx==-1 then desttr = reaper.GetMasterTrack(-1) else desttr = GetTrack(-1,trackidx) end
   if not desttr  then return end 
   
+  local dest_istakefx
+  if itemidx ~=-1 then dest_istakefx = true end
+    
+    
   -- transfer raw data 
-  if EXT.CONF_transfer_vstchunk ==1 and DATA.fx.has_chunk == true then 
+  if EXT.CONF_transfer_vstchunk ==1 and DATA.fx.has_chunk == true and dest_istakefx ~= true then 
     local fxGUID = reaper.TrackFX_GetFXGUID(desttr, fxid)
     DATA:Transfer_GetSetRawChunk(desttr, fxGUID, DATA.fx.vst_chunk)   
     --TrackFX_SetNamedConfigParm(desttr, fxid, 'vst_chunk',DATA.fx.vst_chunk)
     return
   end
   
-  -- transfer data via API
-  --if EXT.CONF_transfer_fx_name == 1 then TrackFX_SetNamedConfigParm( desttr, fxid, 'renamed_name',DATA.fx.fx_name ) end
-  if EXT.CONF_transfer_force_auto_bypass == 1 then TrackFX_SetNamedConfigParm(desttr, fxid, 'force_auto_bypass',DATA.fx.force_auto_bypass ) end
-  if EXT.CONF_transfer_parallel == 1 then TrackFX_SetNamedConfigParm( desttr, fxid, 'parallel',DATA.fx.parallel ) end
-  if EXT.CONF_transfer_instance_oversample_shift == 1 then TrackFX_SetNamedConfigParm(desttr, fxid, 'instance_oversample_shift',DATA.fx.instance_oversample_shift ) end
-  if EXT.CONF_transfer_parameters == 1 then DATA:Transfer_Parameters( desttr, fxid) end
+  
+  if dest_istakefx ~= true then  
+    -- transfer data via API
+    --if EXT.CONF_transfer_fx_name == 1 then TrackFX_SetNamedConfigParm( desttr, fxid, 'renamed_name',DATA.fx.fx_name ) end
+    if EXT.CONF_transfer_force_auto_bypass == 1 then TrackFX_SetNamedConfigParm(desttr, fxid, 'force_auto_bypass',DATA.fx.force_auto_bypass ) end
+    if EXT.CONF_transfer_parallel == 1 then TrackFX_SetNamedConfigParm( desttr, fxid, 'parallel',DATA.fx.parallel ) end
+    if EXT.CONF_transfer_instance_oversample_shift == 1 then TrackFX_SetNamedConfigParm(desttr, fxid, 'instance_oversample_shift',DATA.fx.instance_oversample_shift ) end
+  end
+  if EXT.CONF_transfer_parameters == 1 then 
+    local take
+    if dest_istakefx == true then 
+      local it = GetMediaItem(-1,itemidx)
+      take = GetTake(it,takeidx)
+    end
+    DATA:Transfer_Parameters( desttr, fxid, dest_istakefx, take) 
+  end
+  
   
 end
 -------------------------------------------------------------------------------- 
-function DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx, paramid, src_val, minval, maxval,minval_src, maxval_src, src_pname, overrides)
+function DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx, paramid, src_val, minval, maxval,minval_src, maxval_src, src_pname, overrides, dest_istakefx, take)
+
+  local fname = 'TrackFX'
+  local ptr = dest_track
+  if dest_istakefx == true then 
+    fname = 'TakeFX' 
+    ptr = take
+  end 
+  
   local normalized = (src_val-minval) / (maxval - minval) 
   local outval = minval_src + (maxval_src - minval_src) * normalized
   if overrides and overrides.mapping then 
     if overrides.mapping[src_val] then 
-      TrackFX_SetParam( dest_track, dest_fx,  paramid, overrides.mapping[src_val]) 
+      reaper[fname..'_SetParam']( ptr, dest_fx,  paramid, overrides.mapping[src_val]) 
     end
    else
-    TrackFX_SetParam( dest_track, dest_fx,  paramid, outval)
+    reaper[fname..'_SetParam']( ptr, dest_fx,  paramid, outval)
   end
   
   
@@ -1050,9 +1085,15 @@ function DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid, sr
   end
 end
 -------------------------------------------------------------------------------- 
-function DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid, srct, overrides, src_pname)
+function DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid, srct, overrides, src_pname, dest_istakefx, take)
+  local fname = 'TrackFX'
+  local ptr = dest_track
+  if dest_istakefx == true then 
+    fname = 'TakeFX' 
+    ptr = take
+  end 
   
-  local _,minval_src, maxval_src = TrackFX_GetParam(dest_track, dest_fx,  paramid ) 
+  local _,minval_src, maxval_src = reaper[fname..'_GetParam'](ptr, dest_fx,  paramid ) 
   -- param
   local minval = srct.minval
   local maxval = srct.maxval
@@ -1061,23 +1102,32 @@ function DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid, srct, overr
   if overrides.maxval then maxval = overrides.maxval end
   if overrides.minval_src then minval_src = overrides.minval_src end
   if overrides.maxval_src then maxval_src = overrides.maxval_src end
-  DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx , paramid,src_val,minval, maxval,minval_src, maxval_src,src_pname, overrides)
-
-  -- envelope
-  local srcenv = srct.env
-  DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid,srcenv,minval, maxval,minval_src, maxval_src, overrides ) 
+  DATA:Transfer_Parameters_ScaleToDestParam( dest_track, dest_fx , paramid,src_val,minval, maxval,minval_src, maxval_src,src_pname, overrides, dest_istakefx, take)
   
-  if not overrides.mapping then
-    -- mod/learn
-    if EXT.CONF_transfer_modlearn == 1 then DATA:Transfer_Parameters_ModLearn(dest_track, dest_fx, paramid,srct.pmod) end 
+  if dest_istakefx ~= true then
+    -- envelope
+    local srcenv = srct.env
+    DATA:Transfer_Parameters_PortEnvelope( dest_track, dest_fx, paramid,srcenv,minval, maxval,minval_src, maxval_src, overrides ) 
+    
+    if not overrides.mapping then
+      -- mod/learn
+      if EXT.CONF_transfer_modlearn == 1 then DATA:Transfer_Parameters_ModLearn(dest_track, dest_fx, paramid,srct.pmod) end 
+    end
   end
-  
 end
 
 -------------------------------------------------------------------------------- 
-function DATA:Transfer_Parameters( dest_track, dest_fx)
+function DATA:Transfer_Parameters( dest_track, dest_fx, dest_istakefx, take)
   if not (DATA.fx.PARAMS and DATA.fx.PARAMS.param_data) then return end
-  local _, destfxname = GetNamedConfigParm( dest_track, dest_fx, 'fx_name' )
+  local fname = 'TrackFX'
+  local ptr = dest_track
+  if dest_istakefx == true then 
+    fname = 'TakeFX' 
+    ptr = take
+  end 
+  
+  local _, destfxname = reaper[fname..'_GetNamedConfigParm']( ptr, dest_fx, 'fx_name' )
+  
   local proq3_to_4vst3 = DATA.fx.fx_name:match(literalize('Pro-Q 3')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('VST3'))
   local proq3_to_4clap = DATA.fx.fx_name:match(literalize('Pro-Q 3')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('CLAP'))
   local proq2_to_3 = DATA.fx.fx_name:match(literalize('Pro-Q 2')) and destfxname:match(literalize('Pro-Q 3'))
@@ -1085,9 +1135,9 @@ function DATA:Transfer_Parameters( dest_track, dest_fx)
   local proq2_to_4clap = DATA.fx.fx_name:match(literalize('Pro-Q 2')) and destfxname:match(literalize('Pro-Q 4')) and destfxname:match(literalize('CLAP'))
    
   -- transfer stuff
-  local cnt = TrackFX_GetNumParams(  dest_track, dest_fx)
+  local cnt = reaper[fname..'_GetNumParams'](  ptr, dest_fx)
   for paramid = 1, cnt do
-    local retval, dest_pname = TrackFX_GetParamName( dest_track, dest_fx, paramid-1 ) 
+    local retval, dest_pname = reaper[fname..'_GetParamName']( ptr, dest_fx, paramid-1 ) 
     local src_pname = dest_pname
     
     -- overrides
@@ -1138,7 +1188,7 @@ function DATA:Transfer_Parameters( dest_track, dest_fx)
       if src_pname:match('Shape') then overrides.maxval = 10/9 end 
     end
     
-    if DATA.fx.PARAMS.param_data[src_pname] then DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid-1, DATA.fx.PARAMS.param_data[src_pname], overrides, src_pname) end
+    if DATA.fx.PARAMS.param_data[src_pname] then DATA:Transfer_Parameters_sub( dest_track, dest_fx, paramid-1, DATA.fx.PARAMS.param_data[src_pname], overrides, src_pname, dest_istakefx, take) end
      
   end
 end
