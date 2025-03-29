@@ -1,14 +1,14 @@
 -- @description Randomize Track FX parameters
--- @version 3.53
+-- @version 3.54
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    + Add support for random range
+--    # allow resize window
 
 
 
 
-vrs = 3.53
+vrs = 3.54
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -113,7 +113,7 @@ vrs = 3.53
       window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
       window_flags = window_flags | ImGui.WindowFlags_MenuBar
       --window_flags = window_flags | ImGui.WindowFlags_NoMove()
-      window_flags = window_flags | ImGui.WindowFlags_NoResize
+      --window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
       --window_flags = window_flags | ImGui.WindowFlags_NoNav()
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
@@ -182,9 +182,9 @@ vrs = 3.53
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
       w,h = 480,430
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
     -- init UI 
@@ -885,7 +885,8 @@ if str == '' then return end
 end  
   ----------------------------------------------------------------------------------------- 
   function DATA:Filter_Load()
-    DATA.FX_filter = table.loadstring(VF_decBase64(EXT.CONF_pluginfilter_b64)) or {} 
+    local str = VF_decBase64(EXT.CONF_pluginfilter_b64)
+    DATA.FX_filter = table.loadstring(str) or {} 
     
   end
   ----------------------------------------------------------------------------------------- 
@@ -904,7 +905,8 @@ end
   end
   ----------------------------------------------------------------------------------------- 
   function DATA:Filter_Save()
-    EXT.CONF_pluginfilter_b64 = VF_encBase64(table.savestring(DATA.FX_filter))
+    local outstr = table.savestring(DATA.FX_filter)
+    EXT.CONF_pluginfilter_b64 = VF_encBase64(outstr)
     EXT:save() 
   end
   ----------------------------------------------------------------------------------------- 

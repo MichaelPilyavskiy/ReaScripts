@@ -1,12 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.09
+-- @version 3.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add support for showing receives
+--    # fix str_id errors
 
 
-    vrs = 3.09
+    vrs = 3.10
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -442,6 +442,7 @@
   ---------------------------------------------------------------------  
   function DATA:CollectData_ReadProject_ReadTracks_Sends()
     local tr = DATA.srctr.ptr
+    if not (tr and ValidatePtr(tr, 'Mediatrack*')) then return end
     DATA.srctr.sends = {}
     
     
@@ -1093,7 +1094,9 @@
   end
   -----------------------------------------------------------------------------------------
   function UI.draw_sends_sub_chan(t)
-    local str_id = t.str_id 
+    local str_id = t.str_id  if not str_id then return end
+    
+    
     
     --I_SRCCHAN : audio source starting channel index or -1 if audio send is disabled (&1024=mono...note that in that case, when reading index, you should do (index XOR 1024) to get starting channel index)
     --I_DSTCHAN : audio destination starting channel index (&1024=mono (and in case of hardware output &512=rearoute)...note that in that case, when reading index, you should do (index XOR (1024 OR 512)) to get starting channel index)
@@ -1309,7 +1312,7 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_filt(t,ispost)
-    local str_id = t.str_id 
+    local str_id = t.str_id  if not str_id then return end
     local UI_txt = 'PreEQ'
     if ispost then str_id=str_id..'post'  UI_txt = 'PostEQ' end
     
@@ -1424,7 +1427,7 @@
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_FX(t)
-    local str_id = t.str_id 
+    local str_id = t.str_id  if not str_id then return end
     if ImGui.Button(ctx, 'FX##destFX'..str_id,UI.faderW) then 
       local PreEQ = TrackFX_AddByName( t.destPtr, 'PreEQ', false, 0 )
       local PostEQ = TrackFX_AddByName( t.destPtr, 'PostEQ', false, 0 )
@@ -1471,6 +1474,7 @@
     local str_id = t.str_id
     local destPtr = t.destPtr
     local srcPtr = t.srcPtr
+    
     
     local state = t.ext_vcasel == 1
     if ImGui.Checkbox(ctx,'##sel'..str_id, state) then
