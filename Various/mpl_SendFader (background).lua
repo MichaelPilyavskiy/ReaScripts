@@ -1,12 +1,13 @@
 ﻿-- @description SendFader
--- @version 3.10
+-- @version 3.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
 --    # fix str_id errors
+--    # improve automation writing/reading
 
 
-    vrs = 3.10
+    vrs = 3.11
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -42,6 +43,8 @@
           ES_key = 'MPL_SendFader',
           UI_name = 'SendFader', 
           upd = true, 
+          
+          tweakingstate = false, 
           
           tracks  = {},
           peaks = {},
@@ -583,19 +586,17 @@
     DATA.timepos = GetCursorPosition()
     if GetPlayState()&1==1 then DATA.timepos =  GetPlayPosition() end
     if DATA.srctr and DATA.srctr.ptr and DATA.srctr.sends then
-      for sendid = 1, #DATA.srctr.sends do
       
-        if DATA.srctr.sends[sendid].automode_follow and ValidatePtr( DATA.srctr.sends[sendid].automode_env, 'TrackEnvelope*') then
-        
+      for sendid = 1, #DATA.srctr.sends do 
+        if DATA.srctr.sends[sendid].automode_follow and DATA.tweakingstate ~= true and ValidatePtr( DATA.srctr.sends[sendid].automode_env, 'TrackEnvelope*') then 
           local envelope = DATA.srctr.sends[sendid].automode_env
           local scaling_mode = GetEnvelopeScalingMode( envelope )
-          local retval, value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( envelope, DATA.timepos, DATA.SR, 1 )
-          
-          --value
+          local retval, value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( envelope, DATA.timepos, DATA.SR, 1 ) 
           local D_VOL = ScaleFromEnvelopeMode( scaling_mode, value )
           DATA.srctr.sends[sendid].vol = D_VOL
         end
       end
+      
     end
   end
   ------------------------------------------------------------------------------------------------------  
@@ -993,23 +994,26 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_slider(t) 
     local str_id = t.str_id
-    
+    if not str_id then return end
     local x, y = reaper.ImGui_GetCursorScreenPos( ctx )
     local hovered 
     -- slider
     local faderval = DATA:Convert_Val2Fader(t.vol)
     local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
     
+    -- on left click
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then  
+      DATA.temp_vca = CopyTable(DATA.srctr.sends) 
       if DATA.selected_track_is_receive == true then 
         DATA.temp_vca = CopyTable(DATA.srctr.receives) 
        else
         DATA.temp_vca = CopyTable(DATA.srctr.sends) 
       end
-    end
-    if ImGui.IsItemDeactivated( ctx ) then DATA.temp_vca = CopyTable(DATA.srctr.sends) end
+    end 
     
+    -- on slider drag
     if retval then 
+      DATA.tweakingstate = true
       local outvol = DATA:Convert_Fader2Val(v) 
       if not t.sendidx then
         CreateTrackSend( DATA.srctr.ptr, t.ptr )
@@ -1029,7 +1033,9 @@
         end
       end
     end
-    hovered = ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None )
+    
+    
+    -- is clicked right
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
       UI.popups['Set fader volume in dB'] = {
         trig = true,
@@ -1052,9 +1058,31 @@
       }
     end
     
+    -- on release
+    if ImGui.IsItemDeactivated( ctx ) then 
+      DATA.tweakingstate = false
+      SetTrackSendUIVol( t.srcPtr, t.sendidx, t.vol, -1 )
+      sendidx_master =  t.sendidx
+      -- app dest
+      for i = 1, #DATA.temp_vca do
+        local sendidx = DATA.temp_vca[i].sendidx
+        local sendidx_vcacheck = DATA.temp_vca[i].sendidx_vcacheck
+        local src_vol = DATA.temp_vca[i].vol
+        if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master ~= sendidx_vcacheck then 
+          SetTrackSendInfo_Value( t.srcPtr, 0, sendidx, 'D_VOL', t.vol)
+          SetTrackSendUIVol(t.srcPtr, sendidx,  t.vol,-1)
+        end 
+      end
+    end
+    
+    
+    -- on hover
+    local hovered = ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None )
     --if hovered == true then 
       UI.draw_sends_sub_slider_scale(t,x, y, UI.faderW, UI.calc_faderH) 
     --end
+    
+    -- show peaks
     if EXT.CONF_showpeaks == 1 then 
       UI.draw_sends_sub_slider_peaks(t,x, y, UI.faderW, UI.calc_faderH) 
     end
@@ -1178,6 +1206,7 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_destname(t)
     local str_id = t.str_id
+    if not str_id then return end
     if ImGui.Button(ctx, t.destName..'##destname'..str_id,-1) then DATA:GoTotrack(t.destPtr) end
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
       UI.popups['Set new name'] = {
@@ -1200,6 +1229,7 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_muteremove(t)
     local str_id = t.str_id
+    if not str_id then return end
     if t.B_MUTE == 1 then 
       UI.draw_setbuttoncolor(0xFF0000) 
      else
@@ -1215,6 +1245,7 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_mode(t)
     local str_id = t.str_id
+    if not str_id then return end
     
     ImGui.SetNextItemWidth(ctx,UI.faderW) 
     local map_t = {
@@ -1238,6 +1269,8 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_pan(t)
     local str_id = t.str_id
+    if not str_id then return end
+    
     ImGui.SetNextItemWidth(ctx,UI.faderW) 
     local formatIn = 'Center' if t.D_PAN > 0.01 then formatIn = math.ceil(t.D_PAN*100)..'%%R' elseif t.D_PAN < -0.01 then formatIn = -math.floor(t.D_PAN*100)..'%%L' end 
     ImGui.PushStyleColor(ctx,ImGui.Col_SliderGrab,0) 
@@ -1448,6 +1481,7 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_monophase(t)
     local str_id = t.str_id
+    if not str_id then return end
     
     if t.B_MONO == 1 then 
       UI.draw_setbuttoncolor(0x0FFF00) 
@@ -1472,6 +1506,7 @@
     if EXT.CONF_showselection ~= 1 then return end
     if DATA.selected_track_is_receive == true then ImGui.Dummy(ctx,0,UI.calc_itemH)return end
     local str_id = t.str_id
+    if not str_id then return end
     local destPtr = t.destPtr
     local srcPtr = t.srcPtr
     
@@ -1491,7 +1526,7 @@
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub(t)
     local str_id = t.str_id
-    
+    if not str_id then return end
     local destCol = t.destCol
     if destCol == 0 then 
       ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg, UI.main_col<<8|math.floor(0.2*255))
