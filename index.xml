@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1fd9b00aa706afd287fadeadba9770fc014ad44c" name="MPL Scripts">
+<index version="1" commit="6a46449b4beb1080f4145b63763e5f7656dbca35" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13712,6 +13712,11 @@ various fixes]]></changelog>
       <version name="3.10" author="MPL" time="2025-03-29T19:11:06Z">
         <changelog><![CDATA[# fix str_id errors]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1fd9b00aa706afd287fadeadba9770fc014ad44c/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.11" author="MPL" time="2025-03-30T13:42:33Z">
+        <changelog><![CDATA[# fix str_id errors
+# improve automation writing/reading]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6a46449b4beb1080f4145b63763e5f7656dbca35/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
