@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.21
+-- @version 4.22
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,14 +15,10 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Peaks: smooth peaks a bit
---    + Settings: add support for custom pad names
---    + Settings/Custom pad names: add action to clear names
---    + Settings/Custom pad names: add action to set names according to GM bank
---    + Sampler: allow to edit ADSR envelope
+--    # Parent track definition: improve nested folders handling
 
 
-rs5kman_vrs = '4.21'
+rs5kman_vrs = '4.22'
 
 
 -- TODO
@@ -1736,12 +1732,13 @@ end
       local I_CUSTOMCOLOR = GetMediaTrackInfo_Value( parent_track, 'I_CUSTOMCOLOR')
       local cnt_tracks = CountTracks( DATA.proj )
       local IP_TRACKNUMBER_0basedlast = IP_TRACKNUMBER_0based
+      
       if I_FOLDERDEPTH == 1 then
         local depth = 0
         for trid = IP_TRACKNUMBER_0based + 1, cnt_tracks do
           local tr = GetTrack(DATA.proj, trid-1)
           depth = depth + GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
-          if depth == 0 then 
+          if depth <= 0 then 
             IP_TRACKNUMBER_0basedlast = trid-1
             break
           end
