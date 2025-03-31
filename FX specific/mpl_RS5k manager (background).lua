@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.20
+-- @version 4.21
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,14 +15,19 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # SysEx: remove progremmer mode stuff, use session only
+--    # Peaks: smooth peaks a bit
+--    + Settings: add support for custom pad names
+--    + Settings/Custom pad names: add action to clear names
+--    + Settings/Custom pad names: add action to set names according to GM bank
+--    + Sampler: allow to edit ADSR envelope
 
 
-rs5kman_vrs = '4.20'
+rs5kman_vrs = '4.21'
 
 
 -- TODO
 --[[  
+      
       knob for samples in path
       macro quick link from parameter
       auto switch midi bus record arm if playing with another rack 
@@ -37,7 +42,8 @@ rs5kman_vrs = '4.20'
       transient
       sampler/fx - compression, transient shaper
       sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
-      ADSR show as curve
+      parse existing take
+      better hanfdle global tweaks
 ]]
 
     
@@ -92,6 +98,7 @@ rs5kman_vrs = '4.20'
           UI_pads_sendnoteoff = 1,
           UI_drracklayout = 0,
           UIdatabase_maps_current = 1,
+          UI_padcustomnames = '',
           --UI_optimizedockerusage = 0,
           
           -- other 
@@ -114,7 +121,7 @@ rs5kman_vrs = '4.20'
           CONF_database_map8 = '',
           
           CONF_lastmacroaction = 0,
-          CONF_launchpadsendMIDI = 1,
+          CONF_launchpadsendMIDI = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -150,6 +157,8 @@ rs5kman_vrs = '4.20'
           VCA_mode = 0,
           plugin_mapping = {},
           settings_cur_note_database =0,
+          padcustomnames = {},
+          padcustomnames_selected_id = 1,
           }
   
   -------------------------------------------------------------------------------- INIT UI locals
@@ -198,6 +207,9 @@ rs5kman_vrs = '4.20'
     UI.sampler_peaksH = 60
     UI.col_popup = 0x005300 
     UI.controls_minH = 40
+    UI.adsr_rectsz = 10
+    UI.colRGBA_ADSRrect = 0x00AF00DF
+    UI.colRGBA_ADSRrectHov = 0x00FFFFFF
     
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
   ---------------------------------------------------------------------------------------------------------------------
@@ -821,7 +833,7 @@ end
     
     -- data
     if UI.open then defer(UI.MAIN_loop) else  
-      DATA:Auto_StuffSysex_sub('key layout') -- send keys layout to launchpad
+      DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
     end
   end
   -------------------------------------------------------------------------------- 
@@ -1386,14 +1398,16 @@ end
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
   function DATA:Auto_StuffSysex() 
-    if EXT.UI_drracklayout == 2 and EXT.CONF_launchpadsendMIDI == 1 then DATA:Auto_StuffSysex_sub('drum layout') end 
+    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
   end
   ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg
+  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg  
+    if  not (EXT.CONF_launchpadsendMIDI == 1 and EXT.UI_drracklayout == 2) then return end 
     -- search HW MIDI out 
       local is_LPminiMK3
       local is_LPProMK3
-      local LPminiMK3_name = "LPMiniMK3 MIDI"
+      --local LPminiMK3_name = "LPMiniMK3 MIDI"
+      local LPminiMK3_name = "MIDIOUT2 (LPMiniMK3 MIDI)"
       local LPProMK3_name = "LPProMK3 MIDI"
       for dev = 1, reaper.GetNumMIDIOutputs() do
         local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
@@ -1402,10 +1416,27 @@ end
       end
       if not HWdevoutID then return end
     
+    -- action on release
+    if cmd == 'on release' then -- set to key layout
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+    end
     
     
     
-    if cmd == 'drum layout' then
+    -- 
+      if cmd == 'set/refresh active state' then
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+    
+    --[[if cmd == 'drum layout' then
       
       if cmd == 'drum mode' then
         if is_LPminiMK3 ==true then 
@@ -1431,7 +1462,8 @@ end
         end
       end
       
-    end
+    end]]
+    
     
     --[[
     
@@ -1446,16 +1478,6 @@ end
       end
     end
     
-    if cmd == 'key layout' then
-      if is_LPminiMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-      if is_LPProMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-    end
     
     
     if cmd == 'programmer mode: set colors' then
@@ -1736,7 +1758,9 @@ end
           PARENT_MIDIFLAGS = 0,
           PARENT_MACRO_GUID = '',
         }
-        
+      if EXT.UI_drracklayout == 2 then 
+        DATA.parent_track.ext.PARENT_DRRACKSHIFT = 11
+      end
     -- read values v3 (backw compatibility)
       local retval, chunk = GetSetMediaTrackInfo_String(parent_track, 'P_EXT:MPLRS5KMAN', '', false )
       if retval and chunk ~= '' then
@@ -3314,6 +3338,10 @@ end
         
         --ImGui.Unindent(ctx, UI.settings_indent)
       end
+      if ImGui.Checkbox( ctx, 'Do not load database',            EXT.CONF_ignoreDBload == 1 ) then EXT.CONF_ignoreDBload =EXT.CONF_ignoreDBload~1 EXT:save() end
+      ImGui.SameLine(ctx)
+      UI.HelpMarker('May increase loading time, but you wont be able to use databases')
+      ImGui.Text( ctx, 'Current loading time: '..(math.floor(10000*DATA.loadtest)/10000)..'s')
       ImGui.Dummy(ctx, 0,UI.spacingY*6)
       
       
@@ -3425,9 +3453,11 @@ end
       
       --ImGui.SeparatorText(ctx, 'UI interaction') 
         --ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='LPad MK3 Drum Layout'},'##settings_drracklayout', 'DrumRack layout', 200) 
+        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad (experimental)'},'##settings_drracklayout', 'DrumRack layout', 200) 
         ImGui.Indent(ctx, UI.settings_indent)
-          if ImGui.Checkbox( ctx, 'Send MIDI to device on state change',                              EXT.CONF_launchpadsendMIDI == 1 ) then EXT.CONF_launchpadsendMIDI =EXT.CONF_launchpadsendMIDI~1 EXT:save() end
+          if EXT.UI_drracklayout == 2 then 
+            if ImGui.Checkbox( ctx, 'Send MIDI to device on state change',                              EXT.CONF_launchpadsendMIDI == 1 ) then EXT.CONF_launchpadsendMIDI =EXT.CONF_launchpadsendMIDI~1 EXT:save() end
+          end
         
         ImGui.Unindent(ctx, UI.settings_indent)
         
@@ -3438,6 +3468,115 @@ end
         if ImGui.Checkbox( ctx, 'Active note follow incoming note',                       EXT.UI_incomingnoteselectpad == 1 ) then EXT.UI_incomingnoteselectpad =EXT.UI_incomingnoteselectpad~1 EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('May be CPU hungry')
+        if ImGui.Checkbox( ctx, 'Show meters on pads',            EXT.CONF_showplayingmeters == 1 ) then EXT.CONF_showplayingmeters =EXT.CONF_showplayingmeters~1 EXT:save() end
+        ImGui.SameLine(ctx)
+        UI.HelpMarker('May be CPU hungry')
+        if ImGui.Checkbox( ctx, 'Show peaks on pads',            EXT.CONF_showpadpeaks == 1 ) then EXT.CONF_showpadpeaks =EXT.CONF_showpadpeaks~1 EXT:save() end
+        ImGui.SameLine(ctx)
+        UI.HelpMarker('May be CPU hungry')
+        
+        -- custom note names
+        local curname = string.format('%02d', DATA.padcustomnames_selected_id)
+        if DATA.padcustomnames[i] then name = DATA.padcustomnames[i] end
+        ImGui.Text(ctx, 'Custom pad names')
+        ImGui.Indent(ctx, UI.settings_indent)
+        reaper.ImGui_SetNextItemWidth( ctx, 50 )
+        if ImGui.BeginCombo( ctx, '##custompadnames',curname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
+          for i = 0,127 do
+            local name = string.format('%02d', i)
+            if DATA.padcustomnames[i] then name = name..' - '..DATA.padcustomnames[i] end
+            if ImGui.Selectable( ctx, name..'##custpadname'..i, i == DATA.padcustomnames_selected_id, ImGui.SelectableFlags_None) then DATA.padcustomnames_selected_id = i end
+          end
+          ImGui.EndCombo( ctx)
+        end
+        ImGui.SameLine(ctx)
+        local retval, buf = ImGui_InputText( ctx, '##custpadnameinput'..DATA.padcustomnames_selected_id, DATA.padcustomnames[DATA.padcustomnames_selected_id], ImGui_InputTextFlags_None() )
+        if retval then 
+          buf = buf:gsub('[^%a%d%s%-]+','')
+          DATA.padcustomnames[DATA.padcustomnames_selected_id] = buf
+          local outstr = ''
+          for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padcustomnames[i] or '')..'" ' end
+          EXT.UI_padcustomnames = outstr 
+          EXT:save()
+        end
+        
+        
+        if ImGui.Button(ctx, 'General MIDI bank') then 
+          EXT.UI_padcustomnames = [[
+        27="High Q or Filter Snap"
+        28="Slap Noise"
+        29="Scratch Push"
+        30="Scratch Pull"
+        31="Drum sticks"
+        32="Square Click"
+        33="Metronome Click"
+        34="Metronome Bell"
+        82="Shaker"
+        83="Jingle Bell"
+        84="Belltree"
+        85="Castanets"
+        86="Mute Surdo"
+        87="Open Surdo"
+        
+        35="Acoustic Bass Drum or Low Bass Drum"
+        36="Electric Bass Drum or High Bass Drum"
+        37="Side Stick"
+        38="Acoustic Snare"
+        39="Hand Clap"
+        40="Electric Snare or Rimshot"
+        41="Low Floor Tom"
+        42="Closed Hi-hat"
+        43="High Floor Tom"
+        44="Pedal Hi-hat"
+        45="Low Tom"
+        46="Open Hi-hat"
+        47="Low-Mid Tom"
+        48="High-Mid Tom"
+        49="Crash Cymbal 1"
+        50="High Tom"
+        51="Ride Cymbal 1"
+        52="Chinese Cymbal"
+        53="Ride Bell"
+        54="Tambourine"
+        55="Splash Cymbal"
+        56="Cowbell"
+        57="Crash Cymbal 2"
+        58="Vibraslap"
+        59="Ride Cymbal 2"
+        60="High Bongo"
+        61="Low Bongo"
+        62="Mute High Conga"
+        63="Open High Conga"
+        64="Low Conga"
+        65="High Timbale"
+        66="Low Timbale"
+        67="High Agogô"
+        68="Low Agogô"
+        69="Cabasa"
+        70="Maracas"
+        71="Short Whistle"
+        72="Long Whistle"
+        73="Short Güiro"
+        74="Long Güiro"
+        75="Claves"
+        76="High Woodblock"
+        77="Low Woodblock"
+        78="Mute Cuíca"
+        79="Open Cuíca"
+        80="Mute Triangle"
+        81="Open Triangle"
+]]          
+          EXT:save()
+          DATA:CollectDataInit_LoadCustomPadNames()
+        end        
+        if ImGui.Button(ctx, 'Clear custom pad names') then 
+          EXT.UI_padcustomnames = ''
+          EXT:save()
+          DATA:CollectDataInit_LoadCustomPadNames()
+        end
+        ImGui.Unindent(ctx, UI.settings_indent)
+        
+        
         --ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
         
@@ -3451,16 +3590,6 @@ end
       
       --ImGui.SeparatorText(ctx, 'Various') 
         ImGui.Indent(ctx, UI.settings_indent)
-        if ImGui.Checkbox( ctx, 'Do not load database',            EXT.CONF_ignoreDBload == 1 ) then EXT.CONF_ignoreDBload =EXT.CONF_ignoreDBload~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('May increase loading time, but you wont be able to use databases')
-        ImGui.Text( ctx, 'Current loading time: '..(math.floor(10000*DATA.loadtest)/10000)..'s')
-        if ImGui.Checkbox( ctx, 'Show meters on pads',            EXT.CONF_showplayingmeters == 1 ) then EXT.CONF_showplayingmeters =EXT.CONF_showplayingmeters~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('May be CPU hungry')
-        if ImGui.Checkbox( ctx, 'Show peaks on pads',            EXT.CONF_showpadpeaks == 1 ) then EXT.CONF_showpadpeaks =EXT.CONF_showpadpeaks~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('May be CPU hungry')
         --[[if ImGui.Checkbox( ctx, 'Optimize for docker usage',            EXT.UI_optimizedockerusage == 1 ) then EXT.UI_optimizedockerusage =EXT.UI_optimizedockerusage~1 EXT:save() end
         ImGui.SameLine(ctx)
         UI.HelpMarker('Moves a title to a heade above tab, otherwise it doesn`t docked if RS5k manager track is not selected/pinned')
@@ -3484,7 +3613,7 @@ end
       UI.draw_tabs_settings_tcpmcp()
       UI.draw_tabs_settings_MIDI()
       UI.draw_tabs_settings_UI()
-      UI.draw_tabs_settings_various()
+      --UI.draw_tabs_settings_various()
       
       ImGui.EndChild( ctx)
     end
@@ -3559,10 +3688,10 @@ end
       local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
       local xoffs0= UI.calc_rackX
       local padID0 = 0
-      local offs = 11
-      for note = offs, layout_pads_cnt-1+offs do 
-      if ((note - offs)-8)%10==0 then  goto skip end
-      if ((note - offs)-9)%10==0 then  goto skip end 
+      local offs = DATA.parent_track.ext.PARENT_DRRACKSHIFT
+      for note = 37, layout_pads_cnt-1+offs do 
+      --if ((note - offs)-8)%10==0 then  goto skip end
+      --if ((note - offs)-9)%10==0 then  goto skip end 
         xoffs = xoffs0 + (UI.calc_rack_padw + UI.spacingX) * (padID0%8)--xoffs + UI.calc_rack_padw + UI.spacingX
         yoffs = yoffs0 - (UI.calc_rack_padh+ UI.spacingY) * math.floor(padID0 / 8)
         UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
@@ -3678,7 +3807,7 @@ end
         DATA.children[note] and
         DATA.children[note].layers and 
         DATA.children[note].layers[1] and 
-        DATA.children[note].layers[1].peaks_arr  then UI.draw_peaks('pad'..note, note_t,x, y+UI.calc_itemH,w, UI.calc_rack_padnameH-UI.calc_itemH,DATA.children[note].layers[1].peaks_arr) end
+        DATA.children[note].layers[1].peaks_arr  then UI.draw_peaks('pad'..note, note_t,x + UI.spacingX, y+UI.calc_itemH,w-UI.spacingX*2, UI.calc_rack_padnameH-UI.calc_itemH,DATA.children[note].layers[1].peaks_arr) end
     
     -- controls background
       if h > min_h then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom ) end
@@ -3697,6 +3826,7 @@ end
     ImGui.SetCursorScreenPos( ctx, x, y )  
     if ImGui.BeginChild( ctx, '##rackpad'..note, w, h, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then--|ImGui.ChildFlags_Border
       local note_format = VF_Format_Note(note,note_t)
+      if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
       UI.Tools_setbuttonbackg() 
       
       -- name 
@@ -3708,6 +3838,7 @@ end
         UI.draw_Rack_Pads_controls_handlemouse(note_t,note)
         ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
         ImGui.TextWrapped( ctx, note_format )
+        
         ImGui.PopStyleVar(ctx)
         ImGui.PopFont(ctx) 
         
@@ -4530,6 +4661,13 @@ end
     end
     UI.Tools_unsetbuttonstyle()
     ImGui.PopStyleVar(ctx)
+    if ImGui.BeginDragDropTarget( ctx ) then  
+      DATA:Drop_UI_interaction_sampler() 
+      ImGui_EndDragDropTarget( ctx )
+    end
+    
+    -- tooltip full name
+    if note_layer_t and note_layer_t.instrument_filename then ImGui.SetItemTooltip(ctx, note_layer_t.instrument_filename) end
     
     -- device fx
       if DATA.children[note].TYPE_DEVICE == true then 
@@ -4596,22 +4734,169 @@ end
     end
     
     -- peaks
-    UI.Tools_setbuttonbackg()
+   --UI.Tools_setbuttonbackg()
     local plotx, ploty = ImGui.GetCursorPos( ctx)
     local plotx_abs, ploty_abs = ImGui.GetCursorScreenPos( ctx )
-    ImGui.Button(ctx, '##sampler_peaks',-1, UI.sampler_peaksH) 
-    if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE) end
-    if ImGui.IsItemDeactivated(ctx) and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE, 0 , true) end
-    if ImGui.BeginDragDropTarget( ctx ) then  
-      DATA:Drop_UI_interaction_sampler() 
-      ImGui_EndDragDropTarget( ctx )
+    if ImGui.BeginDisabled(ctx, true) then 
+      --ImGui.Button(ctx, '[drop area]##sampler_peaks',-1, UI.sampler_peaksH) 
+      ImGui.EndDisabled(ctx)
     end
+    local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+    local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+    --if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE) end
+    --if ImGui.IsItemDeactivated(ctx) and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE, 0 , true) end
     
-    if DATA.current_sample_peaks and DATA.current_sample_peaks.arr then UI.draw_peaks('cur',note_layer_t,plotx_abs, ploty_abs,-1, UI.sampler_peaksH, DATA.current_sample_peaks.arr ) end
-    UI.Tools_unsetbuttonstyle()
+    if DATA.current_sample_peaks and DATA.current_sample_peaks.arr then UI.draw_peaks('cur',note_layer_t,plotx_abs+UI.adsr_rectsz/2, ploty_abs,UI.settingsfixedW-UI.adsr_rectsz, UI.sampler_peaksH, DATA.current_sample_peaks.arr ) end
+    --UI.Tools_unsetbuttonstyle(plotx_abs, ploty_abs,-1, UI.sampler_peaksH)
+    
+    UI.draw_tabs_Sampler_ADSR(note_layer_t, plotx_abs, ploty_abs,x2,ploty_abs+UI.sampler_peaksH)
+    
     --
     ImGui.SetCursorPos( ctx, plotx, ploty+UI.sampler_peaksH )
     UI.draw_tabs_Sampler_tabs()
+  end
+  --------------------------------------------------------------------------------
+  function UI.draw_tabs_Sampler_ADSR(note_layer_t, x10,y10,x20,y20) 
+    if note_layer_t.ISRS5K ~= true then return end
+    local rect_sz = UI.adsr_rectsz
+    local x1,y1,x2,y2 = x10+rect_sz,y10+rect_sz,x20-rect_sz,y20-rect_sz -- effective area
+    ImGui.PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameRounding(), 1)
+    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_Button(), UI.colRGBA_ADSRrect)
+    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), UI.colRGBA_ADSRrectHov)
+    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), UI.colRGBA_ADSRrectHov)
+    
+    -- test
+    ImGui.DrawList_AddRectFilled( UI.draw_list, x10,y10,x20,y20, 0xFFFFFF0F, 2, ImGui.DrawFlags_None )
+    --ImGui.DrawList_AddRectFilled( UI.draw_list, x1,y1,x2,y2, 0xFFFFFF0F, 2, ImGui.DrawFlags_None )
+    
+    -- attack
+    UI.draw_tabs_Sampler_ADSR_points(note_layer_t, x10,y10,x20,y20) 
+    
+    ImGui.PopStyleVar(ctx)
+    ImGui.PopStyleColor(ctx,3)
+  end
+  --------------------------------------------------------------------------------
+  function UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos, centered)  
+    if not xpos then return end
+    if not centered then 
+      return x1 + (x2-x1-UI.adsr_rectsz)*xpos, y1 + (y2-y1-UI.adsr_rectsz)*(1-ypos)
+     else
+      return x1 + (x2-x1-UI.adsr_rectsz)*xpos+UI.adsr_rectsz/2, y1 + (y2-y1-UI.adsr_rectsz)*(1-ypos)+UI.adsr_rectsz/2
+    end
+  end
+    --------------------------------------------------------------------------------
+  function UI.draw_tabs_Sampler_ADSR_points(note_layer_t, x1,y1,x2,y2)  
+    local note,layer = note_layer_t.noteID, layerID 
+    local samplelen =note_layer_t.SAMPLELEN
+    -- delay
+    local xpos = note_layer_t.instrument_samplestoffs
+    local ypos = 0 
+    local xpos_del, ypos_del = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
+    if not xpos_del then return end
+    
+    local xpos_delcent, ypos_delcent = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos, true) 
+    ImGui.SetCursorScreenPos( ctx, xpos_del, ypos_del )
+    ImGui.Button(ctx, '##adsr_del', UI.adsr_rectsz, UI.adsr_rectsz)
+    if ImGui.IsItemActive( ctx ) then
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
+      note_layer_t.instrument_samplestoffs = VF_lim((mousex - x1)/(x2-x1),0,note_layer_t.instrument_sampleendoffs)
+      if DATA.current_sample_peaks then DATA.current_sample_peaks.offs_start =note_layer_t.instrument_samplestoffs end
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_samplestoffsID, note_layer_t.instrument_samplestoffs )    
+      DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
+    end
+    
+    
+    -- attack
+    local xpos = note_layer_t.instrument_attack_norm 
+    local ypos = note_layer_t.instrument_vol  
+    local xpos_att, ypos_att = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
+    local attoffs = (xpos_del-x1)
+    xpos_att = xpos_att + attoffs
+    ImGui.SetCursorScreenPos( ctx, xpos_att, ypos_att )
+    ImGui.Button(ctx, '##adsr_attvol', UI.adsr_rectsz, UI.adsr_rectsz)
+    if ImGui.IsItemActive( ctx ) then
+    
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
+      local v = VF_lim( ( mousex - x1 - attoffs ) / (x2-x1),0,1-note_layer_t.instrument_samplestoffs )
+      note_layer_t.instrument_attack = v * note_layer_t.instrument_attack_max
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_attackID,note_layer_t.instrument_attack )  
+      
+      note_layer_t.instrument_vol = 1-VF_lim((mousey - y1)/(y2-y1))
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID, note_layer_t.instrument_vol )   
+      
+      DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values 
+    end        
+    
+    -- delay - attack line 
+    ImGui.DrawList_AddLine( UI.draw_list,xpos_del + UI.adsr_rectsz/2, ypos_del + UI.adsr_rectsz/2,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
+        
+    -- decay
+    local xpos = note_layer_t.instrument_decay_norm 
+    local ypos = note_layer_t.instrument_sustain
+    local xpos_dec, ypos_dec = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
+    xpos_dec = xpos_att + xpos * (x2-x1)
+    ImGui.SetCursorScreenPos( ctx, xpos_dec, ypos_dec ) 
+    ImGui.Button(ctx, '##adsr_decsus', UI.adsr_rectsz, UI.adsr_rectsz )
+    if ImGui.IsItemActive( ctx ) then
+    
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
+      local offs = note_layer_t.instrument_attack_norm + note_layer_t.instrument_samplestoffs
+      local v = VF_lim( ( mousex - x1 ) / (x2-x1), offs,1)
+      v = v - offs
+      note_layer_t.instrument_decay = v * note_layer_t.instrument_decay_max
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID, v*note_layer_t.instrument_decay_max )  
+      
+      local v2 = 1-VF_lim((mousey - y1)/(y2-y1))
+      note_layer_t.instrument_sustain =v2
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sustainID, v2 ) 
+      
+      DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values 
+    end          
+    
+    -- attack - decay line 
+    ImGui.DrawList_AddLine( UI.draw_list,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, xpos_dec + UI.adsr_rectsz/2, ypos_dec + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
+    
+    
+    -- release
+    local xpos = note_layer_t.instrument_release_norm 
+    local ypos = 0 
+    local xpos_rel, ypos_rel = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
+    xpos_rel = xpos_rel + (note_layer_t.instrument_attack_norm + note_layer_t.instrument_samplestoffs + note_layer_t.instrument_decay_norm) * (x2-x1)
+    ImGui.SetCursorScreenPos( ctx, xpos_rel, ypos_rel )
+    ImGui.Button(ctx, '##adsr_rel', UI.adsr_rectsz, UI.adsr_rectsz)
+    if ImGui.IsItemActive( ctx ) then
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
+      
+      local offs = note_layer_t.instrument_attack_norm + note_layer_t.instrument_samplestoffs + note_layer_t.instrument_decay_norm
+      local v = VF_lim( ( mousex - x1 ) / (x2-x1), offs,1)
+      v = v - offs
+      note_layer_t.instrument_release = v * note_layer_t.instrument_release_max
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_releaseID,note_layer_t.instrument_release )  
+      
+      DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
+    end
+    
+    -- delay - attack line 
+    ImGui.DrawList_AddLine( UI.draw_list,xpos_dec + UI.adsr_rectsz/2, ypos_dec + UI.adsr_rectsz/2, xpos_rel + UI.adsr_rectsz/2, ypos_rel + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
+    
+    -- endoff
+    local xpos = note_layer_t.instrument_sampleendoffs
+    local ypos = 1 
+    local xpos_end, ypos_end = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
+    ImGui.SetCursorScreenPos( ctx, xpos_end, ypos_end )
+    ImGui.Button(ctx, '##adsr_end', UI.adsr_rectsz, UI.adsr_rectsz)
+    if ImGui.IsItemActive( ctx ) then
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
+      note_layer_t.instrument_sampleendoffs = VF_lim((mousex - x1)/(x2-x1),note_layer_t.instrument_samplestoffs,1)
+      TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sampleendoffsID, note_layer_t.instrument_sampleendoffs )    
+      if DATA.current_sample_peaks then DATA.current_sample_peaks.offs_end =note_layer_t.instrument_sampleendoffs end
+      DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
+    end
+    
+    
+        function _1b() end
+        
+        
   end
   --------------------------------------------------------------------------------
   function UI.draw_peaks (id,note_layer_t,plotx_abs,ploty_abs,w,h, arr) 
@@ -4622,25 +4907,32 @@ end
     local size = arr.get_alloc()
     local size_new = math.floor(size/2)-1
     if size_new < 0 then return end
-    ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
-    ImGui.PushStyleColor(ctx,ImGui.Col_FrameBg,0)
-    ImGui.PushStyleColor(ctx,ImGui.Col_PlotHistogram,0xF0F0F0BF)
+    --ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
+    --ImGui.PushStyleColor(ctx,ImGui.Col_FrameBg,0)
+    --ImGui.PushStyleColor(ctx,ImGui.Col_PlotHistogram,0xF0F0F0BF)
     local t1 = arr.table(1,size_new)
     local t2 = arr.table(size_new+2,size_new)
     local arr1 = new_array(t1)
     local arr2 = new_array(t2) 
     
-    ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr1, 0,  '', -1, 1,w,h)
-    ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
-    ImGui.PlotHistogram( ctx, '##sampler_peaks_plot2'..id, arr2, 0,  '', -1, 1, w,h)  
+    for i = 1, size_new do
+      local xpos = math.floor(plotx_abs + w * (i/size_new) )
+      local ypos =  math.floor(ploty_abs + h/2 * (1- math.abs(arr2[i])))
+      local ypos2 =  math.floor(ploty_abs + h/2 *(1+ math.abs(arr2[i])))
+      ImGui.DrawList_AddRectFilled( UI.draw_list, xpos, ypos, xpos, ypos2, 0xFFFFFF1F, 2, ImGui.DrawFlags_None )
+    end
+    
+    --ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr1, 0,  '', -1, 1,w,h)
+    --ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
+    --ImGui.PlotHistogram( ctx, '##sampler_peaks_plot2'..id, arr2, 0,  '', -1, 1, w,h) 
+    
     arr1.clear()
     arr2.clear()
-    ImGui.PopStyleColor(ctx,2)
+    --ImGui.PopStyleColor(ctx,2)
     
     
     --ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr2, 0,  '', -1, 1, w,h)  
-    if note_layer_t and note_layer_t.instrument_filename then ImGui.SetItemTooltip(ctx, note_layer_t.instrument_filename) end
-    local plotw, ploth = reaper.ImGui_GetItemRectSize( ctx )
+    local plotw, ploth = w,h--reaper.ImGui_GetItemRectSize( ctx )
     
     if not id:match('cur') then return end
     if not (DATA.current_sample_peaks.offs_start == 0 and DATA.current_sample_peaks.offs_end == 1 ) then 
@@ -5243,8 +5535,7 @@ end
         UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('vol',v,note_layer_t,note,layer,true) 
         note_layer_t.instrument_vol =v 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID, v )    
-        DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
-        
+        DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values 
       end,
       parseinput = function(str_in)
         if not str_in then return end
@@ -5606,8 +5897,23 @@ end
     -- after EXT:load
     DATA:CollectDataInit_PluginParametersMapping_Get() 
     DATA:CollectDataInit_ReadDBmaps()
+    DATA:CollectDataInit_LoadCustomPadNames()
     
   end   
+  ------------------------------------------------------------------------------------------ 
+  function DATA:CollectDataInit_LoadCustomPadNames()
+    DATA.padcustomnames = {}
+    local str = EXT.UI_padcustomnames
+    if str == '' then return end
+    for pair in str:gmatch('[%d]+%=".-"') do
+      local id, val = pair:match('([%d]+)="(.-)%"')
+      if id and val then 
+        id = tonumber(id)
+        if id then DATA.padcustomnames[id] = val end
+      end
+    end
+  
+  end
   ------------------------------------------------------------------------------------------   
   function DATA:CollectDataInit_ReadDBmaps()
     DATA.database_maps = {}
