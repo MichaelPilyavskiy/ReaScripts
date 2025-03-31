@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.12
+-- @version 4.13
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,18 +7,13 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    + Show formatted param value for selected knob (take first link)
---    + Update values on change
---    + Show menu by left click in main page
---    + Snapback: support snapback value
---    + Snapback: support setup snapback transition time
---    + Snapback: support setup snapback value as current value
---    # improve storing slider color
+--    # fix error in slave JSFX mode
+--    + Add instantiate button when no configuration found
 
 
 
 
-  local vrs = 4.12
+  local vrs = 4.13
 
   --[[ gmem map: 
   Master
@@ -1090,6 +1085,7 @@
   end 
   -------------------------------------------------------------------------------- 
   function DATA:CollectData_eachloop()
+    if not DATA.masterJSFX_FXid then return end
     local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
     if retval1 ~= 0 and rawmsg and rawmsg:byte(1)&0xB0==0xB0 then 
       DATA.last_inc_MIDI1 = rawmsg:byte(1)
@@ -2237,6 +2233,13 @@
   end
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff_knobs(local_pos_x, local_pos_y)  
+    
+    if DATA.masterJSFX_isvalid ~= true then
+      ImGui.SetCursorPos( ctx,local_pos_x + UI.calc_knobW+ UI.spacingX, local_pos_y+ UI.spacingY) 
+      if ImGui.Button(ctx, 'Instantiate') then DATA:MasterJSFX_Validate_Add()  end
+      return 
+    end
+    
     local app_func_onmouseclick = function(sliderID) 
                                     DATA:Macro_Select(sliderID) 
                                   end
@@ -2433,6 +2436,9 @@
         end
         
         }) 
+      
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, 'Instantiate') then DATA:MasterJSFX_Validate_Add()  end
       
       ImGui.SeparatorText(ctx,'Random')
       UI.draw_flow_CHECK({['key']='Do not random 0 and 1 values',                     ['extstr'] = 'CONF_randpreventrandfromlimits',  })
