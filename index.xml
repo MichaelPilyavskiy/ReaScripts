@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6a46449b4beb1080f4145b63763e5f7656dbca35" name="MPL Scripts">
+<index version="1" commit="15c0c6316d04f3439bba70305f2196be36edcb80" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5889,6 +5889,24 @@
         <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/01b720641b83cfea541ec6060c42f9074835895d/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
         <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/01b720641b83cfea541ec6060c42f9074835895d/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/01b720641b83cfea541ec6060c42f9074835895d/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="4.21" author="MPL" time="2025-03-31T20:02:36Z">
+        <changelog><![CDATA[# Peaks: smooth peaks a bit
++ Settings: add support for custom pad names
++ Settings/Custom pad names: add action to clear names
++ Settings/Custom pad names: add action to set names according to GM bank
++ Sampler: allow to edit ADSR envelope]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15c0c6316d04f3439bba70305f2196be36edcb80/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
