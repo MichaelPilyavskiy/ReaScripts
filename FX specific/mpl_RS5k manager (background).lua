@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.22
+-- @version 4.23
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,10 +15,20 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Parent track definition: improve nested folders handling
+--    + Sampler: support doubleclick to reset value to some predefined parameters
+--    + Sampler: support click on peaks to play sample
+--    + DrumRack: show only active boundary peaks
+--    + DrumRack/3rd_party: fix midi_note_filter 4.0 regression
+--    # Sampler / ADSR: do not link attack with gain
+--    - Sampler: removed VCA controls for now (not really usable and stable)
+--    # TCP/MCP: ignore collapsing if not set
+--    # Context/Remove pad content: fix close popup
+--    + Context/Import selected items: add option to not remove items from track
+--    + Context/Import selected items: obey importing items after dynamic split
+--    + Context/Import as instrument: ignore non-instrument last touched FX
 
 
-rs5kman_vrs = '4.22'
+rs5kman_vrs = '4.23'
 
 
 -- TODO
@@ -118,6 +128,7 @@ rs5kman_vrs = '4.22'
           
           CONF_lastmacroaction = 0,
           CONF_launchpadsendMIDI = 0,
+          CONF_importselitems_removesource = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -956,8 +967,8 @@ end
      elseif EXT.CONF_onadd_newchild_trackheightflags &2==2 then       -- set folder collapsed
       SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 2)
      elseif EXT.CONF_onadd_newchild_trackheightflags &2~=2 and EXT.CONF_onadd_newchild_trackheightflags &1~=1 then       -- set folder collapsed
-      local foldstate = GetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT')   
-      if foldstate ~=0 then SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 0)       end
+      --local foldstate = GetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT')   
+      --if foldstate ~=0 then SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 0)       end
     end
   
     --if EXT.CONF_onadd_newchild_trackheightflags &4==4 or EXT.CONF_onadd_newchild_trackheightflags &8==8 then
@@ -970,8 +981,8 @@ end
            elseif EXT.CONF_onadd_newchild_trackheightflags &4==4 then 
             if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 0 )end 
            else 
-            if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 )end             
-            if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )end             
+            --if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 )end             
+            --if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )end             
           end
         end
         -- children
@@ -983,8 +994,8 @@ end
              elseif EXT.CONF_onadd_newchild_trackheightflags &4==4 then 
               if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 0 )end 
              else 
-              if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 )end             
-              if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )end             
+              --if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 )end             
+              --if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )end             
             end
           end
         end
@@ -1975,6 +1986,8 @@ end
         
       -- add layer to note if device child
         if TYPE_DEVICECHILD == true or TYPE_REGCHILD == true then  
+          local midifilt_pos = TrackFX_AddByName( track, 'midi_note_filter', false, 0) 
+          if midifilt_pos == - 1 then midifilt_pos = nil end
             local layer = #DATA.children[note].layers +1 
             DATA.children[note].layers[layer] = { 
                                               
@@ -2000,6 +2013,8 @@ end
                                               I_FOLDERDEPTH = I_FOLDERDEPTH,
                                               P_NAME=P_NAME,
                                               IP_TRACKNUMBER_0based=IP_TRACKNUMBER_0based,
+                                              
+                                              midifilt_pos=midifilt_pos,
                                               }
           DATA:CollectData_Children_ExtState          (DATA.children[note].layers[layer])  
           DATA:CollectData_Children_InstrumentParams  (DATA.children[note].layers[layer]) 
@@ -2459,7 +2474,7 @@ end
       if DATA.children[dest_pad].layers then
         for layer = 1, #DATA.children[dest_pad].layers do
           DATA:WriteData_Child(DATA.children[dest_pad].layers[layer].tr_ptr, {SET_noteID = src_pad})  
-          DATA:DropSample_ExportToRS5kSetNoteRange(DATA.children[dest_pad].layers[layer].tr_ptr, DATA.children[dest_pad].layers[layer].instrument_pos, src_pad)
+          DATA:DropSample_ExportToRS5kSetNoteRange(DATA.children[dest_pad].layers[layer], src_pad)
         end
       end
     end
@@ -2470,7 +2485,7 @@ end
       if DATA.children[src_pad].layers then
         for layer = 1, #DATA.children[src_pad].layers do
           DATA:WriteData_Child(DATA.children[src_pad].layers[layer].tr_ptr, {SET_noteID = dest_pad})  
-          DATA:DropSample_ExportToRS5kSetNoteRange(DATA.children[src_pad].layers[layer].tr_ptr, DATA.children[src_pad].layers[layer].instrument_pos, dest_pad)
+          DATA:DropSample_ExportToRS5kSetNoteRange(DATA.children[src_pad].layers[layer], dest_pad)
         end
       end
     end
@@ -2545,7 +2560,11 @@ end
     return filename
   end
   --------------------------------------------------------------------- 
-  function DATA:DropSample_ExportToRS5kSetNoteRange(tr, instrument_pos, note, midifilt_pos) 
+  function DATA:DropSample_ExportToRS5kSetNoteRange(note_layer_t, note) 
+    local tr = note_layer_t.tr_ptr
+    local instrument_pos = note_layer_t.instrument_pos
+    local midifilt_pos = note_layer_t.midifilt_pos
+    
     if not note then return end
     if not midifilt_pos  then 
       TrackFX_SetParamNormalized( tr, instrument_pos, 3, (note)/127 ) -- note range start
@@ -2733,6 +2752,9 @@ end
   end
   -----------------------------------------------------------------------  
   function DATA:DropFX_Export(track, instrument_pos, note, fxname)  
+    local midifilt_pos = TrackFX_AddByName( track, 'midi_note_filter', false, -1000 ) 
+    DATA:DropSample_ExportToRS5kSetNoteRange({tr_ptr=track, instrument_pos=instrument_pos,midifilt_pos=midifilt_pos}, note) 
+    
     -- set parameters
       if EXT.CONF_onadd_float == 0 then TrackFX_SetOpen( track, instrument_pos, false ) end
     
@@ -2775,6 +2797,7 @@ end
     local instrument_pos = TrackFX_AddByName( track, fx_namesrc, false, 0)  
     if instrument_pos == -1 then return end
     DATA:DropFX_Export(track, instrument_pos, note, fxname) 
+    
     
     DATA.autoreposition = true    
   end
@@ -2825,7 +2848,11 @@ end
       TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
       TrackFX_SetParamNormalized( track, instrument_pos, 9, 0 ) -- attack
       TrackFX_SetParamNormalized( track, instrument_pos, 11, EXT.CONF_onadd_obeynoteoff) -- obey note offs
-      DATA:DropSample_ExportToRS5kSetNoteRange(track, instrument_pos, note)
+      local temp_t = {
+        tr_ptr = track,
+        instrument_pos = instrument_pos
+      }
+      DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note)
     
     -- set offsets
       if drop_data and drop_data.SOFFS and drop_data.EOFFS then
@@ -3799,12 +3826,15 @@ end
       end
       
       
-    -- peaks
+    -- peaks 
       if 
         DATA.children[note] and
         DATA.children[note].layers and 
         DATA.children[note].layers[1] and 
-        DATA.children[note].layers[1].peaks_arr  then UI.draw_peaks('pad'..note, note_t,x + UI.spacingX, y+UI.calc_itemH,w-UI.spacingX*2, UI.calc_rack_padnameH-UI.calc_itemH,DATA.children[note].layers[1].peaks_arr) end
+        DATA.children[note].layers[1].peaks_arr  then 
+        local is_pad_peak = true
+        UI.draw_peaks('pad'..note, note_t,x + UI.spacingX, y+UI.calc_itemH,w-UI.spacingX*2, UI.calc_rack_padnameH-UI.calc_itemH,DATA.children[note].layers[1].peaks_arr, is_pad_peak) 
+      end
     
     -- controls background
       if h > min_h then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom ) end
@@ -3957,6 +3987,7 @@ end
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding, round)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, round)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, round)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign, 0,0.5)
     
   
     -- draw content
@@ -3981,8 +4012,9 @@ end
         local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
         local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
         local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+        local is_instrument = fx_namesrc:match('[%a]+i%:.*')
         local fx_name = VF_ReduceFXname(fx_namesrc)
-        if retval and fx_name then
+        if retval and fx_name and is_instrument then
           if ImGui.Button(ctx, 'Import ['..fx_name..'] as instrument',-1) then
             DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
             ImGui.CloseCurrentPopup(ctx) 
@@ -3993,8 +4025,12 @@ end
           DATA:Sampler_ImportSelectedItems()
           ImGui.CloseCurrentPopup(ctx) 
         end
+        ImGui.Indent(ctx, 10)
+          if ImGui.Checkbox(ctx, 'Remove source from track', EXT.CONF_importselitems_removesource==1) then EXT.CONF_importselitems_removesource=EXT.CONF_importselitems_removesource~1 EXT:save() end
+        ImGui.Unindent(ctx, 10)
         if ImGui.Button(ctx, 'Remove pad content',-1) then
           DATA:Sampler_RemovePad(note) 
+          ImGui.CloseCurrentPopup(ctx) 
         end
         
       end
@@ -4040,7 +4076,7 @@ end
       ImGui.EndPopup(ctx)
     end 
   
-    ImGui.PopStyleVar(ctx, 4)
+    ImGui.PopStyleVar(ctx, 5)
   end 
   --------------------------------------------------------------------------------  
   function UI.draw_tabs()
@@ -4576,6 +4612,10 @@ end
   function UI.draw_knob_handlelatchstate(t)  
     local paramval = t.val or 0
     
+    if ImGui_IsMouseDoubleClicked( ctx, ImGui.MouseButton_Left ) and ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) then
+      if t.default_val then t.appfunc_atdrag(t.default_val) end
+    end
+    
     -- trig
     if  ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then 
       DATA.temp_latchstate = paramval  
@@ -4743,9 +4783,17 @@ end
     --if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE) end
     --if ImGui.IsItemDeactivated(ctx) and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE, 0 , true) end
     
-    if DATA.current_sample_peaks and DATA.current_sample_peaks.arr then UI.draw_peaks('cur',note_layer_t,plotx_abs+UI.adsr_rectsz/2, ploty_abs,UI.settingsfixedW-UI.adsr_rectsz, UI.sampler_peaksH, DATA.current_sample_peaks.arr ) end
+    local peaksX =plotx_abs+UI.adsr_rectsz/2
+    local peaksY =ploty_abs
+    local peaksW =UI.settingsfixedW-UI.adsr_rectsz
+    local peaksH =UI.sampler_peaksH
+    if DATA.current_sample_peaks and DATA.current_sample_peaks.arr then UI.draw_peaks('cur',note_layer_t,peaksX, peaksY,peaksW, peaksH, DATA.current_sample_peaks.arr ) end
     --UI.Tools_unsetbuttonstyle(plotx_abs, ploty_abs,-1, UI.sampler_peaksH)
-    
+    -- handle click to peaks for play
+    local cl_x, cl_y = reaper.ImGui_GetMouseClickedPos( ctx, ImGui.MouseButton_Left )
+    if ImGui.IsAnyItemHovered( ctx )~=true and ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left,0 ) and cl_x >=peaksX and cl_x<=peaksX+peaksW and cl_y >=peaksY and cl_y<=peaksY+peaksH then 
+      if DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then DATA:Sampler_StuffNoteOn(DATA.parent_track.ext.PARENT_LASTACTIVENOTE) end
+    end
     UI.draw_tabs_Sampler_ADSR(note_layer_t, plotx_abs, ploty_abs,x2,ploty_abs+UI.sampler_peaksH)
     
     --
@@ -4805,7 +4853,7 @@ end
     
     -- attack
     local xpos = note_layer_t.instrument_attack_norm 
-    local ypos = note_layer_t.instrument_vol  
+    local ypos = 1--note_layer_t.instrument_vol  
     local xpos_att, ypos_att = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
     local attoffs = (xpos_del-x1)
     xpos_att = xpos_att + attoffs
@@ -4818,9 +4866,9 @@ end
       note_layer_t.instrument_attack = v * note_layer_t.instrument_attack_max
       TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_attackID,note_layer_t.instrument_attack )  
       
-      note_layer_t.instrument_vol = 1-VF_lim((mousey - y1)/(y2-y1))
+      --[[note_layer_t.instrument_vol = 1-VF_lim((mousey - y1)/(y2-y1))
       TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID, note_layer_t.instrument_vol )   
-      
+      ]]
       DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values 
     end        
     
@@ -4896,40 +4944,37 @@ end
         
   end
   --------------------------------------------------------------------------------
-  function UI.draw_peaks (id,note_layer_t,plotx_abs,ploty_abs,w,h, arr) 
-    --if h < UI.controls_minH then return end
+  function UI.draw_peaks (id,note_layer_t,plotx_abs,ploty_abs,w,h, arr, is_pad_peak) 
     if EXT.CONF_showpadpeaks == 0 and not id:match('cur') then return end
     if not arr then return end
     
     local size = arr.get_alloc()
     local size_new = math.floor(size/2)-1
     if size_new < 0 then return end
-    --ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
-    --ImGui.PushStyleColor(ctx,ImGui.Col_FrameBg,0)
-    --ImGui.PushStyleColor(ctx,ImGui.Col_PlotHistogram,0xF0F0F0BF)
-    local t1 = arr.table(1,size_new)
-    local t2 = arr.table(size_new+2,size_new)
-    local arr1 = new_array(t1)
-    local arr2 = new_array(t2) 
     
-    for i = 1, size_new do
-      local xpos = math.floor(plotx_abs + w * (i/size_new) )
+    local t1,t2,arr1,arr2
+    t1 = arr.table(1,size_new)
+    t2 = arr.table(size_new+2,size_new)
+    arr1 = new_array(t1)
+    arr2 = new_array(t2) 
+   
+    local peakst = 1
+    local peakend = size_new
+    if is_pad_peak == true and note_layer_t.layers and note_layer_t.layers[1] and note_layer_t.layers[1].instrument_samplestoffs then 
+      peakst = 1+math.floor(note_layer_t.layers[1].instrument_samplestoffs * size_new)
+      peakend = math.floor(note_layer_t.layers[1].instrument_sampleendoffs * size_new)
+    end
+    for i = peakst, peakend do
+      local xpos = math.floor(plotx_abs + w * ((i-peakst)/(peakend-peakst)) )
       local ypos =  math.floor(ploty_abs + h/2 * (1- math.abs(arr2[i])))
       local ypos2 =  math.floor(ploty_abs + h/2 *(1+ math.abs(arr2[i])))
       ImGui.DrawList_AddRectFilled( UI.draw_list, xpos, ypos, xpos, ypos2, 0xFFFFFF1F, 2, ImGui.DrawFlags_None )
     end
     
-    --ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr1, 0,  '', -1, 1,w,h)
-    --ImGui.SetCursorScreenPos( ctx, plotx_abs, ploty_abs )
-    --ImGui.PlotHistogram( ctx, '##sampler_peaks_plot2'..id, arr2, 0,  '', -1, 1, w,h) 
-    
     arr1.clear()
     arr2.clear()
-    --ImGui.PopStyleColor(ctx,2)
     
-    
-    --ImGui.PlotHistogram( ctx, '##sampler_peaks_plot'..id, arr2, 0,  '', -1, 1, w,h)  
-    local plotw, ploth = w,h--reaper.ImGui_GetItemRectSize( ctx )
+    local plotw, ploth = w,h
     
     if not id:match('cur') then return end
     if not (DATA.current_sample_peaks.offs_start == 0 and DATA.current_sample_peaks.offs_end == 1 ) then 
@@ -4974,6 +5019,7 @@ end
       {str_id = '##spl_stoffs',
       is_small_knob = true,
       val = note_layer_t.instrument_samplestoffs,
+      default_val = 0,
       x = curposx_abs , 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -4995,6 +5041,7 @@ end
       {str_id = '##spl_endoffs',
       is_small_knob = true,
       val = note_layer_t.instrument_sampleendoffs,
+      default_val = 1,
       x = curposx_abs + UI.calc_knob_w_small + UI.spacingX, 
       y = curposy_abs,
       w = UI.calc_knob_w_small ,
@@ -5017,6 +5064,7 @@ end
       {str_id = '##spl_loopoffs',
       is_small_knob = true,
       val = note_layer_t.instrument_loopoffs_norm,
+      default_val = 0,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, 
       y = curposy_abs,
       w = UI.calc_knob_w_small ,
@@ -5057,8 +5105,8 @@ end
       
       ImGui.SetCursorScreenPos(ctx, curposx_abs , curposy_abs + UI.calc_knob_h_small +  UI.spacingY)
       
-      if ImGui.Checkbox(ctx, 'Tweak ALL samples ',(DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~1 end
-      if ImGui.Checkbox(ctx, 'Tweak ony current pad layers',(DATA.VCA_mode or 0 )&2==2 or (DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~2 end
+      --if ImGui.Checkbox(ctx, 'Tweak ALL samples ',(DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~1 end
+      --if ImGui.Checkbox(ctx, 'Tweak ony current pad layers',(DATA.VCA_mode or 0 )&2==2 or (DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~2 end
       --ImGui.EndCombo( ctx )
     --end      
       
@@ -5217,6 +5265,7 @@ end
       {str_id = '##note_layer_fx_ws_drive', 
       is_small_knob = true,
       val =note_layer_t.fx_ws_drive,
+      default_val = 0,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5520,7 +5569,8 @@ end
     UI.draw_knob(
       {str_id = '##spl_vol',
       is_small_knob = true,
-      val = note_layer_t.instrument_vol,
+      val = note_layer_t.instrument_vol, 
+      default_val = 0.5,
       x = curposx_abs, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5546,7 +5596,8 @@ end
     UI.draw_knob(
       {str_id = '##note_layer_tune',
       is_small_knob = true,
-      val = note_layer_t.instrument_tune,
+      val = note_layer_t.instrument_tune, 
+      default_val = 0.5,
       x = curposx_abs + UI.calc_knob_w_small + UI.spacingX, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5596,13 +5647,14 @@ end
     
     ImGui.SetCursorScreenPos(ctx, curposx_abs , curposy_abs + UI.calc_knob_h_small +  UI.spacingY)
     
-    if ImGui.Checkbox(ctx, 'Tweak ALL samples ',(DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~1 end
-    if ImGui.Checkbox(ctx, 'Tweak ony current pad layers',(DATA.VCA_mode or 0 )&2==2 or (DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~2 end
+    --if ImGui.Checkbox(ctx, 'Tweak ALL samples ',(DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~1 end
+    --if ImGui.Checkbox(ctx, 'Tweak ony current pad layers',(DATA.VCA_mode or 0 )&2==2 or (DATA.VCA_mode or 0 )&1==1) then DATA.VCA_mode = (DATA.VCA_mode or 0 )~2 end
     
     UI.draw_knob(
       {str_id = '##note_layer_instrument_attack',
       is_small_knob = true,
-      val = note_layer_t.instrument_attack_norm,
+      val = note_layer_t.instrument_attack_norm, 
+      default_val = 0,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5630,6 +5682,7 @@ end
       {str_id = '##note_layer_instrument_decay',
       is_small_knob = true,
       val = note_layer_t.instrument_decay_norm,
+      default_val = 0.5,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*5, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5658,6 +5711,7 @@ end
       {str_id = '##note_layer_instrument_sustain',
       is_small_knob = true,
       val = note_layer_t.instrument_sustain,
+      default_val = 0.5,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*6, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5685,6 +5739,7 @@ end
       {str_id = '##note_layer_instrument_release',
       is_small_knob = true,
       val = note_layer_t.instrument_release_norm,
+      default_val = 0.01,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*7, 
       y = curposy_abs,
       w = UI.calc_knob_w_small,
@@ -5978,10 +6033,19 @@ end
       end
       
       -- handle section
-      if parent_src and (GetMediaSourceType( src ) == 'SECTION' or GetMediaSourceType( src ) == 'WAVE') then 
-        local retval, offs, len, rev = reaper.PCM_Source_GetSectionInfo( src )
-        drop_data.SOFFS = offs / src_len
-        drop_data.EOFFS = (offs + len)/ src_len
+      if parent_src then
+        if GetMediaSourceType( src ) == 'SECTION' then 
+          local retval, offs, len, rev = reaper.PCM_Source_GetSectionInfo( src )
+          drop_data.SOFFS = offs / src_len
+          drop_data.EOFFS = (offs + len)/ src_len
+         elseif GetMediaSourceType( src ) == 'WAVE' then
+          local take = GetActiveTake(item)
+          local D_STARTOFFS = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+          local D_LENGTH = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+          local D_PLAYRATE = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+          drop_data.SOFFS = D_STARTOFFS  / src_len
+          drop_data.EOFFS = (D_STARTOFFS + D_LENGTH*D_PLAYRATE)/ src_len
+        end
       end  
       
       if parent_src then 
@@ -5995,11 +6059,12 @@ end
       ::nextitem::
     end
     
-    for itemGUID in pairs(items_to_remove ) do 
-      local it = VF_GetMediaItemByGUID(DATA.proj, itemGUID)
-      if it then DeleteTrackMediaItem(  reaper.GetMediaItemTrack( it ), it ) end
+    if EXT.CONF_importselitems_removesource == 1 then
+      for itemGUID in pairs(items_to_remove ) do 
+        local it = VF_GetMediaItemByGUID(DATA.proj, itemGUID)
+        if it then DeleteTrackMediaItem(  reaper.GetMediaItemTrack( it ), it ) end
+      end
     end
-    
     Undo_EndBlock2(DATA.proj, 'RS5k manager - import selected items', 0xFFFFFFFF)
     
     UpdateArrange()
