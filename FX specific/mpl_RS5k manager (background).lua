@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.23
+-- @version 4.24
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,20 +15,14 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Sampler: support doubleclick to reset value to some predefined parameters
---    + Sampler: support click on peaks to play sample
---    + DrumRack: show only active boundary peaks
---    + DrumRack/3rd_party: fix midi_note_filter 4.0 regression
---    # Sampler / ADSR: do not link attack with gain
---    - Sampler: removed VCA controls for now (not really usable and stable)
---    # TCP/MCP: ignore collapsing if not set
---    # Context/Remove pad content: fix close popup
---    + Context/Import selected items: add option to not remove items from track
---    + Context/Import selected items: obey importing items after dynamic split
---    + Context/Import as instrument: ignore non-instrument last touched FX
+--    # Context menu: minor tweaks
+--    + 3rd party: prevent adding non-instruments to device
+--    + 3rd party: treat fx as instrument if it contains "synth" in its name
+--    + 3rd party: do not allow rs5k to be imported
+--    + 3rd party: add text input for 3rd party FX import
 
 
-rs5kman_vrs = '4.23'
+rs5kman_vrs = '4.24'
 
 
 -- TODO
@@ -3974,6 +3968,38 @@ end
     OpenMediaExplorer( t.instrument_filename, false )
   end
   -------------------------------------------------------------------------------- 
+  function UI.draw_3rdpartyimport_context(note,drop_data) 
+    local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
+    local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
+    local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+    local is_instrument = (fx_namesrc:match('[%a]+i%:.*') or fx_namesrc:lower():match('synth')) and not (fx_namesrc: match('ReaSampl')or fx_namesrc:match('Macro'))
+    local fx_name = VF_ReduceFXname(fx_namesrc)
+    if retval and fx_name and is_instrument then
+      if ImGui.Button(ctx, fx_name,-1)then-- then--'Import ['..fx_name..'] as instrument'
+        DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
+        ImGui.CloseCurrentPopup(ctx) 
+      end   
+     else
+      ImGui.BeginDisabled(ctx,true) ImGui.Button(ctx, 'Import last touched FX as instrument',-1)ImGui.EndDisabled(ctx)
+    end
+    
+    --[[local regx= ImGui.GetContentRegionMax( ctx )
+    local curposX = ImGui.GetCursorPosX( ctx )
+    ImGui.SetNextItemWidth( ctx,(regx - curposX)/2) ]]
+    ImGui.SetNextItemWidth( ctx,-100)
+    local retval, buf = reaper.ImGui_InputText( ctx, 'Import FX##fxinput', '', ImGui.InputTextFlags_EnterReturnsTrue )
+    if retval then
+      local track = GetMasterTrack(-1) 
+      local fxidx = TrackFX_AddByName( track, buf, false, -1 )
+      if fxidx ~= -1 then
+        local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+        local fx_name = VF_ReduceFXname(fx_namesrc)
+        DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
+        ImGui.CloseCurrentPopup(ctx)
+      end
+    end
+  end
+  -------------------------------------------------------------------------------- 
   function UI.draw_actions() 
     if DATA.trig_openpopup then 
       ImGui.OpenPopup( ctx, 'mainRCmenu', ImGui.PopupFlags_None )
@@ -3994,7 +4020,7 @@ end
     -- (from reaimgui demo) Always center this window when appearing
     --local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
     local windw = 300--DATA.display_w*0.3
-    local windh = 200--DATA.display_h*0.5
+    local windh = 300--DATA.display_h*0.5
     local center_x, center_y = ImGui.GetMouseClickedPos( ctx,ImGui.MouseButton_Right  )
     --ImGui.SetNextWindowPos(ctx, center_x+windw/2-25, center_y+windh/2-10, ImGui.Cond_Appearing, 0.5, 0.5)
     ImGui.SetNextWindowPos(ctx, center_x-25, center_y-10, ImGui.Cond_Appearing, 0, 0)
@@ -4003,39 +4029,34 @@ end
       
       if ImGui.Button(ctx, 'Close') then ImGui.CloseCurrentPopup(ctx)  end
       
-      -- pad stuff
+      -- pad stuff ------------------------------------------------------------
       if DATA.trig_context == 'pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
         ImGui.SeparatorText(ctx, 'Pad '..DATA.parent_track.ext.PARENT_LASTACTIVENOTE)
         local note = DATA.parent_track.ext.PARENT_LASTACTIVENOTE 
-        
-        -- import last touched fx
-        local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
-        local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
-        local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
-        local is_instrument = fx_namesrc:match('[%a]+i%:.*')
-        local fx_name = VF_ReduceFXname(fx_namesrc)
-        if retval and fx_name and is_instrument then
-          if ImGui.Button(ctx, 'Import ['..fx_name..'] as instrument',-1) then
-            DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
-            ImGui.CloseCurrentPopup(ctx) 
-          end     
-        end
-          
-        if ImGui.Button(ctx, 'Import selected items, starting this pad',-1) then
-          DATA:Sampler_ImportSelectedItems()
-          ImGui.CloseCurrentPopup(ctx) 
-        end
         ImGui.Indent(ctx, 10)
-          if ImGui.Checkbox(ctx, 'Remove source from track', EXT.CONF_importselitems_removesource==1) then EXT.CONF_importselitems_removesource=EXT.CONF_importselitems_removesource~1 EXT:save() end
-        ImGui.Unindent(ctx, 10)
         if ImGui.Button(ctx, 'Remove pad content',-1) then
           DATA:Sampler_RemovePad(note) 
           ImGui.CloseCurrentPopup(ctx) 
         end
+        ImGui.Unindent(ctx, 10)
         
+        ImGui.SeparatorText(ctx, 'Import media items')
+        ImGui.Indent(ctx, 10)
+        if ImGui.Button(ctx, 'Import selected items, starting this pad',-1) then
+          DATA:Sampler_ImportSelectedItems()
+          ImGui.CloseCurrentPopup(ctx) 
+        end
+        if ImGui.Checkbox(ctx, 'Remove source from track', EXT.CONF_importselitems_removesource==1) then EXT.CONF_importselitems_removesource=EXT.CONF_importselitems_removesource~1 EXT:save() end
+        ImGui.Unindent(ctx, 10)
+        
+        -- import last touched fx
+        ImGui.SeparatorText(ctx, 'Import FX to pad')
+        ImGui.Indent(ctx, 10) 
+        UI.draw_3rdpartyimport_context(note)  
+        ImGui.Unindent(ctx, 10)
       end
       
-      -- macro stuff
+      -- macro stuff ------------------------------------------------------------
       if DATA.trig_context == 'macro' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVEMACRO  then 
         local macroID = DATA.parent_track.ext.PARENT_LASTACTIVEMACRO
         ImGui.SeparatorText(ctx, 'Macro '..macroID)
@@ -4064,7 +4085,7 @@ end
       
       --ImGui.SameLine(ctx) 
       
-      --[[ general
+      --[[ general ------------------------------------------------------------
       if (DATA.parent_track and DATA.parent_track.valid == true) then  
         ImGui.SeparatorText(ctx, 'Actions') 
         ImGui.Indent(ctx, UI.settings_indent)
@@ -5853,29 +5874,20 @@ end
       end
       
       -- device drop
-      
-      local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
-      local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
-      local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
-      local fx_name = VF_ReduceFXname(fx_namesrc)
-      -- prevent control jsfx / rs5k
-      if retval then 
-        if fx_namesrc: match('ReaSampl') or fx_namesrc:match('Macro') then retval = nil end 
-      end
-      local fxadd = ''
-      if retval then fxadd = '\nor click to import ['..fx_name..']' end
-      if ImGui.Button(ctx, 'Drop new layers here'..fxadd, -1,-1) then
-        local cntlayers = 0
-        if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
-        local drop_data = {layer = cntlayers + 1}
-        if fx_namesrc and track then DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data) end
-      end
+      ImGui.Button(ctx, 'Drop new layers here', -1)
       if ImGui.BeginDragDropTarget( ctx ) then  
         local cntlayers = 0
         if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
         DATA:Drop_UI_interaction_device(note, cntlayers + 1)  
         ImGui_EndDragDropTarget( ctx )
       end
+      
+      -- device drop FX
+      local cntlayers = 0
+      if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
+      local drop_data = {layer = cntlayers + 1}
+      UI.draw_3rdpartyimport_context(note,drop_data) 
+      
       
       ImGui.PopStyleVar(ctx,2)  
       ImGui.EndChild( ctx)
