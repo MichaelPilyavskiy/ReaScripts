@@ -1,14 +1,16 @@
 -- @description Randomize Track FX parameters
--- @version 3.54
+-- @version 3.55
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    # allow resize window
+--    # another filter implementation, use per plugin external chunks
+--    # clear big b64 chunks before 3.55
+--    + Add option to not store filter persistently
 
 
 
 
-vrs = 3.54
+vrs = 3.55
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -38,8 +40,8 @@ vrs = 3.54
           
           -- other 
           CONF_smooth = 0, -- seconds
-          
-          CONF_pluginfilter_b64 = '',
+          CONF_storefilter = 1,
+          --CONF_pluginfilter_b64 = '', 3.55 obsolete, personal load per plugin
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -261,7 +263,8 @@ vrs = 3.54
   end
   -------------------------------------------------------------------------------- 
   function EXT:save() 
-    if not DATA.ES_key then return end 
+    if not DATA.ES_key then return end  
+    EXT.CONF_pluginfilter_b64 = '' -- 3.55 clear old big chunks
     for key in pairs(EXT) do 
       if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
         SetExtState( DATA.ES_key, key, EXT[key], true  ) 
@@ -371,6 +374,11 @@ vrs = 3.54
           EXT:save()
         end
         
+         ImGui.SeparatorText(ctx, 'Options')
+         
+        if ImGui_Checkbox( ctx, 'Use filter persistent saving', EXT.CONF_storefilter==1 ) then EXT.CONF_storefilter=EXT.CONF_storefilter~1 EXT:save() end
+        ImGui.Dummy(ctx,30,50)
+        
         
         ImGui.EndMenu( ctx )
       end
@@ -432,7 +440,7 @@ vrs = 3.54
           local ret, v = ImGui.Checkbox(ctx, DATA.FX.params[i].name , DATA.FX.params[i].active == true)
           if ret then
             DATA:Filter_Change(i, v) 
-            DATA:Filter_Save() 
+            DATA:Filter_Save(plugname) 
             DATA:Action_PrintPluginState_UpdateFXData()  
             DATA:Filter_RefreshCountActive()
           end
@@ -457,7 +465,7 @@ vrs = 3.54
             if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {} end
             DATA:Filter_Change(i, nil, v1,DATA.FX_filter[plugname][i].randmax or 1) 
           end
-          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save()  end
+          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save(plugname)  end
           
           ImGui.TableSetColumnIndex(ctx,3)
           local v1 = 1
@@ -473,7 +481,7 @@ vrs = 3.54
             if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {} end
             DATA:Filter_Change(i, nil, DATA.FX_filter[plugname][i].randmin or 0, v1) 
           end
-          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save()  end
+          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save(plugname)  end
           
           --[[if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[1] then 
             ImGui.TableSetColumnIndex(ctx,2)
@@ -536,7 +544,7 @@ vrs = 3.54
     for i = 1,DATA.FX.cnt_params do 
       if DATA.FX.params[i].match_filter == true then DATA:Filter_Change(i, bool)  end
     end
-    DATA:Filter_Save() 
+    DATA:Filter_Save(plugname) 
     DATA:Action_PrintPluginState_UpdateFXData()
   end
   ---------------------------------------------------------------------------------------------------------------------
@@ -570,7 +578,7 @@ vrs = 3.54
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].keywords_use = out
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)
@@ -579,7 +587,7 @@ vrs = 3.54
       if retval then 
         if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname]  = {} end
         DATA.FX_filter[FXname].keywords = buf
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end
       ImGui.SameLine(ctx)UI.HelpMarker('Parameter shown in list if its name contains one of the listed words.\n\nSpace separated,\ncase insensitive,\npunctuation ignored except "_" handled as space for multiword parameter names')
@@ -589,7 +597,7 @@ vrs = 3.54
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].keywordsexclude_use = out
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)
@@ -598,7 +606,7 @@ vrs = 3.54
       if retval then 
         if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname]  = {} end
         DATA.FX_filter[FXname].keywordsexclude = buf
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end
       ImGui.SameLine(ctx)UI.HelpMarker('Parameter shown in list if its name NOT contains one of the listed words.\n\nSpace separated,\ncase insensitive,\npunctuation ignored except "_" handled as space for multiword parameter names')
@@ -610,7 +618,7 @@ vrs = 3.54
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].untitled_pass = out
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)UI.HelpMarker('Filter out empty parameter names, "reserv", "untitled", "resvd"')
@@ -620,7 +628,7 @@ vrs = 3.54
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].strings_pass = out
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)UI.HelpMarker('Filter out parameters that contain more than 2 character string')      
@@ -630,7 +638,7 @@ vrs = 3.54
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].toggle_pass = out
-        DATA:Filter_Save()
+        DATA:Filter_Save(plugname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)UI.HelpMarker('Filter out parameters that analyzed as toggle')        
@@ -884,10 +892,17 @@ if str == '' then return end
   return tables[1]
 end  
   ----------------------------------------------------------------------------------------- 
-  function DATA:Filter_Load()
-    local str = VF_decBase64(EXT.CONF_pluginfilter_b64)
-    DATA.FX_filter = table.loadstring(str) or {} 
+  function DATA:Filter_Load(fxname)
+    if EXT.CONF_storefilter == 0 then return end
+    local key = 'CONF_pluginfilter_b64'..fxname
     
+    if HasExtState( DATA.ES_key, key ) then 
+      local val = GetExtState( DATA.ES_key, key ) 
+      EXT[key] = tonumber(val) or val 
+    end 
+    
+    local str = VF_decBase64(EXT[key] or '')
+    DATA.FX_filter[fxname] = table.loadstring(str) or {} 
   end
   ----------------------------------------------------------------------------------------- 
   function DATA:Filter_RefreshCountActive()
@@ -904,10 +919,11 @@ end
     end
   end
   ----------------------------------------------------------------------------------------- 
-  function DATA:Filter_Save()
-    local outstr = table.savestring(DATA.FX_filter)
-    EXT.CONF_pluginfilter_b64 = VF_encBase64(outstr)
-    EXT:save() 
+  function DATA:Filter_Save(fxname) 
+    if EXT.CONF_storefilter == 0 then return end
+    local key = 'CONF_pluginfilter_b64'..fxname  
+    local outstr = table.savestring(DATA.FX_filter[fxname] or {})
+    SetExtState( DATA.ES_key, key, VF_encBase64(outstr), true  ) 
   end
   ----------------------------------------------------------------------------------------- 
   function main() 
@@ -1105,7 +1121,6 @@ end
   --------------------------------------------------------------------  
   function DATA:Collectata_GetFocusedFXData() -- also update to current params
     
-    DATA:Filter_Load() -- load ext state of filter per plugin 
     
     -- get main stuff
     local retval, trackidx, itemidx, takeidx, fxnum, parm = reaper.GetTouchedOrFocusedFX( 1 )
@@ -1135,6 +1150,8 @@ end
     DATA.FX.params = {}
     DATA.FX.fxnum = fxnum&0xFFFF
     
+    
+    DATA:Filter_Load(buf) -- load ext state of filter per plugin 
     
     local param_bypass = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':bypass' )
     local param_wet = _G[DATA.FX.func_str..'GetParamFromIdent']( DATA.FX.ptr, DATA.FX.fxnum, ':wet' )
