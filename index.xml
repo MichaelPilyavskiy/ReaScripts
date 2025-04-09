@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3b727b468a3fd2418150b852e1a339156873db29" name="MPL Scripts">
+<index version="1" commit="d67241bcebc80cdd4ead8f60e8dc2962de11db91" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2520,6 +2520,12 @@
       <version name="3.54" author="MPL" time="2025-03-29T19:11:06Z">
         <changelog><![CDATA[# allow resize window]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1fd9b00aa706afd287fadeadba9770fc014ad44c/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+      </version>
+      <version name="3.55" author="MPL" time="2025-04-09T07:09:48Z">
+        <changelog><![CDATA[# another filter implementation, use per plugin external chunks
+# clear big b64 chunks before 3.55
++ Add option to not store filter persistently]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d67241bcebc80cdd4ead8f60e8dc2962de11db91/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove MIDI learn from focused FX.lua" type="script" desc="Remove MIDI learn from focused FX">
