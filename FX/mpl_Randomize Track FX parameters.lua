@@ -1,16 +1,14 @@
 -- @description Randomize Track FX parameters
--- @version 3.55
+-- @version 3.56
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    # another filter implementation, use per plugin external chunks
---    # clear big b64 chunks before 3.55
---    + Add option to not store filter persistently
+--    # fix filter saving
 
 
 
 
-vrs = 3.55
+vrs = 3.56
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -377,7 +375,7 @@ vrs = 3.55
          ImGui.SeparatorText(ctx, 'Options')
          
         if ImGui_Checkbox( ctx, 'Use filter persistent saving', EXT.CONF_storefilter==1 ) then EXT.CONF_storefilter=EXT.CONF_storefilter~1 EXT:save() end
-        ImGui.Dummy(ctx,30,50)
+        ImGui.Dummy(ctx,30,80)
         
         
         ImGui.EndMenu( ctx )
@@ -398,26 +396,26 @@ vrs = 3.55
   end
   --------------------------------------------------------------------------------  
   function DATA:Filter_Change(i, v, randmin, randmax) 
-    local plugname = DATA.FX.FXname
-    if not DATA.FX_filter[plugname] then DATA.FX_filter[plugname] = {} end
-    if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end 
-    if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {val = DATA.FX_filter[plugname][i]} end
+    local FXname = DATA.FX.FXname
+    if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname] = {} end
+    if not DATA.FX_filter[FXname][i] then DATA.FX_filter[FXname][i] = {} end 
+    if type(DATA.FX_filter[FXname][i]) == 'number' then DATA.FX_filter[FXname][i] = {val = DATA.FX_filter[FXname][i]} end
     
     if v == true then
-      DATA.FX_filter[plugname][i].val = nil
+      DATA.FX_filter[FXname][i].val = nil
      elseif v == false then
-      DATA.FX_filter[plugname][i].val = 0
+      DATA.FX_filter[FXname][i].val = 0
     end
     
     if randmin and randmax then 
-      DATA.FX_filter[plugname][i].randmin = randmin 
-      DATA.FX_filter[plugname][i].randmax = randmax
+      DATA.FX_filter[FXname][i].randmin = randmin 
+      DATA.FX_filter[FXname][i].randmax = randmax
     end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_list()  
     if not (DATA.FX and DATA.FX.valid == true) then return end
-    local plugname = DATA.FX.FXname
+    local FXname = DATA.FX.FXname 
     ImGui.PushFont(ctx, DATA.font2) 
     if ImGui.BeginChild( ctx, '##paramlist', -1, -1, ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
       UI.calc_table_valW = math.floor(((DATA.display_w - UI.spacingX*2) - ((DATA.display_w - UI.spacingX*2)/3)) / 3)
@@ -440,7 +438,7 @@ vrs = 3.55
           local ret, v = ImGui.Checkbox(ctx, DATA.FX.params[i].name , DATA.FX.params[i].active == true)
           if ret then
             DATA:Filter_Change(i, v) 
-            DATA:Filter_Save(plugname) 
+            DATA:Filter_Save(FXname) 
             DATA:Action_PrintPluginState_UpdateFXData()  
             DATA:Filter_RefreshCountActive()
           end
@@ -453,35 +451,35 @@ vrs = 3.55
           
           ImGui.TableSetColumnIndex(ctx,2)
           local v1 = 0
-          if DATA.FX_filter[plugname] and DATA.FX_filter[plugname][i] and type(DATA.FX_filter[plugname][i]) == 'table' and DATA.FX_filter[plugname][i].randmin then v1 = DATA.FX_filter[plugname][i].randmin end
+          if DATA.FX_filter[FXname] and DATA.FX_filter[FXname][i] and type(DATA.FX_filter[FXname][i]) == 'table' and DATA.FX_filter[FXname][i].randmin then v1 = DATA.FX_filter[FXname][i].randmin end
           local v_speed = 1.0
           local v_min = 0
           local v_max= 1
           local format = "%.3f"
           local retval, v1 = ImGui.SliderDouble(ctx, '##paramlisttable_limitsmin'..i, v1,  v_min, v_max, format, ImGui.SliderFlags_None)
           if retval then 
-            if not DATA.FX_filter[plugname]then DATA.FX_filter[plugname]= {} end
-            if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end
-            if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {} end
-            DATA:Filter_Change(i, nil, v1,DATA.FX_filter[plugname][i].randmax or 1) 
+            if not DATA.FX_filter[FXname]then DATA.FX_filter[FXname]= {} end
+            if not DATA.FX_filter[FXname][i] then DATA.FX_filter[FXname][i] = {} end
+            if type(DATA.FX_filter[FXname][i]) == 'number' then DATA.FX_filter[FXname][i] = {} end
+            DATA:Filter_Change(i, nil, v1,DATA.FX_filter[FXname][i].randmax or 1) 
           end
-          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save(plugname)  end
+          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save(FXname)  end
           
           ImGui.TableSetColumnIndex(ctx,3)
           local v1 = 1
-          if DATA.FX_filter[plugname] and DATA.FX_filter[plugname][i] and type(DATA.FX_filter[plugname][i]) == 'table' and DATA.FX_filter[plugname][i].randmax then v1 = DATA.FX_filter[plugname][i].randmax end
+          if DATA.FX_filter[FXname] and DATA.FX_filter[FXname][i] and type(DATA.FX_filter[FXname][i]) == 'table' and DATA.FX_filter[FXname][i].randmax then v1 = DATA.FX_filter[FXname][i].randmax end
           local v_speed = 1.0
           local v_min = 0
           local v_max= 1
           local format = "%.3f"
           local retval, v1 = ImGui.SliderDouble(ctx, '##paramlisttable_limitsmax'..i, v1,  v_min, v_max, format, ImGui.SliderFlags_None)
           if retval then 
-            if not DATA.FX_filter[plugname]then DATA.FX_filter[plugname]= {} end
-            if not DATA.FX_filter[plugname][i] then DATA.FX_filter[plugname][i] = {} end
-            if type(DATA.FX_filter[plugname][i]) == 'number' then DATA.FX_filter[plugname][i] = {} end
-            DATA:Filter_Change(i, nil, DATA.FX_filter[plugname][i].randmin or 0, v1) 
+            if not DATA.FX_filter[FXname]then DATA.FX_filter[FXname]= {} end
+            if not DATA.FX_filter[FXname][i] then DATA.FX_filter[FXname][i] = {} end
+            if type(DATA.FX_filter[FXname][i]) == 'number' then DATA.FX_filter[FXname][i] = {} end
+            DATA:Filter_Change(i, nil, DATA.FX_filter[FXname][i].randmin or 0, v1) 
           end
-          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save(plugname)  end
+          if ImGui.IsItemDeactivatedAfterEdit( ctx ) then DATA:Filter_Save(FXname)  end
           
           --[[if DATA.FX.params[i].value_morph and DATA.FX.params[i].value_morph[1] then 
             ImGui.TableSetColumnIndex(ctx,2)
@@ -540,11 +538,12 @@ vrs = 3.55
   end
   ---------------------------------------------------------------------------------------------------------------------
   function DATA:Action_ApplyFilter_SelectAll(bool)
+    local FXname = DATA.FX.FXname
     if not (DATA.FX and DATA.FX.valid==true) then return end  
     for i = 1,DATA.FX.cnt_params do 
       if DATA.FX.params[i].match_filter == true then DATA:Filter_Change(i, bool)  end
     end
-    DATA:Filter_Save(plugname) 
+    DATA:Filter_Save(FXname) 
     DATA:Action_PrintPluginState_UpdateFXData()
   end
   ---------------------------------------------------------------------------------------------------------------------
@@ -578,7 +577,7 @@ vrs = 3.55
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].keywords_use = out
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)
@@ -587,7 +586,7 @@ vrs = 3.55
       if retval then 
         if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname]  = {} end
         DATA.FX_filter[FXname].keywords = buf
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end
       ImGui.SameLine(ctx)UI.HelpMarker('Parameter shown in list if its name contains one of the listed words.\n\nSpace separated,\ncase insensitive,\npunctuation ignored except "_" handled as space for multiword parameter names')
@@ -597,7 +596,7 @@ vrs = 3.55
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].keywordsexclude_use = out
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)
@@ -606,7 +605,7 @@ vrs = 3.55
       if retval then 
         if not DATA.FX_filter[FXname] then DATA.FX_filter[FXname]  = {} end
         DATA.FX_filter[FXname].keywordsexclude = buf
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end
       ImGui.SameLine(ctx)UI.HelpMarker('Parameter shown in list if its name NOT contains one of the listed words.\n\nSpace separated,\ncase insensitive,\npunctuation ignored except "_" handled as space for multiword parameter names')
@@ -618,7 +617,7 @@ vrs = 3.55
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].untitled_pass = out
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)UI.HelpMarker('Filter out empty parameter names, "reserv", "untitled", "resvd"')
@@ -628,7 +627,7 @@ vrs = 3.55
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].strings_pass = out
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)UI.HelpMarker('Filter out parameters that contain more than 2 character string')      
@@ -638,7 +637,7 @@ vrs = 3.55
         local out = 0
         if v == true then out = 1 end
         DATA.FX_filter[FXname].toggle_pass = out
-        DATA:Filter_Save(plugname)
+        DATA:Filter_Save(FXname)
         DATA:Action_FilterParams()
       end 
       ImGui.SameLine(ctx)UI.HelpMarker('Filter out parameters that analyzed as toggle')        
@@ -1050,7 +1049,7 @@ end
   ---------------------------------------------------------------------  
   function DATA:Action_Morph_GenerateRandomSnapshot()
     local snapshot_id = DATA.currentsnapshot 
-    local plugname = DATA.FX.FXname
+    local FXname = DATA.FX.FXname
     
     if not (DATA.FX.cnt_params and DATA.FX.params) then return end
     for paramid = 1, DATA.FX.cnt_params do
@@ -1059,9 +1058,9 @@ end
       
       local randmin = 0
       local randmax = 1 
-      if DATA.FX_filter[plugname] and DATA.FX_filter[plugname][paramid] and type(DATA.FX_filter[plugname][paramid]) == 'table' and DATA.FX_filter[plugname][paramid].randmin and DATA.FX_filter[plugname][paramid].randmax then 
-        randmin = DATA.FX_filter[plugname][paramid].randmin
-        randmax = DATA.FX_filter[plugname][paramid].randmax 
+      if DATA.FX_filter[FXname] and DATA.FX_filter[FXname][paramid] and type(DATA.FX_filter[FXname][paramid]) == 'table' and DATA.FX_filter[FXname][paramid].randmin and DATA.FX_filter[FXname][paramid].randmax then 
+        randmin = DATA.FX_filter[FXname][paramid].randmin
+        randmax = DATA.FX_filter[FXname][paramid].randmax 
       end
       
       local outv = 1
