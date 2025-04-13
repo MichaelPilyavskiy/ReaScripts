@@ -1,13 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.11
+-- @version 3.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix str_id errors
---    # improve automation writing/reading
+--    + Allow o turn of ReceiveFader mode
 
 
-    vrs = 3.11
+    vrs = 3.12
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -37,6 +36,7 @@
           CONF_showpeaks = 1,
           --CONF_autoadjustwidth = 0,
           CONF_showselection = 0,
+          CONF_allowreceivefader_mode = 1,
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -339,7 +339,6 @@
     DATA:CollectData_ReadProject_ReadReceives()  
     if DATA.selected_track_is_receive == true then 
       DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle()
-     else 
     end
   end
   ---------------------------------------------------------------------  
@@ -903,6 +902,8 @@
         end
         --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show VCA selection marks', '', EXT.CONF_showselection==1, true ) then EXT.CONF_showselection=EXT.CONF_showselection~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
+        
         
         ImGui.EndMenu( ctx)
       end
@@ -1604,7 +1605,7 @@
         local destCol  = GetTrackColor( tr ) 
         
         
-        if seltr and tr == seltr then DATA.selected_track_is_receive = true end
+        if seltr and tr == seltr and EXT.CONF_allowreceivefader_mode == 1 then DATA.selected_track_is_receive = true end
         
         DATA.receives[#DATA.receives+1] = {
             is_receive =true,
