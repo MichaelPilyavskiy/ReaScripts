@@ -1,9 +1,10 @@
 -- @description ModulationEditor
--- @version 2.08
+-- @version 2.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Link: add option to add MIDI link from recent list menu
+--    + Use delete for toggle selected mod active
+--    + Improve docking
 
 
 
@@ -277,9 +278,9 @@ function UI.MAIN_draw(open)
   -- We specify a default position/size in case there's no data in the .ini file.
     local main_viewport = ImGui.GetMainViewport(ctx)
     local x, y, w, h, dock =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH,EXT.viewport_dock
-    ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-    ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
-    ImGui.SetNextWindowDockID( ctx, EXT.CONF_dock , ImGui.Cond_Always )
+    --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+    --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+    --ImGui.SetNextWindowDockID( ctx, EXT.CONF_dock , ImGui.Cond_Always )
     
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
@@ -313,6 +314,14 @@ function UI.MAIN_draw(open)
     end 
     ImGui.PopFont( ctx ) 
     if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
+    if  ImGui.IsKeyPressed( ctx, ImGui.Key_Delete,false )  then 
+      if DATA.modulationstate_ext.selected_key then
+        local key = DATA.modulationstate_ext.selected_key
+        local t = DATA.modulationstate[key]
+        t.PMOD['mod.active']=t.PMOD['mod.active']~1 
+        DATA:ApplyPMOD(t)
+      end
+    end
   
     return open
 end
