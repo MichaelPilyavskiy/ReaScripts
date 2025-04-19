@@ -1,15 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.14
+-- @version 3.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix showing multiple sends to the same track
---    # Settings/Marked receives view: fix incorrect values
---    + Settings: add option to allow multiple sends to same track
---    + Support multichannel sends
+--    + Settings: add option to show available sends even in receive mode and if track receive
 
 
-    vrs = 3.14
+    vrs = 3.15
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -39,7 +36,7 @@
           CONF_showpeaks = 1,
           --CONF_autoadjustwidth = 0,
           CONF_showselection = 0,
-          CONF_allowreceivefader_mode = 1, 
+          CONF_allowreceivefader_mode = 1,  -- &2 = allow show send list in receive mode
           CONF_allowsametrackmultsends = 0,
         }
   -------------------------------------------------------------------------------- INIT data
@@ -929,6 +926,9 @@
         --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show VCA selection marks', '', EXT.CONF_showselection==1, true ) then EXT.CONF_showselection=EXT.CONF_showselection~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&1==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
+        if EXT.CONF_allowreceivefader_mode&1==1 then 
+          if ImGui.MenuItem( ctx, 'Allow show sends in ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&2==2, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~2 EXT:save() DATA.upd = true end
+        end
         if ImGui.MenuItem( ctx, 'Allow multiple sends to the same track', '', EXT.CONF_allowsametrackmultsends&1==1, true ) then EXT.CONF_allowsametrackmultsends=EXT.CONF_allowsametrackmultsends~1 EXT:save() DATA.upd = true end
         
         
@@ -1467,15 +1467,17 @@
   function UI.draw_sends() 
     if not (DATA.tracks and DATA.srctr and DATA.srctr.sends) then return end 
     
-    -- show list of available sends
-    if EXT.CONF_alwaysshowreceives == 2 and DATA.selected_track_is_receive ~= true then
+    -- show list of available sends in list
+    if (EXT.CONF_alwaysshowreceives == 2 and DATA.selected_track_is_receive ~= true) or EXT.CONF_allowreceivefader_mode&2==2 then
       for i = 1, #DATA.receives do
-        if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Border) then
-          if ImGui.Button( ctx, DATA.receives[i].trname,-1) then 
-            CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
-            DATA.upd = true 
+        if (DATA.srctr.ptr~=DATA.receives[i].ptr ) then
+          if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Border) then
+            if ImGui.Button( ctx, DATA.receives[i].trname,-1) then 
+              CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
+              DATA.upd = true 
+            end
+            ImGui.EndChild(ctx)
           end
-          ImGui.EndChild(ctx)
         end
         ImGui.SameLine(ctx)
       end 
@@ -1491,7 +1493,7 @@
     
     -- show receives in list
     if EXT.CONF_alwaysshowreceives == 1 and DATA.selected_track_is_receive ~= true then
-      for recID = 1, #DATA.receives do
+      for recID = 1, #DATA.receives do 
         UI.draw_sends_sub(DATA.receives[recID]) 
         ImGui.SameLine(ctx)
       end
@@ -1633,6 +1635,7 @@
         DATA:CollectData_ReadProject_ReadReceives_MatchGroupName(tr,names_group) 
         )
         and not DATA:CollectData_ReadProject_ReadReceives_Checkpointers(tr)
+        --and not (GetSelectedTrack(-1,0) and tr ==GetSelectedTrack(-1,0))
        then
         
         --[[local destPtr = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
