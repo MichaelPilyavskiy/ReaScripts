@@ -1,13 +1,14 @@
 -- @description VisualMixer
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Pass space to transport play/stop
+--    + Support docking
+--    + Settings: allow to change background color
 
 
-vrs = 3.03
+vrs = 3.04
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -71,6 +72,8 @@ vrs = 3.03
           CONF_quantizepan = 5,
           CONF_handlealltracks = 0,
           
+          UI_windowBgRGB = 0x303030,
+          
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -123,7 +126,7 @@ vrs = 3.03
               textcol_a_enabled = 1,
               textcol_a_disabled = 0.5,
               but_hovered = 0x878787,
-              windowBg = 0x303030,
+              --windowBg = 0x303030,
           }
           
     UI.w_min = 640
@@ -161,7 +164,7 @@ vrs = 3.03
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
       --window_flags = window_flags | ImGui.WindowFlags_NoNav
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
-      window_flags = window_flags | ImGui.WindowFlags_NoDocking
+      --window_flags = window_flags | ImGui.WindowFlags_NoDocking
       window_flags = window_flags | ImGui.WindowFlags_TopMost
       window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
       --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings()
@@ -221,17 +224,17 @@ vrs = 3.03
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 0.99))      
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(EXT.UI_windowBgRGB, 0.99))      
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) --..' '..vrs..'##'..DATA.UI_name
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -247,8 +250,6 @@ vrs = 3.03
         
       -- get drawlist
         UI.draw_list = ImGui.GetWindowDrawList( ctx )
-        
-        function _b_styledef() end
         --UI.calc_CTRL = ImGui.IsKeyPressed( ctx, ImGui.Key_LeftCtrl ) or ImGui.IsKeyPressed( ctx, ImGui.Key_RightCtrl )
         UI.calc_workarea_xabs = DATA.display_x + UI.calc_xoffset
         UI.calc_workarea_yabs = DATA.display_y + UI.calc_yoffset + UI.calc_itemH*3
@@ -1257,6 +1258,10 @@ end
         UI.draw_flow_COMBO({['key']='Quantize pan',                                    ['extstr'] = 'CONF_quantizepan',               ['values'] = {[0]='Off',[1]='1%',[5]='5%',[10]='10%'  } })  
         UI.draw_flow_COMBO({['key']='Extend center',                                    ['extstr'] = 'UI_extendcenter',               ['values'] = {[0]='Disabled', [0.3] = '30% area',[0.5] = '50% area'} })   
         UI.draw_flow_CHECK({['key']='Invert Y',                                           ['extstr'] = 'CONF_invertYscale'}) 
+        
+        local retval, col_rgb = ImGui.ColorEdit3( ctx, 'Background color', EXT.UI_windowBgRGB, ImGui.ColorEditFlags_NoAlpha )
+        if retval then EXT.UI_windowBgRGB = col_rgb  EXT:save() end
+        ImGui.SameLine(ctx) if ImGui.Selectable(ctx, 'Reset##rescolback') then EXT.UI_windowBgRGB = 0x303030 EXT:save() end
         
         ImGui.EndMenu( ctx )
       end
