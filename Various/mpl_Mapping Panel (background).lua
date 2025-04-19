@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.14
+-- @version 4.15
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,15 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    - Slave-per-track mode: remove link parameters in graph
---    + Slave-per-track mode: add native scale/offset/base parameters, cltr+click to enter value, doubleclick to name to reset
---    + Master JSFX mode: when tweaking graph, reset scale/offset/base parameters
---    # Links: UI tweaks
+--    # fix old configuration color entry
 
 
 
 
-  local vrs = 4.14
+  local vrs = 4.15
 
   --[[ gmem map: 
   Master
@@ -2164,10 +2161,13 @@
     
     local col_RRGGBB = 0--0x1000000
     if DATA.masterJSFX_sliders[sliderID] and DATA.masterJSFX_sliders[sliderID].col then
-      local str = DATA.masterJSFX_sliders[sliderID].col:gsub('#','')
-      local col = tonumber(str,16)
-      local b, g, r = ColorFromNative( col ) 
-      col_RRGGBB = (r<<16)|(g<<8)|b
+      local col = DATA.masterJSFX_sliders[sliderID].col
+      if type(col) == 'string' then
+        local str = col:gsub('#','')
+        local col = tonumber(str,16)
+        local b, g, r = ColorFromNative( col ) 
+        col_RRGGBB = (r<<16)|(g<<8)|b
+      end
     end 
     
     local flags = ImGui.ColorEditFlags_None | ImGui.ColorEditFlags_NoOptions | ImGui.ColorEditFlags_NoSidePreview|ImGui.ColorEditFlags_NoLabel|ImGui.ColorEditFlags_NoInputs
