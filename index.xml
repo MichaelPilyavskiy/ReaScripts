@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2765d5d9e3af7c8ce67e54954cabca855d2908d7" name="MPL Scripts">
+<index version="1" commit="d5a94e268217a6f1c130b24cec26d0de7489e70a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13832,6 +13832,10 @@ various fixes]]></changelog>
 + Settings: add option to allow multiple sends to same track
 + Support multichannel sends]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2765d5d9e3af7c8ce67e54954cabca855d2908d7/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.15" author="MPL" time="2025-04-19T14:50:04Z">
+        <changelog><![CDATA[+ Settings: add option to show available sends even in receive mode and if track receive]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5a94e268217a6f1c130b24cec26d0de7489e70a/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
