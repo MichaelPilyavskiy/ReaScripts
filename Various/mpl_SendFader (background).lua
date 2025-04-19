@@ -1,12 +1,15 @@
 ﻿-- @description SendFader
--- @version 3.12
+-- @version 3.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Allow o turn of ReceiveFader mode
+--    # fix showing multiple sends to the same track
+--    # Settings/Marked receives view: fix incorrect values
+--    + Settings: add option to allow multiple sends to same track
+--    + Support multichannel sends
 
 
-    vrs = 3.12
+    vrs = 3.14
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -36,7 +39,8 @@
           CONF_showpeaks = 1,
           --CONF_autoadjustwidth = 0,
           CONF_showselection = 0,
-          CONF_allowreceivefader_mode = 1,
+          CONF_allowreceivefader_mode = 1, 
+          CONF_allowsametrackmultsends = 0,
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -369,7 +373,17 @@
       local B_PHASE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'B_PHASE' )
       local I_SENDMODE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_SENDMODE' )
       local I_AUTOMODE = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_AUTOMODE' )
-      local I_SRCCHAN = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_SRCCHAN' )
+      local I_SRCCHANsrc = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_SRCCHAN' )
+      
+      local I_SRCCHAN =     I_SRCCHANsrc&0xFFF
+      local I_SRCCHAN_cnt = I_SRCCHANsrc>>10
+      if I_SRCCHAN_cnt == 0 then
+        I_SRCCHAN_cnt = 2
+       elseif I_SRCCHAN_cnt > 1 then
+        I_SRCCHAN_cnt = I_SRCCHAN_cnt * 2
+      end
+      
+      
       local I_DSTCHAN = GetTrackSendInfo_Value( srcPtr, 0, sendidx_from_src, 'I_DSTCHAN' )
       
       local retval, destGUID = GetSetMediaTrackInfo_String( destPtr, 'GUID', '', false )
@@ -401,7 +415,10 @@
             I_SENDMODE =I_SENDMODE,
             I_AUTOMODE =I_AUTOMODE,
             I_DSTCHAN=I_DSTCHAN,
+            I_SRCCHANsrc=I_SRCCHANsrc,
+            I_SRCCHAN_cnt=I_SRCCHAN_cnt,
             I_SRCCHAN=I_SRCCHAN,
+            
             destI_NCHAN=destI_NCHAN ,
             destGUID=destGUID,
             destPtr=destPtr,
@@ -458,7 +475,14 @@
       local B_PHASE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'B_PHASE' )
       local I_SENDMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SENDMODE' )
       local I_AUTOMODE = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_AUTOMODE' )
-      local I_SRCCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SRCCHAN' )
+      local I_SRCCHANsrc = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_SRCCHAN' )
+      local I_SRCCHAN =     I_SRCCHANsrc&0xFFF
+      local I_SRCCHAN_cnt = I_SRCCHANsrc>>10
+      if I_SRCCHAN_cnt == 0 then
+        I_SRCCHAN_cnt = 2
+       elseif I_SRCCHAN_cnt > 1 then
+        I_SRCCHAN_cnt = I_SRCCHAN_cnt * 2
+      end
       local I_DSTCHAN = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_DSTCHAN' )
       local retval, destGUID = GetSetMediaTrackInfo_String( destPtr, 'GUID', '', false )
       local destI_NCHAN  = GetMediaTrackInfo_Value( destPtr, 'I_NCHAN' ) 
@@ -492,6 +516,8 @@
             I_AUTOMODE =I_AUTOMODE,
             I_DSTCHAN=I_DSTCHAN,
             I_SRCCHAN=I_SRCCHAN,
+            I_SRCCHANsrc = I_SRCCHANsrc, 
+            I_SRCCHAN_cnt = I_SRCCHAN_cnt,
             destI_NCHAN=destI_NCHAN ,
             destGUID=destGUID,
             destPtr=destPtr,
@@ -505,7 +531,7 @@
             automode_env = DATA:CollectData_GetEnv(tr,destPtr),
             automode=automode,
             
-            str_id = destGUID, 
+            str_id = destGUID..id
             
             }
       DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(destPtr,DATA.srctr.sends[id]) 
@@ -889,8 +915,8 @@
         if ImGui.MenuItem( ctx, 'Show peaks', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
         
         local t = {
-          [0] = 'Hide',
-          [1] = 'List',
+          [1] = 'Hide',
+          [0] = 'List',
           [2] = 'Combo',
         }
         local preview_value = 'Marked receives view: '..t[EXT.CONF_alwaysshowreceives]
@@ -902,7 +928,8 @@
         end
         --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show VCA selection marks', '', EXT.CONF_showselection==1, true ) then EXT.CONF_showselection=EXT.CONF_showselection~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&1==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Allow multiple sends to the same track', '', EXT.CONF_allowsametrackmultsends&1==1, true ) then EXT.CONF_allowsametrackmultsends=EXT.CONF_allowsametrackmultsends~1 EXT:save() DATA.upd = true end
         
         
         ImGui.EndMenu( ctx)
@@ -1134,24 +1161,44 @@
     ImGui.SetNextItemWidth(ctx,UI.calc_comboW) 
     local preview_value = ''
     local mapt = {} 
-    local step = 2
-    local ismono =  t.I_SRCCHAN ~= -1 and t.I_SRCCHAN&1024 == 1024
-    if ismono == true then step = 1 end
-    for i = 0, 63, step do
-      mapt[i] = ' '..(i+1)..'/'..(i+2 )
+    local I_SRCCHAN_cnt = t.I_SRCCHAN_cnt or 2
+    for i = 0, 63, I_SRCCHAN_cnt do
+      mapt[i] = ' '..(i+1)..'/'..(i+I_SRCCHAN_cnt )
       if ismono then mapt[i] = (i+1) end
     end 
     if mapt[t.I_SRCCHAN&0x1FF] then preview_value= mapt[t.I_SRCCHAN&0x1FF] end
     if t.I_SRCCHAN == -1 then preview_value  = 'none' end
-    if ImGui.BeginCombo( ctx, '##srcch'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
-      -- mono
-      if t.I_SRCCHAN ~= -1 and ImGui.Checkbox( ctx, 'Mono', t.I_SRCCHAN&1024 == 1024 ) then
-        SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_SRCCHAN', t.I_SRCCHAN~1024)
-        DATA.upd = true
+    
+    if ImGui.BeginCombo( ctx, '##srcch_sel'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
+      
+      if t.I_SRCCHAN ~= -1 then
+        local max_available_ch = DATA.srctr.I_NCHAN 
+        for i = 0, max_available_ch do
+          local chan
+          local str = i..' channel(s)'
+          if i == 0 then 
+            str = 'Stereo'
+            chan = 0
+           elseif i == 1 then 
+            str = 'Mono'
+            chan = 1
+           elseif i~= 0 and i ~= 1 and i > 2 and i%2==0 then 
+            str = i..' chan'
+            chan= i /2
+          end
+          if chan then
+            if ImGui.Checkbox( ctx, str, (t.I_SRCCHANsrc>>10) == chan ) then
+              SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_SRCCHAN', (t.I_SRCCHAN&0xFF)|(chan<<10))
+              DATA.upd = true
+            end
+          end
+        end
       end
+      
       -- dest offs
+      
       if ImGui.Selectable( ctx, 'none##srcch'..str_id..-1, t.I_SRCCHAN == -1, ImGui.SelectableFlags_None) then SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_SRCCHAN', -1) DATA.upd = true end
-      for i = 0, 63, step do
+      for i = 0, 63, I_SRCCHAN_cnt do
         if ImGui.Selectable( ctx, mapt[i]..'##srcch'..str_id..i, t.I_SRCCHAN&0x1FF==i, ImGui.SelectableFlags_None) then
           local mono = 0 if ismono == true then mono =1024 end
           if t.I_SRCCHAN == -1 then t.I_SRCCHAN = i end
@@ -1168,11 +1215,10 @@
     ImGui.SetNextItemWidth(ctx,UI.calc_comboW) 
     local preview_value = ''
     local mapt = {} 
-    local step = 2
     local ismono =  t.I_DSTCHAN&1024 == 1024
     if ismono == true then step = 1 end
-    for i = 0, 63, step do
-      mapt[i] = ' '..(i+1)..'/'..(i+2 )
+    for i = 0, 63, I_SRCCHAN_cnt do
+      mapt[i] = ' '..(i+1)..'/'..(i+I_SRCCHAN_cnt )
       if ismono then mapt[i] = (i+1) end
     end 
     if mapt[t.I_DSTCHAN&0x1FF] then preview_value= mapt[t.I_DSTCHAN&0x1FF] end
@@ -1183,10 +1229,11 @@
         DATA.upd = true
       end
       -- dest offs
-      for i = 0, 63, step do
+      for i = 0, 63, I_SRCCHAN_cnt do
         if ImGui.Selectable( ctx, mapt[i]..'##destch'..str_id..i, t.I_DSTCHAN&0x1FF==i, ImGui.SelectableFlags_None) then
           local mono = 0 if ismono == true then mono =1024 end
-          if t.I_DSTCHAN&0x1FF > t.destI_NCHAN-2 then SetMediaTrackInfo_Value( t.destPtr, 'I_NCHAN', (t.I_DSTCHAN&0x1FF+2)|mono ) end -- increase 
+          --if t.I_DSTCHAN&0x1FF > t.destI_NCHAN-2 then SetMediaTrackInfo_Value( t.destPtr, 'I_NCHAN', (t.I_DSTCHAN&0x1FF+2)|mono ) end -- increase 
+          if i+I_SRCCHAN_cnt > t.destI_NCHAN then SetMediaTrackInfo_Value( t.destPtr, 'I_NCHAN', (i+I_SRCCHAN_cnt)|mono ) end -- increase 
           SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'I_DSTCHAN', i|mono)
           DATA.upd = true
         end
@@ -1603,9 +1650,8 @@
         local ret, destName  = reaper.GetTrackName( tr )
         local retval, destGUID = GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
         local destCol  = GetTrackColor( tr ) 
-        
-        
-        if seltr and tr == seltr and EXT.CONF_allowreceivefader_mode == 1 then DATA.selected_track_is_receive = true end
+         
+        if seltr and tr == seltr and EXT.CONF_allowreceivefader_mode&1 == 1 then DATA.selected_track_is_receive = true end
         
         DATA.receives[#DATA.receives+1] = {
             is_receive =true,
@@ -1621,7 +1667,7 @@
   end
   ---------------------------------------------------------------------  
   function DATA:CollectData_ReadProject_ReadReceives_Checkpointers(tr)
-    if not (DATA.srctr and DATA.srctr.sends) then return end
+    if not (DATA.srctr and DATA.srctr.sends) or EXT.CONF_allowsametrackmultsends == 1 then return end
     for i = 1, #DATA.srctr.sends do
       if tr == DATA.srctr.sends[i].destPtr then return true end
     end
