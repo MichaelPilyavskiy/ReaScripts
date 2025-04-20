@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.24
+-- @version 4.25
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,14 +15,11 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Context menu: minor tweaks
---    + 3rd party: prevent adding non-instruments to device
---    + 3rd party: treat fx as instrument if it contains "synth" in its name
---    + 3rd party: do not allow rs5k to be imported
---    + 3rd party: add text input for 3rd party FX import
+--    + Settings/on sample add: add option to rename new RS5k instance
+--    # Device: make auto-set velocity ranges on non-device inactive
 
 
-rs5kman_vrs = '4.24'
+rs5kman_vrs = '4.25'
 
 
 -- TODO
@@ -79,6 +76,8 @@ rs5kman_vrs = '4.24'
           CONF_onadd_ordering = 0, -- 0 sorted by note 1 at the top 2 at the bottom
           CONF_onadd_takeparentcolor = 0,
           CONF_onadd_autosetrange = 0,
+          CONF_onadd_renameinst = 0,
+          CONF_onadd_renameinst_str = 'RS5k',
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -2835,7 +2834,13 @@ end
     -- set parameters
       if EXT.CONF_onadd_float == 0 then TrackFX_SetOpen( track, instrument_pos, false ) end
       TrackFX_SetNamedConfigParm( track, instrument_pos, 'FILE0', filename)
-      TrackFX_SetNamedConfigParm( track, instrument_pos, 'DONE', '')      
+      TrackFX_SetNamedConfigParm( track, instrument_pos, 'DONE', '')
+      if EXT.CONF_onadd_renameinst == 1 and EXT.CONF_onadd_renameinst_str ~= '' then
+        local str = EXT.CONF_onadd_renameinst_str
+        str = str:gsub('%#note',note)
+        if drop_data.layer then str = str:gsub('%#layer',drop_data.layer) else str = str:gsub('%#layer','') end
+        TrackFX_SetNamedConfigParm( track, instrument_pos, 'renamed_name', str)
+      end
       TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel
       TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
       TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
@@ -3384,6 +3389,22 @@ end
         end
         if ImGui.Checkbox( ctx, 'Set obey notes-off',                                     EXT.CONF_onadd_obeynoteoff == 1 ) then EXT.CONF_onadd_obeynoteoff =EXT.CONF_onadd_obeynoteoff~1 EXT:save() end 
         if ImGui.Checkbox( ctx, 'Rename track',                                           EXT.CONF_onadd_renametrack == 1 ) then EXT.CONF_onadd_renametrack =EXT.CONF_onadd_renametrack~1 EXT:save() end 
+        if ImGui.Checkbox( ctx, 'Rename instance',                                        EXT.CONF_onadd_renameinst == 1 ) then EXT.CONF_onadd_renameinst =EXT.CONF_onadd_renameinst~1 EXT:save() end 
+        if EXT.CONF_onadd_renameinst == 1 then
+          ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
+          local ret, buf = ImGui.InputText( ctx, 'instance name',                    EXT.CONF_onadd_renameinst_str, ImGui.InputTextFlags_EnterReturnsTrue) 
+          if ret then 
+            EXT.CONF_onadd_renameinst_str =buf 
+            EXT:save() 
+          end
+          ImGui.SameLine(ctx)
+          UI.HelpMarker(
+[[Supported wildcards:
+  #note - note number
+  #layer - layer number
+]])
+        end
+        
         if ImGui.Checkbox( ctx, 'Drop to white keys only',                                EXT.CONF_onadd_whitekeyspriority == 1 ) then EXT.CONF_onadd_whitekeyspriority =EXT.CONF_onadd_whitekeyspriority~1 EXT:save() end
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
         local ret, buf = ImGui.InputText( ctx, 'Custom template file',                    EXT.CONF_onadd_customtemplate, ImGui.InputTextFlags_EnterReturnsTrue) 
@@ -3397,6 +3418,12 @@ end
         if ImGui.Checkbox( ctx, 'Set child color from parent color',                                     EXT.CONF_onadd_takeparentcolor == 1 ) then EXT.CONF_onadd_takeparentcolor =EXT.CONF_onadd_takeparentcolor~1 EXT:save() end 
         if ImGui.Checkbox( ctx, 'Auto-set velocity range option enabled for new devices',                                     EXT.CONF_onadd_autosetrange == 1 ) then EXT.CONF_onadd_autosetrange =EXT.CONF_onadd_autosetrange~1 EXT:save() end 
         --ImGui.Unindent(ctx, UI.settings_indent)
+        
+        
+        
+        
+        
+        
         ImGui.Dummy(ctx, 0,UI.spacingY*10)
         
       ImGui.TreePop(ctx)
@@ -4959,8 +4986,6 @@ end
       DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
     end
     
-    
-        function _1b() end
         
         
   end
@@ -5050,7 +5075,6 @@ end
       val_form = note_layer_t.instrument_samplestoffs_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('samplestoffs',v,note_layer_t,note,layer,true) 
         note_layer_t.instrument_samplestoffs =v 
         if DATA.current_sample_peaks then DATA.current_sample_peaks.offs_start = v end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_samplestoffsID, v )    
@@ -5072,7 +5096,6 @@ end
       val_form = note_layer_t.instrument_sampleendoffs_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('sampleendoffs',v,note_layer_t,note,layer,true) 
         note_layer_t.instrument_sampleendoffs =v 
         if DATA.current_sample_peaks then DATA.current_sample_peaks.offs_end = v end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sampleendoffsID, v )    
@@ -5332,41 +5355,6 @@ end
     end
     
   end
-  -----------------------------------------------------------------------------------------    
-  function UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA(str_id,v,note_layer_t,note,layer,follow)
-    if DATA.VCA_mode == 0 then return end
-    
-    
-    local diff = v - note_layer_t['instrument_'..str_id]
-    for note0 in pairs(DATA.children) do
-      if DATA.children[note0].layers then 
-        for layer0  = 1, #DATA.children[note0].layers do
-        
-          local tweak
-          if DATA.VCA_mode &1==1 then tweak = true end -- tweak everything
-          if tweak~=true and DATA.VCA_mode &2==2 and (note0 == note) then tweak  = true end -- tweak all layers match source note
-          
-          if tweak == true and (note0 == note and layer0 == layer) then tweak = false end -- prevent setting source param
-          if tweak~=true then goto nextlayer end
-          
-
-          note_layer_t0 = DATA.children[note0].layers[layer0]
-          note_layer_t0['instrument_'..str_id] =note_layer_t0['instrument_'..str_id] + diff  
-          if not follow then 
-            TrackFX_SetParamNormalized( note_layer_t0.tr_ptr, note_layer_t0.instrument_pos, note_layer_t0['instrument_'..str_id..'ID'], note_layer_t0['instrument_'..str_id] + diff)  
-           else
-            
-            local out = v--note_layer_t['instrument_'..str_id]
-            if str_id == 'attack' or str_id == 'decay' or str_id == 'release' then out = out / 10 end 
-            
-            TrackFX_SetParamNormalized( note_layer_t0.tr_ptr, note_layer_t0.instrument_pos, note_layer_t0['instrument_'..str_id..'ID'], out)  
-          end
-          
-          ::nextlayer::
-        end
-      end
-    end 
-  end
     ----------------------------------------------------------------------------------------- 
   function UI.draw_tabs_Sampler_tabs_3rdpartycontrols_store(x,y,note_layer_t,key)
     if not (note_layer_t and note_layer_t.instrument_fx_name) then return end
@@ -5574,7 +5562,6 @@ end
     local note_layer_t,note,layer = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end
     
     local out = note_layer_t.instrument_tune + val/160 
-    --UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('tune',out,note_layer_t,note,layer) 
     note_layer_t.instrument_tune =v 
     TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_tuneID, out )    
     DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
@@ -5600,7 +5587,6 @@ end
       val_form = note_layer_t.instrument_vol_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v)  
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('vol',v,note_layer_t,note,layer,true) 
         note_layer_t.instrument_vol =v 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values 
@@ -5608,7 +5594,6 @@ end
       parseinput = function(str_in)
         if not str_in then return end
         local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID)
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('vol',v,note_layer_t,note,layer,true)
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
@@ -5628,7 +5613,6 @@ end
       val_form = note_layer_t.instrument_tune_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('tune',v,note_layer_t,note,layer) 
         note_layer_t.instrument_tune =v 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_tuneID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
@@ -5636,7 +5620,6 @@ end
       parseinput = function(str_in)
         if not str_in then return end
         local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_tuneID) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('tune',v,note_layer_t,note,layer) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_tuneID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
@@ -5686,14 +5669,12 @@ end
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
         note_layer_t.instrument_attack =v /note_layer_t.instrument_attack_max
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('attack',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_attackID, v*note_layer_t.instrument_attack_max )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
       parseinput = function(str_in)
         if not str_in then return end
         local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_attackID) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('attack',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_attackID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
@@ -5714,14 +5695,12 @@ end
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
         note_layer_t.instrument_decay =v /note_layer_t.instrument_decay_max
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('decay',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID, v*note_layer_t.instrument_decay_max )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
       parseinput = function(str_in)
         if not str_in then return end
         local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('decay',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
@@ -5743,14 +5722,12 @@ end
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
         note_layer_t.instrument_sustain =v
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('sustain',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sustainID, v)    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
       parseinput = function(str_in)
         if not str_in then return end
         local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sustainID) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('sustain',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sustainID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
@@ -5771,14 +5748,12 @@ end
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
         note_layer_t.instrument_release =v /note_layer_t.instrument_release_max
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('release',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_releaseID, v*note_layer_t.instrument_release_max )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
       parseinput = function(str_in)
         if not str_in then return end
         local v = VF_BFpluginparam(str_in, note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_releaseID) 
-        UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA('release',v,note_layer_t,note,layer,true) 
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_releaseID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
@@ -5799,17 +5774,19 @@ end
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY) 
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,5)
       
-      local retval, v = ImGui.Checkbox( ctx, 'Auto-set velocity ranges on add layer', DATA.children[note].TYPE_DEVICE_AUTORANGE )
-      if retval then 
-        local tr = DATA.children[note].tr_ptr
-        local out = 0
-        if v == true then out = 1 end
-        DATA:WriteData_Child(tr, {SET_MarkType_TYPE_DEVICE_AUTORANGE = out}) 
-        DATA.upd = true
-      end
+      if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.BeginDisabled(ctx, true) end
+        local retval, v = ImGui.Checkbox( ctx, 'Auto-set velocity ranges on add layer', DATA.children[note].TYPE_DEVICE_AUTORANGE )
+        if retval then 
+          local tr = DATA.children[note].tr_ptr
+          local out = 0
+          if v == true then out = 1 end
+          DATA:WriteData_Child(tr, {SET_MarkType_TYPE_DEVICE_AUTORANGE = out}) 
+          DATA.upd = true
+        end
+        ImGui.SameLine(ctx)
+        if ImGui.Button(ctx, 'Refresh##autosetvelrange', 80) then DATA:Auto_Device_RefreshVelocityRange(note) end
+      if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.EndDisabled(ctx) end
       
-      ImGui.SameLine(ctx)
-      if ImGui.Button(ctx, 'Refresh##autosetvelrange', 80) then DATA:Auto_Device_RefreshVelocityRange(note) end
       
       local name_w = 185
       local slider_w = 60
@@ -5874,7 +5851,7 @@ end
       end
       
       -- device drop
-      ImGui.Button(ctx, 'Drop new layers here', -1)
+      ImGui.Button(ctx, '[Drop new layers here]', -1)
       if ImGui.BeginDragDropTarget( ctx ) then  
         local cntlayers = 0
         if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
@@ -6111,7 +6088,42 @@ end
     end 
     DATA.TrackSelection = {}
   end
+  
+  --[[---------------------------------------------------------------------------------------    
+  function UI.draw_tabs_Sampler_tabs_rs5kcontrols_VCA(str_id,v,note_layer_t,note,layer,follow)
+    if DATA.VCA_mode == 0 then return end
+    
+    
+    local diff = v - note_layer_t['instrument_'..str_id]
+    for note0 in pairs(DATA.children) do
+      if DATA.children[note0].layers then 
+        for layer0  = 1, #DATA.children[note0].layers do
         
+          local tweak
+          if DATA.VCA_mode &1==1 then tweak = true end -- tweak everything
+          if tweak~=true and DATA.VCA_mode &2==2 and (note0 == note) then tweak  = true end -- tweak all layers match source note
+          
+          if tweak == true and (note0 == note and layer0 == layer) then tweak = false end -- prevent setting source param
+          if tweak~=true then goto nextlayer end
+          
+
+          note_layer_t0 = DATA.children[note0].layers[layer0]
+          note_layer_t0['instrument_'..str_id] =note_layer_t0['instrument_'..str_id] + diff  
+          if not follow then 
+            TrackFX_SetParamNormalized( note_layer_t0.tr_ptr, note_layer_t0.instrument_pos, note_layer_t0['instrument_'..str_id..'ID'], note_layer_t0['instrument_'..str_id] + diff)  
+           else
+            
+            local out = v--note_layer_t['instrument_'..str_id]
+            if str_id == 'attack' or str_id == 'decay' or str_id == 'release' then out = out / 10 end 
+            
+            TrackFX_SetParamNormalized( note_layer_t0.tr_ptr, note_layer_t0.instrument_pos, note_layer_t0['instrument_'..str_id..'ID'], out)  
+          end
+          
+          ::nextlayer::
+        end
+      end
+    end 
+  end]]        
        
   _main()
   
