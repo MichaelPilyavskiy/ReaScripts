@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1eb8440e24d7cf1743a701587239adbd544dcfb1" name="MPL Scripts">
+<index version="1" commit="8befa700f6ce77c9340749a277d6895668423a2f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9095,26 +9095,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Editing/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Import media folder content as structured tracks, ordered items.lua" type="script" desc="Import media folder content as structured tracks, ordered items">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Scan folder media and add media items on named tracks obey paths structure\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-07-31T18:01:35Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd63fc94318e50ba7507b893a30e413fa309f566/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks,%20ordered%20items.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
-        <changelog><![CDATA[# VF independent]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks,%20ordered%20items.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Import media folder content as structured tracks.lua" type="script" desc="Import media folder content as structured tracks">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -9133,6 +9113,11 @@
       <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2025-04-27T19:18:00Z">
+        <changelog><![CDATA[# Сomplete rebuild
+# better/faster recursive search function, thanks to amagalma, FeedTheCat]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8befa700f6ce77c9340749a277d6895668423a2f/Tracks%20Editing/mpl_Import%20media%20folder%20content%20as%20structured%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move selected tracks to the end of receives folder.lua" type="script" desc="Move selected tracks to the end of receives folder">
