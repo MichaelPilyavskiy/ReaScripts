@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.25
+-- @version 4.26
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,16 +15,17 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Settings/on sample add: add option to rename new RS5k instance
---    # Device: make auto-set velocity ranges on non-device inactive
+--    + Add actions tab, move here current project related actions
+--    + Actions: Explode MIDI bus take by note
+--    + Settings/UI/Custom names: select item by clicking note
+--    + Settings/Autocolor: add support for autocolor by note
 
 
-rs5kman_vrs = '4.25'
+rs5kman_vrs = '4.26'
 
 
 -- TODO
---[[  
-      
+--[[   
       knob for samples in path
       macro quick link from parameter
       auto switch midi bus record arm if playing with another rack 
@@ -39,7 +40,6 @@ rs5kman_vrs = '4.25'
       transient
       sampler/fx - compression, transient shaper
       sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
-      parse existing take
       better hanfdle global tweaks
 ]]
 
@@ -98,6 +98,7 @@ rs5kman_vrs = '4.25'
           UI_drracklayout = 0,
           UIdatabase_maps_current = 1,
           UI_padcustomnames = '',
+          UI_padautocolors = '',
           --UI_optimizedockerusage = 0,
           
           -- other 
@@ -119,9 +120,11 @@ rs5kman_vrs = '4.25'
           CONF_database_map7 = '',
           CONF_database_map8 = '',
           
-          CONF_lastmacroaction = 0,
           CONF_launchpadsendMIDI = 0,
           CONF_importselitems_removesource = 0,
+          
+          CONF_autocol = 0,
+          
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -158,7 +161,9 @@ rs5kman_vrs = '4.25'
           plugin_mapping = {},
           settings_cur_note_database =0,
           padcustomnames = {},
+          padautocolors = {},
           padcustomnames_selected_id = 1,
+          padautocolors_selected_id = 1,
           }
   
   -------------------------------------------------------------------------------- INIT UI locals
@@ -2297,6 +2302,8 @@ end
   -----------------------------------------------------------------------------  
   function DATA:Sampler_StuffNoteOn(note, vel, is_off) 
    if not note then return end
+   
+   
     if not is_off then 
       StuffMIDIMessage( 0, 0x90, note, vel or EXT.CONF_default_velocity ) 
      else
@@ -2597,6 +2604,16 @@ end
     -- print timestamp
     GetSetMediaTrackInfo_String(  new_tr, 'P_EXT:MPLRS5KMAN_TSADD', os.time(), true) 
     if EXT.CONF_onadd_takeparentcolor == 1 then SetMediaTrackInfo_Value( new_tr, 'I_CUSTOMCOLOR',DATA.parent_track.I_CUSTOMCOLOR ) end
+    
+    -- auto color
+    if EXT.CONF_autocol == 1 and DATA.padautocolors and DATA.padautocolors[note] then 
+      local r,g,b = 
+        (DATA.padautocolors[note]>>24)&0xFF, 
+        (DATA.padautocolors[note]>>16)&0xFF, 
+        (DATA.padautocolors[note]>>8)&0xFF
+      local color = ColorToNative(r,g,b)|0x1000000
+      SetMediaTrackInfo_Value( new_tr, 'I_CUSTOMCOLOR', color )
+    end
     
     -- move in structure
     DATA:DropSample_AddNewTrack_Move(new_tr, deviceparent, note, SET_MarkType_DeviceChild_deviceGUID)
@@ -3157,81 +3174,108 @@ function UI.draw_flow_COMBO(t)
   return  trig_action
 end
 --------------------------------------------------------------------------------  
-  function UI.draw_tabs_settings_current()
-    if ImGui.TreeNode(ctx, 'Current rack settings', ImGui.TreeNodeFlags_None) then
---    ImGui.SeparatorText(ctx, 'Current rack settings') 
-      --ImGui.Indent(ctx, UI.settings_indent)
-      --DATA.parent_track.ext.PARENT_MIDIFLAGS
+function UI.draw_tabs_Actions()
+  function _f_actions() end
+  
+  -- stick current track 
+    local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
+    if DATA.parent_track and DATA.parent_track.trGUID then
+      if ImGui.Checkbox( ctx, 'Stick current rack to this project', stickstate) then 
+        if DATA.parent_track.ext_load == true then 
+          SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID','')
+          DATA.upd = true
+         else
+          SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID',DATA.parent_track.trGUID )
+          DATA.upd = true
+        end
+      end
+    end
+    ImGui.SameLine(ctx)
+    UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
+  
+  
+  -- Clear ALL rack choke setup
+    if ImGui.Selectable( ctx, 'Clear ALL rack choke setup', false, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then  
+      if DATA.MIDIbus and DATA.MIDIbus.CHOKE_flags then 
+        for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
+        Undo_BeginBlock2(DATA.proj )
+        DATA:WriteData_UpdateChoke()
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF ) 
+      end
+    end
+  
+  -- fix GUID
+    local fixavailable = ''
+    local available_extGUID = not (DATA.parent_track and DATA.parent_track.valid == true and DATA.parent_track.ext.PARENT_GUID_INTERNAL)
+    if available_extGUID == true then fixavailable = '[not available] ' end
+    if available_extGUID ~= true then ImGui.BeginDisabled(ctx, true) end
+    if ImGui.Selectable( ctx, fixavailable..'Fix GUID of parent track', EXT.CONF_lastmacroaction==1, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then 
+      GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'GUID', DATA.parent_track.ext.PARENT_GUID_INTERNAL, true )
+      DATA.upd = true
+    end 
+    ImGui.SameLine(ctx) UI.HelpMarker('Use this if rack doesn`t handled by RS5k manager after import template')
+    if available_extGUID ~= true then ImGui.EndDisabled(ctx) end
+    
+  -- explode take
+    if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then
+      DATA:Action_ExplodeTake()
+    end
+end
+  
+--------------------------------------------------------------------------------  
+  function DATA:Action_ExplodeTake()
+    Undo_BeginBlock2(DATA.proj)
+    for i = 1, reaper.CountSelectedMediaItems(DATA.proj) do
+      local item = GetSelectedMediaItem(DATA.proj, i-1)
+      if not item then goto nextitem end
+      local take = GetActiveTake(item)
+      if not (take and reaper.TakeIsMIDI(take)) then goto nextitem end
       
-      local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
-      if DATA.parent_track and DATA.parent_track.trGUID then
-        if ImGui.Checkbox( ctx, 'Stick current rack to this project', stickstate) then 
-          if DATA.parent_track.ext_load == true then 
-            SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID','')
-            DATA.upd = true
-           else
-            SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID',DATA.parent_track.trGUID )
-            DATA.upd = true
+      local D_POSITION = GetMediaItemInfo_Value( item, 'D_POSITION' )
+      local D_LENGTH = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+      SetMediaItemInfo_Value( item, 'B_MUTE', 1 )
+      local D_STARTOFFS = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+      local D_PLAYRATE = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+      
+      t = {}
+      t_pitch = {}
+      local retval, notecnt, ccevtcnt, textsyxevtcnt = MIDI_CountEvts( take )
+      for noteidx = 1, notecnt do
+        local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, noteidx-1 )
+        t[#t+1] = {
+            selected = selected,
+            muted = muted,
+            startppqpos = startppqpos,
+            endppqpos = endppqpos,
+            chan = chan,
+            pitch = pitch,
+            vel = vel,
+          }
+        t_pitch[pitch] = true
+      end 
+      
+      for note in pairs(t_pitch) do
+        if note and DATA.children[note] then
+          local track = DATA.children[note].tr_ptr
+          if track then
+            local new_item = CreateNewMIDIItemInProj( track, D_POSITION, D_POSITION + D_LENGTH )
+            local take = GetActiveTake(new_item)
+            SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS',D_STARTOFFS )
+            SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE',D_PLAYRATE ) 
+            for noteidx = 1, #t do
+              if t[noteidx].pitch == note then
+                reaper.MIDI_InsertNote( take, t[noteidx].selected, t[noteidx].muted, t[noteidx].startppqpos, t[noteidx].endppqpos,t[noteidx].chan, t[noteidx].pitch, t[noteidx].vel, true )
+              end
+            end
+            MIDI_Sort( take )
           end
         end
       end
-      ImGui.SameLine(ctx)
-      UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
       
-      
-      
-      
-      -- macro
-      local fixavailable = ''
-      local available_extGUID = not (DATA.parent_track and DATA.parent_track.valid == true and DATA.parent_track.ext.PARENT_GUID_INTERNAL)
-      if available_extGUID == true then fixavailable = '[not available] ' end
-      ImGui.Text(ctx, 'Macro actions')
-      local t = {
-        [0] = 'Clear ALL rack choke setup',
-        [1] = fixavailable..'Fix GUID of parent track',
-      }
-      local preview_value = t[EXT.CONF_lastmacroaction]
-      if ImGui.BeginCombo( ctx, '##macroact', preview_value, reaper.ImGui_ComboFlags_None() ) then
-        if ImGui.Selectable( ctx, t[0], EXT.CONF_lastmacroaction==0, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then EXT.CONF_lastmacroaction=0 EXT:save() end
-        
-        if available_extGUID ~= true then ImGui.BeginDisabled(ctx, true) end
-        if ImGui.Selectable( ctx, t[1], EXT.CONF_lastmacroaction==1, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then EXT.CONF_lastmacroaction=1 EXT:save() end ImGui.SameLine(ctx) UI.HelpMarker('Use this if rack doesn`t handled by RS5k manager after import template')
-        if available_extGUID ~= true then ImGui.EndDisabled(ctx) end
-        
-        ImGui.EndCombo( ctx)
-      end
-      ImGui.SameLine(ctx)
-      if ImGui.Button(ctx, 'RUN') then 
-        
-        --Clear ALL rack choke setup
-        if EXT.CONF_lastmacroaction == 0 and DATA.MIDIbus and DATA.MIDIbus.CHOKE_flags then 
-          for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
-          Undo_BeginBlock2(DATA.proj )
-          DATA:WriteData_UpdateChoke()
-          Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF ) 
-        end
-        
-        --Fix GUID of parent track
-        if EXT.CONF_lastmacroaction == 1 then 
-          GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'GUID', DATA.parent_track.ext.PARENT_GUID_INTERNAL, true )
-          DATA.upd = true
-        end
-        
-        
-        
-      end
-      
-      
-      
-      --ImGui.Unindent(ctx, UI.settings_indent)
-      ImGui.Dummy(ctx, 0,UI.spacingY*6)
-      
-      ImGui.TreePop(ctx)
-    end    
-    
-      
+      ::nextitem::
+    end
+    Undo_EndBlock2(DATA.proj, 'Explode MIDI bus take by note', 0xFFFFFFFF)
   end
-  
 --------------------------------------------------------------------------------  
   function DATA:Database_Load(sel_pad_only)
     if not EXT.UIdatabase_maps_current then return end
@@ -3539,12 +3583,13 @@ end
         if retval then 
           buf = buf:gsub('[^%a%d%s%-]+','')
           DATA.padcustomnames[DATA.padcustomnames_selected_id] = buf
+        end
+        if ImGui_IsItemDeactivatedAfterEdit( ctx ) then
           local outstr = ''
           for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padcustomnames[i] or '')..'" ' end
           EXT.UI_padcustomnames = outstr 
-          EXT:save()
+          EXT:save() 
         end
-        
         
         if ImGui.Button(ctx, 'General MIDI bank') then 
           EXT.UI_padcustomnames = [[
@@ -3612,12 +3657,12 @@ end
         81="Open Triangle"
 ]]          
           EXT:save()
-          DATA:CollectDataInit_LoadCustomPadNames()
+          DATA:CollectDataInit_LoadCustomPadStuff()
         end        
         if ImGui.Button(ctx, 'Clear custom pad names') then 
           EXT.UI_padcustomnames = ''
           EXT:save()
-          DATA:CollectDataInit_LoadCustomPadNames()
+          DATA:CollectDataInit_LoadCustomPadStuff()
         end
         ImGui.Unindent(ctx, UI.settings_indent)
         
@@ -3629,21 +3674,89 @@ end
     end  
   end
     --------------------------------------------------------------------------------
-  function UI.draw_tabs_settings_various()
-    if ImGui.TreeNode(ctx, 'Various', ImGui.TreeNodeFlags_None) then  
+  function UI.draw_tabs_settings_AutoColor()
+    if ImGui.TreeNode(ctx, 'Auto color', ImGui.TreeNodeFlags_None) then  
+      function __f_autocolor_settings() end
       
+      local t = {
+        [0]='Off',
+        [1]='By note',
+        --[2]='By name',
+        }
       
-      --ImGui.SeparatorText(ctx, 'Various') 
-        ImGui.Indent(ctx, UI.settings_indent)
-        --[[if ImGui.Checkbox( ctx, 'Optimize for docker usage',            EXT.UI_optimizedockerusage == 1 ) then EXT.UI_optimizedockerusage =EXT.UI_optimizedockerusage~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('Moves a title to a heade above tab, otherwise it doesn`t docked if RS5k manager track is not selected/pinned')
-        ]]
-        --ImGui.Unindent(ctx, UI.settings_indent)
+      local curname = t[EXT.CONF_autocol]
+      if ImGui.BeginCombo( ctx, '##CONF_autocol_selector',curname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
+        for i in pairs(t) do
+          local name = t[i]
+          if ImGui.Selectable( ctx, name..'##CONF_autocol_selector'..i, i == EXT.CONF_autocol, ImGui.SelectableFlags_None) then EXT.CONF_autocol = i EXT:save() end
+        end
+        ImGui.EndCombo( ctx)
+      end
+      
+      -- by note
+      if EXT.CONF_autocol == 1 then
         
-        ImGui.TreePop(ctx)
-      end  
-    end
+        -- reset all
+        ImGui.SameLine(ctx)
+        if ImGui.Selectable( ctx, 'Reset ALL##CONF_autocol_selectorresetall', ImGui.SelectableFlags_None) then  
+          DATA.padautocolors = {}
+          EXT.UI_padautocolors = '' 
+          EXT:save() 
+          DATA.upd = true
+        end
+        
+        
+        -- custom pad auto colors selector
+        local curname = DATA.padautocolors_selected_id
+        if  DATA.children and DATA.children[DATA.padautocolors_selected_id] and DATA.children[DATA.padautocolors_selected_id].P_NAME then curname = DATA.padautocolors_selected_id..' '..DATA.children[DATA.padautocolors_selected_id].P_NAME end
+        ImGui.Text(ctx, 'Custom pad colors')
+        ImGui.Indent(ctx, UI.settings_indent)
+        reaper.ImGui_SetNextItemWidth( ctx, 200 )
+        if ImGui.BeginCombo( ctx, '##padautocolors',curname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
+          for i = 0,127 do
+            local name = i
+            if  DATA.children and DATA.children[i] and DATA.children[i].P_NAME then name = i..' '..DATA.children[i].P_NAME end
+            if DATA.padautocolors[i] then name = name..' - '..DATA.padautocolors[i] end
+            if ImGui.Selectable( ctx, name..'##coloreditpad_autoname'..i, i == DATA.padautocolors_selected_id, ImGui.SelectableFlags_None) then DATA.padautocolors_selected_id = i end
+          end
+          ImGui.EndCombo( ctx)
+        end
+        
+        ImGui.SameLine(ctx)
+        
+        -- color input
+        local colext = DATA.padautocolors[DATA.padautocolors_selected_id]
+        if colext then colext = tonumber(colext) end
+        local col_rgba  = colext or 0
+        if col_rgba then 
+          local retval, col_rgba = ImGui.ColorEdit4( ctx, '##coloreditpad_auto', col_rgba, ImGui.ColorEditFlags_None|ImGui.ColorEditFlags_NoInputs)--|ImGui.ColorEditFlags_NoAlpha )
+          if retval then 
+            DATA.padautocolors[DATA.padautocolors_selected_id]  = col_rgba
+            DATA.upd = true
+          end
+          if ImGui_IsItemDeactivatedAfterEdit( ctx ) then
+            local outstr = ''
+            for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padautocolors[i] or '')..'" ' end
+            EXT.UI_padautocolors = outstr 
+            EXT:save() 
+          end
+        end
+        ImGui.SameLine(ctx)
+        
+        -- reset color
+        if ImGui.Selectable( ctx, 'Reset##CONF_autocol_selectorreset', ImGui.SelectableFlags_None) then 
+          DATA.padautocolors[DATA.padautocolors_selected_id]  = 0
+          local outstr = ''
+          for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padautocolors[i] or '')..'" ' end
+          EXT.UI_padautocolors = outstr 
+          EXT:save() 
+          DATA.upd = true
+        end
+        
+      end
+      ImGui.TreePop(ctx)
+    end  
+  end
   --------------------------------------------------------------------------------    
     function UI.draw_tabs_settings()
     
@@ -3652,13 +3765,12 @@ end
     
     UI.tab_last = UI.tab_current 
     if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
-      UI.draw_tabs_settings_current()
       UI.draw_tabs_settings_database()
       UI.draw_tabs_settings_onsampleadd()
       UI.draw_tabs_settings_tcpmcp()
       UI.draw_tabs_settings_MIDI()
       UI.draw_tabs_settings_UI()
-      --UI.draw_tabs_settings_various()
+      UI.draw_tabs_settings_AutoColor()
       
       ImGui.EndChild( ctx)
     end
@@ -3824,6 +3936,12 @@ end
         color = ImGui.ColorConvertNative(note_t.I_CUSTOMCOLOR) 
         color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
       end
+      
+      --[[if EXT.CONF_autocol == 1 and DATA.children[note] and DATA.padautocolors and DATA.padautocolors[note] then 
+        color = (DATA.padautocolors[note]>>8)  | 0x1000000
+        color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
+      end]]
+            
       local h_name = h
       if h > min_h then h_name = UI.calc_rack_padnameH end
       if color then 
@@ -3901,7 +4019,9 @@ end
         
       -- play
         ImGui.InvisibleButton(ctx,'P##rackpad_playinv'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH )
-        if ImGui.IsItemActivated( ctx ) then DATA:Sampler_StuffNoteOn(note) end
+        if ImGui.IsItemActivated( ctx ) then 
+          DATA:Sampler_StuffNoteOn(note) 
+        end
         if ImGui.IsItemDeactivated( ctx ) and EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
         
         local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
@@ -3966,6 +4086,8 @@ end
     if ImGui.IsItemClicked(ctx,ImGui.MouseButton_Left) then -- click select track
       if EXT.UI_clickonpadselecttrack == 1 and note_t then SetOnlyTrackSelected( note_t.tr_ptr )  end
       DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note 
+      DATA.padcustomnames_selected_id = note
+      DATA.padautocolors_selected_id = note
       DATA.settings_cur_note_database=note
       DATA:WriteData_Parent() 
       DATA.upd = true
@@ -4142,6 +4264,7 @@ end
         if ImGui.BeginTabItem( ctx, 'Sampler', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Sampler' UI.draw_tabs_Sampler()  ImGui.EndTabItem( ctx)  end 
         if ImGui.BeginTabItem( ctx, 'Macro', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Macro' UI.draw_tabs_macro() ImGui.EndTabItem( ctx)  end  
         if ImGui.BeginTabItem( ctx, 'Settings', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Settings' UI.draw_tabs_settings() ImGui.EndTabItem( ctx)  end 
+        if ImGui.BeginTabItem( ctx, 'Actions', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Actions' UI.draw_tabs_Actions() ImGui.EndTabItem( ctx)  end 
         if ImGui.BeginTabItem( ctx, 'Info', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Info' UI.draw_tabs_info() ImGui.EndTabItem( ctx)  end 
         --if EXT.UI_optimizedockerusage == 1 then
         if UI.tab_context ~= 'Info' then
@@ -5938,12 +6061,14 @@ end
     -- after EXT:load
     DATA:CollectDataInit_PluginParametersMapping_Get() 
     DATA:CollectDataInit_ReadDBmaps()
-    DATA:CollectDataInit_LoadCustomPadNames()
+    DATA:CollectDataInit_LoadCustomPadStuff()
     
   end   
   ------------------------------------------------------------------------------------------ 
-  function DATA:CollectDataInit_LoadCustomPadNames()
+  function DATA:CollectDataInit_LoadCustomPadStuff() 
     DATA.padcustomnames = {}
+    DATA.padautocolors = {}
+    
     local str = EXT.UI_padcustomnames
     if str == '' then return end
     for pair in str:gmatch('[%d]+%=".-"') do
@@ -5953,7 +6078,18 @@ end
         if id then DATA.padcustomnames[id] = val end
       end
     end
-  
+    
+    local str = EXT.UI_padautocolors
+    if str == '' then return end
+    for pair in str:gmatch('[%d]+%=".-"') do
+      local id, val = pair:match('([%d]+)="(.-)%"')
+      if id and val then 
+        id = tonumber(id)
+        if id then DATA.padautocolors[id] = tonumber(val) end
+      end
+    end
+    
+    
   end
   ------------------------------------------------------------------------------------------   
   function DATA:CollectDataInit_ReadDBmaps()
