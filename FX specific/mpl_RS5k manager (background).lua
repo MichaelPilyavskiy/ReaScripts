@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.26
+-- @version 4.27
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,13 +15,17 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Add actions tab, move here current project related actions
---    + Actions: Explode MIDI bus take by note
---    + Settings/UI/Custom names: select item by clicking note
---    + Settings/Autocolor: add support for autocolor by note
+--    + Autoslice: add support for autoslice on loop drop
+--    + Autoslice: use complex domain onset envelope as detection source
+--    + Autoslice: use onset detection forward RMS/peak check in predefined area
+--    + Autoslice: limit slice to available note slots depending on pad number
+--    + Autoslice: add 'slice N' to track name
+--    + Autoslice: allow to define minimum and maximum of possible loop to slice
+--    + Autoslice: filename filter (this is set by default to avoid slicing on long low kicks)
+--    + Autoslice: create take on MIDI bus, disabled by default
 
 
-rs5kman_vrs = '4.26'
+rs5kman_vrs = '4.27'
 
 
 -- TODO
@@ -31,16 +35,16 @@ rs5kman_vrs = '4.26'
       auto switch midi bus record arm if playing with another rack 
       sampler / sampl / import // or hot record from master bus 
       sequencer 
-      auto color tracks by note
       wildcards - device name
       wildcards - children - #notenuber #noteformat #samplename
       wildcards - samples path 
       launchpad layout 
       compressor
-      transient
       sampler/fx - compression, transient shaper
       sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
-      better hanfdle global tweaks
+      better handle global tweaks
+      autocolor by content  
+      
 ]]
 
     
@@ -63,7 +67,8 @@ rs5kman_vrs = '4.26'
           viewport_posW = 800,
           viewport_posH = 300, 
           viewport_dockID = 0,
-          -- rs5k 
+          
+          -- rs5k on add
           CONF_onadd_float = 0,
           CONF_onadd_obeynoteoff = 1,
           CONF_onadd_customtemplate = '',
@@ -98,7 +103,8 @@ rs5kman_vrs = '4.26'
           UI_drracklayout = 0,
           UIdatabase_maps_current = 1,
           UI_padcustomnames = '',
-          UI_padautocolors = '',
+          CONF_showplayingmeters = 1,
+          CONF_showpadpeaks = 1,
           --UI_optimizedockerusage = 0,
           
           -- other 
@@ -106,11 +112,11 @@ rs5kman_vrs = '4.26'
           CONF_trackorderflags = 0,  -- ==0 sort by date ascending, ==2 sort by date descending, ==3 sort by note ascending, ==4 sort by note descending
           CONF_autoreposition = 0, --0 off
           
-          CONF_plugin_mapping_b64 = '',
-          CONF_ignoreDBload = 0, 
-          CONF_showplayingmeters = 1,
-          CONF_showpadpeaks = 1,
+          -- 3rd party
+          CONF_plugin_mapping_b64 = '', 
           
+          -- database 
+          CONF_ignoreDBload = 0, 
           CONF_database_map1 = '',
           CONF_database_map2 = '',
           CONF_database_map3 = '',
@@ -120,11 +126,24 @@ rs5kman_vrs = '4.26'
           CONF_database_map7 = '',
           CONF_database_map8 = '',
           
+          -- hardware
           CONF_launchpadsendMIDI = 0,
+          
+          -- actions
           CONF_importselitems_removesource = 0,
           
-          CONF_autocol = 0,
+          -- auto color
+          CONF_autocol = 0, -- 1 sort by note 
+          UI_padautocolors = '',
           
+          -- loop check
+          CONF_loopcheck = 1, 
+          CONF_loopcheck_minlen = 2,
+          CONF_loopcheck_maxlen = 8,
+          CONF_loopcheck_filter = 'bd,bass,kick',
+          --CONF_loopcheck_smoothend_use = 1,
+          --CONF_loopcheck_smoothend = 0.005,
+          CONF_loopcheck_createMIDI = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -164,6 +183,9 @@ rs5kman_vrs = '4.26'
           padautocolors = {},
           padcustomnames_selected_id = 1,
           padautocolors_selected_id = 1,
+          
+          loopcheck_trans_area_frame = 3, 
+          loopcheck_testdraw = 0, 
           }
   
   -------------------------------------------------------------------------------- INIT UI locals
@@ -217,6 +239,37 @@ rs5kman_vrs = '4.26'
     UI.colRGBA_ADSRrectHov = 0x00FFFFFF
     
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_SmoothT(t, smooth)
+    local t0 = CopyTable(t)
+    for i = 2, #t do t[i]= t0[i] * (t[i] - (t[i] - t[i-1])*smooth )  end
+  end 
+  ---------------------------------------------------
+  function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_NormalizeT(t, threshold)
+    local m = 0 
+    local val 
+    for i in pairs(t) do m = math.max(math.abs(t[i]),m) end
+    for i in pairs(t) do 
+      val = t[i] / m  
+      if threshold and val < threshold then val = 0 end
+      t[i] = val
+    end
+  end 
   ---------------------------------------------------------------------------------------------------------------------
   function VF_GetParentFolder(dir) return dir:match('(.*)[%\\/]') end
   ---------------------------------------------------
@@ -283,24 +336,7 @@ rs5kman_vrs = '4.26'
   end 
     -----------------------------------------------------------------------------  
   function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end  
-  ---------------------------------------------------------------------------------------------------------------------
-  function VF_NormalizeT(t, key) 
-    local m = 0 
-    for i in pairs(t) do 
-      if not key then 
-        m = math.max(math.abs(t[i]),m) 
-       else
-        m = math.max(math.abs(t[i][key]),m) 
-      end
-    end
-    for i in pairs(t) do 
-      if not key then
-        t[i] = t[i] / m 
-       else 
-        t[i][key] = t[i][key] / m 
-      end
-    end
-  end 
+
   ---------------------------------------------------------------------
   function VF_GetLTP()
     local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX() 
@@ -2862,8 +2898,23 @@ end
       TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
       TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
       TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
-      TrackFX_SetParamNormalized( track, instrument_pos, 9, 0 ) -- attack
       TrackFX_SetParamNormalized( track, instrument_pos, 11, EXT.CONF_onadd_obeynoteoff) -- obey note offs
+      
+      -- ADSR
+      TrackFX_SetParamNormalized( track, instrument_pos, 9, 0 ) -- attack 
+      if drop_data.custom_release_sec then
+        local custom_release =math.min(drop_data.custom_release_sec/2,1)
+        TrackFX_SetParamNormalized( track, instrument_pos, 10, custom_release ) -- release
+      end
+      if drop_data.custom_decay_sec then
+        local custom_decay_sec =math.min(drop_data.custom_decay_sec/15,1)
+        TrackFX_SetParamNormalized( track, instrument_pos, 24, custom_decay_sec ) -- release
+      end 
+      if drop_data.custom_sustain then
+        TrackFX_SetParamNormalized( track, instrument_pos, 25, drop_data.custom_sustain )
+      end
+      
+      
       local temp_t = {
         tr_ptr = track,
         instrument_pos = instrument_pos
@@ -2893,6 +2944,9 @@ end
       if EXT.CONF_onadd_renametrack==1 then 
         local filename_sh = VF_GetShortSmplName(filename)
         if filename_sh:match('(.*)%.[%a]+') then filename_sh = filename_sh:match('(.*)%.[%a]+') end -- remove extension
+        if drop_data.tr_name_add then 
+          filename_sh = filename_sh .. ' '..drop_data.tr_name_add
+        end
         GetSetMediaTrackInfo_String( track, 'P_NAME', filename_sh, true )
       end
     
@@ -3475,7 +3529,7 @@ end
   end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_tcpmcp()
-    if ImGui.TreeNode(ctx, 'TCP / MCP', ImGui.TreeNodeFlags_None) then     
+    if ImGui.TreeNode(ctx, 'TCP / MCP auto collapsing', ImGui.TreeNodeFlags_None) then     
       
       
       --ImGui.SeparatorText(ctx, 'TCP / MCP')  
@@ -3675,8 +3729,7 @@ end
   end
     --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_AutoColor()
-    if ImGui.TreeNode(ctx, 'Auto color', ImGui.TreeNodeFlags_None) then  
-      function __f_autocolor_settings() end
+    if ImGui.TreeNode(ctx, 'Auto color child tracks', ImGui.TreeNodeFlags_None) then  
       
       local t = {
         [0]='Off',
@@ -3716,7 +3769,7 @@ end
           for i = 0,127 do
             local name = i
             if  DATA.children and DATA.children[i] and DATA.children[i].P_NAME then name = i..' '..DATA.children[i].P_NAME end
-            if DATA.padautocolors[i] then name = name..' - '..DATA.padautocolors[i] end
+            --if DATA.padautocolors[i] then name = name..' - '..DATA.padautocolors[i] end
             if ImGui.Selectable( ctx, name..'##coloreditpad_autoname'..i, i == DATA.padautocolors_selected_id, ImGui.SelectableFlags_None) then DATA.padautocolors_selected_id = i end
           end
           ImGui.EndCombo( ctx)
@@ -3757,6 +3810,45 @@ end
       ImGui.TreePop(ctx)
     end  
   end
+    --------------------------------------------------------------------------------
+  function UI.draw_tabs_settings_Autoslice()
+    function __f_autosl_set() end
+    if ImGui.TreeNode(ctx, 'Auto slice loop on pad drop', ImGui.TreeNodeFlags_None) then  
+      if ImGui.Checkbox( ctx, 'Use Autoslice',                             EXT.CONF_loopcheck == 1 ) then EXT.CONF_loopcheck =EXT.CONF_loopcheck~1 EXT:save() end
+      local retval, v, buf
+      if EXT.CONF_loopcheck&1==0 then goto skipset end
+      
+      -- min
+       retval, v = ImGui.SliderDouble( ctx, 'Minimum loop length##CONF_loopcheck_minlen', EXT.CONF_loopcheck_minlen, 0.5, EXT.CONF_loopcheck_maxlen, '%.4fsec', ImGui.SliderFlags_None )
+      if retval then EXT.CONF_loopcheck_minlen = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_minlen = 2 EXT:save() end
+      -- min
+       retval, v = ImGui.SliderDouble( ctx, 'Minimum loop length##CONF_loopcheck_maxlen', EXT.CONF_loopcheck_maxlen, EXT.CONF_loopcheck_minlen, 16, '%.4fsec', ImGui.SliderFlags_None )
+      if retval then EXT.CONF_loopcheck_maxlen = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_maxlen = 8 EXT:save() end      
+      
+      -- filt 
+      retval, buf = reaper.ImGui_InputText( ctx, 'Filter', EXT.CONF_loopcheck_filter, reaper.ImGui_InputTextFlags_None() )
+      if retval then EXT.CONF_loopcheck_filter = buf end
+      if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      
+      --[[ smooth end
+      if ImGui.Checkbox( ctx, 'Use smooth end',                             EXT.CONF_loopcheck_smoothend_use == 1 ) then EXT.CONF_loopcheck_smoothend_use =EXT.CONF_loopcheck_smoothend_use~1 EXT:save() end
+      if EXT.CONF_loopcheck_smoothend_use == 1 then
+        retval, v = ImGui.SliderDouble( ctx, 'Smooth end##CONF_loopcheck_smoothend', EXT.CONF_loopcheck_smoothend, 0, 0.1, '%.4fsec', ImGui.SliderFlags_None )
+        if retval then EXT.CONF_loopcheck_smoothend = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+        if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_smoothend = 0.01 EXT:save() end  
+      end]]
+      
+      -- various
+      if ImGui.Checkbox( ctx, 'Create MIDI take on MIDI bus',                             EXT.CONF_loopcheck_createMIDI == 1 ) then EXT.CONF_loopcheck_createMIDI =EXT.CONF_loopcheck_createMIDI~1 EXT:save() end
+      
+      
+      
+      ::skipset::
+      ImGui.TreePop(ctx)
+    end  
+  end
   --------------------------------------------------------------------------------    
     function UI.draw_tabs_settings()
     
@@ -3771,11 +3863,13 @@ end
       UI.draw_tabs_settings_MIDI()
       UI.draw_tabs_settings_UI()
       UI.draw_tabs_settings_AutoColor()
+      UI.draw_tabs_settings_Autoslice()
       
       ImGui.EndChild( ctx)
     end
     
   end
+  
   --------------------------------------------------------------------------------  
   function UI.draw_Rack()  
     UI.draw_Rack_PadOverview() 
@@ -4847,6 +4941,13 @@ end
     ImGui.SameLine(ctx)
     UI.draw_tabs()
     
+    
+    if DATA.loopcheck_testdraw == 1 then
+      reaper.ImGui_SetCursorPos(ctx, 1000,50)
+      if DATA.temp_CDOE_arr then reaper.ImGui_PlotHistogram(ctx, 'arrtemp', DATA.temp_CDOE_arr, 0, '', 0, 1, 400, 100) end
+      reaper.ImGui_SetCursorPos(ctx, 1000,150)
+      if DATA.temp_CDOE_arr2 then reaper.ImGui_PlotHistogram(ctx, 'arrtemp', DATA.temp_CDOE_arr2, 0, '', 0, 1, 400, 100) end
+    end
   end
   --------------------------------------------------------------------------------
   function UI.draw_tabs_Sampler()
@@ -5133,7 +5234,7 @@ end
       peakst = 1+math.floor(note_layer_t.layers[1].instrument_samplestoffs * size_new)
       peakend = math.floor(note_layer_t.layers[1].instrument_sampleendoffs * size_new)
     end
-    for i = peakst, peakend do
+    for i = math.max(1,peakst), math.min(size_new,peakend )do
       local xpos = math.floor(plotx_abs + w * ((i-peakst)/(peakend-peakst)) )
       local ypos =  math.floor(ploty_abs + h/2 * (1- math.abs(arr2[i])))
       local ypos2 =  math.floor(ploty_abs + h/2 *(1+ math.abs(arr2[i])))
@@ -6008,19 +6109,267 @@ end
     Undo_EndBlock2( DATA.proj , 'RS5k manager - drop samples to pads', 0xFFFFFFFF ) 
 
   end
+  --------------------------------------------------------------------  
+  function DATA:Auto_LoopSlice_CDOE(item) 
+  
+    local FFTsz = 512
+    local window_overlap = 2
+    local ED_sum = {positions = {}, values = {}, onsets = {}}
+     
+    -- init pointers
+    local item_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+    local take = GetActiveTake(item)
+    if not take or TakeIsMIDI(take ) then return end 
+    local pcm_src  =  GetMediaItemTake_Source( take )
+    local SR = reaper.GetMediaSourceSampleRate( pcm_src )  
+    local window_spls = FFTsz*2
+    local window_sec = window_spls / SR
+    local samplebuffer = reaper.new_array(window_spls) 
+    local accessor = CreateTakeAudioAccessor( take )
+    
+    -- grab [FFT magnitude & phase] per frame -> bin
+    local i = 0
+    local FFTt = {}
+    for pos_seek = 0, item_len, window_sec/window_overlap do
+      GetAudioAccessorSamples( accessor, SR, 1, pos_seek, window_spls, samplebuffer ) 
+      
+      local rms = 0
+      for i = 1, window_spls do rms = rms + math.abs(samplebuffer[i]) end rms = rms / window_spls
+      
+      --[[ smooth edges
+      spl_area_smooth = 10
+      for i = 1, spl_area_smooth do samplebuffer[i] = samplebuffer[i]* i/spl_area_smooth end
+      for i = window_spls - spl_area_smooth, window_spls do samplebuffer[i] = samplebuffer[i]* (1-(i-window_spls+ spl_area_smooth)/spl_area_smooth) end]]
+      
+      samplebuffer.fft_real(FFTsz, true, 1 ) 
+      i = i + 1
+      ED_sum.positions[i] = pos_seek--math.max(pos_seek +  window_sec/window_overlap)
+      FFTt[i] = {rms=rms} 
+      local bin2 = -1
+      for val = 1, FFTsz-2, 2 do 
+        local Re = samplebuffer[val]
+        local Im = samplebuffer[val + 1]
+        local magnitude = math.sqrt(Re^2 + Im^2)
+        local phase = math.atan(Im, Re)
+        local bin = 1 + (val - 1)/2
+        FFTt[i][bin] = {magnitude=magnitude,phase=phase}
+      end
+    end
+    samplebuffer.clear()
+    reaper.DestroyAudioAccessor( accessor )
+    
+    -- calculate CDOE difference
+    local sz = #FFTt[1]
+    test = sz
+    local hp = 2 -- DC offset
+    local lp = sz-math.floor(sz*0.3) -- slightly low pass
+    ED_sum.values[1] = 0
+    ED_sum.values[2] = 0
+    for frame = 3, #FFTt do
+      local rms = FFTt[frame].rms
+      local t = FFTt[frame]
+      local t_prev = FFTt[frame-1]
+      local t_prev2 = FFTt[frame-2] 
+      local sum = 0
+      local Euclidean_distance, magnitude_targ, Im1, Im2, Re1, Re2
+      for bin = hp, lp do
+        magnitude_targ = t_prev[bin].magnitude
+        phase_targ = t_prev[bin].phase + (t_prev[bin].phase - t_prev2[bin].phase) 
+        Re2 = magnitude_targ * math.cos(phase_targ)
+        Im2 = magnitude_targ * math.sin(phase_targ)
+        Re1 = t[bin].magnitude * math.cos(t[bin].phase)
+        Im1 = t[bin].magnitude * math.sin(t[bin].phase) 
+        Euclidean_distance = math.sqrt((Re2 - Re1)^2 + (Im2 - Im1)^2)
+        sum = sum + Euclidean_distance --*(1-bin/sz) -- weight to highs
+      end 
+      ED_sum.values[frame] = sum--^0.9 --* rms
+    end 
+    
+    local szED = #ED_sum.values
+    ED_sum.values[szED] =0
+    VF_NormalizeT(ED_sum.values, 0.001)
+    --VF_Weight()
+    --VF_NormalizeT(ED_sum.values)
+    ED_sum.values[1] = 1
+    ED_sum.values[2] = 1
+    --for i = 2, szED-1 do if (ED_sum.values[i-1] +  ED_sum.values[i+1]) / ED_sum.values[i] < 1 then ED_sum.values[i] = (ED_sum.values[i-1] +  ED_sum.values[i+1])/2 end end
+
+
+    -- get onsets
+    local minval = 0.01
+    local minareasum = DATA.loopcheck_trans_area_frame * minval
+    local sz = #ED_sum.values 
+    local val = 0
+    for i = 1, sz-DATA.loopcheck_trans_area_frame do
+      val = 0 
+      if i==1 then  val = 1  end
+      
+      local curval = ED_sum.values[i]
+      local areasum = 0
+      local peak = 0
+      for i2 = i, i+DATA.loopcheck_trans_area_frame do
+        areasum = areasum + ED_sum.values[i2]
+        peak = math.max(peak, ED_sum.values[i2])
+      end
+      areasum = areasum / DATA.loopcheck_trans_area_frame
+      if --curval > minval  and 
+        areasum > minareasum 
+        and curval / areasum < 0.3
+        and areasum / peak  < 0.9
+        and (not lastid or (lastid and i-lastid> DATA.loopcheck_trans_area_frame)) 
+        
+        then 
+        val = 1 
+        lastid = i 
+      end
+      ED_sum.onsets[i] = val
+    end
+    
+    return ED_sum
+  end  
+ 
+    ---------------------------------------------------------------------  
+  function DATA:Auto_LoopSlice(note, count)   -- test audio framgment if it contain slices
+    if EXT.CONF_loopcheck&1==0 then return end
+    function __f_loopcheck() end
+    
+    local loop_t = {}
+    
+    local CDOE
+    local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, 0 )
+    
+    -- check by name
+    local filter = EXT.CONF_loopcheck_filter:lower():gsub('%s+','')
+    local words = {}
+    for word in filter:gmatch('[^,]+') do words[word] = true end
+    local test_filename = filename:lower():gsub('[%s%p]+','')
+    for word in pairs(words) do if test_filename:match(word) then return end end
+    
+    -- build PCM
+    local PCM_Source = PCM_Source_CreateFromFile( filename )
+    local srclen, lengthIsQN = GetMediaSourceLength( PCM_Source )
+    if lengthIsQN ==true or (srclen < EXT.CONF_loopcheck_minlen or srclen > EXT.CONF_loopcheck_maxlen) then 
+      --PCM_Source_Destroy( PCM_Source )
+      return
+    end
+    
+    -- add temp stuff for audio read
+    local tr_cnt = CountTracks(DATA.proj)
+    InsertTrackInProject( DATA.proj, tr_cnt, 0 )
+    local temp_track  = GetTrack(DATA.proj, tr_cnt) 
+    local temp_item = AddMediaItemToTrack( temp_track )
+    local temp_take = AddTakeToMediaItem( temp_item )
+    SetMediaItemTake_Source( temp_take, PCM_Source )
+    SetMediaItemInfo_Value( temp_item, 'D_POSITION', 0 )
+    SetMediaItemInfo_Value( temp_item, 'D_LENGTH',srclen ) 
+    CDOE = DATA:Auto_LoopSlice_CDOE(temp_item)
+    --if DATA.loopcheck_testdraw == 1 then
+      DATA.temp_CDOE_arr = reaper.new_array(CDOE.values)
+      DATA.temp_CDOE_arr2 = reaper.new_array(CDOE.onsets)
+    --end
+    DeleteTrack( temp_track )
+    
+    -- form start/end offset
+    if not (CDOE and CDOE.positions and CDOE.onsets) then return end
+    local sz = #CDOE.onsets
+    local frame_st
+    for i = 1, sz do
+      if CDOE.onsets[i] == 1 or i==sz then 
+        if not frame_st then 
+          frame_st = i 
+         else
+          local startframe = frame_st + DATA.loopcheck_trans_area_frame
+          if frame_st == 1 then startframe = 1 end
+          local endframe = math.min(sz,i-1 + DATA.loopcheck_trans_area_frame+1)
+          
+          local pos_sec_st = CDOE.positions[startframe]
+          local pos_sec_end = CDOE.positions[endframe]
+          
+          local SOFFS = pos_sec_st / srclen
+          local EOFFS = pos_sec_end / srclen
+          loop_t[#loop_t+1] = {
+            SOFFS = SOFFS,
+            EOFFS = EOFFS,
+          }
+          frame_st = i
+        end
+      end
+    end
+    
+    if #loop_t<2 then return end
+    
+    --  share note actually
+    Undo_BeginBlock2(DATA.proj )
+    for i = 1, #loop_t do 
+      local outnote = note + i-1 
+      if outnote > 127 then break end
+      
+      local custom_release_sec, custom_decay_sec, custom_sustain
+      --[[if EXT.CONF_loopcheck_smoothend_use == 1 then
+        local slicelen = (loop_t[i].EOFFS - loop_t[i].SOFFS) * srclen
+        custom_release_sec = EXT.CONF_loopcheck_smoothend
+        custom_decay_sec =  slicelen - EXT.CONF_loopcheck_smoothend
+        custom_sustain = 0
+      end]]
+      
+      
+      DATA:DropSample(
+          filename, 
+          outnote, 
+          {
+            layer=1,
+            SOFFS=loop_t[i].SOFFS,
+            EOFFS=loop_t[i].EOFFS,
+            tr_name_add = '- slice '..i,
+            custom_release_sec = custom_release_sec,
+            custom_decay_sec = custom_decay_sec,
+            custom_sustain = custom_sustain,
+          }
+        )
+    end
+    Undo_EndBlock2( DATA.proj , 'RS5k manager - drop and slice loop to pads', 0xFFFFFFFF ) 
+    
+    if EXT.CONF_loopcheck_createMIDI == 1 and DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid == true then
+      local new_item = CreateNewMIDIItemInProj( DATA.MIDIbus.tr_ptr, GetCursorPosition(), GetCursorPosition() + srclen )
+      local take = GetActiveTake(new_item)
+      for i = 1, #loop_t do 
+        local outnote = note + i-1 
+        if outnote > 127 then break end
+        local pos_st = loop_t[i].SOFFS * srclen
+        local pos_end = loop_t[i].EOFFS * srclen
+        local startppqpos = MIDI_GetPPQPosFromProjTime( take, pos_st +GetCursorPosition()  )
+        local endppqpos = MIDI_GetPPQPosFromProjTime( take, pos_end +GetCursorPosition()  )
+        MIDI_InsertNote( take, false, false, startppqpos, endppqpos, 0, outnote, 100, false )
+        
+      end
+      reaper.MIDI_Sort( take )
+    end
+    
+    if #loop_t>1 then return true end
+    
+  end
   ---------------------------------------------------------------------  
   function DATA:Drop_UI_interaction_pad(note) 
     -- validate is file or pad dropped
     local retval, count = ImGui.AcceptDragDropPayloadFiles( ctx, 127, ImGui.DragDropFlags_None )
     if retval then 
-      Undo_BeginBlock2(DATA.proj )
-      for i = 1, count do 
-        local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, i-1 )
-        if not retval then return end 
-        DATA:DropSample(filename, note + i-1, {layer=1})
-      end  
       
-      Undo_EndBlock2( DATA.proj , 'RS5k manager - drop samples to pads', 0xFFFFFFFF ) 
+      local loop_success
+      if count == 1 then loop_success = DATA:Auto_LoopSlice(note, count) end
+      
+      -- import sample directly
+      if loop_success ~= true then
+      
+        Undo_BeginBlock2(DATA.proj )
+        for i = 1, count do 
+          local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, i-1 )
+          if not retval then return end  
+          DATA:DropSample(filename, note + i-1, {layer=1})
+        end 
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - drop samples to pads', 0xFFFFFFFF ) 
+      end
+        
+      
      else
       local retval, payload = reaper.ImGui_AcceptDragDropPayload( ctx, 'moving_pad', '', ImGui.DragDropFlags_None )-- accept pad drop
       if retval and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then 
