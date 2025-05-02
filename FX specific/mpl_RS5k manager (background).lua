@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.27
+-- @version 4.28
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -12,20 +12,26 @@
 --    [main] mpl_RS5k_manager_DrumRack_Solo.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Mute.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Clear.lua 
---    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
+--    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Autoslice: add support for autoslice on loop drop
---    + Autoslice: use complex domain onset envelope as detection source
---    + Autoslice: use onset detection forward RMS/peak check in predefined area
---    + Autoslice: limit slice to available note slots depending on pad number
---    + Autoslice: add 'slice N' to track name
---    + Autoslice: allow to define minimum and maximum of possible loop to slice
---    + Autoslice: filename filter (this is set by default to avoid slicing on long low kicks)
---    + Autoslice: create take on MIDI bus, disabled by default
+--    + Startup: add "Insert new track" into tooltip
+--    + Autoslice: increase available maximum length to 30
+--    + Autoslice: add forward weight threshold compensation
+--    + Autoslice: improve onset detection algorithm
+--    + Autoslice: add fine tune positions
+--    + Autoslice: improve onset sharing
+--    + Autoslice: stretch MIDI item to project tempo if possible (basic detection based on loop length)
+--    + Autoslice: set loop state for MIDI item
+--    # Autoslice: fix loop is not sliced after any processing iteration
+--    # Sampler/Boundary: fix set start offset to loudest peak
+--    # Choke: do not add choke JSFX to Midi bus on failed validation
+--    # Sampler/FX: add button to initialize choke JSFX
+--    # Actions/Explode MIDI: overhaul, use modern API, obey sourcecolor and loop state
 
 
-rs5kman_vrs = '4.27'
+
+rs5kman_vrs = '4.28'
 
 
 -- TODO
@@ -33,7 +39,7 @@ rs5kman_vrs = '4.27'
       knob for samples in path
       macro quick link from parameter
       auto switch midi bus record arm if playing with another rack 
-      sampler / sampl / import // or hot record from master bus 
+      sampler / sample / import // or hot record from master bus 
       sequencer 
       wildcards - device name
       wildcards - children - #notenuber #noteformat #samplename
@@ -43,8 +49,7 @@ rs5kman_vrs = '4.27'
       sampler/fx - compression, transient shaper
       sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
       better handle global tweaks
-      autocolor by content  
-      
+      autocolor by content
 ]]
 
     
@@ -144,6 +149,7 @@ rs5kman_vrs = '4.27'
           --CONF_loopcheck_smoothend_use = 1,
           --CONF_loopcheck_smoothend = 0.005,
           CONF_loopcheck_createMIDI = 0,
+          CONF_loopcheck_stretchMIDI = 1,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -184,7 +190,7 @@ rs5kman_vrs = '4.27'
           padcustomnames_selected_id = 1,
           padautocolors_selected_id = 1,
           
-          loopcheck_trans_area_frame = 3, 
+          loopcheck_trans_area_frame = 10, 
           loopcheck_testdraw = 0, 
           }
   
@@ -1688,7 +1694,7 @@ end
       end   
   end
   --------------------------------------------------------------------- 
-  function DATA:CollectData_ReadChoke() 
+  function DATA:CollectData_ReadChoke(allow_add_choke) 
     -- validate choke
       if not DATA.MIDIbus.tr_ptr then return end
       local tr =  DATA.MIDIbus.tr_ptr
@@ -1696,12 +1702,14 @@ end
       local chokeJSFX_pos =  TrackFX_AddByName( tr, fxname, false, 0 )
       local CHOKE_GUID
       if chokeJSFX_pos == -1 then  
-        DATA.MIDIbus.CHOKE_valid = true
-        chokeJSFX_pos =  TrackFX_AddByName( tr, fxname, false, -1000 ) 
-        CHOKE_GUID = TrackFX_GetFXGUID( tr, chokeJSFX_pos ) 
-        DATA:WriteData_Child(tr, {CHOKE_GUID=CHOKE_GUID}) 
-        TrackFX_Show( tr, chokeJSFX_pos, 0|2 )
-        --for i = 1, 16 do TrackFX_SetParamNormalized( tr, chokeJSFX_pos, 33+i, i/1024 ) end -- ini source gmem IDs
+        if allow_add_choke == true then 
+          DATA.MIDIbus.CHOKE_valid = true 
+          chokeJSFX_pos =  TrackFX_AddByName( tr, fxname, false, -1000 ) 
+          CHOKE_GUID = TrackFX_GetFXGUID( tr, chokeJSFX_pos ) 
+          DATA:WriteData_Child(tr, {CHOKE_GUID=CHOKE_GUID}) 
+          TrackFX_Show( tr, chokeJSFX_pos, 0|2 )
+        end
+        --for i = 1, 16 do TrackFX_SetParamNormalized( tr, chokeJSFX_pos, 33+i, i/1024 ) end -- ini source gmem IDs]]
        else
         CHOKE_GUID = TrackFX_GetFXGUID(tr, chokeJSFX_pos ) 
       end
@@ -2369,11 +2377,11 @@ end
     if not (DATA.current_sample_peaks and DATA.current_sample_peaks.peaks)then return end
     
     local cnt_peaks = #DATA.current_sample_peaks.peaks
-    --local max,va = 0
+    local max,val,loopst = 0,0,0
     for i = 1, cnt_peaks do 
       val = math.abs(DATA.current_sample_peaks.peaks[i])
-      --if val >max then loopst = i/cnt_peaks end 
-      --max = math.max(val,max)
+      if val >max then loopst = i/cnt_peaks end 
+      max = math.max(val,max)
       if val ==1 then loopst = i/cnt_peaks break end 
     end
     local note_layer_t = DATA.children[note].layers[layer]
@@ -3287,26 +3295,34 @@ end
       
       local D_POSITION = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local D_LENGTH = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+      local B_LOOPSRC = GetMediaItemInfo_Value( item, 'B_LOOPSRC' )
       SetMediaItemInfo_Value( item, 'B_MUTE', 1 )
       local D_STARTOFFS = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
       local D_PLAYRATE = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+      local I_CUSTOMCOLOR = GetMediaItemTakeInfo_Value( take, 'I_CUSTOMCOLOR' )
+      local pcmsrc = GetMediaItemTake_Source( take )
+      local srclen, lengthIsQN = reaper.GetMediaSourceLength( pcmsrc )
       
-      t = {}
-      t_pitch = {}
-      local retval, notecnt, ccevtcnt, textsyxevtcnt = MIDI_CountEvts( take )
-      for noteidx = 1, notecnt do
-        local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, noteidx-1 )
-        t[#t+1] = {
-            selected = selected,
-            muted = muted,
-            startppqpos = startppqpos,
-            endppqpos = endppqpos,
-            chan = chan,
-            pitch = pitch,
-            vel = vel,
-          }
-        t_pitch[pitch] = true
-      end 
+      local t_pitch= {}
+       tableEvents = {}
+      local t = 0
+      local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+      local MIDIlen = MIDIstring:len()
+      local stringPos = 1
+      local offset, flags, msg1
+      local val = 1
+      while stringPos < MIDIlen do
+        offset, flags, msg1, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos)
+        tableEvents[#tableEvents+1] = {
+          offset=offset,
+          flags=flags,
+          msg1=msg1,
+        }
+        local pitch = msg1:byte(2)
+        t_pitch[pitch]=true
+      end
+      
+      
       
       for note in pairs(t_pitch) do
         if note and DATA.children[note] then
@@ -3316,12 +3332,18 @@ end
             local take = GetActiveTake(new_item)
             SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS',D_STARTOFFS )
             SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE',D_PLAYRATE ) 
-            for noteidx = 1, #t do
-              if t[noteidx].pitch == note then
-                reaper.MIDI_InsertNote( take, t[noteidx].selected, t[noteidx].muted, t[noteidx].startppqpos, t[noteidx].endppqpos,t[noteidx].chan, t[noteidx].pitch, t[noteidx].vel, true )
-              end
+            SetMediaItemTakeInfo_Value( take, 'I_CUSTOMCOLOR',I_CUSTOMCOLOR ) 
+            SetMediaItemInfo_Value( new_item, 'B_LOOPSRC',B_LOOPSRC ) 
+            
+            local MIDIstring = ""
+            for i = 1, #tableEvents-1 do
+              local msg1 = tableEvents[i].msg1
+              if msg1:byte(2) ~= note then msg1 = '' end
+              MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[i].offset, tableEvents[i].flags, msg1)
             end
-            MIDI_Sort( take )
+            MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[#tableEvents].offset, tableEvents[#tableEvents].flags, tableEvents[#tableEvents].msg1)
+            MIDI_SetAllEvts(take, MIDIstring)
+            MIDI_Sort(take)
           end
         end
       end
@@ -3812,7 +3834,7 @@ end
   end
     --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_Autoslice()
-    function __f_autosl_set() end
+  
     if ImGui.TreeNode(ctx, 'Auto slice loop on pad drop', ImGui.TreeNodeFlags_None) then  
       if ImGui.Checkbox( ctx, 'Use Autoslice',                             EXT.CONF_loopcheck == 1 ) then EXT.CONF_loopcheck =EXT.CONF_loopcheck~1 EXT:save() end
       local retval, v, buf
@@ -3830,18 +3852,13 @@ end
       -- filt 
       retval, buf = reaper.ImGui_InputText( ctx, 'Filter', EXT.CONF_loopcheck_filter, reaper.ImGui_InputTextFlags_None() )
       if retval then EXT.CONF_loopcheck_filter = buf end
-      if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      
-      --[[ smooth end
-      if ImGui.Checkbox( ctx, 'Use smooth end',                             EXT.CONF_loopcheck_smoothend_use == 1 ) then EXT.CONF_loopcheck_smoothend_use =EXT.CONF_loopcheck_smoothend_use~1 EXT:save() end
-      if EXT.CONF_loopcheck_smoothend_use == 1 then
-        retval, v = ImGui.SliderDouble( ctx, 'Smooth end##CONF_loopcheck_smoothend', EXT.CONF_loopcheck_smoothend, 0, 0.1, '%.4fsec', ImGui.SliderFlags_None )
-        if retval then EXT.CONF_loopcheck_smoothend = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-        if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_smoothend = 0.01 EXT:save() end  
-      end]]
+      if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
       
       -- various
       if ImGui.Checkbox( ctx, 'Create MIDI take on MIDI bus',                             EXT.CONF_loopcheck_createMIDI == 1 ) then EXT.CONF_loopcheck_createMIDI =EXT.CONF_loopcheck_createMIDI~1 EXT:save() end
+      if EXT.CONF_loopcheck_createMIDI == 1 then 
+        if ImGui.Checkbox( ctx, 'Stretch MIDI to project tempo',                             EXT.CONF_loopcheck_stretchMIDI == 1 ) then EXT.CONF_loopcheck_stretchMIDI =EXT.CONF_loopcheck_stretchMIDI~1 EXT:save() end
+      end
       
       
       
@@ -3988,39 +4005,51 @@ end
       
     
   end
-  --------------------------------------------------------------------------------  
-  function UI.draw_Rack_Pads() 
-    
-    if not (DATA.parent_track and DATA.parent_track.valid == true) then 
-      ImGui.TextWrapped(ctx,
-      [[ 
-  RS5k manager quick tips: 
-      1. Select parent track. It will be parent track for drum rack.
-      2. Once parent track is selected, drum rack is ready for adding samples to it.
-      3. Drop sample to pads from OS browser or MediaExplorer to pad.  
-      4. RS5k manager will automatically initialize all needed routing setup.
-      ]])
-      if ImGui.Button(ctx, 'Feature requests and bug reports at Cockos forum') then VF_Open_URL('http://forum.cockos.com/showthread.php?t=207971') end
-      ImGui.TextWrapped(ctx,
-      [[
-      For bug reports:
-        - make sure you are running the latest version of RS5k manager
-        - please attach FULL text of error (including error line number) and steps to reproduce.
-      ]])
-      return
+    --------------------------------------------------------------------------------  
+    function UI.draw_Rack_Pads() 
+      
+      if not (DATA.parent_track and DATA.parent_track.valid == true) then 
+        ImGui.TextWrapped(ctx,
+        [[ 
+    RS5k manager quick tips: 
+        1. Select parent track. It will be parent track for drum rack. Or create it:]]) --ImGui.SameLine(ctx) 
+        ImGui.Dummy(ctx,30,0) ImGui.SameLine(ctx)
+        if ImGui.Button(ctx, 'Insert new parent track') then 
+          Undo_BeginBlock2(-1)
+          InsertTrackInProject(-1, 0,0) 
+          local tr = GetTrack(-1,0)
+          GetSetMediaTrackInfo_String( tr, 'P_NAME', 'RS5k manager', true )
+          reaper.SetOnlyTrackSelected( tr )
+          Undo_EndBlock2(-1, 'Insert RS5k manager parent track', 0xFFFFFFFF)
+          DATA.upd = true
+        end
+        
+        ImGui.TextWrapped(ctx,  
+  [[      2. Once parent track is selected, drum rack is ready for adding samples to it.
+        3. Drop sample to pads from OS browser or MediaExplorer to pad.  
+        4. RS5k manager will automatically initialize all needed routing setup.
+        ]])
+        if ImGui.Button(ctx, 'Feature requests and bug reports at Cockos forum') then VF_Open_URL('http://forum.cockos.com/showthread.php?t=207971') end
+        ImGui.TextWrapped(ctx,
+        [[
+        For bug reports:
+          - make sure you are running the latest version of RS5k manager
+          - please attach FULL text of error (including error line number) and steps to reproduce.
+        ]])
+        return
+      end
+        
+        
+        
+      
+      
+      --ImGui.DrawList_AddRectFilled( UI.draw_list, UI.calc_rackX, UI.calc_rackY, UI.calc_rackX+UI.calc_rackW, UI.calc_rackY+UI.calc_rackH, 0xFFFFFFA0, 0, 0 )
+      UI.Layout_Pads() 
+      UI.Layout_Keys() 
+      UI.Layout_Launchpad() 
+      
+      
     end
-      
-      
-      
-    
-    
-    --ImGui.DrawList_AddRectFilled( UI.draw_list, UI.calc_rackX, UI.calc_rackY, UI.calc_rackX+UI.calc_rackW, UI.calc_rackY+UI.calc_rackH, 0xFFFFFFA0, 0, 0 )
-    UI.Layout_Pads() 
-    UI.Layout_Keys() 
-    UI.Layout_Launchpad() 
-    
-    
-  end
   --------------------------------------------------------------------------------  
   function UI.draw_Rack_Pads_controls(note_t,note, x,y,w,h) 
     local min_h = UI.controls_minH
@@ -4944,9 +4973,9 @@ end
     
     if DATA.loopcheck_testdraw == 1 then
       reaper.ImGui_SetCursorPos(ctx, 1000,50)
-      if DATA.temp_CDOE_arr then reaper.ImGui_PlotHistogram(ctx, 'arrtemp', DATA.temp_CDOE_arr, 0, '', 0, 1, 400, 100) end
+      if DATA.temp_CDOE_arr then reaper.ImGui_PlotHistogram(ctx, 'arrtemp', DATA.temp_CDOE_arr, 0, '', 0, 1, 700, 100) end
       reaper.ImGui_SetCursorPos(ctx, 1000,150)
-      if DATA.temp_CDOE_arr2 then reaper.ImGui_PlotHistogram(ctx, 'arrtemp', DATA.temp_CDOE_arr2, 0, '', 0, 1, 400, 100) end
+      if DATA.temp_CDOE_arr2 then reaper.ImGui_PlotHistogram(ctx, 'arrtemp', DATA.temp_CDOE_arr2, 0, '', 0, 1, 700, 100) end
     end
   end
   --------------------------------------------------------------------------------
@@ -5576,6 +5605,9 @@ end
           ImGui.PopStyleColor(ctx )
         end
       end
+     else
+      ImGui.SetCursorScreenPos(ctx,curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, curposy_abs )
+      if ImGui.Button(ctx, 'Init MIDI bus choke') then DATA:CollectData_ReadChoke(true)  end
     end
     
   end
@@ -6122,12 +6154,13 @@ end
     if not take or TakeIsMIDI(take ) then return end 
     local pcm_src  =  GetMediaItemTake_Source( take )
     local SR = reaper.GetMediaSourceSampleRate( pcm_src )  
-    local window_spls = FFTsz*2
+    local window_spls = FFTsz
     local window_sec = window_spls / SR
     local samplebuffer = reaper.new_array(window_spls) 
     local accessor = CreateTakeAudioAccessor( take )
     
     -- grab [FFT magnitude & phase] per frame -> bin
+    
     local i = 0
     local FFTt = {}
     for pos_seek = 0, item_len, window_sec/window_overlap do
@@ -6135,11 +6168,6 @@ end
       
       local rms = 0
       for i = 1, window_spls do rms = rms + math.abs(samplebuffer[i]) end rms = rms / window_spls
-      
-      --[[ smooth edges
-      spl_area_smooth = 10
-      for i = 1, spl_area_smooth do samplebuffer[i] = samplebuffer[i]* i/spl_area_smooth end
-      for i = window_spls - spl_area_smooth, window_spls do samplebuffer[i] = samplebuffer[i]* (1-(i-window_spls+ spl_area_smooth)/spl_area_smooth) end]]
       
       samplebuffer.fft_real(FFTsz, true, 1 ) 
       i = i + 1
@@ -6161,8 +6189,8 @@ end
     -- calculate CDOE difference
     local sz = #FFTt[1]
     test = sz
-    local hp = 2 -- DC offset
-    local lp = sz-math.floor(sz*0.3) -- slightly low pass
+    local hp = 30 -- DC offset / HP
+    local lp = sz--math.floor(sz*0.5) -- slightly low pass
     ED_sum.values[1] = 0
     ED_sum.values[2] = 0
     for frame = 3, #FFTt do
@@ -6187,44 +6215,105 @@ end
     
     local szED = #ED_sum.values
     ED_sum.values[szED] =0
-    VF_NormalizeT(ED_sum.values, 0.001)
     --VF_Weight()
     --VF_NormalizeT(ED_sum.values)
-    ED_sum.values[1] = 1
-    ED_sum.values[2] = 1
-    --for i = 2, szED-1 do if (ED_sum.values[i-1] +  ED_sum.values[i+1]) / ED_sum.values[i] < 1 then ED_sum.values[i] = (ED_sum.values[i-1] +  ED_sum.values[i+1])/2 end end
-
+    
+    -- build threshold env
+    ED_sum.weight_threshold = {}
+    local threshold_area = DATA.loopcheck_trans_area_frame -- forward frame
+    for i = 1, szED-threshold_area do 
+      ED_sum.values[i] = ED_sum.values[i]
+      local rms = 0
+      for i2 = i, i+threshold_area do rms=rms+ED_sum.values[i2] end rms = rms / threshold_area
+      ED_sum.weight_threshold[i] = rms 
+    end
+    for i = szED-threshold_area, szED do ED_sum.weight_threshold[i] = ED_sum.weight_threshold[szED-threshold_area] end
+    ED_sum.values[1] = ED_sum.values[3]
+    ED_sum.values[2] = ED_sum.values[3]
+    
+    VF_NormalizeT(ED_sum.weight_threshold)
+    VF_NormalizeT(ED_sum.values, 0.001)
+    -- apply compression
+    for i = 1, szED do
+      ED_sum.values[i] = ED_sum.values[i] * (1-ED_sum.weight_threshold[i])
+    end
+    VF_NormalizeT(ED_sum.values)
 
     -- get onsets
     local minval = 0.01
     local minareasum = DATA.loopcheck_trans_area_frame * minval
     local sz = #ED_sum.values 
-    local val = 0
+    local val = 0 
+    local lastid = 1
     for i = 1, sz-DATA.loopcheck_trans_area_frame do
       val = 0 
       if i==1 then  val = 1  end
-      
       local curval = ED_sum.values[i]
-      local areasum = 0
-      local peak = 0
+      local arearms = 0
+      local minpeak = math.huge
+      local maxpeak = 0
+      local minpeakID = i
+      local maxpeakID = i
       for i2 = i, i+DATA.loopcheck_trans_area_frame do
-        areasum = areasum + ED_sum.values[i2]
-        peak = math.max(peak, ED_sum.values[i2])
+        arearms = arearms + ED_sum.values[i2]
+        if ED_sum.values[i2] > maxpeak then maxpeakID = i2 end
+        maxpeak = math.max(maxpeak, ED_sum.values[i2])
+        if ED_sum.values[i2] < minpeak then minpeakID = i2 end
+        minpeak = math.min(minpeak, ED_sum.values[i2])
       end
-      areasum = areasum / DATA.loopcheck_trans_area_frame
-      if --curval > minval  and 
-        areasum > minareasum 
-        and curval / areasum < 0.3
-        and areasum / peak  < 0.9
-        and (not lastid or (lastid and i-lastid> DATA.loopcheck_trans_area_frame)) 
-        
+      arearms = arearms / DATA.loopcheck_trans_area_frame
+      if minpeak / arearms < 0.4  
+        and minpeakID < maxpeakID
+        and arearms > 0.2
         then 
         val = 1 
         lastid = i 
       end
+      ::nextframe::
       ED_sum.onsets[i] = val
     end
     
+    
+    -- filter closer onsets
+    for i = 1, sz-1 do
+      if ED_sum.onsets[i] == 1 and ED_sum.onsets[i+1] == 1  then 
+        local minpeak = math.huge
+        local minpeakID = i
+        for i2 = i, i+DATA.loopcheck_trans_area_frame do
+          if ED_sum.values[i2] == 0 then break end
+          if ED_sum.values[i2] < minpeak then minpeakID = i2 end
+          minpeak = math.min(minpeak, ED_sum.values[i2])
+        end
+        
+        for i2 = i, i+DATA.loopcheck_trans_area_frame do ED_sum.onsets[i2] =0 end
+        ED_sum.onsets[minpeakID] =1 
+      end
+    end
+    
+    
+    -- fine tune positions 
+    local area = 0.05 -- sec
+    local window_spls = math.floor(area*2 * SR)
+    local samplebuffer = reaper.new_array(window_spls) 
+    local accessor = CreateTakeAudioAccessor( take )
+    for i = 2, sz do
+      if ED_sum.onsets[i] == 1 then
+        local pos_seek = ED_sum.positions[i] - area/2
+        GetAudioAccessorSamples( accessor, SR, 1, pos_seek, window_spls, samplebuffer )
+        local minval = math.huge
+        local pos_min = ED_sum.positions[i]
+        local val
+        for i2 = 1, window_spls do
+          val = math.abs(samplebuffer[i2])
+          if val < minval then ED_sum.positions[i] = pos_seek + i2/SR end
+          minval = math.min(minval, val)
+        end
+      end
+    end
+    samplebuffer.clear()
+    reaper.DestroyAudioAccessor( accessor )
+    
+    -- fine tune
     return ED_sum
   end  
  
@@ -6235,7 +6324,7 @@ end
     
     local loop_t = {}
     
-    local CDOE
+    --local CDOE
     local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, 0 )
     
     -- check by name
@@ -6263,11 +6352,14 @@ end
     SetMediaItemInfo_Value( temp_item, 'D_POSITION', 0 )
     SetMediaItemInfo_Value( temp_item, 'D_LENGTH',srclen ) 
     CDOE = DATA:Auto_LoopSlice_CDOE(temp_item)
-    --if DATA.loopcheck_testdraw == 1 then
+    if DATA.loopcheck_testdraw == 1 then
       DATA.temp_CDOE_arr = reaper.new_array(CDOE.values)
       DATA.temp_CDOE_arr2 = reaper.new_array(CDOE.onsets)
-    --end
+    end
     DeleteTrack( temp_track )
+    
+    
+    
     
     -- form start/end offset
     if not (CDOE and CDOE.positions and CDOE.onsets) then return end
@@ -6278,24 +6370,27 @@ end
         if not frame_st then 
           frame_st = i 
          else
-          local startframe = frame_st + DATA.loopcheck_trans_area_frame
+          local startframe = frame_st+2
           if frame_st == 1 then startframe = 1 end
-          local endframe = math.min(sz,i-1 + DATA.loopcheck_trans_area_frame+1)
+          local endframe = math.min(sz,i+2)
           
           local pos_sec_st = CDOE.positions[startframe]
           local pos_sec_end = CDOE.positions[endframe]
-          
-          local SOFFS = pos_sec_st / srclen
-          local EOFFS = pos_sec_end / srclen
-          loop_t[#loop_t+1] = {
-            SOFFS = SOFFS,
-            EOFFS = EOFFS,
-          }
-          frame_st = i
+          if pos_sec_st and pos_sec_end then
+            local SOFFS = pos_sec_st / srclen
+            local EOFFS = pos_sec_end / srclen
+            loop_t[#loop_t+1] = {
+              SOFFS = SOFFS,
+              EOFFS = EOFFS,
+              debug_len = pos_sec_end - pos_sec_st
+            }
+            frame_st = i
+          end
         end
       end
     end
     
+    --do return end
     if #loop_t<2 then return end
     
     --  share note actually
@@ -6339,11 +6434,31 @@ end
         local pos_end = loop_t[i].EOFFS * srclen
         local startppqpos = MIDI_GetPPQPosFromProjTime( take, pos_st +GetCursorPosition()  )
         local endppqpos = MIDI_GetPPQPosFromProjTime( take, pos_end +GetCursorPosition()  )
-        MIDI_InsertNote( take, false, false, startppqpos, endppqpos, 0, outnote, 100, false )
-        
+        MIDI_InsertNote( take, false, false, startppqpos, endppqpos, 0, outnote, 100, false ) 
       end
-      reaper.MIDI_Sort( take )
+      MIDI_Sort( take )
+      
+      SetMediaItemInfo_Value( new_item, 'B_LOOPSRC', 1)
+      
+      if EXT.CONF_loopcheck_stretchMIDI  == 1 then 
+        local bpm_proj = Master_GetTempo()
+        local bpm = 60 / (srclen / 4)
+        local outrate = bpm_proj / bpm
+        if outrate > 2 then 
+          outrate = outrate / 2 
+         elseif outrate < 0.5 then 
+          outrate = outrate * 2 
+        end
+        
+        
+        if outrate > 0.5 and outrate < 2 then 
+          SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE', outrate )
+          SetMediaItemInfo_Value( new_item, 'D_LENGTH',srclen/outrate ) 
+        end
+      end
     end
+    
+    
     
     if #loop_t>1 then return true end
     
