@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.28
+-- @version 4.29
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -14,24 +14,12 @@
 --    [main] mpl_RS5k_manager_DrumRack_Clear.lua 
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
--- @changelog
---    + Startup: add "Insert new track" into tooltip
---    + Autoslice: increase available maximum length to 30
---    + Autoslice: add forward weight threshold compensation
---    + Autoslice: improve onset detection algorithm
---    + Autoslice: add fine tune positions
---    + Autoslice: improve onset sharing
---    + Autoslice: stretch MIDI item to project tempo if possible (basic detection based on loop length)
---    + Autoslice: set loop state for MIDI item
---    # Autoslice: fix loop is not sliced after any processing iteration
---    # Sampler/Boundary: fix set start offset to loudest peak
---    # Choke: do not add choke JSFX to Midi bus on failed validation
---    # Sampler/FX: add button to initialize choke JSFX
---    # Actions/Explode MIDI: overhaul, use modern API, obey sourcecolor and loop state
+-- @changelog--    
+--    # fix typo in Autoslice settings
 
 
 
-rs5kman_vrs = '4.28'
+rs5kman_vrs = '4.29'
 
 
 -- TODO
@@ -3845,7 +3833,7 @@ end
       if retval then EXT.CONF_loopcheck_minlen = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
       if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_minlen = 2 EXT:save() end
       -- min
-       retval, v = ImGui.SliderDouble( ctx, 'Minimum loop length##CONF_loopcheck_maxlen', EXT.CONF_loopcheck_maxlen, EXT.CONF_loopcheck_minlen, 16, '%.4fsec', ImGui.SliderFlags_None )
+       retval, v = ImGui.SliderDouble( ctx, 'Maximum loop length##CONF_loopcheck_maxlen', EXT.CONF_loopcheck_maxlen, EXT.CONF_loopcheck_minlen, 16, '%.4fsec', ImGui.SliderFlags_None )
       if retval then EXT.CONF_loopcheck_maxlen = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
       if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_maxlen = 8 EXT:save() end      
       
