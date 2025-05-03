@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.30
+-- @version 4.31
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,30 +15,7 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + UI: remove title bar, move close button to left top corner
---    + UI: increase settings width
---    # Peaks: overhaul, performance optimisations
---    + Peaks: cache peaks, this will probably reduce CPU a lot for longer loops
---    + Sampler/Peaks: for sliced segment split view to full waveform and sample only
---    + Sampler/ADSR: parameters are scaled for more usable tweaking
---    + Sampler/General: parameters are scaled for more usable tweaking
---    + Macro: increase to 16 knobs
---    + Macro: collapse settings in tree
---    + Macro: move knobs to the start of list
---    # Macro: fix setting colors and name on empty config
---    # remove info tab, move info to a startup window
---    + Sampler/Boundary: do not allow tweak loop offset if loop is disabled
---    + Sampler/Boundary: use drag corners in full loop waveform to edit slice boundaries
---    + Sampler/Boundary: use drag slider in the middle of full loop waveform to shift boundaries
---    + Sampler/Boundary: use drag slider of slice loop waveform to edit loop offset
---    + Sampler/Boundary/Tools/Crop sample: fix UI freeze at changing threshold
---    + Sampler/Boundary/Tools/Crop sample: limit sample length to 30 sec
---    + Sampler/Boundary/Tools/Crop sample: use temporary audio instead peaks for better precision
---    + Sampler/Boundary/Start: allow to shift start offset a bit by seconds
---    + Sampler/Boundary/Start: allow to shift start offset a bit by beats, use embed tempo or project tempo (bpm=0)
---    + Sampler/Boundary/Start: allow to shift start offset to next transient
---    + Sampler/Boundary/Start: allow to keep slice length
---    + Autoslice: share defined bpm (roughly by length) to script metadata
+--    # fix Sampler/General goes left
 
 
 
@@ -49,7 +26,7 @@
 -- search for transient
 
 
-rs5kman_vrs = '4.30'
+rs5kman_vrs = '4.31'
 
 
 -- TODO
@@ -5392,10 +5369,11 @@ end
         if note_layer_t.ISRS5K then
           
           function __f_tabs() end
-          if ImGui.BeginTabItem( ctx, 'Boundary', false, ImGui.TabItemFlags_None ) then       UI.draw_tabs_Sampler_tabs_boundary()    ImGui.EndTabItem( ctx) end 
           
           if ImGui.BeginTabItem( ctx, 'General', false, ImGui.TabItemFlags_None ) then        UI.draw_tabs_Sampler_tabs_rs5kcontrols()ImGui.EndTabItem( ctx) end
           if ImGui.BeginTabItem( ctx, 'Sample', false, ImGui.TabItemFlags_None ) then         UI.draw_tabs_Sampler_tabs_sample()      ImGui.EndTabItem( ctx) end 
+          
+          if ImGui.BeginTabItem( ctx, 'Boundary', false, ImGui.TabItemFlags_None ) then       UI.draw_tabs_Sampler_tabs_boundary()    ImGui.EndTabItem( ctx) end 
           if ImGui.BeginTabItem( ctx, 'FX', false, ImGui.TabItemFlags_None ) then             UI.draw_tabs_Sampler_tabs_FX()          ImGui.EndTabItem( ctx) end   
           if ImGui.BeginTabItem( ctx, 'Device', false, ImGui.TabItemFlags_None ) then         UI.draw_tabs_Sampler_tabs_device()      ImGui.EndTabItem( ctx) end
          else
