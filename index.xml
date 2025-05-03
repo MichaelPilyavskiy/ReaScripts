@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2256578329de96582eb3aa40e145ebfaeb20b5b5" name="MPL Scripts">
+<index version="1" commit="a0cd2bb643420b4e08c5affe242a7003d7a03016" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6072,6 +6072,43 @@
         <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2256578329de96582eb3aa40e145ebfaeb20b5b5/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
         <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2256578329de96582eb3aa40e145ebfaeb20b5b5/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2256578329de96582eb3aa40e145ebfaeb20b5b5/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="4.30" author="MPL" time="2025-05-03T15:01:07Z">
+        <changelog><![CDATA[+ UI: remove title bar, move close button to left top corner
++ UI: increase settings width
+# Peaks: overhaul, performance optimisations
++ Peaks: cache peaks, this will probably reduce CPU a lot for longer loops
++ Sampler/Peaks: for sliced segment split view to full waveform and sample only
++ Sampler/ADSR: parameters are scaled for more usable tweaking
++ Sampler/General: parameters are scaled for more usable tweaking
++ Macro: increase to 16 knobs
++ Macro: collapse settings in tree
++ Macro: move knobs to the start of list
+# Macro: fix setting colors and name on empty config
+# remove info tab, move info to a startup window
++ Sampler/Boundary: do not allow tweak loop offset if loop is disabled
++ Sampler/Boundary: use drag corners in full loop waveform to edit slice boundaries
++ Sampler/Boundary: use drag slider in the middle of full loop waveform to shift boundaries
++ Sampler/Boundary: use drag slider of slice loop waveform to edit loop offset
++ Sampler/Boundary/Tools/Crop sample: fix UI freeze at changing threshold
++ Sampler/Boundary/Tools/Crop sample: limit sample length to 30 sec
++ Sampler/Boundary/Tools/Crop sample: use temporary audio instead peaks for better precision
++ Sampler/Boundary/Start: allow to shift start offset a bit by seconds
++ Sampler/Boundary/Start: allow to shift start offset a bit by beats, use embed tempo or project tempo (bpm=0)
++ Sampler/Boundary/Start: allow to shift start offset to next transient
++ Sampler/Boundary/Start: allow to keep slice length
++ Autoslice: share defined bpm (roughly by length) to script metadata]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a0cd2bb643420b4e08c5affe242a7003d7a03016/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
