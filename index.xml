@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="797199a9a251b80ed97b221c8779dae1d51a79bf" name="MPL Scripts">
+<index version="1" commit="cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6123,6 +6123,27 @@
         <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/797199a9a251b80ed97b221c8779dae1d51a79bf/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
         <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/797199a9a251b80ed97b221c8779dae1d51a79bf/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/797199a9a251b80ed97b221c8779dae1d51a79bf/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="4.33" author="MPL" time="2025-05-04T13:05:40Z">
+        <changelog><![CDATA[# fix Sampler/Boundary/Start/Direction
+# Sampler/Full waveform: improve navigation precision
++ Sampler/Full waveform: show mid boundary drag
++ Sampler/Full waveform: prevent length to be reduced at right corner
+# Peaks: reset cache on changing sample via database or regular next/previous/random
++ StepSequencer: MIDI-take based step sequencing 
++ StepSequencer: add volume control over selected pad, redirect to device track if available
++ StepSequencer: add pattern name input]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd731ff26bb93e99d71c0b1a9e13cbe149cf5bcf/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
