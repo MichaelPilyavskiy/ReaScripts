@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.36
+-- @version 4.37
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,12 +15,20 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Peaks: fix crash on lost array
+--    # StepSequencer: improve step hitting
+--    # StepSequencer: remove name context menu
+--    + StepSequencer: allow to drop samples at free notes
+--    + StepSequencer/Tools: add fill actions
+--    + StepSequencer/Globals: action to clear pattern
+--    + Sample/Boundary: add end offset
+--    + Sample/Boundary: add goto start/end
+--    + Sampler: reset boundaries on sample change
+--    + Sampler/ADSR: improve decay mapping
 
 
 
 
-rs5kman_vrs = '4.36'
+rs5kman_vrs = '4.37'
 
 
 -- TODO
@@ -65,10 +73,6 @@ rs5kman_vrs = '4.36'
         share MIDI to tracks, group it
         use pitch per note
         use cut filter control via CC link
-      
-      sampler/boundary
-        reset boundary at sample change
-        end offset
         
       sampler/general:
         - fix decay
@@ -243,7 +247,18 @@ rs5kman_vrs = '4.36'
           
           seq = {} ,
           seq_UIblock = 0, -- 0-16 is 0, 17-32 is 1 etc
-          
+          seq_fillmap = 
+            { 
+              {v=0,s='Each 2 steps',pat='10000000'},
+              {v=0,s='Each 4 steps / Kick',pat='1000'},
+              {v=0,s='Each 8 steps',pat='10'},
+              {v=0,s='[Clap/Snare]',pat='00001000'},
+              {v=0,s='[Open hat]',pat='0010'},
+              {v=0,s='[Close hat]',pat='0011'}, 
+            },
+            
+            
+            
           }
   DATA.UI_name_vrs = DATA.UI_name..' '..rs5kman_vrs
   
@@ -312,7 +327,7 @@ rs5kman_vrs = '4.36'
     UI.seq_padH = 28
     UI.seq_separatorH = 3
     UI.seq_padnameW = 100
-    UI.seq_activestep_reducesz = 3 
+    UI.seq_activestep_reducesz = 2 
     UI.seq_audiolevelW = 5 
     UI.seq_stepreduceW = 2 
     UI.seq_steprounding = 2
@@ -369,7 +384,7 @@ rs5kman_vrs = '4.36'
     local stepcol_2 = 0x3FDF3F00
     local x1, y1, x2, y2, hstep
     --reaper.ImGui_SetCursorScreenPos(ctx, steseq_posX, yA)
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,UI.seq_steprounding)  
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,0)  
     local patternlen = DATA.seq.ext.patternlen
     
     local step_cnt = DATA.seq.ext.children[note].step_cnt 
@@ -381,18 +396,26 @@ rs5kman_vrs = '4.36'
         local stepcol = stepcol_1
         if (step-1)%8> 3 then stepcol = stepcol_2 end
         if step > step_cnt then
-          UI.Tools_setbuttonbackg(stepcol|0x07) 
-          
-          ImGui.Button(ctx, '##stepseq'..note..'step'..step, UI.calc_seqstepW-UI.seq_stepreduceW,h)  
-          UI.Tools_unsetbuttonstyle()
+          UI.Tools_setbuttonbackg(0)  
+          ImGui.Button(ctx, '##stepseq'..note..'step'..step, UI.calc_seqstepW,h)  
+          UI.Tools_unsetbuttonstyle() 
+          x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+          x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x1+seq_activestep_reducesz,y1+seq_activestep_reducesz,x2-seq_activestep_reducesz,y2-seq_activestep_reducesz, stepcol|0x07, UI.seq_steprounding, ImGui.DrawFlags_None )
+           
           ImGui.SameLine(ctx)
           goto nextstep
         end
       
       -- body
-        UI.Tools_setbuttonbackg(stepcol|0x1F) 
-        ImGui.Button(ctx, '##stepseq'..note..'step'..step, UI.calc_seqstepW-UI.seq_stepreduceW,h)  
+        UI.Tools_setbuttonbackg(0) 
+        ImGui.Button(ctx, '##stepseq'..note..'step'..step, UI.calc_seqstepW,h)  
         UI.Tools_unsetbuttonstyle()
+        
+        x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+        x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x1+seq_activestep_reducesz,y1+seq_activestep_reducesz,x2-seq_activestep_reducesz,y2, stepcol|0x1F, UI.seq_steprounding, ImGui.DrawFlags_None )
+        
         ImGui.SameLine(ctx) 
       
       -- handle mouse
@@ -421,21 +444,21 @@ rs5kman_vrs = '4.36'
       -- fill step
         x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
         x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
-        hstep = y2-y1
+        hstep = (y2-y1)*seq_activestep_reducesz*2
         if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[step] and DATA.seq.ext.children[note].steps[step].val > 0 then
           local val = DATA.seq.ext.children[note].steps[step].val
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x1+seq_activestep_reducesz,y1+seq_activestep_reducesz+h-h*val,x2-seq_activestep_reducesz,y2-seq_activestep_reducesz, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x1+seq_activestep_reducesz*2,y1+seq_activestep_reducesz*2+hstep-hstep*val,x2-seq_activestep_reducesz*2,y2-seq_activestep_reducesz, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
         end
       
       -- play cursor
         if DATA.seq.active_step and DATA.seq.active_step[note] and DATA.seq.active_step[note] == step then
           midx = x1 + (x2-x1)/2 
-          midy = y1 + hstep/2 
+          midy = y1 + h/2 
           ImGui.DrawList_AddCircleFilled( UI.draw_list, midx, midy, 4, stepcol|0x6F, 0 )
         end
         
       ::nextstep::
-      ImGui.Dummy(ctx,UI.seq_stepreduceW,0)
+      ImGui.Dummy(ctx,0,0)--UI.seq_stepreduceW
       ImGui.SameLine(ctx) 
     end
     
@@ -498,7 +521,6 @@ rs5kman_vrs = '4.36'
   end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls(note_t, xL,yL, xA,yA)
-    
      
     function __f_draw_Seq_ctrls() end
     
@@ -593,7 +615,7 @@ rs5kman_vrs = '4.36'
     -- name 
       local note_format = VF_Format_Note(note,note_t)
       if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
-      local str_maxlen = 18
+      local str_maxlen = 13
       if note_format:len()> str_maxlen then note_format = '...'..note_format:sub(-str_maxlen) end
       ImGui.PushFont(ctx, DATA.font3) 
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,UI.spacingX, UI.spacingY)
@@ -671,7 +693,7 @@ rs5kman_vrs = '4.36'
     DATA.seq.active_pat_step = math.floor(pat_progress*DATA.seq.ext.patternlen)+1
     
     for note in pairs(DATA.children) do 
-      local step_cnt = DATA.seq.ext.children[note].step_cnt
+      local step_cnt = DATA.seq.ext.children[note].step_cnt or 16
       local steplength = DATA.seq.ext.children[note].steplength
       available_steps_per_pattern = pat_beats_com / steplength
       local activestep = math.floor(available_steps_per_pattern * pat_progress)+1
@@ -765,10 +787,16 @@ rs5kman_vrs = '4.36'
         if DATA.children[note] then 
           local xL,yL = ImGui.GetCursorPos(ctx)
           local xA,yA = ImGui.GetCursorScreenPos(ctx)
+          
+          if DATA.temp_scroll_to_note and DATA.temp_scroll_to_note == note then
+            reaper.ImGui_SetScrollHereY( ctx, center_y_ratioIn )
+            DATA.temp_scroll_to_note = nil
+          end
+          
           UI.draw_Seq_ctrls(DATA.children[note], xL,yL,xA,yA)
           ImGui.SameLine(ctx) 
           UI.draw_Seq_Step(DATA.children[note], xL,yL,xA,yA)
-          ImGui.Dummy(ctx,0, UI.seq_separatorH + UI.seq_padH)
+          ImGui.Dummy(ctx,0, 0)--UI.seq_separatorH + UI.seq_padH
         end
       end
       
@@ -778,7 +806,13 @@ rs5kman_vrs = '4.36'
     ImGui.PopStyleVar(ctx,2)
     ImGui.Dummy(ctx,0,0)
     
-    
+    ImGui.SetCursorPosX(ctx,UI.calc_seqXL_padname+UI.spacingX)
+    ImGui.Button( ctx, '[drop sample]', UI.seq_padnameW)
+    if ImGui.BeginDragDropTarget( ctx ) then  
+      DATA:Drop_UI_interaction_pad(-1) 
+      DATA.upd = true
+      ImGui_EndDragDropTarget( ctx )
+    end
       
       
       
@@ -797,7 +831,7 @@ rs5kman_vrs = '4.36'
         step= step%16
         if step == 0 then step = 16 end
         local x1 = xA + (step-1) * UI.calc_seqstepW
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x1,yA+UI.spacingY,x1+UI.calc_seqstepW-UI.seq_stepreduceW,yA+UI.spacingY*2,  0XFFFFFF6F, 5,flagsIn )
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x1,yA+UI.spacingY,x1+UI.calc_seqstepW,yA+UI.spacingY*2,  0XFFFFFF6F, 5,flagsIn )
       end
     end
     
@@ -866,7 +900,7 @@ rs5kman_vrs = '4.36'
     
   end
   --------------------------------------------------------------------------------  
-  function DATA:_Seq_PrintMIDI(t) 
+  function DATA:_Seq_PrintMIDI(t, do_not_ignore_empty) 
     local item = t.it_ptr
     local take = t.tk_ptr
     local item_pos = t.it_pos
@@ -877,6 +911,7 @@ rs5kman_vrs = '4.36'
     local form_data = {}
     local steplength = 0.25 -- do not touch
     local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
+    local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
     local seqend_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + DATA.seq.ext.patternlen *steplength ) 
     local seqend_endppq = MIDI_GetPPQPosFromProjTime( take, seqend_sec) 
     
@@ -919,13 +954,14 @@ rs5kman_vrs = '4.36'
       ::skipnextnote::
     end
     
-    if #form_data< 1 then return end
+    if #form_data< 1 and do_not_ignore_empty ~= true then return end
     
     -- output to MIDI 
     local offset = 0
     local flags = 0
     local ppq 
     local lastppq = 0
+    --if #form_data< 1 then lastppq = seqst_sec end
     local str = ''
     local sz = #form_data
     for i = 1, sz do 
@@ -957,7 +993,7 @@ rs5kman_vrs = '4.36'
     
   end
   --------------------------------------------------------------------------------  
-  function DATA:_Seq_Print() 
+  function DATA:_Seq_Print(do_not_ignore_empty) 
     if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end
     if not (DATA.seq.it_ptr and DATA.seq.tk_ptr) then return end
     if not DATA.seq.ext.children then return end
@@ -968,7 +1004,7 @@ rs5kman_vrs = '4.36'
     local outstr = table.savestring(DATA.seq.ext)
     GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', VF_encBase64(outstr), true)
     
-    DATA:_Seq_PrintMIDI(DATA.seq) 
+    DATA:_Seq_PrintMIDI(DATA.seq, do_not_ignore_empty) 
   end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_Insert() 
@@ -3571,6 +3607,7 @@ end
     if not (filename and note) then return end
     local layer = 1
     if drop_data and drop_data.layer then layer = drop_data.layer end
+    if not (drop_data.SOFFS and drop_data.EOFFS) then drop_data.SOFFS = 0 drop_data.EOFFS = 1 end --4.37
     
     -- validate parenbt track
     if not (DATA.parent_track and DATA.parent_track.valid == true) then return end 
@@ -4890,7 +4927,9 @@ end
       DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
       DATA:WriteData_Parent() 
       DATA.upd = true
-      if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = popup_content end
+      if popup_content0 ~= 'seq_pad' then 
+        if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = popup_content end
+      end
     end
     
     if ImGui.IsItemClicked(ctx,ImGui.MouseButton_Left) then -- click select track
@@ -5049,12 +5088,12 @@ end
         end
       end
       
-      function __f_seq_padcontextmenu() end
+      
       -- seq_pad stuff ------------------------------------------------------------
       if DATA.trig_context == 'seq_pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
         
         
-      end      
+      end    
       
       
       
@@ -5067,6 +5106,8 @@ end
   
   --------------------------------------------------------------------------------  
   function UI.draw_tabs_seq()
+    local butw = 40
+    local butw_3x = (butw)*3+UI.spacingX*2
     if not (DATA.seq and DATA.seq.valid == true and DATA.parent_track.valid == true) then return end
     
     local note_layer_t,note,layer = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end 
@@ -5110,9 +5151,7 @@ end
       if ImGui.BeginTabBar( ctx, 'seqtabsbar', ImGui.TabItemFlags_None ) then
         if ImGui.BeginTabItem( ctx, 'Note tools ('..note..')', false, ImGui.TabItemFlags_None ) then
           
-          -- shift
-          local butw = 40
-          local butw_3x = (butw)*3+UI.spacingX*2
+          -- shift ------------------------------------
           UI.draw_setbuttonbackgtransparent()
           ImGui.Button(ctx, 'Shift',butw)
           UI.Tools_unsetbuttonstyle()
@@ -5121,10 +5160,10 @@ end
           ImGui.SameLine(ctx)
           if ImGui.Button(ctx, '>>', butw) then DATA:_Seq_ModifyTools(note, 0, -1) end
           
-          -- flip 
+          -- flip ------------------------------------
           if ImGui.Button(ctx, 'Flip', butw_3x) then DATA:_Seq_ModifyTools(note, 1) end
           
-          -- random
+          -- random ------------------------------------
           if ImGui.Button(ctx, 'Random', butw_3x) then DATA:_Seq_ModifyTools(note, 2) end
           ImGui.SameLine(ctx)
           local formatIn = math.floor(EXT.CONF_seq_random_probability*100)..'%%'
@@ -5132,11 +5171,10 @@ end
           local retval, v = reaper.ImGui_SliderDouble( ctx, 'Probability##randseqnote', EXT.CONF_seq_random_probability, 0.05, 0.95, formatIn, reaper.ImGui_SliderFlags_None() )
           if retval then EXT.CONF_seq_random_probability = v end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
           
-          -- step len combo
+          -- step len combo ------------------------------------
           local steplength = DATA.seq.ext.children[note].steplength
           local default = 0.25
-          steplength = math.floor(steplength*100000)/100000
-          
+          steplength = math.floor(steplength*100000)/100000 
           local steplength_format = ''
           local names_map = 
             {
@@ -5152,12 +5190,10 @@ end
               {v=0.08333,s='1/16T'},
               {v=0.04166,s='1/32T'}
             }
-          for i = 1, #names_map do if names_map[i].v == steplength then steplength_format = names_map[i].s end end
-          
+          for i = 1, #names_map do if names_map[i].v == steplength then steplength_format = names_map[i].s end end 
           local ctrl_posXstlen, ctrl_posYstlen = ImGui.GetCursorPos(ctx)
           reaper.ImGui_SetNextItemWidth(ctx,butw_3x)
-          if ImGui_BeginCombo( ctx, 'Step length##steplength'..note, steplength_format, reaper.ImGui_ComboFlags_NoArrowButton()|ImGui.ComboFlags_HeightLargest ) then -- reaper.ImGui_ComboFlags_NoPreview()
-            
+          if ImGui_BeginCombo( ctx, 'Step length##steplength'..note, steplength_format, reaper.ImGui_ComboFlags_NoArrowButton()|ImGui.ComboFlags_HeightLargest ) then -- reaper.ImGui_ComboFlags_NoPreview() 
             for i = 1, #names_map do 
               if names_map[i].s then 
                 if ImGui.Selectable(ctx,names_map[i].s) then DATA.seq.ext.children[note].steplength = names_map[i].v DATA:_Seq_Print() end
@@ -5165,28 +5201,76 @@ end
               if names_map[i].sep then
                 reaper.ImGui_SeparatorText(ctx, names_map[i].sep)
               end
-            end
-            --[[
-            if ImGui.Selectable(ctx,'1/8') then DATA.seq.ext.children[note].steplength = 0.125 DATA:_Seq_Print() end
-            if ImGui.Selectable(ctx,'1/16') then DATA.seq.ext.children[note].steplength = 0.0625 DATA:_Seq_Print() end
-            
-            if ImGui.Selectable(ctx,'1/4T') then DATA.seq.ext.children[note].steplength = 1/3 DATA:_Seq_Print() end
-            if ImGui.Selectable(ctx,'1/8T') then DATA.seq.ext.children[note].steplength =1/6 DATA:_Seq_Print() end
-            if ImGui.Selectable(ctx,'1/16T') then DATA.seq.ext.children[note].steplength = 1/12 DATA:_Seq_Print() end
-            if ImGui.Selectable(ctx,'1/32T') then DATA.seq.ext.children[note].steplength = 1/24 DATA:_Seq_Print() end]]
-            
+            end 
             ImGui_EndCombo( ctx )
           end
           ImGui.SameLine(ctx) 
           if ImGui.Button(ctx,'Reset##steplenreset')then DATA.seq.ext.children[note].steplength = 0.25 DATA:_Seq_Print() end
-            
+          
+          -- fill ------------------------------------
+          ImGui.SetNextItemWidth(ctx,butw_3x)
+          if ImGui_BeginCombo( ctx, 'Fill##fill'..note, '[select action]', reaper.ImGui_ComboFlags_NoArrowButton()|ImGui.ComboFlags_HeightLargest ) then -- reaper.ImGui_ComboFlags_NoPreview() 
+            for i = 1, #DATA.seq_fillmap do
+              if ImGui.Selectable(ctx,DATA.seq_fillmap[i].s) then 
+                DATA:_Seq_Fill(note, DATA.seq_fillmap[i].pat)
+                DATA:_Seq_Print() 
+              end
+            end 
+            ImGui_EndCombo( ctx )
+          end
+          
             
           ImGui.EndTabItem( ctx)  
         end
+        
+        
+        -- globals
+        if ImGui.BeginTabItem( ctx, 'Globals', false, ImGui.TabItemFlags_None ) then
+          if ImGui.Button(ctx, 'Clear', butw_3x) then DATA:_Seq_Clear() end 
+          ImGui.EndTabItem( ctx)  
+        end
+        
+        
         ImGui.EndTabBar( ctx)
       end
       
       
+  end
+    -------------------------------------------------------------------------------- 
+  function DATA:_Seq_Clear(note)
+    if not (DATA.seq.ext and DATA.seq.ext.children ) then return end
+    
+    if note and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = nil return end
+    
+    -- all
+    local t = {}
+    for note in pairs(DATA.seq.ext.children) do t[#t+1] = note end 
+    for i = 1, #t do 
+      local note = t[i]
+      if DATA.seq.ext.children[note  ] then DATA.seq.ext.children[note ].steps = nil end 
+    end
+    DATA:_Seq_Print(true) 
+  end
+    -------------------------------------------------------------------------------- 
+  function DATA:_Seq_Fill(note, pat)
+    if not (DATA.seq.ext and DATA.seq.ext.children and note and DATA.seq.ext.children[note]) then return end
+    local tfill = {}
+    for char in pat:gmatch('.') do
+      local val = 0
+      if char == '1' then val = 1 end
+      tfill[#tfill+1] = val
+    end
+    
+    local step_cnt = DATA.seq.ext.children[note].step_cnt
+    for i = 1, step_cnt do 
+      local src_step= 1+((i-1)%#tfill)
+      if tfill[src_step] and tfill[src_step] then val = tfill[src_step] end
+      if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
+      if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+      if not DATA.seq.ext.children[note].steps[i] then DATA.seq.ext.children[note].steps[i] = {} end
+      DATA.seq.ext.children[note].steps[i].val = val or 0
+    end
+    
   end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_ModifyTools(note, mode, dir) 
@@ -5259,6 +5343,7 @@ end
       if ImGui.BeginTabBar( ctx, 'tabsbar', ImGui.TabItemFlags_None ) then
         
         function __f_tabs() end
+        
         
         
         if ImGui.BeginTabItem( ctx, 'Sampler', false, ImGui.TabItemFlags_None ) then UI.tab_context = 'Sampler' UI.draw_tabs_Sampler()  ImGui.EndTabItem( ctx)  end 
@@ -6212,7 +6297,7 @@ end
     ImGui.DrawList_AddLine( UI.draw_list,xpos_del + UI.adsr_rectsz/2, ypos_del + UI.adsr_rectsz/2,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
         
     -- decay
-    local delmult = 40
+    local delmult = 1
     local susult = 2
     local xpos = note_layer_t.instrument_decay_norm *delmult
     local ypos = note_layer_t.instrument_sustain*susult*0.8
@@ -6428,6 +6513,7 @@ end
     if ImGui.BeginChild(ctx,'tabsbar_sampler_boundarychild', 0,0,reaper.ImGui_ChildFlags_Border()) then
       if ImGui.BeginTabBar( ctx, '##tabsbar_sampler_boundary', ImGui.TabItemFlags_None ) then 
         
+        -- start offset
         if ImGui.BeginTabItem( ctx, 'Start offset##sampler_boundary_Start', false, ImGui.TabItemFlags_None ) then
           local formatIn = DATA.boundarystep[EXT.CONF_stepmode].str
           reaper.ImGui_SetNextItemWidth(ctx, 100)
@@ -6443,6 +6529,11 @@ end
           if retval then EXT.CONF_stepmode_keeplen=EXT.CONF_stepmode_keeplen~1 EXT:save() end  
           
           if EXT.CONF_stepmode ~= 10 then
+            if ImGui.Button(ctx, '< Start##movestoffslefthome') then 
+              local dir = -1
+              DATA:Action_ShiftOffset(note_layer_t, 2, dir) 
+            end 
+            ImGui.SameLine(ctx)
             if ImGui.Button(ctx, '< Move left##movestoffsleft') then  
               local dir = -1
               DATA:Action_ShiftOffset(note_layer_t, 0, dir) 
@@ -6454,11 +6545,45 @@ end
             DATA:Action_ShiftOffset(note_layer_t, 0, dir) 
           end 
           
+          ImGui.EndTabItem( ctx) 
+        end
+        
+        -- end offset
+        if ImGui.BeginTabItem( ctx, 'End offset##sampler_boundary_end', false, ImGui.TabItemFlags_None ) then
+          local formatIn = DATA.boundarystep[EXT.CONF_stepmode].str
+          reaper.ImGui_SetNextItemWidth(ctx, 100)
+          local retval, v = reaper.ImGui_SliderInt( ctx, 'Step##shiftboundaryenf', EXT.CONF_stepmode, 0, #DATA.boundarystep, formatIn, ImGui.SliderFlags_None )
+          if retval then EXT.CONF_stepmode = v end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+          if EXT.CONF_stepmode == 10 then
+            ImGui.SameLine(ctx)
+            reaper.ImGui_SetNextItemWidth(ctx, 100)
+            local retval, v = reaper.ImGui_SliderDouble( ctx, 'ahead##shiftboundary_ahead', EXT.CONF_stepmode_transientahead, 0, 0.1, '%.3f sec', ImGui.SliderFlags_None )
+            if retval then EXT.CONF_stepmode_transientahead = v end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+          end
+          local retval, v = ImGui.Checkbox( ctx, 'Keep slice length', EXT.CONF_stepmode_keeplen==1 )
+          if retval then EXT.CONF_stepmode_keeplen=EXT.CONF_stepmode_keeplen~1 EXT:save() end  
           
+          if EXT.CONF_stepmode ~= 10 then
+            if ImGui.Button(ctx, '< Move left##movestoffsleftend') then  
+              local dir = -1
+              DATA:Action_ShiftOffset(note_layer_t, 1, dir) 
+            end
+            ImGui.SameLine(ctx)
+          end 
+          if ImGui.Button(ctx, 'Move right >##movestoffsrightend') then 
+            local dir = 1
+            DATA:Action_ShiftOffset(note_layer_t, 1, dir) 
+          end 
+          ImGui.SameLine(ctx)
+          if ImGui.Button(ctx, 'End >##moveendoffsrighttoend') then 
+            local dir = 1
+            DATA:Action_ShiftOffset(note_layer_t, 3, dir) 
+          end 
           ImGui.EndTabItem( ctx) 
         end
         
         
+        -- tools
         if ImGui.BeginTabItem( ctx, 'Tools##sampler_boundary_Tools', false, ImGui.TabItemFlags_None ) then 
           -- crop sample
           local toolongsample =  note_layer_t.SAMPLELEN and note_layer_t.SAMPLELEN > EXT.CONF_crop_maxlen
@@ -6569,10 +6694,30 @@ end
     -- shift start
       if mode == 0 then 
         outst = VF_lim(instrument_samplestoffs + out_shift*dir) 
-        if EXT.CONF_stepmode_keeplen==1 then 
-          outend = VF_lim(instrument_sampleendoffs + out_shift*dir) 
-          --if outend - outst < instrument_sampleendoffs-instrument_samplestoffs then return end
+        if EXT.CONF_stepmode_keeplen==1 then outend = VF_lim(instrument_sampleendoffs + out_shift*dir) end
+    -- shift start to boundary
+       elseif mode == 2 then
+        if dir == -1 then 
+          out_shift = -instrument_samplestoffs
+         else
+          out_shift = instrument_sampleendoffs-instrument_samplestoffs
+        end 
+        outst = VF_lim(instrument_samplestoffs + out_shift) 
+        if EXT.CONF_stepmode_keeplen==1 then outend = VF_lim(instrument_sampleendoffs + out_shift) end     
+        
+    -- shift end
+       elseif mode == 1 then 
+         outend  = VF_lim(instrument_sampleendoffs + out_shift*dir) 
+         if EXT.CONF_stepmode_keeplen==1 then outst = VF_lim(instrument_samplestoffs + out_shift*dir) end
+    -- shift end to doundary
+       elseif mode == 3 then 
+        if dir == -1 then 
+          out_shift = - instrument_sampleendoffs
+         else
+          out_shift = 1-instrument_sampleendoffs
         end
+        outend  = VF_lim(instrument_sampleendoffs + out_shift) 
+        if EXT.CONF_stepmode_keeplen==1 then outst = VF_lim(instrument_samplestoffs + out_shift) end   
       end
     
     if outend - outst < 0.01 then return end
@@ -7112,12 +7257,11 @@ end
       end,
       }) 
     
-    
-    local delmult = 30
+    local delmult = 40
     UI.draw_knob(
       {str_id = '##note_layer_instrument_decay',
       is_small_knob = true,
-      val = math.min(note_layer_t.instrument_decay_norm*delmult,1),
+      val = math.min(note_layer_t.instrument_decay*delmult,1),
       default_val = 0.5,
       x = curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*5, 
       y = curposy_abs,
@@ -7128,8 +7272,8 @@ end
       val_form = note_layer_t.instrument_decay_format,
       appfunc_atclick = function(v)   end,
       appfunc_atdrag = function(v) 
-        note_layer_t.instrument_decay =v /note_layer_t.instrument_decay_max / delmult
-        TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID, v*note_layer_t.instrument_decay_max/delmult )    
+        note_layer_t.instrument_decay =v  / delmult
+        TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID, v/delmult )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
       parseinput = function(str_in)
@@ -7650,10 +7794,20 @@ end
   end
   ---------------------------------------------------------------------  
   function DATA:Drop_UI_interaction_pad(note) 
+    if note == -1 then
+      for i=1,127 do if not DATA.children[i] then 
+        note = i 
+        DATA.parent_track.ext.PARENT_LASTACTIVENOTE = note
+        DATA.temp_scroll_to_note = note
+        DATA:WriteData_Parent()
+        break 
+        end 
+      end
+    end
+    
     -- validate is file or pad dropped
     local retval, count = ImGui.AcceptDragDropPayloadFiles( ctx, 127, ImGui.DragDropFlags_None )
     if retval then 
-      
       local loop_success
       if count == 1 then loop_success = DATA:Auto_LoopSlice(note, count) end
       
