@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.35
+-- @version 4.36
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,18 +15,12 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + StepSequencer: click on name play sample
---    + StepSequencer: always initialize line with 16 steps
---    + StepSequencer: allow to change pattern length, 1 to 128 steps
---    + StepSequencer: allow to scroll pattern view by 16 steps
---    + StepSequencer: show current step cursor/play position
---    # StepSequencer: use combo to select step length, move to Sequencer/Note tools
---    # StepSequencer: MIDI output various internal fixes
+--    # Peaks: fix crash on lost array
 
 
 
 
-rs5kman_vrs = '4.35'
+rs5kman_vrs = '4.36'
 
 
 -- TODO
@@ -1920,20 +1914,22 @@ end
     for note in pairs(DATA.children) do
       if DATA.children[note].layers and DATA.children[note].layers[1] then   
         local t = DATA.children[note].layers[1] 
-        if not (DATA.peakscache[note] and DATA.peakscache[note].peaks_arr) then 
+        if not (DATA.peakscache[note] and DATA.peakscache[note].peaks_arr_valid==true and DATA.peakscache[note].peaks_arr) then 
           local arr = DATA:CollectData2_GetPeaks_grabpeaks(t, UI.calc_rack_padw) 
           if not DATA.peakscache[note] then DATA.peakscache[note] = {} end
           DATA.peakscache[note].peaks_arr = arr
+          DATA.peakscache[note].peaks_arr_valid = true
         end
       end
     end
     
     local t, note, layer = DATA:Sampler_GetActiveNoteLayer()
     if DATA.children and DATA.children[note] and DATA.children[note].layers and DATA.children[note].layers[1] then
-      if not t.peaks_arr_sampler then 
+      if not (t.peaks_arr_sampler and t.peaks_arr_sampler_valid==true) then 
         t.peaks_arr_sampler = DATA:CollectData2_GetPeaks_grabpeaks(t, UI.settingsfixedW) 
         local full = true
         t.peaks_arr_samplerfull = DATA:CollectData2_GetPeaks_grabpeaks(t, UI.settingsfixedW, full) 
+        t.peaks_arr_sampler_valid = true
       end
     end
   end    
