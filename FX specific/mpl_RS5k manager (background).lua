@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.40
+-- @version 4.41
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,39 +15,23 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + UI: show tabs independent of mode
---    + UI: move Rack/sequencer switch to tabs panel
---    + UI: store active left panel mode persistently
---    # StepSequencer: allow click to add/remove note while parameters are open
---    # StepSequencer/Inline: move pattern tools to inline menu
---    # StepSequencer/Inline: fix set values by left drag
---    # StepSequencer/Inline: do not allow to scroll list if inline is opened
---    # StepSequencer/Inline: improve drawing velocity and offset
---    + StepSequencer/Inline: allow negative offset
---    + StepSequencer: add option to apply pattern to all same pattern GUID takes, enabled by default
---    + Settings/TCP auto collapsing: when uncheck 'hide tracks in tcp/mcp', restore visibility
---    + Sampler/Startup: show startup message, allow to directly load database map
---    + Settings/On sample drop: allow to auto normalize RS5k volume to LUFS (default = -14dB)
---    # fix error on losing RS5k instance
+--    + Macro/Context menu: move actions to context menu
+--    + Macro/Context menu: add action to open MIDI learn window
+--    + Macro/Context menu: add action to Bind last touched CC
+--    + Sampler/General/Context menu: allow to bind to macro directly
+--    + Sampler/General/Context menu: allow to remove macro binding
+--    + Sampler/General/Context menu: show bindings as green triangle
+--    # Sampler/Device: minor UI tweaks
 
 
-rs5kman_vrs = '4.40'
+rs5kman_vrs = '4.41'
 
 
 -- TODO
---[[   
-      UI various 
-        inify context menu between pad/seq
-        
-      sampler/sample
-        knob for samples in path
+--[[   sampler/sample
         hot record from master bus 
         ignore adding silent samples
-        
-      macro
-        quick link from parameter (context menu on right click)
-        learn to last tweaked CC
-        
+         
       auto
         auto switch midi bus record arm if playing with another rack 
         autocolor by content
@@ -63,7 +47,6 @@ rs5kman_vrs = '4.40'
       sampler/fx
         compressor
         transient shaper
-        snap offset - > force negative MIDI delay to parent track
         
       sampler/send tab - add sends to reverb, delay inside based on existing send tracks (predefine using sends folder name)
       
@@ -77,10 +60,8 @@ rs5kman_vrs = '4.40'
         seq copy paste clear
         use pitch per note
         use cut filter control via CC link
-        accent
-        shre pattern not to parents but to children also 
-        global offset 
-        --    + StepSequencer: allow to edit track media offset value
+        global velocity override
+        global offset override
         View: Toggle zoom to selected items
         
       autoslice
@@ -829,7 +810,7 @@ rs5kman_vrs = '4.40'
     
     ImGui.Dummy(ctx,0,UI.spacingY)
     --selector
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, (UI.calc_seqW_steps-reset_w) / #DATA.seq_param_selector)  
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, math.floor((UI.calc_seqW_steps-reset_w) / #DATA.seq_param_selector)  )
     ImGui.SetNextItemWidth(ctx,-reset_w)
     local formatIn = DATA.seq_param_selector[DATA.seq_param_selectorID].str
     ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
@@ -977,7 +958,6 @@ rs5kman_vrs = '4.40'
   end
   --------------------------------------------------------------------------------
   function DATA:CollectData_Always_StepPositions() 
-    function __f_CollectData_Always_StepPositions() end
     if not (DATA.proj and reaper.ValidatePtr(DATA.proj, 'ReaProject*')) then return end
     if not (DATA.parent_track and DATA.parent_track.valid == true and DATA.seq and DATA.seq.valid == true and DATA.seq.tk_ptr ) then return end
     DATA.seq.active_step = {}
@@ -1027,7 +1007,6 @@ rs5kman_vrs = '4.40'
       return
     end
      
-    function __f_draw_Seq() end
     
     ImGui.SameLine(ctx) 
     UI.transparentButton(ctx, 'Pattern')ImGui.SameLine(ctx) 
@@ -3083,6 +3062,24 @@ end
           end
         end
       end
+      
+    -- print to children table
+      for slider in pairs(DATA.parent_track.macro.sliders) do
+        if DATA.parent_track.macro.sliders[slider].links then 
+          for link in pairs(DATA.parent_track.macro.sliders[slider].links) do
+            local t = DATA.parent_track.macro.sliders[slider].links[link].note_layer_t
+            for key in pairs(t) do
+              if key:match('instrument_') and key:match('ID') and not key:match('MACRO')  then 
+                local param = t[key]
+                local param_dest = DATA.parent_track.macro.sliders[slider].links[link].param_dest
+                if param_dest == param  then t[key..'_MACRO'] = slider end
+              end
+            end
+          end
+        end
+      end
+      
+      
   end
   -------------------------------------------------------------------  
   function DATA:CollectData_Macro_sub(note_layer_t)
@@ -4121,10 +4118,21 @@ end
         
         -- auto normalization
         if EXT.CONF_onadd_autoLUFSnorm ~= 0 then 
+          
           local normalizeTo = 0
           local normalizeTarget = EXT.CONF_onadd_autoLUFSnorm
-          local LUFSNORM = CalculateNormalization( src, normalizeTo, normalizeTarget, 0, 0 ) 
+          
+          local norm_check1 = 0
+          local norm_check2 = 0
+          
+          if drop_data.SOFFS then norm_check1 = drop_data.SOFFS * src_len end
+          if drop_data.EOFFS then norm_check2 = drop_data.EOFFS * src_len end
+          
+          local LUFSNORM = CalculateNormalization( src, normalizeTo, normalizeTarget, norm_check1, norm_check2 ) 
           local LUFSNORM_db = WDL_VAL2DB(LUFSNORM)
+          drop_data.LUFSNORM_db = LUFSNORM_db
+          
+          LUFSNORM_db = drop_data.LUFSNORM_db
           LUFSNORM_db= tostring(LUFSNORM_db)
           local v = VF_BFpluginparam(LUFSNORM_db, track, instrument_pos,0)
           v = VF_lim(v,0.1,1)
@@ -4136,8 +4144,9 @@ end
         
         if src_len then  
           local instrumentGUID = TrackFX_GetFXGUID( track, instrument_pos)
-          local SAMPLEBPM 
+          local SAMPLEBPM ,LUFSNORM_db
           if drop_data.SAMPLEBPM then SAMPLEBPM = drop_data.SAMPLEBPM end
+          if drop_data.LUFSNORM_db then LUFSNORM_db = drop_data.LUFSNORM_db end
           DATA:WriteData_Child(track, {
             SET_SAMPLELEN = src_len,
             SET_SAMPLEBPM = SAMPLEBPM,
@@ -5459,7 +5468,141 @@ end
     end
   end
   -------------------------------------------------------------------------------- 
+  function UI.draw_popups_macro()
+    if DATA.trig_context == 'macro' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVEMACRO  then 
+      local macroID = DATA.parent_track.ext.PARENT_LASTACTIVEMACRO
+      ImGui.SeparatorText(ctx, 'Macro '..macroID)
+      -- name
+      local custom_name = ''
+      if DATA.parent_track.ext and DATA.parent_track.ext.PARENT_MACROEXT and DATA.parent_track.ext.PARENT_MACROEXT[macroID] and DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name then custom_name = DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name end
+      local retval, buf = ImGui.InputText( ctx, 'Macro name', custom_name, ImGui.InputTextFlags_None )--ImGui.InputTextFlags_EnterReturnsTrue
+      if retval then 
+        if not DATA.parent_track.ext.PARENT_MACROEXT then DATA.parent_track.ext.PARENT_MACROEXT = {} end
+        if not DATA.parent_track.ext.PARENT_MACROEXT[macroID] then DATA.parent_track.ext.PARENT_MACROEXT[macroID] = {} end
+        if buf == '' then DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name = nil else DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name = buf end
+        DATA:WriteData_Parent() 
+      end
+      -- col rgb
+      local col_current = 0
+      if DATA.parent_track.ext.PARENT_MACROEXT and DATA.parent_track.ext.PARENT_MACROEXT[macroID] and DATA.parent_track.ext.PARENT_MACROEXT[macroID].col_rgb then
+        col_current = DATA.parent_track.ext.PARENT_MACROEXT[macroID].col_rgb
+      end
+      local retval, col_rgb = ImGui_ColorEdit3( ctx, 'Macro '..macroID..' color', col_current, ImGui.ColorEditFlags_None|ImGui.ColorEditFlags_NoInputs|ImGui.ColorEditFlags_NoAlpha )
+      if retval then
+        if not DATA.parent_track.ext.PARENT_MACROEXT then DATA.parent_track.ext.PARENT_MACROEXT = {} end
+        if not DATA.parent_track.ext.PARENT_MACROEXT[macroID] then DATA.parent_track.ext.PARENT_MACROEXT[macroID] = {} end
+        DATA.parent_track.ext.PARENT_MACROEXT[macroID].col_rgb = col_rgb
+        DATA:WriteData_Parent() 
+        --ImGui.CloseCurrentPopup(ctx) 
+      end
+      
+      ImGui.SeparatorText(ctx, 'Parameter links')
+      if ImGui.Button(ctx,'Add last touched parameter',-1) then 
+        Undo_BeginBlock2(DATA.proj )
+        DATA:Macro_AddLink()
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - Macro - add link', 0xFFFFFFFF )
+      end
+      if ImGui.Button(ctx,'Clear all links',-1) then 
+        Undo_BeginBlock2(DATA.proj )
+        DATA:Macro_ClearLink()
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - Macro - clear links', 0xFFFFFFFF )
+      end 
+      ImGui.SeparatorText(ctx, 'MIDI/OSC bindings') 
+      
+      local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
+      local str = ''
+      local valid
+      if retval1 then 
+        local midi2 = rawmsg:byte(2)
+        local midi1 = rawmsg:byte(1)  
+        if midi1&0xB0==0xB0 then valid = true str = 'CC chan'..(1+(midi1&0x0F)*15)..' / CC#'
+         --elseif midi1&0x90==0x90 then valid = true str = 'NoteOn '..(1+(midi1&0x0F)*15)..' / Pitch'
+         --elseif midi1&0x80==0x80 then valid = true str = 'NoteOn '..(1+(midi1&0x0F)*15)..' / Pitch'
+        end
+        if str ~='' then str = str..' '..midi2 end
+      end
+      
+      if valid~= true then str = '[not found/not available]' end
+      if valid == true then
+        if ImGui.Button(ctx,'Bind to: '..str,-1) then DATA:Action_LearnController(DATA.parent_track.ptr, DATA.parent_track.macro.pos, macroID) end 
+       else
+        ImGui.BeginDisabled(ctx, true)ImGui.Button(ctx,'Bind to: '..str,-1) ImGui.EndDisabled(ctx)
+      end
+      if ImGui.Button(ctx,'Open native "Learn" window',-1) then
+        TrackFX_SetNamedConfigParm(DATA.parent_track.ptr, DATA.parent_track.macro.pos,'last_touched' ,macroID) 
+        Main_OnCommand(41144,0) -- FX: Set MIDI learn for last touched FX parameter
+      end
+      if ImGui.Button(ctx,'Clear bindings',-1) then 
+        local clear = true
+        DATA:Action_LearnController(DATA.parent_track.ptr, DATA.parent_track.macro.pos, macroID,clear )
+      end 
+      
+      
+    end
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:Action_LearnController(tr,fxnumber,paramnumber, clear)
+    if not (tr and fxnumber and paramnumber) then return end
+    local midi1, midi2
+    local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
+    
+    --[[local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
+    if not retval then return end 
+    local trid = tracknumber&0xFFFF
+    local itid = (tracknumber>>16)&0xFFFF
+    if itid > 0 then return end -- ignore item FX
+    local tr
+    if trid==0 then tr = GetMasterTrack(0) else tr = GetTrack(0,trid-1) end
+    if not tr then return end]]
+    
+    if clear~= true then
+      if retval1 == 0 then return end
+      midi2 = rawmsg:byte(2)
+      midi1 = rawmsg:byte(1)  
+      Undo_BeginBlock2( DATA.proj )
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi1', midi1)
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi2', midi2) 
+      Undo_EndBlock2( DATA.proj, 'Bind controller to RS5k manager', 0xFFFFFFFF )
+     else
+      Undo_BeginBlock2( DATA.proj )
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi1', '')
+      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi2', '') 
+      Undo_EndBlock2( DATA.proj, 'Clear macro binding', 0xFFFFFFFF )
+    end
+  end
+  
+  
+  -------------------------------------------------------------------------------- 
+  function UI.draw_popups_pad()
+    if DATA.trig_context == 'pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
+      ImGui.SeparatorText(ctx, 'Pad '..DATA.parent_track.ext.PARENT_LASTACTIVENOTE)
+      -- Remove
+      local note = DATA.parent_track.ext.PARENT_LASTACTIVENOTE 
+      ImGui.Indent(ctx, 10)
+      if ImGui.Button(ctx, 'Remove pad content',-1) then
+        DATA:Sampler_RemovePad(note) 
+        ImGui.CloseCurrentPopup(ctx) 
+      end
+      ImGui.Unindent(ctx, 10) 
+      --Import
+      ImGui.SeparatorText(ctx, 'Import media items')
+      ImGui.Indent(ctx, 10)
+      if ImGui.Button(ctx, 'Import selected items, starting this pad',0) then
+        DATA:Sampler_ImportSelectedItems()
+        ImGui.CloseCurrentPopup(ctx) 
+      end
+      if ImGui.Checkbox(ctx, 'Remove source item from track', EXT.CONF_importselitems_removesource==1) then EXT.CONF_importselitems_removesource=EXT.CONF_importselitems_removesource~1 EXT:save() end
+      ImGui.Unindent(ctx, 10) 
+      -- import last touched fx
+      ImGui.SeparatorText(ctx, 'Import FX to pad')
+      ImGui.Indent(ctx, 10) 
+      UI.draw_3rdpartyimport_context(note)  
+      ImGui.Unindent(ctx, 10)
+    end
+  end
+  -------------------------------------------------------------------------------- 
   function UI.draw_popups() 
+    function __f_popups() end
     if DATA.trig_openpopup then 
       ImGui.OpenPopup( ctx, 'mainRCmenu', ImGui.PopupFlags_None )
       DATA.trig_context = DATA.trig_openpopup 
@@ -5483,81 +5626,78 @@ end
     local center_x, center_y = ImGui.GetMouseClickedPos( ctx,ImGui.MouseButton_Right  )
     --ImGui.SetNextWindowPos(ctx, center_x+windw/2-25, center_y+windh/2-10, ImGui.Cond_Appearing, 0.5, 0.5)
     ImGui.SetNextWindowPos(ctx, center_x-25, center_y-10, ImGui.Cond_Appearing, 0, 0)
-    ImGui.SetNextWindowSize(ctx, windw, windh, ImGui.Cond_Always)
+    ImGui.SetNextWindowSize(ctx, 0, 0, ImGui.Cond_Always)
     if ImGui.BeginPopup(ctx, 'mainRCmenu',ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border) then 
        
-      -- pad stuff ------------------------------------------------------------
-      if DATA.trig_context == 'pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
-        ImGui.SeparatorText(ctx, 'Pad '..DATA.parent_track.ext.PARENT_LASTACTIVENOTE)
-        local note = DATA.parent_track.ext.PARENT_LASTACTIVENOTE 
-        ImGui.Indent(ctx, 10)
-        if ImGui.Button(ctx, 'Remove pad content',-1) then
-          DATA:Sampler_RemovePad(note) 
-          ImGui.CloseCurrentPopup(ctx) 
-        end
-        ImGui.Unindent(ctx, 10)
-        
-        ImGui.SeparatorText(ctx, 'Import media items')
-        ImGui.Indent(ctx, 10)
-        if ImGui.Button(ctx, 'Import selected items, starting this pad',-1) then
-          DATA:Sampler_ImportSelectedItems()
-          ImGui.CloseCurrentPopup(ctx) 
-        end
-        if ImGui.Checkbox(ctx, 'Remove source from track', EXT.CONF_importselitems_removesource==1) then EXT.CONF_importselitems_removesource=EXT.CONF_importselitems_removesource~1 EXT:save() end
-        ImGui.Unindent(ctx, 10)
-        
-        -- import last touched fx
-        ImGui.SeparatorText(ctx, 'Import FX to pad')
-        ImGui.Indent(ctx, 10) 
-        UI.draw_3rdpartyimport_context(note)  
-        ImGui.Unindent(ctx, 10)
-      end
-      
-      -- macro stuff ------------------------------------------------------------
-      if DATA.trig_context == 'macro' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVEMACRO  then 
-        local macroID = DATA.parent_track.ext.PARENT_LASTACTIVEMACRO
-        ImGui.SeparatorText(ctx, 'Macro '..macroID)
-        -- name
-        local custom_name = ''
-        if DATA.parent_track.ext and DATA.parent_track.ext.PARENT_MACROEXT and DATA.parent_track.ext.PARENT_MACROEXT[macroID] and DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name then custom_name = DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name end
-        local retval, buf = ImGui.InputText( ctx, 'Macro name', custom_name, ImGui.InputTextFlags_None )--ImGui.InputTextFlags_EnterReturnsTrue
-        if retval then 
-          if not DATA.parent_track.ext.PARENT_MACROEXT then DATA.parent_track.ext.PARENT_MACROEXT = {} end
-          if not DATA.parent_track.ext.PARENT_MACROEXT[macroID] then DATA.parent_track.ext.PARENT_MACROEXT[macroID] = {} end
-          if buf == '' then DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name = nil else DATA.parent_track.ext.PARENT_MACROEXT[macroID].custom_name = buf end
-          DATA:WriteData_Parent() 
-        end
-        -- col rgb
-        local col_current = 0
-        if DATA.parent_track.ext.PARENT_MACROEXT and DATA.parent_track.ext.PARENT_MACROEXT[macroID] and DATA.parent_track.ext.PARENT_MACROEXT[macroID].col_rgb then
-          col_current = DATA.parent_track.ext.PARENT_MACROEXT[macroID].col_rgb
-        end
-        local retval, col_rgb = ImGui_ColorEdit3( ctx, 'Macro '..macroID..' color', col_current, ImGui.ColorEditFlags_None|ImGui.ColorEditFlags_NoInputs|ImGui.ColorEditFlags_NoAlpha )
-        if retval then
-          if not DATA.parent_track.ext.PARENT_MACROEXT then DATA.parent_track.ext.PARENT_MACROEXT = {} end
-          if not DATA.parent_track.ext.PARENT_MACROEXT[macroID] then DATA.parent_track.ext.PARENT_MACROEXT[macroID] = {} end
-          DATA.parent_track.ext.PARENT_MACROEXT[macroID].col_rgb = col_rgb
-          DATA:WriteData_Parent() 
-          --ImGui.CloseCurrentPopup(ctx) 
-        end
-      end
-      
-      
-      -- seq_pad stuff ------------------------------------------------------------
-      if DATA.trig_context == 'seq_pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
-        
-        
-      end    
-      
-      
+      UI.draw_popups_pad()
+      UI.draw_popups_macro() 
+      UI.draw_popups_rs5k_ctrl()  
       
       if DATA.trig_closepopup == true then ImGui.CloseCurrentPopup(ctx) DATA.trig_closepopup = nil end
       ImGui.EndPopup(ctx)
     end 
   
     ImGui.PopStyleVar(ctx, 5)
-  end 
-  
+  end  
+  -------------------------------------------------------------------------------- 
+  function UI.draw_popups_rs5k_ctrl()  
+    if not (DATA.trig_context == 'rs5k_ctrl' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE) then return end 
+    
+    local note =  DATA.parent_track.ext.PARENT_LASTACTIVENOTE
+    local layer =  DATA.parent_track.ext.PARENT_LASTACTIVENOTE_LAYER 
+    
+    
+    local track, fx, param
+    if DATA.children[note] and DATA.children[note].layers and DATA.children[note].layers[layer] then
+      track =    DATA.children[note].layers[layer].tr_ptr
+      fx = DATA.children[note].layers[layer].instrument_pos
+    end 
+    
+    if DATA.trig_openpopup_context == 'gain' then param = DATA.children[note].layers[layer].instrument_volID end 
+    if DATA.trig_openpopup_context == 'attack' then param = DATA.children[note].layers[layer].instrument_attackID end
+    if DATA.trig_openpopup_context == 'decay' then param = DATA.children[note].layers[layer].instrument_decayID end 
+    if DATA.trig_openpopup_context == 'sustain' then param = DATA.children[note].layers[layer].instrument_sustainID end 
+    if DATA.trig_openpopup_context == 'release' then param = DATA.children[note].layers[layer].instrument_releaseID end
+    
+    local destslider
+    for slider in pairs(DATA.parent_track.macro.sliders) do
+      if DATA.parent_track.macro.sliders[slider].links then 
+        for link in pairs(DATA.parent_track.macro.sliders[slider].links) do
+          local t = DATA.parent_track.macro.sliders[slider].links[link].note_layer_t
+          if t.noteID == note and t.layerID == layer then
+            local param_dest = DATA.parent_track.macro.sliders[slider].links[link].param_dest
+            if param_dest == param  then
+              destslider = slider
+              break
+            end
+          end
+        end
+      end
+    end
+    
+    if destslider then
+      ImGui.SeparatorText(ctx, 'Pad '..DATA.parent_track.ext.PARENT_LASTACTIVENOTE..': '..DATA.trig_openpopup_context)  
+      if ImGui.Button(ctx,'Remove from macro '..destslider) then 
+        Undo_BeginBlock2(DATA.proj )
+        TrackFX_SetNamedConfigParm(track, fx, 'param.'..param..'plink.active', 0)
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - Remove link', 0xFFFFFFFF ) 
+        ImGui.CloseCurrentPopup(ctx)
+      end 
+    end
+    
+    ImGui.SeparatorText(ctx, 'Link to macro')
+    for macro = 1, DATA.parent_track.ext.PARENT_MACROCNT do
+      if not destslider or (destslider and macro ~= destslider) then
+        if ImGui.Selectable(ctx,'Link to macro '..macro) then 
+          TrackFX_SetNamedConfigParm( track, fx, 'last_touched',param )
+          DATA.parent_track.ext.PARENT_LASTACTIVEMACRO = macro
+          DATA:Macro_AddLink()
+          ImGui.CloseCurrentPopup(ctx)
+        end
+      end
+    end
+    
+  end
   --------------------------------------------------------------------------------  
   function UI.draw_tabs_trackparams()
     local butw = 40
@@ -5633,7 +5773,7 @@ end
       end,
       })
       ]]
-      function __f__draw_tabs_trackparams() end
+      function __f_SEQ_draw_tabs_trackparams() end
       
       
   end
@@ -5909,21 +6049,6 @@ end
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX,UI.spacingY)  
     --ImGui.SetCursorPos(ctx, 0,0)
     
-    
-      -- control actions
-      local ypos = ImGui_GetCursorPosY(ctx)
-      if ImGui.Button(ctx,'Add last touched parameter') then 
-        Undo_BeginBlock2(DATA.proj )
-        DATA:Macro_AddLink()
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - Macro - add link', 0xFFFFFFFF )
-      end
-      ImGui.SameLine(ctx)
-      ImGui_SetCursorPosY(ctx,ypos)
-      if ImGui.Button(ctx,'Clear all links') then 
-        Undo_BeginBlock2(DATA.proj )
-        DATA:Macro_ClearLink()
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - Macro - clear links', 0xFFFFFFFF )
-      end 
       
       
     -- link list
@@ -6166,6 +6291,7 @@ end
     local centered  = knob_t.centered 
     local val_form  = knob_t.val_form or '' 
     local str_id  = knob_t.str_id 
+    local draw_macro_index  = knob_t.draw_macro_index 
     
     local val_max = knob_t.val_max or 1
     local val_min = knob_t.val_min or 0
@@ -6184,7 +6310,7 @@ end
         knobname_h = UI.calc_itemH
         knobctrl_h = h- knobname_h-UI.spacingY -UI.calc_itemH
       end
-      
+    
     -- name background 
       local color
       if knob_t and knob_t.I_CUSTOMCOLOR then 
@@ -6204,7 +6330,17 @@ end
         end
       end   
       
-      
+    
+    -- draw_macro_index
+      if draw_macro_index then
+        local szidx = 8
+        ImGui.DrawList_AddTriangleFilled( UI.draw_list, 
+          x+w-szidx, y+knobname_h, 
+          x+w-1, y+knobname_h, 
+          x+w-1, y+knobname_h+szidx, 
+          0x00FF00F0)
+      end
+    
     -- frame / selection  
       if knob_t.is_selected == true  then 
         ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, UI.colRGBA_selectionrect, 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
@@ -6311,6 +6447,9 @@ end
       end
       
     end
+    
+    
+    
     
     ImGui.SetCursorScreenPos(ctx, curposx, curposy)
     ImGui.Dummy(ctx,knob_t.w,  knob_t.h)
@@ -6453,7 +6592,6 @@ end
       end
     end
     
-    function __f_loopslice_confirm() end
     if DATA.temp_loopslice_askforadd and DATA.temp_loopslice_askforadd.loop_t then
       local mousex, mousey = ImGui.GetMousePos( ctx )
       local out_w = 200
@@ -6556,13 +6694,13 @@ end
   --------------------------------------------------------------------------------
   function UI.draw_tabs_Sampler()
     local note_layer_t, note, layer = DATA:Sampler_GetActiveNoteLayer() if not (note_layer_t) then UI.draw_tabs_Sampler_Startup() return end 
-    
+    local fxbutw = 40
     -- name
     local name = DATA.children[note].P_NAME
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0,0.5)
     UI.Tools_setbuttonbackg()
     ImGui.SetNextItemWidth(ctx, 170)
-    if DATA.children[note].TYPE_DEVICE == true then ImGui.SetNextItemWidth(ctx, 140) end
+    if DATA.children[note].TYPE_DEVICE == true then ImGui.SetNextItemWidth(ctx, 170) end
     local retval, buf = reaper.ImGui_InputText( ctx, '##sampler_activename', name, ImGui.InputTextFlags_EnterReturnsTrue )
     if retval then
       if DATA.children[note].TYPE_DEVICE == true then 
@@ -6585,7 +6723,7 @@ end
     -- device fx
       if DATA.children[note].TYPE_DEVICE == true then 
         ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, 'FX##device_fx',30) then TrackFX_Show( DATA.children[note].tr_ptr,0, 1 ) end
+        if ImGui.Button(ctx, 'FX##device_fx',fxbutw) then TrackFX_Show( DATA.children[note].tr_ptr,0, 1 ) end
       end
     
     ImGui.SameLine(ctx)
@@ -7741,6 +7879,8 @@ end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_volID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
+      appfunc_atclickR = function(v) if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = 'rs5k_ctrl' DATA.trig_openpopup_context = 'gain' end  end,
+      draw_macro_index = note_layer_t['instrument_volID_MACRO'],
       })
       
     UI.draw_knob(
@@ -7767,9 +7907,10 @@ end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_tuneID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
+      draw_macro_index = note_layer_t['instrument_tuneID_MACRO'],
       })  
     
-    if DATA.VCA_mode == 0 then
+    -- tune stuff
       local labelw = 40
       ImGui.SetCursorScreenPos(ctx, curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, curposy_abs + UI.spacingY)
       if ImGui.Button(ctx, '-##oct-') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,-12) end
@@ -7791,7 +7932,7 @@ end
       ImGui.Button(ctx, 'cent', labelw)
       ImGui.SameLine(ctx)
       if ImGui.Button(ctx, '+##cent+') then UI.draw_tabs_Sampler_tabs_rs5kcontrols_tune(note_layer_t,0.01) end
-    end
+    
     
     ImGui.SetCursorScreenPos(ctx, curposx_abs , curposy_abs + UI.calc_knob_h_small +  UI.spacingY)
     
@@ -7823,6 +7964,8 @@ end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_attackID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
+      appfunc_atclickR = function(v) if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = 'rs5k_ctrl' DATA.trig_openpopup_context = 'attack' end  end,
+      draw_macro_index = note_layer_t['instrument_attackID_MACRO'],
       }) 
     
     local delmult = 40
@@ -7850,6 +7993,8 @@ end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_decayID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
+      appfunc_atclickR = function(v) if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = 'rs5k_ctrl' DATA.trig_openpopup_context = 'decay' end  end,
+      draw_macro_index = note_layer_t['instrument_decayID_MACRO'],
       }) 
 
         
@@ -7877,6 +8022,8 @@ end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_sustainID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
+      appfunc_atclickR = function(v) if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = 'rs5k_ctrl' DATA.trig_openpopup_context = 'sustain' end  end,
+      draw_macro_index = note_layer_t['instrument_sustainID_MACRO'],
       }) 
 
 
@@ -7904,6 +8051,8 @@ end
         TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t.instrument_releaseID, v )    
         DATA:CollectData_Children_InstrumentParams(note_layer_t,true) -- minor refresh formatted values
       end,
+      appfunc_atclickR = function(v) if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = 'rs5k_ctrl' DATA.trig_openpopup_context = 'release' end  end,
+      draw_macro_index = note_layer_t['instrument_releaseID_MACRO'],
       }) 
             
   end
@@ -7917,22 +8066,33 @@ end
   function UI.draw_tabs_Sampler_tabs_device()
     local note_layer_t, note, layer0 = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end  
     
+    
+    if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.BeginDisabled(ctx, true) end
+      local retval, v = ImGui.Checkbox( ctx, 'Auto-set velocity ranges on add layer', DATA.children[note].TYPE_DEVICE_AUTORANGE )
+      if retval then 
+        local tr = DATA.children[note].tr_ptr
+        local out = 0
+        if v == true then out = 1 end
+        DATA:WriteData_Child(tr, {SET_MarkType_TYPE_DEVICE_AUTORANGE = out}) 
+        DATA.upd = true
+      end
+      ImGui.SameLine(ctx)
+      if ImGui.Button(ctx, 'Refresh##autosetvelrange', 80) then DATA:Auto_Device_RefreshVelocityRange(note) end
+    if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.EndDisabled(ctx) end
+    
+    ImGui.SameLine(ctx)
+    -- device drop
+    ImGui.Button(ctx, '[Drop layers here]', -1)
+    if ImGui.BeginDragDropTarget( ctx ) then  
+      local cntlayers = 0
+      if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
+      DATA:Drop_UI_interaction_device(note, cntlayers + 1)  
+      ImGui_EndDragDropTarget( ctx )
+    end
+    
     if ImGui.BeginChild( ctx, 'device' ,0,-UI.spacingY) then--,ImGui.ChildFlags_None, ImGui.WindowFlags_NoScrollWithMouse
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY) 
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,5)
-      
-      if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.BeginDisabled(ctx, true) end
-        local retval, v = ImGui.Checkbox( ctx, 'Auto-set velocity ranges on add layer', DATA.children[note].TYPE_DEVICE_AUTORANGE )
-        if retval then 
-          local tr = DATA.children[note].tr_ptr
-          local out = 0
-          if v == true then out = 1 end
-          DATA:WriteData_Child(tr, {SET_MarkType_TYPE_DEVICE_AUTORANGE = out}) 
-          DATA.upd = true
-        end
-        ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, 'Refresh##autosetvelrange', 80) then DATA:Auto_Device_RefreshVelocityRange(note) end
-      if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.EndDisabled(ctx) end
       
       
       local name_w = 185
@@ -7997,14 +8157,6 @@ end
         
       end
       
-      -- device drop
-      ImGui.Button(ctx, '[Drop new layers here]', -1)
-      if ImGui.BeginDragDropTarget( ctx ) then  
-        local cntlayers = 0
-        if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
-        DATA:Drop_UI_interaction_device(note, cntlayers + 1)  
-        ImGui_EndDragDropTarget( ctx )
-      end
       
       -- device drop FX
       local cntlayers = 0
