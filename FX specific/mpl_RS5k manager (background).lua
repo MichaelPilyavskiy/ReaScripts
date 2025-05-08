@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.38
+-- @version 4.39
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,23 +15,13 @@
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Shortcuts: space to play/stop
---    # fix error on project change
---    # Peaks: fix error on long samples
---    + Autoslice: use confirmation window if loop is detected
---    + Autoslice/Confirmation: allow to skip detection and drop to pad normally or cancel
---    + Autoslice/Confirmation: move create MIDI options from Settings locally
---    + Autoslice/Confirmation: add option to share loop as pattern
---    # StepSequencer: always set loop source for pattern
---    # StepSequencer: change item length on change pattern length
---    + StepSequencer/Inline: right click on pad to open inline editor
---    + StepSequencer/Inline: allow to edit velocity
---    + StepSequencer/Inline: allow to edit offset
---    + StepSequencer/Inline: add reset button
+--    # StepSequencer: always fill pattern zeros
+--    # StepSequencer: limit MIDI data to pattern boundaries
+--    # Autoslice: fix error on adding
 
 
 
-rs5kman_vrs = '4.38'
+rs5kman_vrs = '4.39'
 
 
 -- TODO
@@ -71,11 +61,13 @@ rs5kman_vrs = '4.38'
       
       seq
         seq copy paste clear
-        attach pattern GUID
-        share MIDI to tracks, group it
         use pitch per note
         use cut filter control via CC link
         accent
+        shre pattern not to parents but to children also 
+        --    # StepSequencer: write GUID to pattern
+        --    # StepSequencer: apply pattern to all same pattern parent takes
+        
         
       autoslice
         set minimal length
@@ -186,6 +178,7 @@ rs5kman_vrs = '4.38'
           
           -- seq
           CONF_seq_random_probability = 0.5,
+          
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -1066,6 +1059,7 @@ rs5kman_vrs = '4.38'
     DATA.seq.tk_ptr = take 
     DATA.seq.it_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
     DATA.seq.it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+    DATA.seq.I_GROUPID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
     DATA.seq.D_STARTOFFS = GetMediaItemTakeInfo_Value( take,'D_STARTOFFS' )
     DATA.seq.D_PLAYRATE = GetMediaItemTakeInfo_Value( take,'D_PLAYRATE' )
     local source = GetMediaItemTake_Source( take ) 
@@ -1096,23 +1090,31 @@ rs5kman_vrs = '4.38'
     if not DATA.seq.ext.children then DATA.seq.ext.children = {} end
     if not DATA.seq.ext.patternsteplen then DATA.seq.ext.patternsteplen = 0.25 end-- 4.38+
     
+    if not DATA.seq.ext.GUID then DATA.seq.ext.GUID = genGuid() end-- 4.39+
+    
     
     -- fill / init
     for note in pairs(DATA.children) do
       if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
-      if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {{val=0} } end -- this is fixing wrong offset on misssing first step at DATA:_Seq_PrintMIDI(t) 
+      if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end -- this is fixing wrong offset on misssing first step at DATA:_Seq_PrintMIDI(t) --{val=0} 
       if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = 16 end--DATA.seq.ext.patternlen end -- init 16 steps 
       if not DATA.seq.ext.children[note].steplength then DATA.seq.ext.children[note].steplength = 0.25 end -- init 16 steps 
+      
+      for step = 1, DATA.seq.ext.children[note].step_cnt do
+        if not DATA.seq.ext.children[note].steps[step] then DATA.seq.ext.children[note].steps[step] = {} end
+        if not DATA.seq.ext.children[note].steps[step].val then DATA.seq.ext.children[note].steps[step].val = 0 end
+      end
     end
     
     
     
   end
   --------------------------------------------------------------------------------  
-  function DATA:_Seq_PrintMIDI(t, do_not_ignore_empty) 
+  function DATA:_Seq_PrintMIDI(t, do_not_ignore_empty, overrides) 
     local item = t.it_ptr
     local take = t.tk_ptr
     local item_pos = t.it_pos
+    
     if not (item and take) then return end
     if not t.ext.children then return end
     
@@ -1123,6 +1125,7 @@ rs5kman_vrs = '4.38'
     local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
     local seqend_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + DATA.seq.ext.patternlen *steplength ) 
     local seqend_endppq = MIDI_GetPPQPosFromProjTime( take, seqend_sec) 
+    t.seqend_endppq = seqend_endppq -- send to childs export
     
     -- form table
     for note in pairs(t.ext.children) do
@@ -1157,7 +1160,8 @@ rs5kman_vrs = '4.38'
         if t.ext.children[note].steps[step_active].val == 1 then velocity = default_velocity end
         if t.ext.children[note].steps[step_active].val  == 1 and t.ext.children[note].steps[step_active].velocity then velocity = math.floor(t.ext.children[note].steps[step_active].velocity*127) end
         
-        if steppos_start_ppq < seqend_endppq and steppos_end_ppq < seqend_endppq then
+        if steppos_start_ppq < seqend_endppq then--and steppos_end_ppq < seqend_endppq then
+          steppos_end_ppq = math.min(steppos_end_ppq, seqend_endppq)
           form_data[#form_data+1] = {
             ppq_start = math.floor(steppos_start_ppq),
             ppq_end = math.floor(steppos_end_ppq),
@@ -1170,13 +1174,14 @@ rs5kman_vrs = '4.38'
       
       ::skipnextnote::
     end
-    
     if #form_data< 1 and do_not_ignore_empty ~= true then return end
+    
     
     -- output to MIDI 
     local offset = 0
     local flags = 0
     local ppq 
+    
     local lastppq = 0
     --if #form_data< 1 then lastppq = seqst_sec end
     local str = ''
@@ -1196,18 +1201,125 @@ rs5kman_vrs = '4.38'
     end
     
     -- close loop source
-      local ppq = seqend_endppq
+      local ppq = t.seqend_endppq
       local offset = math.floor(ppq - lastppq)
       local str_per_msg = string.pack("i4BI4BBB", offset, flags, 3, 0xB0, 123, 0)
       str = str..str_per_msg
     
     
     MIDI_SetAllEvts(take, str)
-    MIDI_Sort(take)
-    
-    
+    MIDI_Sort(take) 
     SetMediaItemTakeInfo_Value( take,'D_STARTOFFS',DATA.seq.D_STARTOFFS )
     
+    
+    
+    
+    return form_data
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintMIDI_ShareToChildren() 
+    if not DATA.seq.ext.GUID then return end
+    function __f__Seq_PrintMIDI_ShareToChildren() end
+    
+    
+    local t = DATA.seq
+    
+    local item = t.it_ptr
+    local take = t.tk_ptr
+    local item_pos = t.it_pos
+    local form_data = t.form_data
+    
+    if not (item and take) then return end
+    if not t.ext.children then return end
+    
+    if GetToggleCommandState( 1156 )==0 then Main_OnCommandEx(1156, 0, DATA.proj) end-- Options: Toggle item grouping and track media/razor edit grouping 
+    -- refresh group ID
+    if DATA.seq.I_GROUPID == 0 then 
+      Main_OnCommandEx(40032, 0, DATA.proj)-- Item grouping: Group items  
+      DATA.seq.I_GROUPID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+    end
+    SetMediaItemInfo_Value( item, 'B_MUTE',1 ) 
+    
+    
+    -- collect current pattern takes
+      local takeptrs = {}
+      for note in pairs(DATA.children) do
+        local has_take
+        local track = DATA.children[note].tr_ptr
+        local cnt = reaper.CountTrackMediaItems( track )
+        for itemidx = 1, cnt do
+          local item = GetTrackMediaItem( track, itemidx-1 )
+          local take = GetActiveTake(item)
+          if take and TakeIsMIDI(take) then
+            local ret, PATGUID = GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', '', false)
+            local itpos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+            --if then
+            if math.abs(itpos - parent_pos) < 0.1 and ret and PATGUID and DATA.seq.ext.GUID  == PATGUID then
+              takeptrs[note] = take
+              has_take = true
+              break
+            end
+          end
+        end
+        
+        if not has_take then
+          if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps then
+            local item = CreateNewMIDIItemInProj( track, DATA.seq.it_pos, DATA.seq.it_pos + DATA.seq.it_len )
+            SetMediaItemInfo_Value( item, 'B_LOOPSRC',1 )
+            local take = GetActiveTake(item)
+            GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', DATA.seq.ext.GUID, true) 
+            takeptrs[note] = take
+          end
+        end
+        
+      end
+    
+    -- output to MIDI 
+      for note in pairs(takeptrs) do
+        local has_events 
+        local take = takeptrs[note]
+        local offset = 0
+        local flags = 0
+        local ppq 
+        local lastppq = 0
+        --if #form_data< 1 then lastppq = seqst_sec end
+        local str = ''
+        
+          
+        local sz = #form_data
+        for i = 1, sz do 
+          if note == form_data[i].pitch then
+            has_events = true
+            local ppq = form_data[i].ppq_start
+            local offset = ppq - lastppq
+            local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x90, form_data[i].pitch, form_data[i].vel )
+            str = str..str_per_msg
+            lastppq = ppq
+            
+            local ppq = form_data[i].ppq_end
+            local offset = ppq - lastppq
+            local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x80, form_data[i].pitch, 0)
+            str = str..str_per_msg
+            lastppq = ppq 
+          end
+        end
+        
+        -- close loop source
+          local ppq = t.seqend_endppq
+          local offset = math.floor(ppq - lastppq)
+          local str_per_msg = string.pack("i4BI4BBB", offset, flags, 3, 0xB0, 123, 0)
+          str = str..str_per_msg
+        
+        if has_events == true then
+          MIDI_SetAllEvts(take, str)
+          MIDI_Sort(take) 
+          --SetMediaItemTakeInfo_Value( take,'D_STARTOFFS',DATA.seq.D_STARTOFFS ) 
+          local item = reaper.GetMediaItemTake_Item( take )
+          SetMediaItemInfo_Value( item, 'I_GROUPID', DATA.seq.I_GROUPID )
+          UpdateItemInProject(item)
+        end
+      end
+      
   end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_SetItLength_Beats(patternlen) 
@@ -1221,6 +1333,23 @@ rs5kman_vrs = '4.38'
     UpdateItemInProject(DATA.seq.it_ptr)
   end
   --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintMIDI_ShareGUID(parent_t ,outstr) 
+    local parenttake = parent_t.tk_ptr
+    local parentGUID = parent_t.ext.GUID
+    local form_data = parent_t.form_data
+    local tr = DATA.MIDIbus.tr_ptr 
+    local cnt = reaper.CountTrackMediaItems( tr)
+    for itemidx = 1, cnt do
+      local item = reaper.GetTrackMediaItem(tr, itemidx-1)
+      local take = GetActiveTake(item)
+      local it_pos = reaper.GetMediaItemInfo_Value( item,'D_POSITION' )  
+      local ret, GUID = GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', '', false)
+      if parenttake ~= take and ret and GUID ~= '' and GUID == parentGUID then  
+        GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', outstr, true)
+      end
+    end
+  end
+  --------------------------------------------------------------------------------  
   function DATA:_Seq_Print(do_not_ignore_empty) 
     if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end
     if not (DATA.seq.it_ptr and DATA.seq.tk_ptr) then return end
@@ -1231,8 +1360,10 @@ rs5kman_vrs = '4.38'
     SetMediaItemInfo_Value( item, 'B_LOOPSRC',1 )
     local outstr = table.savestring(DATA.seq.ext)
     GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', VF_encBase64(outstr), true)
+    GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', DATA.seq.ext.GUID, true)
     
-    DATA:_Seq_PrintMIDI(DATA.seq, do_not_ignore_empty) 
+    DATA:_Seq_PrintMIDI(DATA.seq, do_not_ignore_empty)  
+    --DATA:_Seq_PrintMIDI_ShareGUID(DATA.seq, VF_encBase64(outstr)) 
   end
   --------------------------------------------------------------------------------  
   function DATA:Auto_LoopSlice_CreatePattern(loop_t) 
@@ -4883,6 +5014,19 @@ end
       ImGui.TreePop(ctx)
     end  
   end
+    --------------------------------------------------------------------------------
+  function UI.draw_tabs_settings_Sequencer()
+  do return end
+    if ImGui.TreeNode(ctx, 'Sequencer', ImGui.TreeNodeFlags_None) then  
+      
+      
+      ::skipset::
+      ImGui.TreePop(ctx)
+    end  
+  end
+  -------------------------------------------------------------------------------- 
+  
+  
   --------------------------------------------------------------------------------    
     function UI.draw_tabs_settings()
     
@@ -4898,6 +5042,7 @@ end
       UI.draw_tabs_settings_UI()
       UI.draw_tabs_settings_AutoColor()
       UI.draw_tabs_settings_Autoslice()
+      UI.draw_tabs_settings_Sequencer()
       
       ImGui.EndChild( ctx)
     end
@@ -5485,6 +5630,9 @@ end
         -- globals
         if ImGui.BeginTabItem( ctx, 'Globals', false, ImGui.TabItemFlags_None ) then
           if ImGui.Button(ctx, 'Clear', butw_3x) then DATA:_Seq_Clear() end 
+         --[[ if ImGui.Button(ctx, 'Explode to children', butw_3x) then 
+            DATA:_Seq_PrintMIDI_ShareToChildren()  
+          end]]
           ImGui.EndTabItem( ctx)  
         end 
         
@@ -6249,7 +6397,7 @@ end
     end
     
     function __f_loopslice_confirm() end
-    if DATA.temp_loopslice_askforadd then
+    if DATA.temp_loopslice_askforadd and DATA.temp_loopslice_askforadd.loop_t then
       local mousex, mousey = ImGui.GetMousePos( ctx )
       local out_w = 200
       local posx =  mousex-out_w/2 -- middle
@@ -8115,7 +8263,7 @@ end
     function __f_loopslice() end
     if EXT.CONF_loopcheck&1==0 then return end  
     
-    loop_t = {}
+    local loop_t = {}
     local createMIDI,createPattern
     local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, 0 )
     local bpm, srclen
@@ -8133,12 +8281,14 @@ end
         
         DATA.temp_loopslice_askforadd = nil
         goto applycollecteddata
+       else 
+        loop_t, bpm, srclen = DATA:Auto_LoopSlice_extract_loopt(filename) 
       end
     
-    loop_t, bpm, srclen = DATA:Auto_LoopSlice_extract_loopt(filename) 
     
     -- if ask then stop to SAVE collected data
       if not DATA.temp_loopslice_askforadd then 
+        if not (loop_t and #loop_t>1) then return end 
         DATA.temp_loopslice_askforadd = 
         { note=note,
           loop_t=loop_t,
@@ -8149,6 +8299,7 @@ end
           stretchmidi = true,
           createPattern = false,
         }
+        
         local do_not_share = true
         return false, do_not_share
       end 
@@ -8182,7 +8333,10 @@ end
     if retval then 
       local loop_success
       if count == 1 then loop_success, do_not_share = DATA:Auto_LoopSlice(note, count) end
+      
       if do_not_share == true then return end
+      
+      
       -- import sample directly
       if loop_success ~= true then
       
