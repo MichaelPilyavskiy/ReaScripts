@@ -74,10 +74,10 @@ rs5kman_vrs = '4.41'
 --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
-    if app_vrs < 6.73 then return reaper.MB('This script require REAPER 6.73+','',0) end
+    if app_vrs < 6.73 then return reaper.MB('This script requires REAPER 6.73+','',0) end
     local ImGui
     
-    if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+    if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script requires reaimgui extension.\nYou can install reaimgui via ReaPack.\nNote: They spell reaimgui with a capital \'i\', causing confusion: ReaImGui','',0) end
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
     ImGui = require 'imgui' '0.9.3.2'
     
