@@ -87,15 +87,64 @@ rs5kman_vrs = '4.42'
 --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
-    if app_vrs < 6.73 then return reaper.MB('This script require REAPER 6.73+','',0) end
+    if app_vrs < 6.73 then return reaper.MB('This script requires REAPER 6.73+','',0) end
     local ImGui
     
-    if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+    if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script requires reaimgui extension.\nYou can install reaimgui via ReaPack.\nNote: They spell reaimgui with a capital \'i\', causing confusion: ReaImGui','',0) end
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
     ImGui = require 'imgui' '0.9.3.2'
     
+--------------------------------------------------------------------------------  midi device layouts    
+  LAYOUTS_INDEX = {
+    pads_8x4                        = 1,
+    two_octaves_keys                = 2,
+    novation_launchpad_mk1_novlpd01 = 3,
+    novation_launchpad_mk2_mk3      = 4,
+  }
+
+  LAYOUTS = {
+    {
+      name = "Default / 8x4 pads"
+    },
     
+    {
+      name = "Two octaves keys"
+    },
     
+    {
+      name = "Novation Launchpad MK1 NOVLPD01",
+      -- This layout starts from the bottom left of the launchpad			
+      -- The notes go from left to right, then we move up to the row above and repeat			
+      -- The other rows increment from the first number in the row.			
+      midi_layout = {
+          112, 113, 114, 115, 116, 117, 118, 119, -- Row 8 bottom row
+           96,  97,  98,  99, 100, 101, 102, 103, -- Row 7
+           80,  81,  82,  83,  84,  85,  86,  87, -- Row 6
+           64,  65,  66,  67,  68,  69,  70,  71, -- Row 5
+           48,  49,  50,  51,  52,  53,  54,  55, -- Row 4
+           32,  33,  34,  35,  36,  37,  38,  39, -- Row 3
+           16,  17,  18,  19,  20,  21,  22,  23, -- Row 2
+            0,   1,   2,   3,   4,   5,   6,   7  -- Row 1 top row
+      }
+    },
+    
+    {
+      name = "Novation Launchpad MK2 / MK3",
+      -- MK2 and MK3 share the same layout for the 8x8 pads.
+      midi_layout = {
+          81, 82, 83, 84, 85, 86, 87, 88,
+          71, 72, 73, 74, 75, 76, 77, 78,
+          61, 62, 63, 64, 65, 66, 67, 68,
+          51, 52, 53, 54, 55, 56, 57, 58,
+          41, 42, 43, 44, 45, 46, 47, 48,
+          31, 32, 33, 34, 35, 36, 37, 38,
+          21, 22, 23, 24, 25, 26, 27, 28,
+          11, 12, 13, 14, 15, 16, 17, 18
+      }
+    }
+  }
+  
+  
   -------------------------------------------------------------------------------- init external defaults 
   EXT = {
           viewport_posX = 10,
@@ -144,7 +193,7 @@ rs5kman_vrs = '4.42'
           UI_incomingnoteselectpad = 0,
           UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128=children chain
           UI_pads_sendnoteoff = 1,
-          UI_drracklayout = 0,
+          UI_drracklayout = LAYOUTS_INDEX.pads_8x4,
           UIdatabase_maps_current = 1,
           UI_padcustomnames = '',
           CONF_showplayingmeters = 1,
@@ -338,6 +387,15 @@ rs5kman_vrs = '4.42'
     
   
   --------------------------------------------------------------------------------  
+  function is_layout_launchpad()
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk1_novlpd01
+    or EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk2_mk3 then
+      return true
+    else
+      return false
+    end
+  end
+
   function UI.draw_Seq_Step_handlemouse()  
   
     if not (DATA.temp_holdmode_value and DATA.temp_holdmode and DATA.temp_holdmode_stepline and DATA.temp_holdmode_step ) then return end
@@ -1960,11 +2018,11 @@ end
         UI.calc_cellside = UI.calc_padoverviewH/32 
         UI.calc_padoverviewW = UI.calc_cellside * 4 + UI.spacingX*2
         if UI.calc_padoverviewW < 30 then UI.hide_padoverview = true end
-        if EXT.UI_drracklayout == 1 then --keys
+        if EXT.UI_drracklayout == LAYOUTS_INDEX.two_octaves_keys then
           UI.calc_cellside = UI.calc_padoverviewH /22
           UI.calc_padoverviewW = UI.calc_cellside * 7 + UI.spacingX*2
         end 
-        if EXT.UI_drracklayout == 2 then --LP
+        if is_layout_launchpad() then
           UI.calc_padoverviewW = UI.spacingX*2
         end 
         local calc_padoverviewW = UI.calc_padoverviewW
@@ -1987,11 +2045,11 @@ end
         UI.calc_rackH = math.max(math.floor(DATA.display_h  -UI.spacingY )-1,250)--- UI.calc_itemH
         UI.calc_rack_padw = math.floor((UI.calc_rackW-UI.spacingX*3) / 4)
         UI.calc_rack_padh = math.floor((UI.calc_rackH-UI.spacingY*3) / 4)
-        if EXT.UI_drracklayout == 1 then --keys
+        if EXT.UI_drracklayout == LAYOUTS_INDEX.two_octaves_keys then
           UI.calc_rack_padw = math.floor((UI.calc_rackW) / 7)-- -UI.spacingX
           UI.calc_rack_padh = math.floor((UI.calc_rackH) / 4)
         end
-        if EXT.UI_drracklayout == 2  then --launch
+        if is_layout_launchpad() then
           UI.calc_rack_padw = math.floor(-UI.spacingX+(UI.calc_rackW-UI.spacingX) / 8)-- 
           UI.calc_rack_padh = math.floor(-UI.spacingY+(UI.calc_rackH) / 8)
         end
@@ -2644,11 +2702,11 @@ end
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
   function DATA:Auto_StuffSysex() 
-    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
+    if is_layout_launchpad() then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
   end
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg  
-    if  not (EXT.CONF_launchpadsendMIDI == 1 and EXT.UI_drracklayout == 2) then return end 
+    if not (EXT.CONF_launchpadsendMIDI == 1 and is_layout_launchpad() ) then return end 
     -- search HW MIDI out 
       local is_LPminiMK3
       local is_LPProMK3
@@ -3008,7 +3066,7 @@ end
           PARENT_MIDIFLAGS = 0,
           PARENT_MACRO_GUID = '',
         }
-      if EXT.UI_drracklayout == 2 then 
+      if is_layout_launchpad() then 
         DATA.parent_track.ext.PARENT_DRRACKSHIFT = 11
       end
     -- read values v3 (backw compatibility)
@@ -4212,7 +4270,7 @@ end
     ImGui.SetCursorPosY(ctx,UI.spacingY*2 + UI.calc_itemH)
     
     local ovrvieww = UI.calc_cellside*4
-    if EXT.UI_drracklayout == 1 then ovrvieww = UI.calc_cellside*7 end
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.two_octaves_keys then ovrvieww = UI.calc_cellside*7 end
     --ImGui.InvisibleButton(ctx, '##padoverview',ovrvieww,-1)
     ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, 0)
     ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, 0)
@@ -4226,15 +4284,16 @@ end
     if retval then UI.Layout_PadOverview_handlemouse(v) end
     local x, y = ImGui.GetItemRectMin(ctx)
     local w, h = ImGui.GetItemRectSize(ctx) 
-    if EXT.UI_drracklayout == 0 then UI.Layout_PadOverview_generategrid_pads(x+1,y,w,h) end 
-    if EXT.UI_drracklayout == 1 then UI.Layout_PadOverview_generategrid_keys(x+1,y,w,h) end 
-    --if EXT.UI_drracklayout == 2 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.pads_8x4 then UI.Layout_PadOverview_generategrid_pads(x+1,y,w,h) end 
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.two_octaves_keys then UI.Layout_PadOverview_generategrid_keys(x+1,y,w,h) end 
+    --what does this code do? why is it commented out?
+    --if EXT.UI_drracklayout == LAYOUT_INDEX.novation_launchpad_mk2_mk3 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
   end
   --------------------------------------------------------------------------------
   function UI.Layout_PadOverview_handlemouse(v)  
     if not (DATA.parent_track and DATA.parent_track.ext) then return end
     -- pads 
-    if EXT.UI_drracklayout == 0 or EXT.UI_drracklayout == 2 then
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.pads_8x4 or is_layout_launchpad() then
       local activerow = math.floor(v*33)
       local qblock = 4
       if activerow < 1 then activerow = 0 end
@@ -4248,7 +4307,7 @@ end
     end
      
     -- keys
-    if EXT.UI_drracklayout == 1 then 
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.two_octaves_keys then 
       local out_offs = 127-math.floor((1-v)*127) 
       out_offs = 12 * math.floor(out_offs/12)
       if out_offs ~= DATA.parent_track.ext.PARENT_DRRACKSHIFT then 
@@ -4868,9 +4927,15 @@ end
       
       --ImGui.SeparatorText(ctx, 'UI interaction') 
         --ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad (experimental)'},'##settings_drracklayout', 'DrumRack layout', 200) 
+        UI.draw_tabs_settings_combo('UI_drracklayout',
+        {
+          [1]=LAYOUTS[1].name,
+          [2]=LAYOUTS[2].name,
+          [3]=LAYOUTS[3].name,
+          [4]=LAYOUTS[4].name,
+        },'##settings_drracklayout', 'DrumRack layout', 200) 
         ImGui.Indent(ctx, UI.settings_indent)
-          if EXT.UI_drracklayout == 2 then 
+          if is_layout_launchpad() then 
             if ImGui.Checkbox( ctx, 'Send MIDI to device on state change',                              EXT.CONF_launchpadsendMIDI == 1 ) then EXT.CONF_launchpadsendMIDI =EXT.CONF_launchpadsendMIDI~1 EXT:save() end
           end
         
@@ -5167,29 +5232,30 @@ end
     ImGui.PopStyleVar(ctx,2)
   end 
   --------------------------------------------------------------------------------  
-  function UI.Layout_Pads() 
-    if EXT.UI_drracklayout ~= 0 then return end
-    local layout_pads_cnt = 16
-    local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
-    local xoffs= UI.calc_rackX
-    local padID0 = 0
-    for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
-      UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
-      xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
-      if padID0%4==3 then 
-        xoffs = UI.calc_rackX 
-        yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
-      end
+  function UI.Layout_Pads_8x4() 
+    if EXT.UI_drracklayout ~= LAYOUTS_INDEX.pads_8x4 then return end
+      local layout_pads_cnt = 16
+      local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
+      local xoffs= UI.calc_rackX
+      local padID0 = 0
+      for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
+        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
+        xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
+        if padID0%4==3 then 
+          xoffs = UI.calc_rackX 
+          yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
+        end
       padID0 = padID0 + 1
     end
   end
   --------------------------------------------------------------------------------  
   function UI.Layout_Launchpad() 
-    if not (EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 ) then return end
+    if not ( is_layout_launchpad() ) then return end
     
     
+    -- What's this code for? why's it commented out?
     --[[ drums 
-    if EXT.UI_drracklayout == 2 then
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk2_mk3 then
       local layout_pads_cnt = 64
       local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
       local xoffs= UI.calc_rackX
@@ -5215,27 +5281,28 @@ end
     
     
     -- programmer
-    if EXT.UI_drracklayout == 2 then
-      local layout_pads_cnt = 79
-      local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
-      local xoffs0= UI.calc_rackX
-      local padID0 = 0
-      local offs = DATA.parent_track.ext.PARENT_DRRACKSHIFT
-      for note = 37, layout_pads_cnt-1+offs do 
-      --if ((note - offs)-8)%10==0 then  goto skip end
-      --if ((note - offs)-9)%10==0 then  goto skip end 
-        xoffs = xoffs0 + (UI.calc_rack_padw + UI.spacingX) * (padID0%8)--xoffs + UI.calc_rack_padw + UI.spacingX
-        yoffs = yoffs0 - (UI.calc_rack_padh+ UI.spacingY) * math.floor(padID0 / 8)
-        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
-        padID0 = padID0 + 1
-        ::skip::
-      end
+    local layout_pads_cnt = 79
+    local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
+    local xoffs0= UI.calc_rackX
+    local padID0 = 0
+    local offs = DATA.parent_track.ext.PARENT_DRRACKSHIFT
+
+    local midi_layout = LAYOUTS[EXT.UI_drracklayout].midi_layout
+    for note_index = 1, #midi_layout do 
+      xoffs = xoffs0 + (UI.calc_rack_padw + UI.spacingX) * (padID0%8)--xoffs + UI.calc_rack_padw + UI.spacingX
+      yoffs = yoffs0 - (UI.calc_rack_padh+ UI.spacingY) * math.floor(padID0 / 8)
+      UI.draw_Rack_Pads_controls(
+        DATA.children[ midi_layout[ note_index ] ],
+        midi_layout[ note_index ],
+        xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
+      padID0 = padID0 + 1
+      ::skip::
     end
     
   end
   --------------------------------------------------------------------------------  
   function UI.Layout_Keys() 
-    if EXT.UI_drracklayout ~= 1 then return end
+    if EXT.UI_drracklayout ~= LAYOUTS_INDEX.two_octaves_keys then return end
     
     local layout_pads_cnt = 24
       
@@ -5275,7 +5342,7 @@ end
       if not (DATA.parent_track and DATA.parent_track.valid == true) then return end
       
       --ImGui.DrawList_AddRectFilled( UI.draw_list, UI.calc_rackX, UI.calc_rackY, UI.calc_rackX+UI.calc_rackW, UI.calc_rackY+UI.calc_rackH, 0xFFFFFFA0, 0, 0 )
-      UI.Layout_Pads() 
+      UI.Layout_Pads_8x4() 
       UI.Layout_Keys() 
       UI.Layout_Launchpad() 
       
