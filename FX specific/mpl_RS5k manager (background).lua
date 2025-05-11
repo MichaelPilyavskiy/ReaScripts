@@ -85,9 +85,8 @@ rs5kman_vrs = '4.41'
   LAYOUTS_INDEX = {
     pads_8x4                        = 1,
     two_octaves_keys                = 2,
-    novation_launchpad_mini_mk2     = 3,
-    novation_launchpad_mk1_novlpd01 = 4,
-    novation_launchpad_pro_mk3      = 5,
+    novation_launchpad_mk1_novlpd01 = 3,
+    novation_launchpad_mk2_mk3      = 4,
   }
 
   LAYOUTS = {
@@ -97,20 +96,6 @@ rs5kman_vrs = '4.41'
     
     {
       name = "Two octaves keys"
-    },
-    
-    {
-      name = "Launchpad MK2",
-      midi_layout = {
-        81, 82, 83, 84, 85, 86, 87, 88,
-        71, 72, 73, 74, 75, 76, 77, 78,
-        61, 62, 63, 64, 65, 66, 67, 68,
-        51, 52, 53, 54, 55, 56, 57, 58,
-        41, 42, 43, 44, 45, 46, 47, 48,
-        31, 32, 33, 34, 35, 36, 37, 38,
-        21, 22, 23, 24, 25, 26, 27, 28,
-        11, 12, 13, 14, 15, 16, 17, 18
-       }
     },
     
     {
@@ -131,9 +116,8 @@ rs5kman_vrs = '4.41'
     },
     
     {
-      name = "Novation Launchpad Pro MK3",
-      -- layout found on github
-      -- https://gist.github.com/mxmilkiib/75d869404d583271f0a9c078ccbb8686
+      name = "Novation Launchpad MK2 / MK3",
+      -- MK2 and MK3 share the same layout for the 8x8 pads.
       midi_layout = {
           81, 82, 83, 84, 85, 86, 87, 88,
           71, 72, 73, 74, 75, 76, 77, 78,
@@ -391,9 +375,8 @@ rs5kman_vrs = '4.41'
   
   --------------------------------------------------------------------------------  
   function is_layout_launchpad()
-    if EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mini_mk2
-    or EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk1_novlpd01
-    or EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_pro_mk3 then
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk1_novlpd01
+    or EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk2_mk3 then
       return true
     else
       return false
@@ -4275,7 +4258,7 @@ end
     if EXT.UI_drracklayout == LAYOUTS_INDEX.pads_8x4 then UI.Layout_PadOverview_generategrid_pads(x+1,y,w,h) end 
     if EXT.UI_drracklayout == LAYOUTS_INDEX.two_octaves_keys then UI.Layout_PadOverview_generategrid_keys(x+1,y,w,h) end 
     --what does this code do? why is it commented out?
-    --if EXT.UI_drracklayout == 3 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
+    --if EXT.UI_drracklayout == LAYOUT_INDEX.novation_launchpad_mk2_mk3 then UI.Layout_PadOverview_generategrid_launchpad(x+1,y,w,h) end 
   end
   --------------------------------------------------------------------------------
   function UI.Layout_PadOverview_handlemouse(v)  
@@ -4915,7 +4898,6 @@ end
           [2]=LAYOUTS[2].name,
           [3]=LAYOUTS[3].name,
           [4]=LAYOUTS[4].name,
-          [5]=LAYOUTS[5].name,
         },'##settings_drracklayout', 'DrumRack layout', 200) 
         ImGui.Indent(ctx, UI.settings_indent)
           if is_layout_launchpad() then 
@@ -5235,7 +5217,7 @@ end
     
     -- What's this code for? why's it commented out?
     --[[ drums 
-    if EXT.UI_drracklayout == 3 then
+    if EXT.UI_drracklayout == LAYOUTS_INDEX.novation_launchpad_mk2_mk3 then
       local layout_pads_cnt = 64
       local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
       local xoffs= UI.calc_rackX
