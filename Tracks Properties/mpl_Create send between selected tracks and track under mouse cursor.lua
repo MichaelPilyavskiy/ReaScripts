@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,7 +40,7 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # replace missed data for default send flags by -2.0dB in postfader mode
+--    # fix multichannel mode
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -130,7 +130,7 @@
     for srci = 1, #src_t do
       local src_tr =  VF_GetTrackByGUID( src_t[srci] )
       local src_tr_ch = GetMediaTrackInfo_Value( src_tr, 'I_NCHAN')
-      if obeyparent_channels == true then src_tr_ch = GetMediaTrackInfo_Value( src_tr, 'C_MAINSEND_NCH') end
+      if obeyparent_channels == true and data_t.MCH_mode ~= true then src_tr_ch = GetMediaTrackInfo_Value( src_tr, 'C_MAINSEND_NCH') end
       
       for desti = 1, #dest_t do
         local dest_tr =  VF_GetTrackByGUID(dest_t[desti] )
