@@ -1,7 +1,5 @@
 -- @description RS5k StepSequencer
 -- @author MPL
--- @website https://forum.cockos.com/showthread.php?t=207971
--- @about Script for managing MIDI patterns, placed on RS5k manager MIDI Bus
 -- @noidex
 
 
@@ -192,7 +190,7 @@ reaper.set_action_options(1 )
           },
           
           seq_horiz_scroll = 0,
-          
+          seq_patlen_extendchildrenlen = 0,
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
   
@@ -223,7 +221,7 @@ reaper.set_action_options(1 )
           }
   
     -- size
-    UI.w_min = 610
+    UI.w_min = 640
     UI.h_min = 300
     UI.settingsfixedW = 450
     UI.actionsbutW = 60
@@ -318,6 +316,7 @@ reaper.set_action_options(1 )
   function UI.draw_Seq_Step(note_t)  
     if not note_t then return end 
     local note= note_t.noteID 
+    if not DATA.seq.ext.patternlen then return end
     
     function __f_draw_Seq_Step() end
     ImGui.SetCursorPosX(ctx, UI.calc_seqXL_steps)
@@ -509,6 +508,11 @@ function UI.VDragInt(ctx, str_id, size_w, size_h, v, v_min, v_max, formatIn, fla
   end
   if default and ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) then v_out = default dy = 1 end
   local deact = ImGui.IsItemDeactivated(ctx)
+  local rightclick = ImGui.IsItemHovered(ctx) and ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Right)
+  local vertical, horizontal = ImGui.GetMouseWheel( ctx )
+  local mousewheel = ImGui.IsItemHovered(ctx) and vertical ~= 0
+  if mousewheel then mousewheel = math.abs(vertical)/vertical end
+    
   ImGui.SetCursorPos(ctx,x,y)
   
   if formatIn then ImGui.Button(ctx, formatIn..str_id..'info',size_w, size_h) end
@@ -518,8 +522,8 @@ function UI.VDragInt(ctx, str_id, size_w, size_h, v, v_min, v_max, formatIn, fla
   ImGui.PopStyleVar(ctx,4)
   
   -- prevent commit when mouse is not moving
-  if dy == 0 then return nil, nil,deact end 
-  if v_out then return  true,v_out,deact end
+  if dy == 0 then return nil, nil,deact,rightclick,mousewheel end 
+  if v_out then return  true,v_out,deact,rightclick,mousewheel end
 end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls(note_t)
@@ -571,6 +575,57 @@ end
         local tri_sz =5
         ImGui_DrawList_AddTriangleFilled( UI.draw_list, xabsstepcnt-tri_sz+UI.calc_seq_ctrl_butW, yabsstepcnt, xabsstepcnt+UI.calc_seq_ctrl_butW, yabsstepcnt, xabsstepcnt+UI.calc_seq_ctrl_butW, yabsstepcnt+tri_sz, 0x00FF00FF )
       end   
+
+      -- track vol
+      local note_layer_t = DATA.children[note]
+      if not (DATA.children[note].TYPE_DEVICE and DATA.children[note].TYPE_DEVICE == true) then 
+        if DATA.children[note].layers and DATA.children[note].layers[1] then note_layer_t = DATA.children[note].layers[1] end
+      end
+      if note_layer_t and note_layer_t.D_VOL then 
+        local curposx_abs, curposy_abs = reaper.ImGui_GetCursorScreenPos(ctx)
+        UI.draw_knob(
+          {str_id = '##spl_trvol'..note,
+          is_micro_knob = true,
+          val = math.min(1,note_layer_t.D_VOL/2), 
+          default_val = 0.5,
+          x = curposx_abs, 
+          y = curposy_abs,
+          w = UI.calc_seq_ctrl_butW,
+          h = UI.seq_padH-1,
+          name = 'Volume',
+          val_form = note_layer_t.D_VOL_format,
+          appfunc_atclick = function(v)   end,
+          appfunc_atdrag = function(v)  
+            note_layer_t.D_VOL =v *2
+            SetMediaTrackInfo_Value( note_layer_t.tr_ptr, 'D_VOL', v *2 )
+          end,
+          })
+        ImGui.SameLine(ctx)
+        local curposx_abs, curposy_abs = reaper.ImGui_GetCursorScreenPos(ctx)
+        UI.draw_knob(
+          {str_id = '##spl_trpan'..note,
+          is_micro_knob = true,
+          centered = true,
+          val = note_layer_t.D_PAN, 
+          val_max = 1, 
+          val_min = -1, 
+          default_val = 0,
+          x = curposx_abs, 
+          y = curposy_abs,
+          w = UI.calc_seq_ctrl_butW,
+          h = UI.seq_padH-1,
+          name = 'Volume',
+          val_form = note_layer_t.D_PAN_format,
+          appfunc_atclick = function(v)   end,
+          appfunc_atdrag = function(v)  
+            note_layer_t.D_PAN =v
+            SetMediaTrackInfo_Value( note_layer_t.tr_ptr, 'D_PAN', v )
+          end,
+          })          
+      end
+      ImGui.SameLine(ctx)
+      
+      
       
     -- name  
       -- define txt
@@ -589,8 +644,6 @@ end
       
       ImGui.PushStyleColor(ctx, ImGui.Col_Button, color)
       local name_localx = reaper.ImGui_GetCursorPosX(ctx)
-      if not DATA.testnote_format then DATA.testnote_format = {} end
-      DATA.testnote_format[note] = note_format
       
       -- fill name
       local x1,y1= ImGui_GetCursorScreenPos(ctx)
@@ -637,9 +690,9 @@ end
     ImGui.PopStyleVar(ctx, 4) 
     ImGui.PopFont(ctx) 
     
-      
     -- inline 
-      UI.draw_Seq_ctrls_inline(note_t)
+      UI.draw_Seq_ctrls_inline(note_t)    
+    
       
     --ImGui.Dummy(ctx,0,UI.spacingY) 
     
@@ -1035,18 +1088,48 @@ end
     -- patternlen + scroll
       local patternlen = DATA.seq.ext.patternlen --or 0
       local floor = true
-      local retval, v = UI.VDragInt( ctx, '##patternlen', UI.calc_seq_ctrl_butW, UI.calc_seq_ctrl_butH, patternlen, 1, UI.seq_maxstepcnt,  patternlen, ImGui.SliderFlags_None, floor, 16)
-      if retval then 
-        DATA.seq.ext.patternlen = v
-        --DATA:_Seq_Print() 
-        DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen)
+      local retval, v, deact,rightclick,mousewheel = UI.VDragInt( ctx, '##patternlen', UI.calc_seq_ctrl_butW, UI.calc_seq_ctrl_butH, patternlen, 1, UI.seq_maxstepcnt,  patternlen, ImGui.SliderFlags_None, floor, 16)
+      if retval then DATA.seq.ext.patternlen = v DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen)
       end
-      if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then 
-        DATA.upd2.refresh = true
-        DATA.upd2.seqprint = true
+      if deact==true then DATA:_Seq_Print() end
+      if rightclick == true then ImGui.OpenPopup( ctx, 'patterlen', ImGui.PopupFlags_None )  end
+      if mousewheel then
+        if mousewheel > 0 then DATA.seq.ext.patternlen = VF_lim(DATA.seq.ext.patternlen * 2,1,UI.seq_maxstepcnt) else DATA.seq.ext.patternlen = VF_lim(math.floor(DATA.seq.ext.patternlen / 2),1,UI.seq_maxstepcnt) end
+        DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen) 
+        DATA:_Seq_Print()
       end
       ImGui.SameLine(ctx) 
       ImGui.SetItemTooltip(ctx,'Pattern length')
+      --ImGui.SetNextWindowPos( ctx, UI.calc_seqX + UI.calc_seqXL_padname, seq_yA + UI.seq_padH + UI.spacingY , ImGui.Cond_Always, 0, 0 )--UI.calc_seqXL_steps
+      --ImGui.SetNextWindowSize( ctx, width_area, 0, ImGui.Cond_Always )
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,2)   
+      if reaper.ImGui_BeginPopup(ctx,'patterlen') then
+        local posx,posy = ImGui.GetCursorPos(ctx)
+        local set
+        if ImGui.Selectable(ctx, '16 steps') then set = 16 end 
+        if ImGui.Selectable(ctx, '32 steps') then set = 32 end
+        if ImGui.Selectable(ctx, '64 steps') then set = 64 end 
+        if ImGui.Selectable(ctx, '128 steps') then set = 128 end
+        if ImGui.Checkbox(ctx, 'Extend children', DATA.seq_patlen_extendchildrenlen==1) then DATA.seq_patlen_extendchildrenlen=DATA.seq_patlen_extendchildrenlen~1 end
+        
+        if set then
+          DATA.seq.ext.patternlen = set
+          DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen)
+          if DATA.seq_patlen_extendchildrenlen ==1 and DATA.seq.ext and DATA.seq.ext.children then 
+            for note in pairs(DATA.seq.ext.children) do
+              DATA.seq.ext.children[note].step_cnt = set
+            end
+          end
+          DATA:_Seq_Print()
+          reaper.ImGui_CloseCurrentPopup(ctx)
+        end
+         
+        ImGui.Dummy(ctx,0,UI.spacingY)
+        reaper.ImGui_EndPopup(ctx)
+      end
+      ImGui.PopStyleVar(ctx)
+      
+      
       
     
     -- swing
@@ -1058,8 +1141,7 @@ end
       --DATA:_Seq_Print(nil, true)
     end
     if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then 
-      DATA.upd2.refresh = true
-      DATA.upd2.seqprint = true
+      DATA:_Seq_Print()
     end
     
     -- draw main stuff
@@ -1115,7 +1197,9 @@ end
     ImGui.SetNextItemWidth(ctx, -1)
     local format = ''
     if DATA.seq.stepoffs and DATA.seq.ext.patternlen and UI.calc_seqW_steps_visible then 
-      format = (DATA.seq.stepoffs+1)..'-'..(math.min(DATA.seq.stepoffs+UI.calc_seqW_steps_visible-1,DATA.seq.ext.patternlen))..' steps' 
+      local maxval = (math.min(DATA.seq.stepoffs+UI.calc_seqW_steps_visible-1,DATA.seq.ext.patternlen))
+      maxval = math.max(maxval,16)
+      format = (DATA.seq.stepoffs+1)..'-'..maxval..' steps' 
     end
     local ret, v = ImGui.SliderDouble(ctx,'##horizscroll',DATA.seq_horiz_scroll,0,1,format,ImGui.SliderFlags_None)
     if ret then 
@@ -1277,7 +1361,7 @@ end
         if UI.hide_padoverview == true then  UI.calc_seqW = UI.calc_rackW end 
         UI.calc_seq_ctrl_butW = math.floor(UI.seq_padH*0.7)
         UI.calc_seq_ctrl_butH = UI.calc_seq_ctrl_butW  
-        UI.calc_seqXL_padname = (UI.calc_seq_ctrl_butW + UI.spacingX)*3 
+        UI.calc_seqXL_padname = (UI.calc_seq_ctrl_butW + UI.spacingX)*5
         UI.calc_seqXL_steps = UI.calc_seqXL_padname +UI.seq_padnameW  + UI.seq_audiolevelW + UI.spacingX 
         UI.calc_seqW_steps = DATA.display_w - UI.calc_seqXL_steps
         
@@ -1448,6 +1532,8 @@ end
     local val_form  = knob_t.val_form or '' 
     local str_id  = knob_t.str_id 
     local draw_macro_index  = knob_t.draw_macro_index 
+    local is_micro_knob  = knob_t.is_micro_knob 
+    local yoffsarc  = knob_t.yoffsarc  or 0
     
     local val_max = knob_t.val_max or 1
     local val_min = knob_t.val_min or 0
@@ -1466,29 +1552,33 @@ end
         knobname_h = UI.calc_itemH
         knobctrl_h = h- knobname_h-UI.spacingY -UI.calc_itemH
       end
-    
-    -- name background 
-      local color
-      if knob_t and knob_t.I_CUSTOMCOLOR then 
-        color = ImGui.ColorConvertNative(knob_t.I_CUSTOMCOLOR) 
-        color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
+      if is_micro_knob== true then
+        knobname_h = 0
+        knobctrl_h = h
+        yoffsarc = 1
       end
-      if knob_t and knob_t.colfill_rgb then color = (knob_t.colfill_rgb << 8) | 0xFF end
-
-
-      if color then 
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, color, 5, ImGui.DrawFlags_RoundCornersTop)
-       else 
-        if knob_t.active_name == true then
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
-         else
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+    -- name background 
+    
+      if is_micro_knob~= true then
+        local color
+        if knob_t and knob_t.I_CUSTOMCOLOR then 
+          color = ImGui.ColorConvertNative(knob_t.I_CUSTOMCOLOR) 
+          color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
         end
-      end   
-      
+        if knob_t and knob_t.colfill_rgb then color = (knob_t.colfill_rgb << 8) | 0xFF end
+        if color then 
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, color, 5, ImGui.DrawFlags_RoundCornersTop)
+         else 
+          if knob_t.active_name == true then
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
+           else
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+          end
+        end   
+      end
     
     -- draw_macro_index
-      if draw_macro_index then
+      if draw_macro_index and is_micro_knob~= true then
         local szidx = 8
         ImGui.DrawList_AddTriangleFilled( UI.draw_list, 
           x+w-szidx, y+knobname_h, 
@@ -1511,13 +1601,15 @@ end
       local local_pos_x, local_pos_y = ImGui.GetCursorPos( ctx )
       
     -- name  
-      ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y )
-      ImGui.Button(ctx,'##slider_name'..str_id,w ,knobname_h ) 
-      if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left)then
-        if knob_t.appfunc_atclick_name then knob_t.appfunc_atclick_name() end
-      end
-      if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right)then
-        if knob_t.appfunc_atclick_nameR then knob_t.appfunc_atclick_nameR() end
+      if is_micro_knob~= true then
+        ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y )
+        ImGui.Button(ctx,'##slider_name'..str_id,w ,knobname_h ) 
+        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left)then
+          if knob_t.appfunc_atclick_name then knob_t.appfunc_atclick_name() end
+        end
+        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right)then
+          if knob_t.appfunc_atclick_nameR then knob_t.appfunc_atclick_nameR() end
+        end
       end
       
     -- control
@@ -1532,6 +1624,7 @@ end
     local val =  0
     if knob_t.val and knob_t.val then val = knob_t.val end
     if not val then return end
+    local norm_val = (val - val_min) / (val_max - val_min)
     local draw_list = UI.draw_list
     local roundingIn = 0
     local col_rgba = 0xF0F0F0FF
@@ -1539,7 +1632,7 @@ end
     local radius = math.floor(math.min(item_w, item_h )/2)
     local radius_draw = math.floor(0.8 * radius)
     local center_x = curposx + item_w/2--radius
-    local center_y = curposy + item_h/2  + knobname_h
+    local center_y = curposy + item_h/2  + knobname_h - yoffsarc
     local ang_min = -220
     local ang_max = 40
     local val_norm = (val -val_min)/ (val_max - val_min)
@@ -1558,31 +1651,36 @@ end
       if centered ~= true then 
         -- back arc
         ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
-        ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
-        ImGui.DrawList_PathClear(draw_list)
+        --ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2) 
         -- value
-        ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
+        --ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
         ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
         ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
+        --ImGui.DrawList_PathClear(draw_list)
        else
         -- right arc
-        if val > 0.5 then 
+        if norm_val > 0.5 then 
           ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(-90),math.rad(ang_val+1))
+          ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val+1)))
           ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
-          ImGui.DrawList_PathClear(draw_list)
+          --ImGui.DrawList_PathClear(draw_list)
          else
+          ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val+1)))
           ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_val+1), math.rad(-90))
+          
           ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
-          ImGui.DrawList_PathClear(draw_list)
+          --ImGui.DrawList_PathClear(draw_list)
         end
       end
     end
     
     -- text
-      ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
-      ImGui.TextWrapped( ctx, name )
-    
-    if not disabled == true then 
+      if is_micro_knob~= true then
+        ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
+        ImGui.TextWrapped( ctx, name )
+      end
+      
+    if disabled ~= true and is_micro_knob~= true then 
     -- format value
       ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y+h-UI.calc_itemH-UI.spacingY )
       local formatval_str_id = '##slider_formatval'..str_id

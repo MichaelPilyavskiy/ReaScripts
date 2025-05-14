@@ -56,9 +56,7 @@ RS5K_manager_functions_version = 4.43
     if not DATA.seq.ext.children then return end 
     local item = DATA.seq.it_ptr
     local take = DATA.seq.tk_ptr
-    SetMediaItemInfo_Value( item, 'B_LOOPSRC',1 )
-    
-    
+    --SetMediaItemInfo_Value( item, 'B_LOOPSRC',1 )
     if minor_change~=true then 
       --test = time_precise()
       local outstr = table.savestring(DATA.seq.ext) 
@@ -161,6 +159,8 @@ RS5K_manager_functions_version = 4.43
     local retval, measures, cml, fullbeats_pos, cdenom = reaper.TimeMap2_timeToBeats( DATA.proj, DATA.seq.it_pos )
     local retval, measures, cml, fullbeats_end, cdenom = reaper.TimeMap2_timeToBeats( DATA.proj, DATA.seq.it_pos +  DATA.seq.it_len )
     DATA.seq.it_len_beats =fullbeats_end - fullbeats_pos
+    DATA.seq.srccount =  DATA.seq.it_len  / math.max(0.1,DATA.seq.srclen_sec)
+    
     
     DATA.seq.tkname = ''
     local retval, tkname = reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', '', false )
@@ -203,7 +203,8 @@ RS5K_manager_functions_version = 4.43
   end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_RefreshHScroll()
-    DATA.seq.max_scroll = math.max(16,DATA.seq.ext.patternlen-16) 
+    patlen = DATA.seq.ext.patternlen or 16
+    DATA.seq.max_scroll = math.max(16,patlen-16) 
     DATA.seq.stepoffs = math.floor((DATA.seq_horiz_scroll or 0)*DATA.seq.max_scroll)
   end
   --------------------------------------------------------------------------------  
@@ -325,9 +326,17 @@ RS5K_manager_functions_version = 4.43
     if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end
     if not (DATA.seq.it_ptr and DATA.seq.tk_ptr and DATA.seq.ext.patternsteplen) then return end
     
+    if DATA.seq.D_STARTOFFS~= 0 then return end
+    if DATA.seq.srccount~= 1 then return end
+    
+    local out_len_beats = DATA.seq.ext.patternlen * DATA.seq.ext.patternsteplen 
+    local retval, measures, cml, fullbeats_pos, cdenom = reaper.TimeMap2_timeToBeats( DATA.proj, DATA.seq.it_pos )
+    local out_end_sec_OLD = TimeMap2_beatsToTime( proj, fullbeats_pos +  out_len_beats)
+    
     local out_len_beats = patternlen * DATA.seq.ext.patternsteplen 
     local retval, measures, cml, fullbeats_pos, cdenom = reaper.TimeMap2_timeToBeats( DATA.proj, DATA.seq.it_pos )
     local out_end_sec = TimeMap2_beatsToTime( proj, fullbeats_pos +  out_len_beats)
+    
     SetMediaItemInfo_Value( DATA.seq.it_ptr, 'D_LENGTH', out_end_sec - DATA.seq.it_pos )
     UpdateItemInProject(DATA.seq.it_ptr)
   end

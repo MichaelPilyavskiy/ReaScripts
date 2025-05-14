@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.43
+-- @version 4.44
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -17,23 +17,21 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: split from main window, this can be run as single instance or as an addon for RS5k manager work in parallel
---    # API: split to separate functions lua script
---    # StepSequencer: always disaply all steps in line
---    # StepSequencer: scroll horizontally with bar
---    # StepSequencer/Performance: use direct b64 strings to store data
---    # StepSequencer/Performance: schedule applying pattern data to MIDI
---    # StepSequencer/Performance: schedule applying pattern swing
---    # StepSequencer/Performance: schedule applying pattern per-note step
---    # StepSequencer/Inline: improve navigation
---    # Settings/UI_interaction/Pad names: custom names affect MIDI notes and track names 
---    + Settings/UI_interaction: click on pad scroll to mixer, set to OFF by default
---    # Rack: refresh peaks on pads swap
---    + Rack: allow to duplicate pads with hold Ctrl
+--    # Rack/levels: minor tweaks
+--    # StepSequencer: loop source only when creating pattern, do not refresh every time
+--    # StepSequencer: extend a bit minimum width
+--    + StepSequencer/PatternLength: rightclick to select pattern length from list
+--    + StepSequencer/PatternLength: allow to force change child per-note step count to pattern length
+--    + StepSequencer/PatternLength: mouse scroll over value to divide/multiply pattern length by 2 
+--    # StepSequencer/PatternLength: refresh source MIDI length on change
+--    # StepSequencer/PatternLength: do not change item length if start offset not equal zero
+--    # StepSequencer/PatternLength: do not change item length if pattern boundaries were changed before
+--    + StepSequencer: add volume control of childtrack/devicetrack depending on context
+--    + StepSequencer: add pan control of childtrack/devicetrack depending on context
 
 
 
-rs5kman_vrs = '4.43'
+rs5kman_vrs = '4.44'
 
 
 -- TODO
@@ -1680,16 +1678,16 @@ end
     local peaksRMS_R = DATA.children[note].peaksRMS_R 
     
     local peakH = UI.calc_rack_padnameH-UI.calc_itemH
-    local peakLx = x+w-peak_w*2+1
+    local peakLx = x+w-peak_w*2
     local peakLy = y+UI.calc_itemH+peakH*(1-math.min(peaksRMS_L,1))
     ImGui.DrawList_AddRectFilled( UI.draw_list, peakLx, peakLy , peakLx+peak_w, y+UI.calc_rack_padnameH, UI.col_maintheme<<8|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
     if peaksRMS_L >0.9 then ImGui.DrawList_AddLine( UI.draw_list, peakLx, y+UI.calc_itemH , peakLx+peak_w, y+UI.calc_itemH, 0xFF0000FF, 1) end
     
     local peakH = UI.calc_rack_padnameH-UI.calc_itemH
-    local peakLx = x+w-peak_w
-    local peakLy = y+UI.calc_itemH+peakH*(1-math.min(peaksRMS_R,1))
-    ImGui.DrawList_AddRectFilled( UI.draw_list, peakLx, peakLy , peakLx+peak_w, y+UI.calc_rack_padnameH, UI.col_maintheme<<8|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
-    if peaksRMS_R >0.9 then ImGui.DrawList_AddLine( UI.draw_list, peakLx, y+UI.calc_itemH , peakLx+peak_w, y+UI.calc_itemH, 0xFF0000FF, 1) end
+    local peakRx = x+w-peak_w-2
+    local peakRy = y+UI.calc_itemH+peakH*(1-math.min(peaksRMS_R,1))
+    ImGui.DrawList_AddRectFilled( UI.draw_list, peakRx, peakRy , peakRx+peak_w, y+UI.calc_rack_padnameH, UI.col_maintheme<<8|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
+    if peaksRMS_R >0.9 then ImGui.DrawList_AddLine( UI.draw_list, peakRx, y+UI.calc_itemH , peakRx+peak_w, y+UI.calc_itemH, 0xFF0000FF, 1) end
   end
   
   --------------------------------------------------------------------------------  
@@ -1970,15 +1968,13 @@ end
     
   end
   --------------------------------------------------------------------------------  
-  function UI.draw_tabs_trackparams()
+  function UI.draw_tabs_Sampler_trackparams()
     local butw = 40
     local butw_3x = (butw)*3+UI.spacingX*2
     if not (DATA.parent_track and DATA.parent_track.valid == true) then return end
     
     local note_layer_t,note,layer = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end 
-    if DATA.children[note].TYPE_DEVICE then 
-      note_layer_t = DATA.children[note] 
-    end
+    if DATA.children[note].TYPE_DEVICE then note_layer_t = DATA.children[note] end
     
     
     curposx_abs, curposy_abs = reaper.ImGui_GetCursorScreenPos(ctx)
@@ -2312,6 +2308,8 @@ end
     local val_form  = knob_t.val_form or '' 
     local str_id  = knob_t.str_id 
     local draw_macro_index  = knob_t.draw_macro_index 
+    local is_micro_knob  = knob_t.is_micro_knob 
+    local yoffsarc  = knob_t.yoffsarc  or 0
     
     local val_max = knob_t.val_max or 1
     local val_min = knob_t.val_min or 0
@@ -2330,29 +2328,33 @@ end
         knobname_h = UI.calc_itemH
         knobctrl_h = h- knobname_h-UI.spacingY -UI.calc_itemH
       end
-    
-    -- name background 
-      local color
-      if knob_t and knob_t.I_CUSTOMCOLOR then 
-        color = ImGui.ColorConvertNative(knob_t.I_CUSTOMCOLOR) 
-        color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
+      if is_micro_knob== true then
+        knobname_h = 0
+        knobctrl_h = h
+        yoffsarc = 1
       end
-      if knob_t and knob_t.colfill_rgb then color = (knob_t.colfill_rgb << 8) | 0xFF end
-
-
-      if color then 
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, color, 5, ImGui.DrawFlags_RoundCornersTop)
-       else 
-        if knob_t.active_name == true then
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
-         else
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+    -- name background 
+    
+      if is_micro_knob~= true then
+        local color
+        if knob_t and knob_t.I_CUSTOMCOLOR then 
+          color = ImGui.ColorConvertNative(knob_t.I_CUSTOMCOLOR) 
+          color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
         end
-      end   
-      
+        if knob_t and knob_t.colfill_rgb then color = (knob_t.colfill_rgb << 8) | 0xFF end
+        if color then 
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, color, 5, ImGui.DrawFlags_RoundCornersTop)
+         else 
+          if knob_t.active_name == true then
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
+           else
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+          end
+        end   
+      end
     
     -- draw_macro_index
-      if draw_macro_index then
+      if draw_macro_index and is_micro_knob~= true then
         local szidx = 8
         ImGui.DrawList_AddTriangleFilled( UI.draw_list, 
           x+w-szidx, y+knobname_h, 
@@ -2375,13 +2377,15 @@ end
       local local_pos_x, local_pos_y = ImGui.GetCursorPos( ctx )
       
     -- name  
-      ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y )
-      ImGui.Button(ctx,'##slider_name'..str_id,w ,knobname_h ) 
-      if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left)then
-        if knob_t.appfunc_atclick_name then knob_t.appfunc_atclick_name() end
-      end
-      if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right)then
-        if knob_t.appfunc_atclick_nameR then knob_t.appfunc_atclick_nameR() end
+      if is_micro_knob~= true then
+        ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y )
+        ImGui.Button(ctx,'##slider_name'..str_id,w ,knobname_h ) 
+        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left)then
+          if knob_t.appfunc_atclick_name then knob_t.appfunc_atclick_name() end
+        end
+        if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right)then
+          if knob_t.appfunc_atclick_nameR then knob_t.appfunc_atclick_nameR() end
+        end
       end
       
     -- control
@@ -2396,6 +2400,7 @@ end
     local val =  0
     if knob_t.val and knob_t.val then val = knob_t.val end
     if not val then return end
+    local norm_val = (val - val_min) / (val_max - val_min)
     local draw_list = UI.draw_list
     local roundingIn = 0
     local col_rgba = 0xF0F0F0FF
@@ -2403,7 +2408,7 @@ end
     local radius = math.floor(math.min(item_w, item_h )/2)
     local radius_draw = math.floor(0.8 * radius)
     local center_x = curposx + item_w/2--radius
-    local center_y = curposy + item_h/2  + knobname_h
+    local center_y = curposy + item_h/2  + knobname_h - yoffsarc
     local ang_min = -220
     local ang_max = 40
     local val_norm = (val -val_min)/ (val_max - val_min)
@@ -2422,31 +2427,36 @@ end
       if centered ~= true then 
         -- back arc
         ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_min),math.rad(ang_val+1))
-        ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
-        ImGui.DrawList_PathClear(draw_list)
+        --ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2) 
         -- value
-        ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
+        --ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw2 * math.cos(math.rad(ang_val)), center_y - radiusshift_y + radius_draw2 * math.sin(math.rad(ang_val)))
         ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val)))
         ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
+        --ImGui.DrawList_PathClear(draw_list)
        else
         -- right arc
-        if val > 0.5 then 
+        if norm_val > 0.5 then 
           ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(-90),math.rad(ang_val+1))
+          ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val+1)))
           ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
-          ImGui.DrawList_PathClear(draw_list)
+          --ImGui.DrawList_PathClear(draw_list)
          else
+          ImGui.DrawList_PathLineTo(draw_list, center_x + radius_draw3 * math.cos(math.rad(ang_val)), center_y -radiusshift_y + radius_draw3 * math.sin(math.rad(ang_val+1)))
           ImGui.DrawList_PathArcTo(draw_list, center_x, center_y - radiusshift_y, radius_draw, math.rad(ang_val+1), math.rad(-90))
+          
           ImGui.DrawList_PathStroke(draw_list, UI.knob_handle<<8|0xFF,  ImGui.DrawFlags_None, 2)
-          ImGui.DrawList_PathClear(draw_list)
+          --ImGui.DrawList_PathClear(draw_list)
         end
       end
     end
     
     -- text
-      ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
-      ImGui.TextWrapped( ctx, name )
-    
-    if not disabled == true then 
+      if is_micro_knob~= true then
+        ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
+        ImGui.TextWrapped( ctx, name )
+      end
+      
+    if disabled ~= true and is_micro_knob~= true then 
     -- format value
       ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y+h-UI.calc_itemH-UI.spacingY )
       local formatval_str_id = '##slider_formatval'..str_id
@@ -2477,6 +2487,7 @@ end
     ImGui.PopStyleVar(ctx,2) 
     ImGui.PopFont(ctx) 
   end
+  
   
   --------------------------------------------------------------------------------  
   function UI.draw_knob_handlelatchstate(t)  
@@ -3140,7 +3151,7 @@ end
             if ImGui.BeginTabItem( ctx, 'FX', false, ImGui.TabItemFlags_None ) then             UI.draw_tabs_Sampler_tabs_FX()          ImGui.EndTabItem( ctx) end 
             if ImGui.BeginTabItem( ctx, 'Device', false, ImGui.TabItemFlags_None ) then         UI.draw_tabs_Sampler_tabs_device()      ImGui.EndTabItem( ctx) end
           end
-          if ImGui.BeginTabItem( ctx, 'Track', false, ImGui.TabItemFlags_None ) then UI.draw_tabs_trackparams()  ImGui.EndTabItem( ctx)   end 
+          if ImGui.BeginTabItem( ctx, 'Track', false, ImGui.TabItemFlags_None ) then UI.draw_tabs_Sampler_trackparams()  ImGui.EndTabItem( ctx)   end  
         end
         
                   
