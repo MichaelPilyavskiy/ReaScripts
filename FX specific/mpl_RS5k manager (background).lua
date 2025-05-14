@@ -17,17 +17,8 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # Rack/levels: minor tweaks
---    # StepSequencer: loop source only when creating pattern, do not refresh every time
---    # StepSequencer: extend a bit minimum width
---    + StepSequencer/PatternLength: rightclick to select pattern length from list
---    + StepSequencer/PatternLength: allow to force change child per-note step count to pattern length
---    + StepSequencer/PatternLength: mouse scroll over value to divide/multiply pattern length by 2 
---    # StepSequencer/PatternLength: refresh source MIDI length on change
---    # StepSequencer/PatternLength: do not change item length if start offset not equal zero
---    # StepSequencer/PatternLength: do not change item length if pattern boundaries were changed before
---    + StepSequencer: add volume control of childtrack/devicetrack depending on context
---    + StepSequencer: add pan control of childtrack/devicetrack depending on context
+--    + StepSequencer/Inline: show values
+--    + StepSequencer/Inline: allow to  split notes at equal divisions
 
 
 

@@ -245,37 +245,64 @@ RS5K_manager_functions_version = 4.43
         if step_active == 0 then step_active = step_cnt end
         if not (t.ext.children[note].steps and t.ext.children[note].steps[step_active]) then goto skipnextstep end
         
-        -- offset 
-        local shift = 0
+        -- velocity
+        local velocity = 0
+        if t.ext.children[note].steps[step_active].val == 1 then velocity = default_velocity end
+        if t.ext.children[note].steps[step_active].val  == 1 and t.ext.children[note].steps[step_active].velocity then velocity = math.floor(t.ext.children[note].steps[step_active].velocity*127) end
+
+        -- split
+        local split = 1
+        if t.ext.children[note].steps[step_active].split then split = math_q(t.ext.children[note].steps[step_active].split) end 
+        
+        -- offset  / swing
+        local offset = 0
         local sw_shift = 0
-        if t.ext.children[note].steps[step_active].offset then shift = t.ext.children[note].steps[step_active].offset*steplength end 
-        if app_swing and step%2==0 then 
-          sw_shift = app_swing*steplength*0.5
-        end
-        local beatpos = math.max(0,(step-1)*steplength  +shift + sw_shift)
+        if t.ext.children[note].steps[step_active].offset then offset = t.ext.children[note].steps[step_active].offset*steplength end 
+        if app_swing and step%2==0 then sw_shift = app_swing*steplength*0.5 end
+        local beatpos = math.max(0,(step-1)*steplength  +offset + sw_shift)
         if  beatpos > DATA.seq.ext.patternlen then goto skipnextstep end
         
         
         local steppos_start_sec = TimeMap2_beatsToTime(   DATA.proj, seqstart_fullbeats + beatpos ) 
-        local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + step*steplength + shift ) 
+        local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + step*steplength + offset ) 
         local steppos_start_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_start_sec ) 
         local steppos_end_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_end_sec ) 
         
         if  steppos_end_ppq - steppos_start_ppq < 100 then goto skipnextstep end
         
-        -- velocity
-        local velocity = 0
-        if t.ext.children[note].steps[step_active].val == 1 then velocity = default_velocity end
-        if t.ext.children[note].steps[step_active].val  == 1 and t.ext.children[note].steps[step_active].velocity then velocity = math.floor(t.ext.children[note].steps[step_active].velocity*127) end
+        --if sw_shift ~= 0 or offset ~= 0 then split = 1 end 
         
         if steppos_start_ppq < seqend_endppq then--and steppos_end_ppq < seqend_endppq then
+          
           steppos_end_ppq = math.min(steppos_end_ppq, seqend_endppq)
-          form_data[#form_data+1] = {
-            ppq_start = math.floor(steppos_start_ppq),
-            ppq_end = math.floor(steppos_end_ppq),
-            pitch = note,
-            vel = velocity,
-          }
+          steppos_start_ppq = math.floor(steppos_start_ppq)
+          steppos_end_ppq = math.floor(steppos_end_ppq)
+          
+          if split == 1 then 
+            form_data[#form_data+1] = {
+              ppq_start = steppos_start_ppq,
+              ppq_end = steppos_end_ppq,
+              pitch = note,
+              vel = velocity,
+            }
+           else
+            local ppq_len = steppos_end_ppq - steppos_start_ppq
+            local sliceppq_len = math.floor(ppq_len / split)
+            for i = 1, split do
+              local slice_steppos_start_ppq = steppos_start_ppq + sliceppq_len*(i-1)
+              local slice_steppos_end_ppq = slice_steppos_start_ppq + sliceppq_len
+              form_data[#form_data+1] = {
+                ppq_start = slice_steppos_start_ppq,
+                ppq_end = slice_steppos_end_ppq,
+                pitch = note,
+                vel = velocity,
+              }
+            end
+            
+          end
+          
+          
+          
         end
         ::skipnextstep::
       end  

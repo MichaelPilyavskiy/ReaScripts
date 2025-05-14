@@ -186,7 +186,8 @@ reaper.set_action_options(1 )
           seq_param_selectorID = 1,
           seq_param_selector = { 
             {param = 'velocity', str= 'Velocity',default=120/127, maxval = 1, minval = 3/127},
-            {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95}
+            {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95},
+            {param = 'split', str= 'Split',default=1, maxval = 16, minval = 1}
           },
           
           seq_horiz_scroll = 0,
@@ -370,11 +371,8 @@ reaper.set_action_options(1 )
           if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
           if not DATA.seq.ext.children[note].steps[activestep] then DATA.seq.ext.children[note].steps[activestep] = {} end
           
-          if trig_change == 0 then 
-            DATA.seq.ext.children[note].steps[activestep] = nil
-           else
-            DATA.seq.ext.children[note].steps[activestep].val = trig_change
-          end
+          DATA.seq.ext.children[note].steps[activestep].val = trig_change
+          
           local mx, my = reaper.ImGui_GetMousePos( ctx )
           DATA.temp_holdmode_mx=mx
           DATA.temp_holdmode_my=my
@@ -951,6 +949,7 @@ end
     
     -- values
     -- draw velocity / offset
+      local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
       local hstep = (y2-y1)
       local hstep_half = (y2-y1)*0.5
       for step = 1+DATA.seq.stepoffs, DATA.seq.ext.patternlen do
@@ -965,7 +964,7 @@ end
           local val_norm = (val - minval) / (maxval - minval)
           local ypos = y1
           
-          if DATA.seq_param_selectorID == 1 then -- vel
+          if DATA.seq_param_selectorID == 1 or DATA.seq_param_selectorID == 3 then -- vel
             hstep = (y2-y1)*val_norm
             ypos = math.min(y2-1, y1 + hfull - hstep)
             ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos,xpos + stepw -1 ,y2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
@@ -980,6 +979,18 @@ end
             ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos1,xpos + stepw -1 ,ypos2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
           end
           
+          -- draw values
+          local txt=val 
+          local txyy = math.max(ypos-20,y1)
+          if DATA.seq_param_selectorID == 1  then 
+            txt=math.floor(val*127) 
+           elseif DATA.seq_param_selectorID == 2  then 
+             txt=math.floor(val*100)..'%'
+           elseif DATA.seq_param_selectorID == 3  then 
+             txt=math_q(val)           
+          end
+          mousediff = VF_lim(255-math.floor(math.abs(mousex-xpos) ),0,255)--+ math.abs(mousey-ypos)
+          ImGui.DrawList_AddText( UI.draw_list, xpos, txyy, 0xFFFFFF00|mousediff, txt )
         end
       end
       
