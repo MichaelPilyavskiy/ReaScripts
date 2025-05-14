@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.44
+-- @version 4.45
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -22,7 +22,7 @@
 
 
 
-rs5kman_vrs = '4.44'
+rs5kman_vrs = '4.45'
 
 
 -- TODO
