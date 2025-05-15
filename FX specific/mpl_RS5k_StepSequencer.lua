@@ -1,6 +1,10 @@
 -- @description RS5k StepSequencer
+-- @version 1.0
 -- @author MPL
--- @noidex
+-- @website https://forum.cockos.com/showthread.php?t=207971
+-- @noindex
+-- @changelog
+--    + init
 
 
 reaper.set_action_options(1 )
@@ -119,6 +123,7 @@ reaper.set_action_options(1 )
           CONF_seq_random_probability = 0.5,
           CONF_seq_force_GUIDbasedsharing = 1,
           CONF_seq_treat_mouserelease_as_majorchange  = 0,
+          CONF_seq_patlen_extendchildrenlen = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -187,11 +192,12 @@ reaper.set_action_options(1 )
           seq_param_selector = { 
             {param = 'velocity', str= 'Velocity',default=120/127, maxval = 1, minval = 3/127},
             {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95},
-            {param = 'split', str= 'Split',default=1, maxval = 16, minval = 1}
+            {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1}
           },
           
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
+          seq_UI_inlineH_area = 300,
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
   
@@ -328,6 +334,7 @@ reaper.set_action_options(1 )
     local stepcol_2 = 0x3FDF3F30
     local stepcol_inactive = 0x4F4F4F1F
     local step_cnt = DATA.seq.ext.children[note].step_cnt
+    if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
     for activestep = DATA.seq.stepoffs+1, DATA.seq.ext.patternlen do
     
       -- colors/state
@@ -345,12 +352,41 @@ reaper.set_action_options(1 )
         x2, y2 = reaper.ImGui_GetItemRectMax( ctx ) 
         ImGui.DrawList_AddRectFilled( UI.draw_list, x1, y1,x2-1, y2-1, stepcol|0x1F, UI.seq_steprounding, ImGui.DrawFlags_None )
         
+        
       -- fill step
-        local hstep = (y2-y1)*UI.seq_activestep_reducesz*2
+        local hstep = (y2-y1)-UI.seq_activestep_reducesz*4
         if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].val and DATA.seq.ext.children[note].steps[activestep].val > 0 then
           local val = DATA.seq.ext.children[note].steps[activestep].val
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x1+UI.seq_activestep_reducesz*2,y1+UI.seq_activestep_reducesz*2+hstep-hstep*val,x2-UI.seq_activestep_reducesz*2,y2-UI.seq_activestep_reducesz*2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
+          local velocity = DATA.seq.ext.children[note].steps[activestep].velocity
+          if velocity then val = velocity end
+          ImGui.DrawList_AddRectFilled( UI.draw_list, 
+            x1+UI.seq_activestep_reducesz*2,
+            y1+UI.seq_activestep_reducesz*2 + hstep-hstep*val,
+            x2-UI.seq_activestep_reducesz*2,
+            y2-UI.seq_activestep_reducesz*2, 
+            stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
         end  
+      
+      -- split val
+        if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].split then
+          local split = math_q(DATA.seq.ext.children[note].steps[activestep].split)
+          if split ~=1 then
+            ImGui.DrawList_AddText( UI.draw_list, x1+UI.seq_activestep_reducesz, y1+UI.seq_activestep_reducesz, 0xFFFFFFFF, split )
+          end
+        end
+
+      -- offset val
+        if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].offset and DATA.seq.ext.children[note].steps[activestep].offset~=0 then
+          local offset = DATA.seq.ext.children[note].steps[activestep].offset
+          local fullwstep = (x2-x1)-UI.seq_activestep_reducesz*4
+          local xpos = x1 + UI.seq_activestep_reducesz*2 + fullwstep/2+ offset * fullwstep/2
+          ImGui.DrawList_AddLine( UI.draw_list, 
+            xpos,
+            y2-UI.seq_activestep_reducesz*2-1,
+            xpos,
+            y2-UI.seq_activestep_reducesz*2-5, 
+            stepcol|0x9F,2 )
+        end
         
       -- play cursor
         if DATA.seq.active_step and DATA.seq.active_step[note] and DATA.seq.active_step[note] == activestep then
@@ -554,8 +590,9 @@ end
 
     -- step_cnt
       local step_cnt = DATA.seq.ext.children[note].step_cnt
+      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
       local floor = true
-      local default = 16
+      local default = -1
       local xabsstepcnt, yabsstepcnt = reaper.ImGui_GetCursorScreenPos(ctx)
       local retval, v, deact = UI.VDragInt( ctx, '##step_cnt'..note, UI.calc_seq_ctrl_butW, UI.seq_padH-1, step_cnt, 1, DATA.seq.ext.patternlen, step_cnt, ImGui.SliderFlags_None, floor, default)
       if retval and DATA.seq.ext.children[note].step_cnt ~= v then
@@ -790,7 +827,7 @@ end
     if ImGui.Button(ctx,'Fill each 8 steps', butw_3x) then DATA:_Seq_Fill(note, '10') DATA:_Seq_Print() end 
     
     -- tools ------------------------------------
-    ImGui.SeparatorText(ctx, 'Tools')
+    ImGui.SeparatorText(ctx, 'Steps')
     
     -- shift
       UI.draw_setbuttonbackgtransparent()
@@ -848,6 +885,31 @@ end
     ImGui.SeparatorText(ctx, 'Global')
     if ImGui.Button(ctx, 'Clear all', butw_3x) then DATA:_Seq_Clear() end 
     
+    -- Parameters
+    local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
+    local parameterstr = DATA.seq_param_selector[DATA.seq_param_selectorID].str 
+    local default_val = DATA.seq_param_selector[DATA.seq_param_selectorID].default 
+    local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
+    local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
+    
+    ImGui.SeparatorText(ctx, parameterstr) 
+    if default_val and DATA.seq.ext.children[note].steps then
+      if ImGui.Button(ctx, 'Reset##resparamvalues') then --,-UI.spacingX
+        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+        for step in pairs( DATA.seq.ext.children[note].steps) do DATA.seq.ext.children[note].steps[step][parameter] = default_val end
+        DATA:_Seq_Print() 
+      end
+    end
+    ImGui.SameLine(ctx)
+    if default_val and DATA.seq.ext.children[note].steps then
+      if ImGui.Button(ctx, 'Random##randparamvalues') then --,-UI.spacingX
+        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+        for step in pairs( DATA.seq.ext.children[note].steps) do DATA.seq.ext.children[note].steps[step][parameter] = math.random() * (maxval - minval) + minval end
+        DATA:_Seq_Print() 
+      end
+    end   
+    --
+    
     
     reaper.ImGui_PopFont(ctx)
   end
@@ -902,7 +964,7 @@ end
     
     -- work area
     ImGui.SetCursorPos(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX, posy + UI.spacingY)
-    local harea = 250
+    local harea = DATA.seq_UI_inlineH_area
     --ImGui.Button(ctx,'active_area',-1,harea)
     ImGui.InvisibleButton(ctx,'active_area',-1,harea)
     local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
@@ -910,7 +972,7 @@ end
     UI.draw_Seq_ctrls_inline_handlemouse(note_t) 
     
     ImGui.Dummy(ctx,0,UI.spacingY)
-    --selector
+    --[[selector
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, math.floor((UI.calc_seqW_steps-reset_w) / #DATA.seq_param_selector)  )
     ImGui.SetNextItemWidth(ctx,-reset_w)
     local formatIn = DATA.seq_param_selector[DATA.seq_param_selectorID].str
@@ -920,19 +982,22 @@ end
     ImGui.PopStyleVar(ctx) 
     ImGui.SameLine(ctx)
     ImGui.Dummy(ctx,UI.spacingX,0)
-    ImGui.SameLine(ctx)--UI.spacingY)
+    ImGui.SameLine(ctx)--UI.spacingY)]]
+
     
-    -- reset 
-    if default_val and DATA.seq.ext.children[note].steps then
-      if ImGui.Button(ctx, 'Reset##resvalues',-UI.spacingX) then 
-        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
-        for step in pairs( DATA.seq.ext.children[note].steps) do 
-          DATA.seq.ext.children[note].steps[step][parameter] = default_val 
-        end
-        DATA:_Seq_Print() 
+    -- parameter tabs
+    ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
+    if ImGui.BeginTabBar( ctx, 'paraminlinetabs', ImGui.TabItemFlags_None ) then
+      for i = 1, #DATA.seq_param_selector do
+        local formatIn = DATA.seq_param_selector[i].str
+        if ImGui.BeginTabItem( ctx, formatIn..'##inlinetabs', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selectorID = i  ImGui.EndTabItem( ctx)  end 
       end
+      ImGui.EndTabBar( ctx)
     end
     
+    
+    
+    -- STEPS
     local stepw = UI.seq_stepW
     local hfull = (y2-y1)
   
@@ -1121,16 +1186,11 @@ end
         if ImGui.Selectable(ctx, '32 steps') then set = 32 end
         if ImGui.Selectable(ctx, '64 steps') then set = 64 end 
         if ImGui.Selectable(ctx, '128 steps') then set = 128 end
-        if ImGui.Checkbox(ctx, 'Extend children', DATA.seq_patlen_extendchildrenlen==1) then DATA.seq_patlen_extendchildrenlen=DATA.seq_patlen_extendchildrenlen~1 end
+        if ImGui.Checkbox(ctx, 'Extend children', EXT.CONF_seq_patlen_extendchildrenlen&1==1) then EXT.CONF_seq_patlen_extendchildrenlen=EXT.CONF_seq_patlen_extendchildrenlen~1 EXT:save()end 
         
         if set then
           DATA.seq.ext.patternlen = set
           DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen)
-          if DATA.seq_patlen_extendchildrenlen ==1 and DATA.seq.ext and DATA.seq.ext.children then 
-            for note in pairs(DATA.seq.ext.children) do
-              DATA.seq.ext.children[note].step_cnt = set
-            end
-          end
           DATA:_Seq_Print()
           reaper.ImGui_CloseCurrentPopup(ctx)
         end

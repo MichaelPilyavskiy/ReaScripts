@@ -189,7 +189,7 @@ RS5K_manager_functions_version = 4.43
     for note in pairs(DATA.children) do
       if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
       if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end -- this is fixing wrong offset on misssing first step at DATA:_Seq_PrintMIDI(t) --{val=0} 
-      if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = 16 end--DATA.seq.ext.patternlen end -- init 16 steps 
+      if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = -1 end--DATA.seq.ext.patternlen end -- init 16 steps 
       if not DATA.seq.ext.children[note].steplength then DATA.seq.ext.children[note].steplength = 0.25 end -- init 16 steps 
       
       for step = 1, DATA.seq.ext.children[note].step_cnt do
@@ -207,6 +207,66 @@ RS5K_manager_functions_version = 4.43
     DATA.seq.max_scroll = math.max(16,patlen-16) 
     DATA.seq.stepoffs = math.floor((DATA.seq_horiz_scroll or 0)*DATA.seq.max_scroll)
   end
+  
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_ModifyTools(note, mode, dir) 
+    if not (DATA.seq.ext and DATA.seq.ext.children and note and DATA.seq.ext.children[note]) then return end
+    local step_cnt = DATA.seq.ext.children[note].step_cnt
+    if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
+    local init = CopyTable(DATA.seq.ext.children[note].steps)
+    
+    if not init then return end
+    -- shift
+    if mode == 0 then 
+      for i = 1, step_cnt do
+        local src_step = i+1*dir
+        if src_step > step_cnt then src_step = 1 end
+        if src_step < 1 then src_step = step_cnt end
+        if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
+        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+        if not DATA.seq.ext.children[note].steps[i] then DATA.seq.ext.children[note].steps[i] = {} end
+        
+        
+        --local val = 0 
+        --if init[src_step] and init[src_step].val then val = init[src_step].val end
+        --DATA.seq.ext.children[note].steps[i].val = val or 0
+        DATA.seq.ext.children[note].steps[i] = init[src_step]
+      end
+    end
+    
+    -- flip
+    if mode == 1 then 
+      for i = 1, step_cnt do
+        local src_step = step_cnt - i + 1
+        if init[src_step] and init[src_step].val then val = init[src_step].val end
+        if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
+        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+        if not DATA.seq.ext.children[note].steps[i] then DATA.seq.ext.children[note].steps[i] = {} end 
+        --local val = 0 
+        --DATA.seq.ext.children[note].steps[i].val = val or 0
+        DATA.seq.ext.children[note].steps[i] = init[src_step]
+      end
+    end
+    
+    -- flip
+    if mode == 2 then 
+      
+      math.randomseed(time_precise()*10000)
+      for i = 1, step_cnt do
+        local val = 0 
+        local rand = math.random()
+        if rand <= EXT.CONF_seq_random_probability then val = 1 else val = 0 end 
+        if init[src_step] and init[src_step].val then val = init[src_step].val end
+        if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
+        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+        if not DATA.seq.ext.children[note].steps[i] then DATA.seq.ext.children[note].steps[i] = {} end
+        DATA.seq.ext.children[note].steps[i].val = val or 0
+      end
+    end
+    
+    
+    DATA:_Seq_Print() 
+  end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_PrintMIDI(t, do_not_ignore_empty, overrides) 
     local item = t.it_ptr
@@ -217,7 +277,7 @@ RS5K_manager_functions_version = 4.43
     if not t.ext.children then return end
     
     -- init ppq
-    local form_data = {}
+     form_data = {}
     local steplength = 0.25 -- do not touch
     local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
     local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
@@ -233,6 +293,7 @@ RS5K_manager_functions_version = 4.43
       local default_velocity = 120 -- TODO store per note
       if t.ext.children[note].steplength then steplength = t.ext.children[note].steplength end 
       local step_cnt = t.ext.children[note].step_cnt 
+      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
       
       local patlen_mult = 1
       if steplength<0.25 then patlen_mult = math.ceil(0.25/steplength) end
@@ -240,6 +301,7 @@ RS5K_manager_functions_version = 4.43
       local app_swing 
       if DATA.seq.ext.swing~= 0 and steplength==0.25 then app_swing = DATA.seq.ext.swing end
       
+      if not t.ext.children[note].steps[1] then t.ext.children[note].steps[1] = {val = 0} end
       for step = 1, DATA.seq.ext.patternlen*patlen_mult do
         local step_active = step%step_cnt 
         if step_active == 0 then step_active = step_cnt end
@@ -260,6 +322,7 @@ RS5K_manager_functions_version = 4.43
         if t.ext.children[note].steps[step_active].offset then offset = t.ext.children[note].steps[step_active].offset*steplength end 
         if app_swing and step%2==0 then sw_shift = app_swing*steplength*0.5 end
         local beatpos = math.max(0,(step-1)*steplength  +offset + sw_shift)
+        
         if  beatpos > DATA.seq.ext.patternlen then goto skipnextstep end
         
         
@@ -267,7 +330,6 @@ RS5K_manager_functions_version = 4.43
         local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + step*steplength + offset ) 
         local steppos_start_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_start_sec ) 
         local steppos_end_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_end_sec ) 
-        
         if  steppos_end_ppq - steppos_start_ppq < 100 then goto skipnextstep end
         
         --if sw_shift ~= 0 or offset ~= 0 then split = 1 end 
@@ -366,6 +428,11 @@ RS5K_manager_functions_version = 4.43
     
     SetMediaItemInfo_Value( DATA.seq.it_ptr, 'D_LENGTH', out_end_sec - DATA.seq.it_pos )
     UpdateItemInProject(DATA.seq.it_ptr)
+    
+    if EXT.CONF_seq_patlen_extendchildrenlen ==1 and DATA.seq.ext and DATA.seq.ext.children then 
+      --for note in pairs(DATA.seq.ext.children) do if DATA.seq.ext.children[note].step_cnt == -1 then DATA.seq.ext.children[note].step_cnt = patternlen end end
+    end
+    
   end
   --------------------------------------------------------------------------------  
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 

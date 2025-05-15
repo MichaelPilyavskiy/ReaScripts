@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.45
+-- @version 4.46
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -9,7 +9,7 @@
 --    [main] mpl_RS5k_manager_Database_Lock.lua
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua
---    [main] mpl_RS5k_manager_Sampler_RandSample.lua
+--    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Solo.lua
 --    [main] mpl_RS5k_manager_DrumRack_Mute.lua
 --    [main] mpl_RS5k_manager_DrumRack_Clear.lua
@@ -17,12 +17,21 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + StepSequencer/Inline: show values
---    + StepSequencer/Inline: allow to  split notes at equal divisions
+--    # StepSequencer/MIDI: fix wrong offset at empty first step
+--    + StepSequencer/PatternLength: mousewheel tweak obey 'extend children' check
+--    + StepSequencer/PatternLength: don`t change step count for children tweaked manually
+--    + StepSequencer/Inline: use tabs instead slider for parameter type
+--    + StepSequencer/Inline: draw split value on step
+--    + StepSequencer/Inline: reduce split max namber to 8
+--    + StepSequencer/Inline: append velocity to step height
+--    + StepSequencer/Inline: append offset to small line at the bottom of step
+--    + StepSequencer/Inline: allow to random values
+--    + StepSequencer/Inline: fix broken tools
+--    + Sampler/ADSR: fix decay draw  a bit left
 
 
 
-rs5kman_vrs = '4.45'
+rs5kman_vrs = '4.46'
 
 
 -- TODO
@@ -3017,7 +3026,7 @@ end
     local xpos = note_layer_t.instrument_decay_norm *delmult
     local ypos = note_layer_t.instrument_sustain*susult*0.8
     local xpos_dec, ypos_dec = UI.draw_tabs_Sampler_ADSR_point_getpos(x1,y1,x2,y2, xpos, ypos) 
-    xpos_dec = xpos_att + xpos * (x2-x1) - UI.adsr_rectsz/2
+    xpos_dec = xpos_att + xpos * (x2-x1)
     ImGui.SetCursorScreenPos( ctx, xpos_dec, ypos_dec ) 
     ImGui.Button(ctx, '##adsr_decsus', UI.adsr_rectsz, UI.adsr_rectsz )
     if ImGui.IsItemActive( ctx ) then
