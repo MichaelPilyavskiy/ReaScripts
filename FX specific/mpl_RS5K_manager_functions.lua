@@ -37,6 +37,7 @@ RS5K_manager_functions_version = 4.43
     end
     
     local step_cnt = DATA.seq.ext.children[note].step_cnt
+    if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
     for i = 1, step_cnt do 
       local src_step= 1+((i-1)%#tfill)
       if tfill[src_step] and tfill[src_step] then val = tfill[src_step] end
@@ -64,10 +65,29 @@ RS5K_manager_functions_version = 4.43
       GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', outstr, true)
       GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA_IGNOREB64', 1, true) 
       --msg(os.date()..' '..time_precise()-test)
+      DATA:_Seq_PrintMIDI_ShareGUID(DATA.seq ,outstr) 
     end
     DATA:_Seq_PrintMIDI(DATA.seq)  
     GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', DATA.seq.ext.GUID, true) 
     
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintMIDI_ShareGUID(parent_t ,outstr) 
+    if EXT.CONF_seq_force_GUIDbasedsharing~= 1 then return end
+    local parenttake = parent_t.tk_ptr
+    local parentGUID = parent_t.ext.GUID
+    local form_data = parent_t.form_data
+    local tr = DATA.MIDIbus.tr_ptr 
+    local cnt = reaper.CountTrackMediaItems( tr)
+    for itemidx = 1, cnt do
+      local item = reaper.GetTrackMediaItem(tr, itemidx-1)
+      local take = GetActiveTake(item)
+      local it_pos = reaper.GetMediaItemInfo_Value( item,'D_POSITION' )  
+      local ret, GUID = GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', '', false)
+      if parenttake ~= take and ret and GUID ~= '' and GUID == parentGUID then  
+        GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', outstr, true)
+      end
+    end
   end
   --------------------------------------------------------------------------------  
   function DATA:Auto_LoopSlice_CreatePattern(loop_t) 
@@ -430,7 +450,7 @@ RS5K_manager_functions_version = 4.43
     UpdateItemInProject(DATA.seq.it_ptr)
     
     if EXT.CONF_seq_patlen_extendchildrenlen ==1 and DATA.seq.ext and DATA.seq.ext.children then 
-      --for note in pairs(DATA.seq.ext.children) do if DATA.seq.ext.children[note].step_cnt == -1 then DATA.seq.ext.children[note].step_cnt = patternlen end end
+      for note in pairs(DATA.seq.ext.children) do if DATA.seq.ext.children[note].step_cnt ~= -1 then DATA.seq.ext.children[note].step_cnt = patternlen end end
     end
     
   end
@@ -946,55 +966,65 @@ end
   -------------------------------------------------------------------------------- 
   function DATA:Auto_TCPMCP(force_show)
     if not (DATA.parent_track and DATA.parent_track.valid == true) then return end 
+    local upd
+    --CONF_onadd_newchild_trackheightflags = 0, -- &1 folder collapsed &2 folder supercollapsed &4 hide tcp &8 hide mcp
     
-    if force_show == true then 
-      for child in pairs(DATA.children) do
-        local tr = DATA.children[child].tr_ptr
-        SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1)
-        SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP',1 )
-      end
-    end
-    
-    
-    if EXT.CONF_onadd_newchild_trackheightflags &1==1 then       -- set folder collapsed
-      SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 1)
-     elseif EXT.CONF_onadd_newchild_trackheightflags &2==2 then       -- set folder collapsed
-      SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 2)
-     elseif EXT.CONF_onadd_newchild_trackheightflags &2~=2 and EXT.CONF_onadd_newchild_trackheightflags &1~=1 then       -- set folder collapsed
-      --local foldstate = GetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT')   
-      --if foldstate ~=0 then SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 0)       end
-    end
-  
-    --if EXT.CONF_onadd_newchild_trackheightflags &4==4 or EXT.CONF_onadd_newchild_trackheightflags &8==8 then
-      for child in pairs(DATA.children) do
-        local tr = DATA.children[child].tr_ptr
-        -- device
-        if tr then 
-          if EXT.CONF_onadd_newchild_trackheightflags &8==8 then 
-            if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 0 )end
-           elseif EXT.CONF_onadd_newchild_trackheightflags &4==4 then 
-            if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 0 )end 
-           else 
-            --if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 )end             
-            --if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )end             
+    -- reset after settings change
+      if force_show == true then 
+        SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 0)
+        for note in pairs(DATA.children) do
+          local tr = DATA.children[note].tr_ptr
+          SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1)
+          SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP',1 )
+          -- children
+          for layer = 1, #DATA.children[note].layers do 
+            local tr = DATA.children[note].layers[layer].tr_ptr
+            if tr then 
+              SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )
+              SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 ) 
+            end
           end
         end
-        -- children
-        for layer = 1, #DATA.children[child].layers do 
-          local tr = DATA.children[child].layers[layer].tr_ptr
+        upd=true
+      end
+    
+    -- set folder state
+      if EXT.CONF_onadd_newchild_trackheightflags &1==1 then       -- set folder collapsed
+        SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 1)
+       elseif EXT.CONF_onadd_newchild_trackheightflags &2==2 then       -- set folder collapsed
+        SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 2)
+       elseif EXT.CONF_onadd_newchild_trackheightflags &2~=2 and EXT.CONF_onadd_newchild_trackheightflags &1~=1 then       -- set folder collapsed
+        --local foldstate = GetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT')   
+        --if foldstate ~=0 then SetMediaTrackInfo_Value( DATA.parent_track.ptr, 'I_FOLDERCOMPACT', 0)       end
+      end
+  
+    -- set children states 
+      if EXT.CONF_onadd_newchild_trackheightflags &4==4 or  EXT.CONF_onadd_newchild_trackheightflags &8==8 then 
+        for note in pairs(DATA.children) do
+          local tr = DATA.children[note].tr_ptr
+          if not anytr then anytr = tr end
+          -- device
           if tr then 
-            if EXT.CONF_onadd_newchild_trackheightflags &8==8 then 
-              if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 0 )end
-             elseif EXT.CONF_onadd_newchild_trackheightflags &4==4 then 
-              if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 0 )end 
-             else 
-              --if GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 1 )end             
-              --if GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 0 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 1 )end             
+            if EXT.CONF_onadd_newchild_trackheightflags &8==8 and GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 0 ) upd=true end
+            if EXT.CONF_onadd_newchild_trackheightflags &4==4 and GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 0 ) upd=true end  
+          end
+          -- children
+          for layer = 1, #DATA.children[note].layers do 
+            local tr = DATA.children[note].layers[layer].tr_ptr
+            if tr then 
+              if EXT.CONF_onadd_newchild_trackheightflags &8==8 and GetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINMIXER', 0 ) upd=true end
+              if EXT.CONF_onadd_newchild_trackheightflags &4==4 and GetMediaTrackInfo_Value( tr, 'B_SHOWINTCP') == 1 then SetMediaTrackInfo_Value( tr, 'B_SHOWINTCP', 0 ) upd=true end  
             end
           end
         end
       end
-    --end
+      
+    -- refresh stuff 
+      if upd==true then 
+        TrackList_AdjustWindows( false )  
+        reaper.UpdateTimeline()
+        reaper.UpdateArrange()
+      end
   end
   -------------------------------------------------------------------------------- 
   function DATA:CollectDataInit_ParseREAPERDB()
@@ -4024,7 +4054,8 @@ end
     DATA.seq.active_pat_step = math.floor(pat_progress*patternlen)+1
     
     for note in pairs(DATA.children) do 
-      local step_cnt = DATA.seq.ext.children[note].step_cnt or 16
+      local step_cnt = DATA.seq.ext.children[note].step_cnt
+      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
       local steplength = DATA.seq.ext.children[note].steplength
       local available_steps_per_pattern = pat_beats_com / steplength
       local activestep = math.floor(available_steps_per_pattern * pat_progress)+1

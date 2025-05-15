@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.46
+-- @version 4.47
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -17,21 +17,15 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer/MIDI: fix wrong offset at empty first step
---    + StepSequencer/PatternLength: mousewheel tweak obey 'extend children' check
---    + StepSequencer/PatternLength: don`t change step count for children tweaked manually
---    + StepSequencer/Inline: use tabs instead slider for parameter type
---    + StepSequencer/Inline: draw split value on step
---    + StepSequencer/Inline: reduce split max namber to 8
---    + StepSequencer/Inline: append velocity to step height
---    + StepSequencer/Inline: append offset to small line at the bottom of step
---    + StepSequencer/Inline: allow to random values
---    + StepSequencer/Inline: fix broken tools
---    + Sampler/ADSR: fix decay draw  a bit left
+--    # Auto TCP/MCP: fix refresh
+--    + Settings/UI: allow to change background transparency
+--    # StepSequencer: fix play cursor position for default length
+--    # StepSequencer/Pattern length: rename option to extend children to 'force chldren step count'
+--    # StepSequencer: force share custom data to all takes related to current pattern
 
 
 
-rs5kman_vrs = '4.46'
+rs5kman_vrs = '4.47'
 
 
 -- TODO
@@ -131,6 +125,7 @@ rs5kman_vrs = '4.46'
           CONF_stepmode_keeplen = 1, 
           
           -- UI
+          UI_transparency = 0.9,
           UI_processoninit = 0,
           UI_addundototabclicks = 0,
           UI_clickonpadselecttrack = 1,
@@ -292,9 +287,9 @@ rs5kman_vrs = '4.46'
     -- colors
     UI.col_maintheme = 0x00B300 
     UI.col_red = 0xB31F0F  
-    UI.colRGBA_selectionrect = 0xF0F0F0<<8|0x9F  
-    UI.colRGBA_paddefaultbackgr = 0xA0A0A03F 
-    UI.colRGBA_paddefaultbackgr_inactive = 0xA0A0A010
+    UI.colRGBA_selectionrect = 0x00B300BF  
+    UI.colRGBA_paddefaultbackgr = 0x808080FF 
+    UI.colRGBA_paddefaultbackgr_inactive = 0x606060FF
     UI.colRGBA_ADSRrect = 0x00AF00DF
     UI.colRGBA_ADSRrectHov = 0x00FFFFFF 
     UI.padplaycol = 0x00FF00 
@@ -385,7 +380,7 @@ rs5kman_vrs = '4.46'
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,0,0.5)
       
     -- alpha
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,0.98)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,1)
       ImGui.PushStyleColor(ctx, ImGui.Col_Border,           UI.Tools_RGBA(0x000000, 0.3))
     -- colors
       ImGui.PushStyleColor(ctx, ImGui.Col_Button,           UI.Tools_RGBA(UI.main_col, 0.2))
@@ -409,7 +404,7 @@ rs5kman_vrs = '4.46'
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 1))
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, EXT.UI_transparency))
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
@@ -563,10 +558,10 @@ rs5kman_vrs = '4.46'
     if DATA.upd == true then  DATA:CollectData()  end 
     DATA.upd = false 
      
-    if DATA.upd_TCP == true then  
+    --[[if DATA.upd_TCP == true then  
       TrackList_AdjustWindows( false ) 
       DATA.upd_TCP = false
-    end
+    end]]
     
     
     -- draw UI
@@ -675,9 +670,9 @@ rs5kman_vrs = '4.46'
       then blockcol =0xD5D5D5 end
       
       
-      local backgr_fill2 = 0.4 
+      local backgr_fill2 = 0.6 
       if DATA.children[note] then backgr_fill2 = 0.8  blockcol = 0xf3f6f4 end
-      if DATA.playingnote and DATA.playingnote == note  then blockcol = 0xffe494 backgr_fill2 = 0.7 end
+      if DATA.playingnote and DATA.playingnote == note  then blockcol = 0xffe494 backgr_fill2 = 0.9 end
       
       
       if note%4 == 0 then x_offs = x end
@@ -704,7 +699,7 @@ rs5kman_vrs = '4.46'
       local p_min_y = y+h - w-UI.calc_cellside*(activerow)
       local p_max_x = p_min_x+w-1
       local p_max_y = p_min_y+w
-      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 1 )
+      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 2 )
     end
     
   end
@@ -1077,41 +1072,29 @@ end
   end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_tcpmcp()
-    if ImGui.TreeNode(ctx, 'TCP / MCP auto collapsing', ImGui.TreeNodeFlags_None) then     
-      
-      
-      --ImGui.SeparatorText(ctx, 'TCP / MCP')  
-        --ImGui.Indent(ctx, UI.settings_indent)
+    if ImGui.TreeNode(ctx, 'TCP / MCP auto collapsing', ImGui.TreeNodeFlags_None) then   
+    
         if ImGui.Checkbox( ctx, 'Collapse parent folder',                                 EXT.CONF_onadd_newchild_trackheightflags&1==1 ) then 
-          EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~1 
-          if EXT.CONF_onadd_newchild_trackheightflags&2==2 then EXT.CONF_onadd_newchild_trackheightflags = EXT.CONF_onadd_newchild_trackheightflags~2 end
+          EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~1  if EXT.CONF_onadd_newchild_trackheightflags&2==2 then EXT.CONF_onadd_newchild_trackheightflags = EXT.CONF_onadd_newchild_trackheightflags~2 end
           EXT:save() 
-          DATA.upd = true
-          DATA.upd_TCP = true
+          DATA:Auto_TCPMCP(true)
+          DATA.upd = true 
         end
         if ImGui.Checkbox( ctx, 'Supercollapse parent folder',                            EXT.CONF_onadd_newchild_trackheightflags&2==2 ) then 
-          EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~2 
-          if EXT.CONF_onadd_newchild_trackheightflags&1==1 then EXT.CONF_onadd_newchild_trackheightflags = EXT.CONF_onadd_newchild_trackheightflags~1 end
+          EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~2  if EXT.CONF_onadd_newchild_trackheightflags&1==1 then EXT.CONF_onadd_newchild_trackheightflags = EXT.CONF_onadd_newchild_trackheightflags~1 end
           EXT:save() 
-          DATA.upd = true
-          DATA.upd_TCP = true
+          DATA:Auto_TCPMCP(true)
+          DATA.upd = true 
         end
-        if ImGui.Checkbox( ctx, 'Hide children TCP',                                      EXT.CONF_onadd_newchild_trackheightflags&4==4 ) then EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~4 EXT:save() DATA:Auto_TCPMCP(true) DATA.upd = true DATA.upd_TCP = true end
-        if ImGui.Checkbox( ctx, 'Hide children MCP',                                      EXT.CONF_onadd_newchild_trackheightflags&8==8 ) then EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~8 EXT:save() DATA:Auto_TCPMCP(true) DATA.upd = true DATA.upd_TCP = true end
+        if ImGui.Checkbox( ctx, 'Hide children TCP',                                      EXT.CONF_onadd_newchild_trackheightflags&4==4 ) then EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~4 EXT:save() DATA:Auto_TCPMCP(true) DATA.upd = true end
+        if ImGui.Checkbox( ctx, 'Hide children MCP',                                      EXT.CONF_onadd_newchild_trackheightflags&8==8 ) then EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~8 EXT:save() DATA:Auto_TCPMCP(true) DATA.upd = true end
         
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW)  
         local formatin = '%dpx' if EXT.CONF_onadd_newchild_trackheight == 0 then formatin = 'default' end
         local ret, v = ImGui.SliderInt( ctx, 'New child track height',                    EXT.CONF_onadd_newchild_trackheight, 0, 300, formatin, ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_newchild_trackheight = v end
-        if ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-        --[[if ImGui.Checkbox( ctx, 'Add childs to the top',                                  EXT.CONF_trackorderflags==0 ) then EXT.CONF_trackorderflags =0 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Add childs to the bottom',                               EXT.CONF_trackorderflags==1 ) then EXT.CONF_trackorderflags =1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Add childs according to note, ascending',                EXT.CONF_trackorderflags==2 ) then EXT.CONF_trackorderflags =2 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Add childs according to note, descending',               EXT.CONF_trackorderflags==3 ) then EXT.CONF_trackorderflags =3 EXT:save() end]]
-        --ImGui.Unindent(ctx, UI.settings_indent)
-        ImGui.Dummy(ctx, 0,UI.spacingY*10)
-        
-        
-        
+        if ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+      
+      ImGui.Dummy(ctx, 0,UI.spacingY*10) 
       ImGui.TreePop(ctx)
     end  
   end
@@ -1142,7 +1125,9 @@ end
   function UI.draw_tabs_settings_UI()
     if ImGui.TreeNode(ctx, 'UI interaction', ImGui.TreeNodeFlags_None) then    
       
-      
+      ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
+      local retval, v = ImGui.SliderDouble( ctx, 'Background transparency', EXT.UI_transparency, 0, 1, math.floor(EXT.UI_transparency*100)..'%%', ImGui.SliderFlags_None )
+      if retval then EXT.UI_transparency = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
       --ImGui.SeparatorText(ctx, 'UI interaction') 
         --ImGui.Indent(ctx, UI.settings_indent)
         UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad (experimental)'},'##settings_drracklayout', 'DrumRack layout', 200) 
@@ -1592,7 +1577,7 @@ end
       end
     
     -- controls background
-      if h > min_h then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom ) end
+      if h > min_h then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0x4F4F4FFF, 5, ImGui.DrawFlags_RoundCornersBottom ) end
       
     -- controls background
       --ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom )
@@ -2867,7 +2852,7 @@ end
     ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), UI.colRGBA_ADSRrectHov)
     
     -- test
-    ImGui.DrawList_AddRectFilled( UI.draw_list, x10,y10,x20,y20, 0xFFFFFF0F, 2, ImGui.DrawFlags_None )
+    ImGui.DrawList_AddRectFilled( UI.draw_list, x10,y10,x20,y20, 0xFFFFFF2F, 2, ImGui.DrawFlags_None )
     --ImGui.DrawList_AddRectFilled( UI.draw_list, x1,y1,x2,y2, 0xFFFFFF0F, 2, ImGui.DrawFlags_None )
     
     -- attack

@@ -1186,7 +1186,7 @@ end
         if ImGui.Selectable(ctx, '32 steps') then set = 32 end
         if ImGui.Selectable(ctx, '64 steps') then set = 64 end 
         if ImGui.Selectable(ctx, '128 steps') then set = 128 end
-        if ImGui.Checkbox(ctx, 'Extend children', EXT.CONF_seq_patlen_extendchildrenlen&1==1) then EXT.CONF_seq_patlen_extendchildrenlen=EXT.CONF_seq_patlen_extendchildrenlen~1 EXT:save()end 
+        if ImGui.Checkbox(ctx, 'Force children step count', EXT.CONF_seq_patlen_extendchildrenlen&1==1) then EXT.CONF_seq_patlen_extendchildrenlen=EXT.CONF_seq_patlen_extendchildrenlen~1 EXT:save()end 
         
         if set then
           DATA.seq.ext.patternlen = set
