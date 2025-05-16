@@ -1,10 +1,11 @@
 -- @description Tempo versions
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Show timestamps
+--    # fix various cases on get/set new data
+--    + Add copy/paste buttons
 
 
 
@@ -147,7 +148,7 @@ end
 -------------------------------------------------------------------------------- 
 function UI.MAIN_draw(open) 
   local w_min = 250
-  local h_min = 80
+  local h_min = 115
   -- window_flags
     local window_flags = ImGui.WindowFlags_None
     --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
@@ -353,28 +354,43 @@ function DATA:ExtState_Get(from_file)
 end
 -------------------------------------------------------------------------------- 
 function DATA:ExtState_GetActiveName()  
-  for i = 1, #DATA.versions do if DATA.versions[i].active ==1 then return DATA.versions[i].name, i end end
+  for i = 1, #DATA.versions do 
+    if DATA.versions[i].active ==1 then return DATA.versions[i].name, i end 
+  end
 end
 -------------------------------------------------------------------------------- 
-function DATA:ExtState_Apply(id)  
+function DATA:ExtState_ApplyFromExt(id)   
+
   -- set active
     for i = 1, #DATA.versions do DATA.versions[i].active = 0 end 
     DATA.versions[id].active = 1
+    
   -- set data
     local envdata = DATA.versions[id].envdata
     DATA:Envelope_Set(envdata) 
     DATA:ExtState_Set() 
     
   -- update timeline
-    reaper.SetTempoTimeSigMarker( -1, -1, reaper.GetProjectLength( -1 ), -1, -1, 120, 4, 4, true )
-    reaper.DeleteTempoTimeSigMarker( -1, reaper.CountTempoTimeSigMarkers( -1 )-1 )
+    --reaper.SetTempoTimeSigMarker( -1, -1, reaper.GetProjectLength( -1 ), -1, -1, 120, 4, 4, true )
+    --reaper.DeleteTempoTimeSigMarker( -1, reaper.CountTempoTimeSigMarkers( -1 ) )
     reaper.UpdateTimeline()
 end
+
 -------------------------------------------------------------------------------- 
 function DATA:CollectData() 
-  DATA.versions = {
-    }
   DATA:ExtState_Get() 
+  
+  local curname, curid = DATA:ExtState_GetActiveName()  
+  if curid then
+    DATA:SaveVersion(curid)
+    DATA:ExtState_Set()
+  end
+  
+  --[[DATA.versions = {}
+  
+  
+   
+  ]]
 end
 -------------------------------------------------------------------------------- 
 function UI.MAINloop() 
@@ -586,13 +602,13 @@ function UI.draw_versions()
   local select_wsz = 250
   local select_hsz = 20
   
-  local preview = DATA:ExtState_GetActiveName() or '[current]'
+  local preview = DATA:ExtState_GetActiveName() or '[not saved]'
   if ImGui.BeginCombo(ctx, 'Version##Preset', preview, ImGui.ComboFlags_HeightLargest) then 
     -- list
     for i = 1, #DATA.versions do
       if not DATA.versions[i] then goto skipnextversion end
       local name = DATA.versions[i].name or '[untitled]'
-      if ImGui.Selectable( ctx, name..'##vrs'..i, DATA.versions[i].active==1, ImGui.SelectableFlags_None, 0, select_hsz ) then DATA:ExtState_Apply(i) end 
+      if ImGui.Selectable( ctx, name..'##vrs'..i, DATA.versions[i].active==1, ImGui.SelectableFlags_None, 0, select_hsz ) then DATA:ExtState_ApplyFromExt(i) end 
       
       if DATA.versions[i].TS_created then
         ImGui.SameLine(ctx)
@@ -620,11 +636,9 @@ function UI.draw_versions()
       func_setval = function(retval, retvals_csv)  
         if retval == true and retvals_csv~='' then
           DATA.version_name = retvals_csv
-          id = DATA:SaveVersion()
-          if id then
-            DATA:ExtState_Set()  
-            DATA:ExtState_Apply(id)
-          end
+          DATA:SaveVersion()
+          DATA.versions[#DATA.versions].active =1
+          DATA:ExtState_Set()
         end
       end
       } 
@@ -637,7 +651,7 @@ function UI.draw_versions()
       trig = true,
       captions_csv = 'New name',
       func_getval = function()  
-        local curname, curid = DATA:ExtState_GetActiveName()  
+        local curname, curid = DATA:ExtState_GetActiveName() 
         local str = curname or ''
         return str
       end,
@@ -655,6 +669,30 @@ function UI.draw_versions()
   
   ImGui.SameLine(ctx)
   
+  
+  ImGui.SameLine(ctx)
+  ImGui.Dummy(ctx, 110,0)
+  ImGui.SameLine(ctx)
+  
+  if ImGui.Button(ctx, 'Export all') then DATA:ExtState_Set(true) end
+  ImGui.SameLine(ctx)
+  if ImGui.Button(ctx, 'Import all') then DATA:ExtState_Get(true) end
+  
+  if ImGui.Button(ctx, 'Copy') then 
+    local curname, curid = DATA:ExtState_GetActiveName()  
+    if curid then
+      DATA.temp_bufferT = CopyTable(DATA.versions[curid])
+    end
+  end
+  ImGui.SameLine(ctx)
+  if ImGui.Button(ctx, 'Paste') then 
+    if not DATA.temp_bufferT then return end
+    local curname, curid = DATA:ExtState_GetActiveName()  
+    if not curid then curid = 1 end
+    DATA.versions[curid] = CopyTable(DATA.temp_bufferT)
+    DATA:ExtState_ApplyFromExt(curid)  
+  end
+  ImGui.SameLine(ctx)
   if ImGui.Button(ctx, 'Delete') then 
     local curname, curid = DATA:ExtState_GetActiveName()  
     if curid then
@@ -663,13 +701,6 @@ function UI.draw_versions()
     end
   end
   
-  ImGui.SameLine(ctx)
-  ImGui.Dummy(ctx, 20,0)
-  ImGui.SameLine(ctx)
-  
-  if ImGui.Button(ctx, 'Export all') then DATA:ExtState_Set(true) end
-  ImGui.SameLine(ctx)
-  if ImGui.Button(ctx, 'Import all') then DATA:ExtState_Get(true) end
 end
 -------------------------------------------------------------------------------- 
 function DATA:Envelope_Set(envdata)
@@ -686,12 +717,12 @@ function DATA:Envelope_Get()
   return envdata
 end
 -------------------------------------------------------------------------------- 
-function DATA:SaveVersion()
+function DATA:SaveVersion(id0)
   local envdata = DATA:Envelope_Get()
-  local id = #DATA.versions+1
+  local id = id0 or (#DATA.versions+1)
   local new_name = DATA.version_name
   if new_name == '' then new_name = 'Version '..id end
-  DATA.versions[id] = {name = new_name, envdata = envdata, TS_created = os.date()}
+  DATA.versions[id] = {name = new_name, envdata = envdata, TS_created = os.date(), active = 1}
   return id
 end
 -------------------------------------------------------------------------------- 
