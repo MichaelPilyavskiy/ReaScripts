@@ -74,6 +74,7 @@ RS5K_manager_functions_version = 4.43
   --------------------------------------------------------------------------------  
   function DATA:_Seq_PrintMIDI_ShareGUID(parent_t ,outstr) 
     if EXT.CONF_seq_force_GUIDbasedsharing~= 1 then return end
+    
     local parenttake = parent_t.tk_ptr
     local parentGUID = parent_t.ext.GUID
     local form_data = parent_t.form_data
@@ -86,8 +87,10 @@ RS5K_manager_functions_version = 4.43
       local ret, GUID = GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', '', false)
       if parenttake ~= take and ret and GUID ~= '' and GUID == parentGUID then  
         GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', outstr, true)
+        local src = GetMediaItemTake_Source( take )
       end
     end
+    
   end
   --------------------------------------------------------------------------------  
   function DATA:Auto_LoopSlice_CreatePattern(loop_t) 
@@ -321,6 +324,7 @@ RS5K_manager_functions_version = 4.43
       local app_swing 
       if DATA.seq.ext.swing~= 0 and steplength==0.25 then app_swing = DATA.seq.ext.swing end
       
+      if not t.ext.children[note].steps then t.ext.children[note].steps = {} end
       if not t.ext.children[note].steps[1] then t.ext.children[note].steps[1] = {val = 0} end
       for step = 1, DATA.seq.ext.patternlen*patlen_mult do
         local step_active = step%step_cnt 

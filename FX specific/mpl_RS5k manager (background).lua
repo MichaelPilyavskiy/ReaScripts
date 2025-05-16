@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.47
+-- @version 4.48
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -17,20 +17,25 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # Auto TCP/MCP: fix refresh
---    + Settings/UI: allow to change background transparency
---    # StepSequencer: fix play cursor position for default length
---    # StepSequencer/Pattern length: rename option to extend children to 'force chldren step count'
---    # StepSequencer: force share custom data to all takes related to current pattern
+--    # StepSequencer: replicate pattern length drag control behaviour for number of steps per note
+--    # StepSequencer: draw separators each 16th step
+--    # StepSequencer: do not allow to set steps out of per-note step count
+--    # StepSequencer: draw phantom notes for steps out of per-note step count
+--    # StepSequencer: fix 'clear all' action
+--    # Settings/StepSequencer: temporarily add option to disable share pattern data to the same pattern GUIDs (Reaper API limitation)
+--    + Settings/Colors: allow to change background transparency
+--    + Settings/Colors: allow to change active pad default color 
+--    + Settings/Colors: allow to change inactive pad default color 
+--    + Settings/Colors: allow to change pads tinting to track color
 
 
 
-rs5kman_vrs = '4.47'
+rs5kman_vrs = '4.48'
 
 
 -- TODO
---[[  rack
-        ctrl + drag pad to cop
+--[[  seq
+        if pattern has same GUId than other BUT not pooled or pool is diffent
         
       sampler/sample
         hot record from master bus 
@@ -125,6 +130,7 @@ rs5kman_vrs = '4.47'
           CONF_stepmode_keeplen = 1, 
           
           -- UI
+          
           UI_transparency = 0.9,
           UI_processoninit = 0,
           UI_addundototabclicks = 0,
@@ -139,6 +145,9 @@ rs5kman_vrs = '4.47'
           CONF_showplayingmeters = 1,
           CONF_showpadpeaks = 1,
           --UI_optimizedockerusage = 0,
+          UI_colRGBA_paddefaultbackgr = 0x1C1C1C7F ,
+          UI_colRGBA_paddefaultbackgr_inactive = 0x6060603F,
+          UI_col_tinttrackcoloralpha = 0x7F,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -176,6 +185,12 @@ rs5kman_vrs = '4.47'
           CONF_loopcheck_filter = 'bd,bass,kick',
           --CONF_loopcheck_smoothend_use = 1,
           --CONF_loopcheck_smoothend = 0.005,
+          
+          -- seq
+          CONF_seq_random_probability = 0.5,
+          CONF_seq_force_GUIDbasedsharing = 1,
+          CONF_seq_treat_mouserelease_as_majorchange  = 0,
+          CONF_seq_patlen_extendchildrenlen = 0,
           
          }
         
@@ -288,8 +303,6 @@ rs5kman_vrs = '4.47'
     UI.col_maintheme = 0x00B300 
     UI.col_red = 0xB31F0F  
     UI.colRGBA_selectionrect = 0x00B300BF  
-    UI.colRGBA_paddefaultbackgr = 0x808080FF 
-    UI.colRGBA_paddefaultbackgr_inactive = 0x606060FF
     UI.colRGBA_ADSRrect = 0x00AF00DF
     UI.colRGBA_ADSRrectHov = 0x00FFFFFF 
     UI.padplaycol = 0x00FF00 
@@ -298,7 +311,8 @@ rs5kman_vrs = '4.47'
     UI.knob_handle_vca =0xFF0000
     UI.knob_handle_vca2 =0xFFFF00
     UI.col_popup = 0x005300 
-    
+    UI.def_colRGBA_paddefaultbackgr = 0x1C1C1C7F
+    UI.def_colRGBA_paddefaultbackgr_inactive = 0x6060603F
     -- various
     UI.tab_context = '' -- for context menu
     
@@ -1125,9 +1139,6 @@ end
   function UI.draw_tabs_settings_UI()
     if ImGui.TreeNode(ctx, 'UI interaction', ImGui.TreeNodeFlags_None) then    
       
-      ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
-      local retval, v = ImGui.SliderDouble( ctx, 'Background transparency', EXT.UI_transparency, 0, 1, math.floor(EXT.UI_transparency*100)..'%%', ImGui.SliderFlags_None )
-      if retval then EXT.UI_transparency = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
       --ImGui.SeparatorText(ctx, 'UI interaction') 
         --ImGui.Indent(ctx, UI.settings_indent)
         UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad (experimental)'},'##settings_drracklayout', 'DrumRack layout', 200) 
@@ -1263,6 +1274,33 @@ end
     end  
   end
     --------------------------------------------------------------------------------
+  function UI.draw_tabs_settings_Theming()    
+    if ImGui.TreeNode(ctx, 'Colors', ImGui.TreeNodeFlags_None) then    
+      -- main backgr alpha
+      ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
+      local retval, v = ImGui.SliderDouble( ctx, 'Background transparency', EXT.UI_transparency, 0, 1, math.floor(EXT.UI_transparency*100)..'%%', ImGui.SliderFlags_None )
+      if retval then EXT.UI_transparency = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      --Active pad default
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Active pad default', EXT.UI_colRGBA_paddefaultbackgr, ImGui.ColorEditFlags_AlphaBar )  
+      if retval then EXT.UI_colRGBA_paddefaultbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_paddefaultbackgr = UI.def_colRGBA_paddefaultbackgr EXT:save() end
+      --Inactive pad default
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Inactive pad default', EXT.UI_colRGBA_paddefaultbackgr_inactive, ImGui.ColorEditFlags_AlphaBar )  
+      if retval then EXT.UI_colRGBA_paddefaultbackgr_inactive = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_paddefaultbackgr_inactive = UI.def_colRGBA_paddefaultbackgr_inactive EXT:save() end
+      --trackcol tint
+      ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
+      local retval, v = ImGui.SliderInt( ctx, 'Tint track color to pads', EXT.UI_col_tinttrackcoloralpha, 0, 255, math.floor(100*EXT.UI_col_tinttrackcoloralpha/255)..'%%', ImGui.SliderFlags_None )
+      if retval then EXT.UI_col_tinttrackcoloralpha = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      
+      
+        
+      ImGui.Dummy(ctx, 0,UI.spacingY*10)
+        
+      ImGui.TreePop(ctx)
+    end    
+  end
+    --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_AutoColor()
     if ImGui.TreeNode(ctx, 'Auto color child tracks', ImGui.TreeNodeFlags_None) then  
       
@@ -1375,6 +1413,15 @@ end
     end  
   end
   --------------------------------------------------------------------------------    
+  function UI.draw_tabs_settings_StepSequencer()
+    if ImGui.TreeNode(ctx, 'StepSequencer', ImGui.TreeNodeFlags_None) then  
+      if ImGui.Checkbox( ctx, 'Share data to same pattern GUIDs',                             EXT.CONF_seq_force_GUIDbasedsharing == 1 ) then EXT.CONF_seq_force_GUIDbasedsharing =EXT.CONF_seq_force_GUIDbasedsharing~1 EXT:save() end
+      
+      ImGui.TreePop(ctx)
+    end  
+  
+  end
+  --------------------------------------------------------------------------------    
     function UI.draw_tabs_settings()
     
     UI.tab_current = 'Settings'
@@ -1387,8 +1434,10 @@ end
       UI.draw_tabs_settings_tcpmcp()
       UI.draw_tabs_settings_MIDI()
       UI.draw_tabs_settings_UI()
+      UI.draw_tabs_settings_Theming()
       UI.draw_tabs_settings_AutoColor()
       UI.draw_tabs_settings_Autoslice()
+      UI.draw_tabs_settings_StepSequencer()
       
       ImGui.EndChild( ctx)
     end
@@ -1534,7 +1583,7 @@ end
       local color
       if note_t and note_t.I_CUSTOMCOLOR then 
         color = ImGui.ColorConvertNative(note_t.I_CUSTOMCOLOR) 
-        color = color & 0x1000000 ~= 0 and (color << 8) | 0xFF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
+        color = color & 0x1000000 ~= 0 and (color << 8) |  EXT.UI_col_tinttrackcoloralpha-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
       end
       
       --[[if EXT.CONF_autocol == 1 and DATA.children[note] and DATA.padautocolors and DATA.padautocolors[note] then 
@@ -1548,9 +1597,9 @@ end
         ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, color, 5, ImGui.DrawFlags_RoundCornersTop) 
        else 
         if note_t then
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop)
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, EXT.UI_colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop)
          else
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, EXT.UI_colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
         end
       end
     
@@ -2331,9 +2380,9 @@ end
           ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, color, 5, ImGui.DrawFlags_RoundCornersTop)
          else 
           if knob_t.active_name == true then
-            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, EXT.UI_colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
            else
-            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, EXT.UI_colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
           end
         end   
       end

@@ -80,6 +80,9 @@ reaper.set_action_options(1 )
           CONF_showplayingmeters = 1,
           CONF_showpadpeaks = 1,
           --UI_optimizedockerusage = 0,
+          UI_colRGBA_paddefaultbackgr = 0x606060FF ,
+          UI_colRGBA_paddefaultbackgr_inactive = 0x6060603F,
+          UI_col_tinttrackcoloralpha = 0x7F,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -245,8 +248,8 @@ reaper.set_action_options(1 )
     UI.col_maintheme = 0x00B300 
     UI.col_red = 0xB31F0F  
     UI.colRGBA_selectionrect = 0xF0F0F0<<8|0x9F  
-    UI.colRGBA_paddefaultbackgr = 0xA0A0A03F 
-    UI.colRGBA_paddefaultbackgr_inactive = 0xA0A0A010
+    --EXT.UI_colRGBA_paddefaultbackgr = 0x7070705F  
+    --EXT.UI_colRGBA_paddefaultbackgr_inactive = 0x60606040
     UI.colRGBA_ADSRrect = 0x00AF00DF
     UI.colRGBA_ADSRrectHov = 0x00FFFFFF 
     UI.padplaycol = 0x00FF00 
@@ -336,7 +339,6 @@ reaper.set_action_options(1 )
     local step_cnt = DATA.seq.ext.children[note].step_cnt
     if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
     for activestep = DATA.seq.stepoffs+1, DATA.seq.ext.patternlen do
-    
       -- colors/state
         local stepcol = stepcol_1
         if (activestep-1)%8> 3 then stepcol = stepcol_2 end
@@ -351,24 +353,33 @@ reaper.set_action_options(1 )
         x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
         x2, y2 = reaper.ImGui_GetItemRectMax( ctx ) 
         ImGui.DrawList_AddRectFilled( UI.draw_list, x1, y1,x2-1, y2-1, stepcol|0x1F, UI.seq_steprounding, ImGui.DrawFlags_None )
-        
-        
-      -- fill step
-        local hstep = (y2-y1)-UI.seq_activestep_reducesz*4
-        if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].val and DATA.seq.ext.children[note].steps[activestep].val > 0 then
-          local val = DATA.seq.ext.children[note].steps[activestep].val
-          local velocity = DATA.seq.ext.children[note].steps[activestep].velocity
-          if velocity then val = velocity end
-          ImGui.DrawList_AddRectFilled( UI.draw_list, 
-            x1+UI.seq_activestep_reducesz*2,
-            y1+UI.seq_activestep_reducesz*2 + hstep-hstep*val,
-            x2-UI.seq_activestep_reducesz*2,
-            y2-UI.seq_activestep_reducesz*2, 
-            stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
-        end  
       
+      -- separator
+        if activestep%16==1 then
+          ImGui.DrawList_AddLine( UI.draw_list, x1, y1+1,x1, y2-2, stepcol|0x7F, 1 )
+        end
+        
+      -- fill step 
+        local hstep = (y2-y1)-UI.seq_activestep_reducesz*4
+        if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps then
+          local activestep_fill = activestep
+          if activestep > step_cnt then activestep_fill = 1+(activestep-1)%step_cnt end
+          
+          if DATA.seq.ext.children[note].steps[activestep_fill] and DATA.seq.ext.children[note].steps[activestep_fill].val and DATA.seq.ext.children[note].steps[activestep_fill].val > 0 then
+            local val = DATA.seq.ext.children[note].steps[activestep_fill].val
+            local velocity = DATA.seq.ext.children[note].steps[activestep_fill].velocity
+            if velocity then val = velocity end
+            ImGui.DrawList_AddRectFilled( UI.draw_list, 
+              x1+UI.seq_activestep_reducesz*2,
+              y1+UI.seq_activestep_reducesz*2 + hstep-hstep*val,
+              x2-UI.seq_activestep_reducesz*2,
+              y2-UI.seq_activestep_reducesz*2, 
+              stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
+          end
+        end  
+        
       -- split val
-        if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].split then
+        if activestep <= step_cnt and DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].split then
           local split = math_q(DATA.seq.ext.children[note].steps[activestep].split)
           if split ~=1 then
             ImGui.DrawList_AddText( UI.draw_list, x1+UI.seq_activestep_reducesz, y1+UI.seq_activestep_reducesz, 0xFFFFFFFF, split )
@@ -376,7 +387,7 @@ reaper.set_action_options(1 )
         end
 
       -- offset val
-        if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].offset and DATA.seq.ext.children[note].steps[activestep].offset~=0 then
+        if activestep <= step_cnt and DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].offset and DATA.seq.ext.children[note].steps[activestep].offset~=0 then
           local offset = DATA.seq.ext.children[note].steps[activestep].offset
           local fullwstep = (x2-x1)-UI.seq_activestep_reducesz*4
           local xpos = x1 + UI.seq_activestep_reducesz*2 + fullwstep/2+ offset * fullwstep/2
@@ -397,31 +408,36 @@ reaper.set_action_options(1 )
         
       -- handle mouse
         local trig_change
-        if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_AllowWhenBlockedByPopup ) and ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 0 ) then 
-          trig_change = 1
-         elseif ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_AllowWhenBlockedByPopup ) and ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right, 0 ) then
-          trig_change = 0
+        if activestep <= step_cnt then
+          if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_AllowWhenBlockedByPopup ) and ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left, 0 ) then 
+            trig_change = 1
+           elseif ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_AllowWhenBlockedByPopup ) and ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right, 0 ) then
+            trig_change = 0
+          end
+          
+          if trig_change then 
+            if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+            if not DATA.seq.ext.children[note].steps[activestep] then DATA.seq.ext.children[note].steps[activestep] = {} end
+            
+            DATA.seq.ext.children[note].steps[activestep].val = trig_change
+            
+            local mx, my = reaper.ImGui_GetMousePos( ctx )
+            DATA.temp_holdmode_mx=mx
+            DATA.temp_holdmode_my=my
+            DATA.temp_holdmode_note=note
+            DATA.temp_holdmode_value = trig_change
+            DATA.temp_holdmode = note 
+            DATA.temp_holdmode_stepline = math.floor((activestep-1)/16)
+            DATA.temp_holdmode_step = activestep
+            if DATA.parent_track.ext.PARENT_LASTACTIVENOTE~=note then 
+              DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
+              DATA:WriteData_Parent() 
+            end
+          end     
+          
         end
         
-        if trig_change then 
-          if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
-          if not DATA.seq.ext.children[note].steps[activestep] then DATA.seq.ext.children[note].steps[activestep] = {} end
-          
-          DATA.seq.ext.children[note].steps[activestep].val = trig_change
-          
-          local mx, my = reaper.ImGui_GetMousePos( ctx )
-          DATA.temp_holdmode_mx=mx
-          DATA.temp_holdmode_my=my
-          DATA.temp_holdmode_note=note
-          DATA.temp_holdmode_value = trig_change
-          DATA.temp_holdmode = note 
-          DATA.temp_holdmode_stepline = math.floor((activestep-1)/16)
-          DATA.temp_holdmode_step = activestep
-          if DATA.parent_track.ext.PARENT_LASTACTIVENOTE~=note then 
-            DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
-            DATA:WriteData_Parent() 
-          end
-        end        
+        
       ImGui.SameLine(ctx)
       --ImGui.Dummy(ctx,UI.spacingY,0)
     end
@@ -469,6 +485,10 @@ reaper.set_action_options(1 )
     msg(step2)]]
     local s1,s2 = step1, step2
     if step2<step1 then s1,s2 = step2, step1 end
+    
+    local step_cnt = DATA.seq.ext.children[active_note].step_cnt
+    if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
+    s2=math.min(s2, step_cnt)
     
     if not DATA.seq.ext.children[active_note] then DATA.seq.ext.children[active_note] = {} end
     if not DATA.seq.ext.children[active_note].steps then DATA.seq.ext.children[active_note].steps = {} end 
@@ -588,7 +608,7 @@ end
       if issolo == true then ImGui.PopStyleColor(ctx) end
       ImGui.SameLine(ctx)
 
-    -- step_cnt
+    --[[ step_cnt
       local step_cnt = DATA.seq.ext.children[note].step_cnt
       if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
       local floor = true
@@ -603,7 +623,49 @@ end
         DATA.upd2.refresh = true
         DATA.upd2.seqprint = true
       end
-      ImGui.SameLine(ctx)
+      ImGui.SameLine(ctx)]]
+      
+      
+    -- step_cnt
+      local step_cnt = DATA.seq.ext.children[note].step_cnt
+      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
+      local floor = true
+      local default = -1
+      local retval, v, deact,rightclick,mousewheel = UI.VDragInt( ctx, '##step_cnt'..note, UI.calc_seq_ctrl_butW, UI.seq_padH-1, step_cnt, 1, DATA.seq.ext.patternlen,  step_cnt, ImGui.SliderFlags_None, floor, default)
+      if retval and DATA.seq.ext.children[note].step_cnt ~= v then
+        DATA.seq.ext.children[note].step_cnt = v
+      end
+      if deact==true then DATA:_Seq_Print() end
+      if rightclick == true then ImGui.OpenPopup( ctx, 'step_cnt'..note, ImGui.PopupFlags_None )  end
+      if mousewheel then
+        if mousewheel > 0 then DATA.seq.ext.children[note].step_cnt = VF_lim(step_cnt * 2,1,DATA.seq.ext.patternlen) else DATA.seq.ext.children[note].step_cnt = VF_lim(math.floor(step_cnt / 2),1,DATA.seq.ext.patternlen) end
+        DATA:_Seq_Print()
+      end
+      ImGui.SameLine(ctx) 
+      ImGui.SetItemTooltip(ctx,'Step count')
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,2)   
+      ImGui.PushFont(ctx, DATA.font1) 
+      if reaper.ImGui_BeginPopup(ctx,'step_cnt'..note) then
+        local posx,posy = ImGui.GetCursorPos(ctx)
+        local set
+        ImGui.Indent(ctx,10)
+        local num = {4,8,16,24,32,64,128}
+        for i = 1, #num do
+          local setnum = num[i]
+          if DATA.seq.ext.patternlen >=setnum and ImGui.Selectable(ctx, setnum..' steps', nil, reaper.ImGui_SelectableFlags_None(), 100) then set = setnum end 
+        end
+        if set then
+          DATA.seq.ext.children[note].step_cnt = set
+          DATA:_Seq_Print()
+          reaper.ImGui_CloseCurrentPopup(ctx)
+        end
+         ImGui.Unindent(ctx,10)
+        ImGui.Dummy(ctx,0,UI.spacingY)
+        reaper.ImGui_EndPopup(ctx)
+      end
+      ImGui.PopFont(ctx) 
+      ImGui.PopStyleVar(ctx)      
+      
       
     -- step_cnt step_len LED
       if DATA.seq.ext.children[note].steplength~=0.25 then
@@ -672,19 +734,19 @@ end
         local color
         if note_t and note_t.I_CUSTOMCOLOR then 
           color = ImGui.ColorConvertNative(note_t.I_CUSTOMCOLOR) 
-          color = color & 0x1000000 ~= 0 and (color << 8) | 0xBF-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
+          color = color & 0x1000000 ~= 0 and (color << 8) | EXT.UI_col_tinttrackcoloralpha-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
         end 
-        if not color then color = (UI.colRGBA_paddefaultbackgr>>8)<<8|0x0F end
-        -- if not color then color = UI.colRGBA_paddefaultbackgr end 
+        if not color then color = EXT.UI_colRGBA_paddefaultbackgr end
+        -- if not color then color = EXT.UI_colRGBA_paddefaultbackgr end 
       
       ImGui.PushStyleColor(ctx, ImGui.Col_Button, color)
       local name_localx = reaper.ImGui_GetCursorPosX(ctx)
       
       -- fill name
-      local x1,y1= ImGui_GetCursorScreenPos(ctx)
-      ImGui.DrawList_AddRectFilled( UI.draw_list, x1,y1,x1 + UI.seq_padnameW,y1+UI.seq_padH-1, color or UI.colRGBA_paddefaultbackgr , 10, ImGui.DrawFlags_None )
+      --local x1,y1= ImGui_GetCursorScreenPos(ctx)
+      --ImGui.DrawList_AddRectFilled( UI.draw_list, x1,y1,x1 + UI.seq_padnameW,y1+UI.seq_padH-1, color or EXT.UI_colRGBA_paddefaultbackgr , 10, ImGui.DrawFlags_None )
       
-      ImGui.Button(ctx,note_format..'##rackpad_name'..note,UI.seq_padnameW,UI.seq_padH )
+      ImGui.Button(ctx,note_format..'##rackpad_name'..note,UI.seq_padnameW,UI.seq_padH-1 )
       local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
       local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
       if color then ImGui.PopStyleColor(ctx) end
@@ -1080,6 +1142,10 @@ end
       active_step = active_step_init
       active_step_init = temp_val
     end
+    
+    local step_cnt = DATA.seq.ext.children[note].step_cnt
+    if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
+    active_step = math.min(active_step, step_cnt)
     
     -- left click to directly set value
     if rightbutton~= true then
@@ -1641,9 +1707,9 @@ end
           ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, color, 5, ImGui.DrawFlags_RoundCornersTop)
          else 
           if knob_t.active_name == true then
-            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, EXT.UI_colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop) 
            else
-            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, UI.colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+            ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+knobname_h, EXT.UI_colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
           end
         end   
       end
