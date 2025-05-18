@@ -345,13 +345,18 @@ RS5K_manager_functions_version = 4.43
         local sw_shift = 0
         if t.ext.children[note].steps[step_active].offset then offset = t.ext.children[note].steps[step_active].offset*steplength end 
         if app_swing and step%2==0 then sw_shift = app_swing*steplength*0.5 end
-        local beatpos = math.max(0,(step-1)*steplength  +offset + sw_shift)
+        local beatpos = (step-1)*steplength
+        local beatlen = steplength
+        if t.ext.children[note].steps[step_active].steplen_override then 
+          beatlen = steplength * t.ext.children[note].steps[step_active].steplen_override
+        end
+        local beatpos_st = math.max(0, beatpos +offset + sw_shift)
+        local beatpos_end =  math.min(beatpos+beatlen + offset ,DATA.seq.ext.patternlen)
+        if  beatpos_st > DATA.seq.ext.patternlen then goto skipnextstep end
         
-        if  beatpos > DATA.seq.ext.patternlen then goto skipnextstep end
         
-        
-        local steppos_start_sec = TimeMap2_beatsToTime(   DATA.proj, seqstart_fullbeats + beatpos ) 
-        local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + step*steplength + offset ) 
+        local steppos_start_sec = TimeMap2_beatsToTime(   DATA.proj, seqstart_fullbeats + beatpos_st ) 
+        local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + beatpos_end) 
         local steppos_start_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_start_sec ) 
         local steppos_end_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_end_sec ) 
         if  steppos_end_ppq - steppos_start_ppq < 100 then goto skipnextstep end
@@ -892,6 +897,7 @@ end
         end 
       end  
     end 
+    
     --DATA.upd = true
   end
   -------------------------------------------------------------------------------- 
@@ -963,7 +969,6 @@ end
     DATA:Auto_MIDInotenames() 
     DATA:Auto_TCPMCP() 
      
-    DATA:Auto_StuffSysex()
     
     DATA.upd2.refresh = true
   end
@@ -1385,131 +1390,13 @@ end
       local retval, nameout = reaper.GetMIDIInputName( dev-1, '' )
       if retval then DATA.MIDI_inputs[dev-1] = nameout end
     end
-  end
-  ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
-  function DATA:Auto_StuffSysex() 
-    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
-  end  
-  
-  ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg  
-    if  not (EXT.CONF_launchpadsendMIDI == 1 and EXT.UI_drracklayout == 2) then return end 
-    -- search HW MIDI out 
-      local is_LPminiMK3
-      local is_LPProMK3
-      --local LPminiMK3_name = "LPMiniMK3 MIDI"
-      local LPminiMK3_name = "MIDIOUT2 (LPMiniMK3 MIDI)"
-      local LPProMK3_name = "LPProMK3 MIDI"
-      for dev = 1, reaper.GetNumMIDIOutputs() do
-        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
-        if retval and nameout == LPminiMK3_name then HWdevoutID =  dev-1 is_LPminiMK3 = true break end --nameout:match(LPminiMK3_name)
-        if retval and nameout == LPProMK3_name then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
-      end
-      if not HWdevoutID then return end
     
-    -- action on release
-    if cmd == 'on release' then -- set to key layout
-      if is_LPminiMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-      if is_LPProMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
+    DATA.MIDI_outputs = {[-1]='[none]'}
+    for dev = 1, reaper.GetNumMIDIOutputs() do
+      local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
+      if retval then DATA.MIDI_outputs[dev-1] = nameout end
     end
     
-    
-    
-    -- 
-      if cmd == 'set/refresh active state' then
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-    
-    --[[if cmd == 'drum layout' then
-      
-      if cmd == 'drum mode' then
-        if is_LPminiMK3 ==true then 
-          SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 10h 01 F7h' 
-          DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-        end
-      end
-      
-      
-      if is_LPminiMK3 ==true or is_LPProMK3==true then 
-        for ledId = 0, 81 do
-          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
-            local msgtype = 90
-            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then msgtype = 92 end
-            SysEx_msg = msgtype..' '..string.format("%02X", ledId)..' 16'
-            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-           else
-            local col = '00'
-            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then col = '03' end
-            SysEx_msg = '90 '..string.format("%02X", ledId)..' '..col
-            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-          end
-        end
-      end
-      
-    end]]
-    
-    
-    --[[
-    
-    if cmd == 'programmer mode' then
-      if is_LPminiMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-      if is_LPProMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-    end
-    
-    
-    
-    if cmd == 'programmer mode: set colors' then
-      
-        local colorstr = '' 
-        for ledId = 0, 81 do
-          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
-            local lightingtype = 3 
-            local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
-            r = math.floor(((color>>16)&0xFF) * 0.5)
-            g = math.floor(((color>>8)&0xFF) * 0.5)
-            b = math.floor(((color>>0)&0xFF) * 0.5)
-            colorstr = colorstr..
-              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
-              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
-              string.format("%X", r)..' '..
-              string.format("%X", g)..' '..
-              string.format("%X", b)..' '
-           else
-            local lightingtype = 0
-            local palettecol = 0
-            colorstr = colorstr..
-              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
-              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
-              DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
-          end
-        end
-        
-        if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h' end
-        if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 03h '..colorstr..'F7h' end 
-
-    end]]
-    
-  end 
-  ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-    if SysEx_msg and HWdevoutID then
-      local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
-      SendMIDIMessageToHardware(HWdevoutID, SysEx_msg_bin)
-    end
   end
   --------------------------------------------------------------------- 
   function DATA:Auto_Device_RefreshVelocityRange(note)
@@ -2355,6 +2242,42 @@ end
       StuffMIDIMessage( 0, 0x80, note, 0 ) 
     end
   end
+ ------------------------------------------------------------------------------------------ 
+ function DATA:Layout_Init(ID, fill_unexistent)  
+   local defaults = {
+       cell_cnt_max=64,
+       startnote = 36,
+       blockX = 4,
+       toptobottom = 0,
+       row_cnt = 8,
+       col_cnt = 8,
+       
+     }
+     
+   if not fill_unexistent then 
+     DATA.custom_layouts[ID] = CopyTable(defaults)
+    else
+     if not DATA.custom_layouts[ID] then DATA.custom_layouts[ID] = {} end
+     for key in pairs(defaults) do
+       if not DATA.custom_layouts[ID][key] then DATA.custom_layouts[ID][key] = defaults[key] end
+     end
+   end
+   
+ end
+  ------------------------------------------------------------------------------------------ 
+  function DATA:CollectDataInit_LoadCustomLayouts()  
+    local s_b64 = EXT.UI_drracklayout_custommapB64
+    DATA.custom_layouts = table.loadstring(s_b64) or {}
+    local ID = EXT.UI_drracklayout_customID
+    if not DATA.custom_layouts[ID]  then DATA:Layout_Init(ID) end
+    DATA:Layout_Init(ID, true)
+    
+  end
+  ------------------------------------------------------------------------------------------ 
+  function DATA:Layout_SaveCustomLayouts()  
+    EXT.UI_drracklayout_custommapB64 = table.savestring(DATA.custom_layouts ) or ""
+    EXT:save()
+  end
   ---------------------------------------------------------------------  
   function DATA:WriteData_Parent() 
     if not (DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.valid == true) then return end
@@ -2499,35 +2422,8 @@ end
       end
       local filename  if DATA.children[src_pad] and DATA.children[src_pad].layers and DATA.children[src_pad].layers[1] and DATA.children[src_pad].layers[1].instrument_filename then filename = DATA.children[src_pad].layers[1].instrument_filename end
       DATA:DropSample_RenameTrack(DATA.children[src_pad].tr_ptr,dest_pad,filename) 
-    end
-    DATA.peakscache[src_pad] = nil
-    DATA.peakscache[dest_pad] = nil
-    DATA.upd = true
-    DATA.autoreposition = true
-  end
-  ---------------------------------------------------------------------  
-  function DATA:Drop_Pad_Duplicate(src_pad,dest_pad)  
-    -- set dest device/devicechidren
-    if DATA.children[dest_pad] then return end 
-    if DATA.children[src_pad].TYPE_DEVICE == true then return end 
+    end 
     
-    -- duplicate source track
-      local track = DATA.children[src_pad].tr_ptr
-      SetOnlyTrackSelected( track )
-      Main_OnCommand(40062,0)--  Track: Duplicate tracks 
-      
-    -- set src device/devicechidren  
-      DATA:WriteData_Child(DATA.children[src_pad].tr_ptr, {SET_noteID = dest_pad})  
-      if DATA.children[src_pad].layers then
-        for layer = 1, #DATA.children[src_pad].layers do
-          DATA:WriteData_Child(DATA.children[src_pad].layers[layer].tr_ptr, {SET_noteID = dest_pad})  
-          DATA:DropSample_ExportToRS5kSetNoteRange(DATA.children[src_pad].layers[layer], dest_pad)
-        end
-      end
-      local filename  if DATA.children[src_pad] and DATA.children[src_pad].layers and DATA.children[src_pad].layers[1] and DATA.children[src_pad].layers[1].instrument_filename then filename = DATA.children[src_pad].layers[1].instrument_filename end
-      DATA:DropSample_RenameTrack(DATA.children[src_pad].tr_ptr,dest_pad,filename) 
-      
-      
     DATA.peakscache[src_pad] = nil
     DATA.peakscache[dest_pad] = nil
     DATA.upd = true
@@ -2541,8 +2437,20 @@ end
     
     if not DATA.paddrop_mode then 
       DATA:Drop_Pad_Swap(src_pad,dest_pad)  
-     elseif DATA.paddrop_mode == 1 and not DATA.children[dest_pad]  then -- copy stuff to dest pad if it is free
-      DATA:Drop_Pad_Duplicate(src_pad,dest_pad)  
+     elseif DATA.paddrop_mode == 1 
+      and DATA.children[src_pad] 
+      and not DATA.children[dest_pad] 
+      and DATA.children[src_pad].layers
+      and #DATA.children[src_pad].layers==1
+      and DATA.children[src_pad].layers[1] 
+      and DATA.children[src_pad].layers[1].instrument_filename  then -- copy stuff to dest pad if it is free
+      local filename = DATA.children[src_pad].layers[1].instrument_filename
+      local drop_data = {
+        layer = 1, 
+        EOFFS = DATA.children[src_pad].layers[1].instrument_sampleendoffs,
+        SOFFS = DATA.children[src_pad].layers[1].instrument_samplestoffs,
+      }
+      DATA:DropSample(filename, dest_pad0, drop_data)
       DATA.paddrop_mode = nil
     end
     
@@ -2568,6 +2476,10 @@ end
     SetMediaTrackInfo_Value( MIDI_tr, 'I_RECMODE', 0 ) -- record MIDI out
     local channel,physical_input = EXT.CONF_midichannel, EXT.CONF_midiinput
     SetMediaTrackInfo_Value( MIDI_tr, 'I_RECINPUT', 4096 + channel + (physical_input<<5)) -- set input to all MIDI
+    if EXT.CONF_midioutput ~= -1 then
+      SetMediaTrackInfo_Value( MIDI_tr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) -- MIDI hardware output
+    end
+    
     
     -- make parent track folder
     if DATA.parent_track.I_FOLDERDEPTH ~= 1 then
@@ -2900,12 +2812,14 @@ end
   function DATA:DropSample_ExportToRS5k(track, instrument_pos, filename, note, drop_data) 
       
     -- validate filename
-      if not (track and  instrument_pos and filename and filename~='')  then return end 
+      if not (track and  instrument_pos and filename and filename~='')  then return end  
+      
       DATA.peakscache[note] = nil
     -- handle file
       if EXT.CONF_onadd_copytoprojectpath == 1 then filename = DATA:DropSample_ExportToRS5k_CopySrc(filename) end 
     -- set parameters
       if EXT.CONF_onadd_float == 0 then TrackFX_SetOpen( track, instrument_pos, false ) end
+      
       TrackFX_SetNamedConfigParm( track, instrument_pos, 'FILE0', filename)
       TrackFX_SetNamedConfigParm( track, instrument_pos, 'DONE', '')
       if EXT.CONF_onadd_renameinst == 1 and EXT.CONF_onadd_renameinst_str ~= '' then
@@ -2914,25 +2828,20 @@ end
         if drop_data.layer then str = str:gsub('%#layer',drop_data.layer) else str = str:gsub('%#layer','') end
         TrackFX_SetNamedConfigParm( track, instrument_pos, 'renamed_name', str)
       end
-      TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel
+      
+      TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel 
       TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
       TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
       TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
-      TrackFX_SetParamNormalized( track, instrument_pos, 11, EXT.CONF_onadd_obeynoteoff) -- obey note offs
+      
+      local obeynoteoff = EXT.CONF_onadd_obeynoteoff if drop_data and drop_data.srct and drop_data.srct.instrument_noteoff then obeynoteoff = drop_data.srct.instrument_noteoff end
+      TrackFX_SetParamNormalized( track, instrument_pos, 11, obeynoteoff) -- obey note offs
       
       -- ADSR
-      TrackFX_SetParamNormalized( track, instrument_pos, 9, 0 ) -- attack 
-      if drop_data.custom_release_sec then
-        local custom_release =math.min(drop_data.custom_release_sec/2,1)
-        TrackFX_SetParamNormalized( track, instrument_pos, 10, custom_release ) -- release
-      end
-      if drop_data.custom_decay_sec then
-        local custom_decay_sec =math.min(drop_data.custom_decay_sec/15,1)
-        TrackFX_SetParamNormalized( track, instrument_pos, 24, custom_decay_sec ) -- release
-      end 
-      if drop_data.custom_sustain then
-        TrackFX_SetParamNormalized( track, instrument_pos, 25, drop_data.custom_sustain )
-      end
+      local attack = 0            TrackFX_SetParamNormalized( track, instrument_pos, 9, attack ) 
+      local decay_sec = 15    /15  TrackFX_SetParamNormalized( track, instrument_pos, 24, decay_sec )
+      local release = 0.02        TrackFX_SetParamNormalized( track, instrument_pos, 10, release )
+      local sustain= 0            TrackFX_SetParamNormalized( track, instrument_pos, 25, sustain )
       
       
       local temp_t = {
@@ -3092,7 +3001,7 @@ end
     local mapID = EXT.UIdatabase_maps_current
     if not (DATA.database_maps[mapID] and DATA.database_maps[mapID].map) then return end
     
-    for note in pairs(DATA.database_maps[mapID].map) do
+    for note in spairs(DATA.database_maps[mapID].map) do
       if not sel_pad_only or (sel_pad_only == true and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and note == DATA.parent_track.ext.PARENT_LASTACTIVENOTE) then
       
         local dbname = DATA.database_maps[mapID].map[note].dbname
@@ -3750,13 +3659,6 @@ end
       local outnote = note + i-1  
       if outnote > 127 then break end
       loop_t[i].outnote = outnote 
-      local custom_release_sec, custom_decay_sec, custom_sustain
-      --[[if EXT.CONF_loopcheck_smoothend_use == 1 then
-        local slicelen = (loop_t[i].EOFFS - loop_t[i].SOFFS) * srclen
-        custom_release_sec = EXT.CONF_loopcheck_smoothend
-        custom_decay_sec =  slicelen - EXT.CONF_loopcheck_smoothend
-        custom_sustain = 0
-      end]] 
       
       DATA:DropSample(
           filename, 
@@ -3766,9 +3668,6 @@ end
             SOFFS=loop_t[i].SOFFS,
             EOFFS=loop_t[i].EOFFS,
             tr_name_add = '- slice '..i,
-            custom_release_sec = custom_release_sec,
-            custom_decay_sec = custom_decay_sec,
-            custom_sustain = custom_sustain,
             SAMPLEBPM = bpm,
           }
         )

@@ -88,12 +88,14 @@ NUM_CHOKE_GROUPS = 4;
     note +=2;
   );
   
+  buf = 10000;
+  maxlen = 65536;
+  while ((recvlen = midirecv_buf(msgoffs,buf,maxlen)) > 0) (
+  //while ( midirecv(msgoffs,msg1,msg2,msg3)  ) ( 
+    msgchan = buf[0];//msg1 & $xF;
 
-  while ( midirecv(msgoffs,msg1,msg2,msg3)  ) ( 
-    msgchan = msg1 & $xF;
-
-    current_note = msg2;
-    note_status = msg1 & $xF0;
+    current_note = buf[1];//msg2;
+    note_status = buf[0] & $xF0;
     
     note_status == NOTE_ON ?
     (
@@ -113,14 +115,17 @@ NUM_CHOKE_GROUPS = 4;
           chokegroupactive_incnote == 1 && chokegroupactive_loopednote == 1 && note != current_note ? 
           (
             // send note off
-            midisend(msgoffs, NOTE_OFF|msgchan,note);
+            buf[0] = NOTE_OFF|msgchan;
+            buf[1] = note;
+            midisend_buf(msgoffs,buf,recvlen)
+            //midisend(msgoffs, NOTE_OFF|msgchan,note);
           );
         ); 
       );
       
       // pass through note on
-      midisend(msgoffs,msg1,msg2,msg3);
-      
+      //midisend(msgoffs,msg1,msg2,msg3);
+       midisend_buf(msgoffs,buf,recvlen)
     );
 
     // Pass through note off if the note is not part of a choke group

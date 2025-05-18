@@ -56,6 +56,7 @@ reaper.set_action_options(1 )
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
           CONF_midichannel = 0, -- 0 == all channels 
+          CONF_midioutput = -1, 
           
           -- sampler
           CONF_cropthreshold = -60, -- db
@@ -103,8 +104,6 @@ reaper.set_action_options(1 )
           CONF_database_map7 = '',
           CONF_database_map8 = '',
           
-          -- hardware
-          CONF_launchpadsendMIDI = 0,
           
           -- actions
           CONF_importselitems_removesource = 0,
@@ -154,6 +153,7 @@ reaper.set_action_options(1 )
           playingnote = -1,
           playingnote_trigTS = 0,
           MIDI_inputs = {},
+          MIDI_outputs = {},
           lastMIDIinputnote = {},
           reaperDB = {},
           MIDIOSC = {}, 
@@ -195,12 +195,13 @@ reaper.set_action_options(1 )
           seq_param_selector = { 
             {param = 'velocity', str= 'Velocity',default=120/127, maxval = 1, minval = 3/127},
             {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95},
-            {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1}
+            {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1},
+            {param = 'steplen_override', str= 'Length',default=1, maxval = 2, minval = 0.1},
           },
           
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
-          seq_UI_inlineH_area = 300,
+          seq_UI_inlineH_area = 330,
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
   
@@ -280,7 +281,8 @@ reaper.set_action_options(1 )
   ---------------------------------------------------------------------  
   function UI.Drop_UI_interaction_pad(note) 
     if note == -1 then
-      for i=1,127 do if not DATA.children[i] then 
+      local starting_emptynote = 36
+      for i=starting_emptynote,127 do if not DATA.children[i] then 
         note = i 
         DATA.parent_track.ext.PARENT_LASTACTIVENOTE = note
         DATA.temp_scroll_to_note = note
@@ -323,14 +325,14 @@ reaper.set_action_options(1 )
     end
   end
   --------------------------------------------------------------------------------  
-  function UI.draw_Seq_Step(note_t)  
+  function UI.draw_Seq_Step(note_t, x0,y0)  
     if not note_t then return end 
     local note= note_t.noteID 
     if not DATA.seq.ext.patternlen then return end
     
     function __f_draw_Seq_Step() end
     ImGui.SetCursorPosX(ctx, UI.calc_seqXL_steps)
-    
+    if x0 and y0 then ImGui.SetCursorPos(ctx, x0,y0) end
     
     -- loop steps
     local stepcol_1 = 0xFFFFFF00
@@ -361,6 +363,7 @@ reaper.set_action_options(1 )
         
       -- fill step 
         local hstep = (y2-y1)-UI.seq_activestep_reducesz*4
+        local wstep = (x2-x1)-UI.seq_activestep_reducesz*4
         if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps then
           local activestep_fill = activestep
           if activestep > step_cnt then activestep_fill = 1+(activestep-1)%step_cnt end
@@ -369,10 +372,13 @@ reaper.set_action_options(1 )
             local val = DATA.seq.ext.children[note].steps[activestep_fill].val
             local velocity = DATA.seq.ext.children[note].steps[activestep_fill].velocity
             if velocity then val = velocity end
+            local width = 1
+            if DATA.seq.ext.children[note].steps[activestep_fill].steplen_override then width = math.max(0.2,DATA.seq.ext.children[note].steps[activestep_fill].steplen_override) end
+            
             ImGui.DrawList_AddRectFilled( UI.draw_list, 
               x1+UI.seq_activestep_reducesz*2,
               y1+UI.seq_activestep_reducesz*2 + hstep-hstep*val,
-              x2-UI.seq_activestep_reducesz*2,
+              x1+UI.seq_activestep_reducesz*2 + wstep*width,
               y2-UI.seq_activestep_reducesz*2, 
               stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
           end
@@ -582,6 +588,7 @@ end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls(note_t)
     
+    --function __f_draw_Seq_ctrls() end
     local note= note_t.noteID
     
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,1) 
@@ -607,26 +614,10 @@ end
       end   
       if issolo == true then ImGui.PopStyleColor(ctx) end
       ImGui.SameLine(ctx)
-
-    --[[ step_cnt
-      local step_cnt = DATA.seq.ext.children[note].step_cnt
-      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
-      local floor = true
-      local default = -1
-      local xabsstepcnt, yabsstepcnt = reaper.ImGui_GetCursorScreenPos(ctx)
-      local retval, v, deact = UI.VDragInt( ctx, '##step_cnt'..note, UI.calc_seq_ctrl_butW, UI.seq_padH-1, step_cnt, 1, DATA.seq.ext.patternlen, step_cnt, ImGui.SliderFlags_None, floor, default)
-      if retval and DATA.seq.ext.children[note].step_cnt ~= v then
-        DATA.seq.ext.children[note].step_cnt = v
-        --DATA:_Seq_Print()
-      end
-      if deact==true then 
-        DATA.upd2.refresh = true
-        DATA.upd2.seqprint = true
-      end
-      ImGui.SameLine(ctx)]]
       
       
     -- step_cnt
+      local xabsstepcnt, yabsstepcnt = reaper.ImGui_GetCursorScreenPos(ctx)
       local step_cnt = DATA.seq.ext.children[note].step_cnt
       if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
       local floor = true
@@ -753,7 +744,6 @@ end
        DATA.children[note].seq_yA={}
        DATA.children[note].seq_yA[0] = y1 -- print for note_seq_params popup
       if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
-        --function __f_draw_Seq_ctrls() end
         DATA.temp_stepline = 0
         ImGui.OpenPopup( ctx, 'note_seq_params'..note, ImGui.PopupFlags_None ) 
       end
@@ -986,15 +976,51 @@ end
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local width_area = DATA.display_w-UI.calc_seqXL_padname - UI.scrollbarsz-- UI.calc_seqW_steps + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX
     local seq_yA = DATA.children[note].seq_yA[DATA.temp_stepline] or DATA.children[note].seq_yA[0]
-    ImGui.SetNextWindowPos( ctx, UI.calc_seqX + UI.calc_seqXL_padname, seq_yA + UI.seq_padH + UI.spacingY , ImGui.Cond_Always, 0, 0 )--UI.calc_seqXL_steps
+    ImGui.SetNextWindowPos( ctx, UI.calc_seqX + UI.calc_seqXL_padname, seq_yA   , ImGui.Cond_Always, 0, 0 )--UI.calc_seqXL_steps--+ UI.seq_padH
     ImGui.SetNextWindowSize( ctx, width_area, 0, ImGui.Cond_Always )
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,2)  
     
-    if reaper.ImGui_BeginPopup(ctx,'note_seq_params'..note) then
+    if ImGui.BeginPopup(ctx,'note_seq_params'..note) then
       local posx,posy = ImGui.GetCursorPos(ctx)
        
-      if reaper.ImGui_BeginChild(ctx, '##childinlinetools'..note, UI.seq_padnameW+UI.spacingX, 0, ImGui.ChildFlags_None,ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then--|reaper.ImGui_ChildFlags_AutoResizeY()
+      if ImGui.BeginChild(ctx, '##childinlinetools'..note, UI.seq_padnameW+UI.spacingX, 0, ImGui.ChildFlags_None,ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then--|reaper.ImGui_ChildFlags_AutoResizeY()
         
+          
+        -- name  
+          ImGui.PushFont(ctx, DATA.font4) 
+          -- define txt
+            local note_format = VF_Format_Note(note,note_t)
+            if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+            local str_maxlen = 20
+            if note_format:len()> str_maxlen then note_format = '...'..note_format:sub(-str_maxlen) end
+          -- define color
+            local color
+            if note_t and note_t.I_CUSTOMCOLOR then 
+              color = ImGui.ColorConvertNative(note_t.I_CUSTOMCOLOR) 
+              color = color & 0x1000000 ~= 0 and (color << 8) | EXT.UI_col_tinttrackcoloralpha-- https://forum.cockos.com/showpost.php?p=2799017&postcount=6
+            end 
+            if not color then color = EXT.UI_colRGBA_paddefaultbackgr end
+            -- if not color then color = EXT.UI_colRGBA_paddefaultbackgr end 
+            ImGui.PushStyleColor(ctx, ImGui.Col_Button, color)
+            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, color)
+            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, color|0xFF)
+          -- button
+            ImGui.Button(ctx,note_format..'##rackpad_name'..note,UI.seq_padnameW,UI.seq_padH-1 )
+            local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+            local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+            if color then ImGui.PopStyleColor(ctx,3) end
+             DATA.children[note].seq_yA={}
+             DATA.children[note].seq_yA[0] = y1 -- print for note_seq_params popup
+            if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) or ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
+              DATA.temp_stepline = 0
+              reaper.ImGui_CloseCurrentPopup(ctx)
+            end
+          
+            
+          ImGui.PopFont(ctx) 
+          
+           
+          
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY) 
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,UI.spacingX,UI.spacingY) 
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX,UI.spacingY) 
@@ -1005,7 +1031,11 @@ end
         reaper.ImGui_EndChild(ctx)
       end 
       
-      UI.draw_Seq_ctrls_inline_drawstuff(note_t, posx, posy) 
+      UI.draw_Seq_Step(note_t, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX, posy )  
+      UI.draw_Seq_ctrls_inline_drawstuff(note_t, posx, posy+ UI.seq_padH) 
+      ImGui.Dummy(ctx,0,UI.spacingY)
+      ImGui.Dummy(ctx,UI.seq_padnameW+UI.spacingX*2,0)ImGui.SameLine(ctx)
+      UI.draw_Seq_horizscroll()  
       ImGui.Dummy(ctx,0,UI.spacingY)
       reaper.ImGui_EndPopup(ctx)
     end
@@ -1024,6 +1054,7 @@ end
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
     
+      
     -- work area
     ImGui.SetCursorPos(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX, posy + UI.spacingY)
     local harea = DATA.seq_UI_inlineH_area
@@ -1034,18 +1065,6 @@ end
     UI.draw_Seq_ctrls_inline_handlemouse(note_t) 
     
     ImGui.Dummy(ctx,0,UI.spacingY)
-    --[[selector
-    ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize, math.floor((UI.calc_seqW_steps-reset_w) / #DATA.seq_param_selector)  )
-    ImGui.SetNextItemWidth(ctx,-reset_w)
-    local formatIn = DATA.seq_param_selector[DATA.seq_param_selectorID].str
-    ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
-    local retval, v = ImGui.SliderDouble( ctx, '##seq_param_selector', DATA.seq_param_selectorID, 1, #DATA.seq_param_selector+0.99, formatIn, ImGui_SliderFlags_None() )
-    if retval then DATA.seq_param_selectorID = math.floor(v) end
-    ImGui.PopStyleVar(ctx) 
-    ImGui.SameLine(ctx)
-    ImGui.Dummy(ctx,UI.spacingX,0)
-    ImGui.SameLine(ctx)--UI.spacingY)]]
-
     
     -- parameter tabs
     ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
@@ -1056,9 +1075,7 @@ end
       end
       ImGui.EndTabBar( ctx)
     end
-    
-    
-    
+     
     -- STEPS
     local stepw = UI.seq_stepW
     local hfull = (y2-y1)
@@ -1070,7 +1087,7 @@ end
     for step = 1+DATA.seq.stepoffs, DATA.seq.ext.patternlen do
       local stepcol = stepcol_1
       if (step-1)%8> 3 then stepcol = stepcol_2 end 
-      local xpos = x1 + (stepw) * (step-1) 
+      local xpos = x1 + (stepw) * (step-DATA.seq.stepoffs-1) 
       ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,y1,xpos + stepw -1 ,y2, stepcol|0x0F, UI.seq_steprounding, ImGui.DrawFlags_None )
     end
     
@@ -1091,7 +1108,12 @@ end
           local val_norm = (val - minval) / (maxval - minval)
           local ypos = y1
           
-          if DATA.seq_param_selectorID == 1 or DATA.seq_param_selectorID == 3 then -- vel
+          if    DATA.seq_param_selectorID == 1 
+            or  DATA.seq_param_selectorID == 3 
+            or  DATA.seq_param_selectorID == 4 
+            
+            
+            then -- vel
             hstep = (y2-y1)*val_norm
             ypos = math.min(y2-1, y1 + hfull - hstep)
             ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos,xpos + stepw -1 ,y2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
@@ -1109,12 +1131,14 @@ end
           -- draw values
           local txt=val 
           local txyy = math.max(ypos-20,y1)
-          if DATA.seq_param_selectorID == 1  then 
+          if DATA.seq_param_selectorID == 1  then  --velocity
             txt=math.floor(val*127) 
-           elseif DATA.seq_param_selectorID == 2  then 
+           elseif DATA.seq_param_selectorID == 2  then --offst
              txt=math.floor(val*100)..'%'
-           elseif DATA.seq_param_selectorID == 3  then 
-             txt=math_q(val)           
+           elseif DATA.seq_param_selectorID == 3  then -- split
+             txt=math_q(val)        
+           elseif DATA.seq_param_selectorID ==4  then --step len
+             txt=math.floor(val*100)..'%'              
           end
           mousediff = VF_lim(255-math.floor(math.abs(mousex-xpos) ),0,255)--+ math.abs(mousey-ypos)
           ImGui.DrawList_AddText( UI.draw_list, xpos, txyy, 0xFFFFFF00|mousediff, txt )
@@ -1202,6 +1226,23 @@ end
             
   end
   --------------------------------------------------------------------------------  
+  function UI.draw_Seq_horizscroll()  
+    -- horiz scroll
+    ImGui.SameLine(ctx)
+    ImGui.SetNextItemWidth(ctx, -1)
+    local format = ''
+    if DATA.seq.stepoffs and DATA.seq.ext.patternlen and UI.calc_seqW_steps_visible then 
+      local maxval = (math.min(DATA.seq.stepoffs+UI.calc_seqW_steps_visible-1,DATA.seq.ext.patternlen))
+      maxval = math.max(maxval,16)
+      format = (DATA.seq.stepoffs+1)..'-'..maxval..' steps' 
+    end
+    local ret, v = ImGui.SliderDouble(ctx,'##horizscroll',DATA.seq_horiz_scroll,0,1,format,ImGui.SliderFlags_None)
+    if ret then 
+      DATA.seq_horiz_scroll = v
+      DATA:_Seq_RefreshHScroll()
+    end
+  end
+    -------------------------------------------------------------------------------- 
   function UI.draw_Seq()   
     if not (DATA.parent_track and DATA.parent_track.valid == true and DATA.seq and DATA.seq.valid == true and DATA.seq.tk_ptr ) then
       UI.draw_Seq_startup() 
@@ -1329,20 +1370,7 @@ end
       ImGui_EndDragDropTarget( ctx )
     end
     
-    -- horiz scroll
-    ImGui.SameLine(ctx)
-    ImGui.SetNextItemWidth(ctx, -1)
-    local format = ''
-    if DATA.seq.stepoffs and DATA.seq.ext.patternlen and UI.calc_seqW_steps_visible then 
-      local maxval = (math.min(DATA.seq.stepoffs+UI.calc_seqW_steps_visible-1,DATA.seq.ext.patternlen))
-      maxval = math.max(maxval,16)
-      format = (DATA.seq.stepoffs+1)..'-'..maxval..' steps' 
-    end
-    local ret, v = ImGui.SliderDouble(ctx,'##horizscroll',DATA.seq_horiz_scroll,0,1,format,ImGui.SliderFlags_None)
-    if ret then 
-      DATA.seq_horiz_scroll = v
-      DATA:_Seq_RefreshHScroll()
-    end
+    UI.draw_Seq_horizscroll()  
       
   end  
   --------------------------------------------------------------------------------  

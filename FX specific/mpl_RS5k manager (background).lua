@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.48
+-- @version 4.49
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -17,25 +17,46 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: replicate pattern length drag control behaviour for number of steps per note
---    # StepSequencer: draw separators each 16th step
---    # StepSequencer: do not allow to set steps out of per-note step count
---    # StepSequencer: draw phantom notes for steps out of per-note step count
---    # StepSequencer: fix 'clear all' action
---    # Settings/StepSequencer: temporarily add option to disable share pattern data to the same pattern GUIDs (Reaper API limitation)
---    + Settings/Colors: allow to change background transparency
---    + Settings/Colors: allow to change active pad default color 
---    + Settings/Colors: allow to change inactive pad default color 
---    + Settings/Colors: allow to change pads tinting to track color
+--    + StepSequencer/Inline: draw inline editor over active steps
+--    + StepSequencer/Inline: allow to override step length per note
+--    + StepSequencer/Inline: draw step length override as reduce width
+--    + StepSequencer/Inline: add horizontal scroll
+--    # StepSequencer: fix drawing background lines incorrectly
+--    # StepSequencer: fix step length change error
+--    # StepSequencer: set start note drop number to 36
+--    + Settings/UI: add option to play sample on pad click, off by default
+--    + Settings/MIDI bus: add option to set default MIDI hardware output
+--    # Launchpad: add setup description in settings
+--    # Settings: use collapsing header for better navigation
+--    # Layout: internal cleanup
+--    - Layout: remove launchpad layout
+--    + Layout: add custom layout
+--    + Layout/Custom: allow to set maximum number of notes
+--    + Layout/Custom: allow to set number of rows
+--    + Layout/Custom: allow to set number of columns
+--    + Layout/Custom: allow to set start note
+--    + Layout/Custom: allow to set x block size
+--    + Layout/Custom: allow to override note mapping
+--    + Sampler/ADSR: drop defaults changed to A=0 D=max S=0 R=40ms
+--    # Rack: fix triggering NoteOn/Off
+--    # Rack: show DB LED  
+--    # Rack: improve LED placement
+--    # Rack: when moving pads, replicate drop of same sample, obey boundaries
+--    # Rack/startup: remove "Load DB to selected pads only" action
+--    # Database: Load DB trigger undo entry
+--    # Database: Load DB in ascendiung order, fix obey track order setting
+--    # Autoslice: add description
+--    + MIDI_choke: filter out SysEx messages
 
 
 
-rs5kman_vrs = '4.48'
+rs5kman_vrs = '4.49'
 
 
 -- TODO
 --[[  seq
-        if pattern has same GUId than other BUT not pooled or pool is diffent
+        if pattern has same GUId than other BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
+        control parameters of plugins / sendds
         
       sampler/sample
         hot record from master bus 
@@ -50,11 +71,7 @@ rs5kman_vrs = '4.48'
         wildcards - samples path 
         
       layout
-        launchpad   
-          light up leds
-        layout builder
-          learn pad
-          step seq mode
+        step seq mode
           
       sampler/fx
         compressor
@@ -118,6 +135,7 @@ rs5kman_vrs = '4.48'
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
+          CONF_midioutput = -1, 
           CONF_midichannel = 0, -- 0 == all channels 
           
           -- sampler
@@ -136,10 +154,13 @@ rs5kman_vrs = '4.48'
           UI_addundototabclicks = 0,
           UI_clickonpadselecttrack = 1,
           UI_clickonpadscrolltomixer = 0,
+          UI_clickonpadplaysample = 0, --
           UI_incomingnoteselectpad = 0,
           UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128=children chain
           UI_pads_sendnoteoff = 1,
           UI_drracklayout = 0,
+          UI_drracklayout_custommapB64 = '',
+          UI_drracklayout_customID = 0,
           UIdatabase_maps_current = 1,
           UI_padcustomnames = '',
           CONF_showplayingmeters = 1,
@@ -167,10 +188,7 @@ rs5kman_vrs = '4.48'
           CONF_database_map6 = '',
           CONF_database_map7 = '',
           CONF_database_map8 = '',
-          
-          -- hardware
-          CONF_launchpadsendMIDI = 0,
-          
+           
           -- actions
           CONF_importselitems_removesource = 0,
           
@@ -219,6 +237,7 @@ rs5kman_vrs = '4.48'
           playingnote = -1,
           playingnote_trigTS = 0,
           MIDI_inputs = {},
+          MIDI_outputs = {},
           lastMIDIinputnote = {},
           reaperDB = {},
           MIDIOSC = {}, 
@@ -456,66 +475,81 @@ rs5kman_vrs = '4.48'
         local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
         UI.calc_itemH = calcitemh + frameh * 2
         
-        -- calc Rack data
+        -- calc settings
+        UI.calc_settingsW = UI.settingsfixedW 
+        if UI.hide_tabs == true then UI.calc_settingsW = 0 end 
+        
+        -- calc padoverview
         UI.calc_padoverviewH = DATA.display_h- UI.spacingY*3- UI.calc_itemH
-        UI.calc_cellside = UI.calc_padoverviewH/32 
-        UI.calc_padoverviewW = UI.calc_cellside * 4 + UI.spacingX*2
-        if UI.calc_padoverviewW < 30 then UI.hide_padoverview = true end
+        UI.calc_padoverview_cellside = UI.calc_padoverviewH/32  
+        UI.calc_padoverviewW = UI.calc_padoverview_cellside * 4 + UI.spacingX*2
+        if UI.calc_padoverviewW < 30 or UI.calc_padoverviewW > 60 or EXT.UI_drracklayout == 2 then UI.hide_padoverview = true end
         if EXT.UI_drracklayout == 1 then --keys
-          UI.calc_cellside = UI.calc_padoverviewH /22
-          UI.calc_padoverviewW = UI.calc_cellside * 7 + UI.spacingX*2
+          UI.calc_padoverview_cellside = UI.calc_padoverviewH /22
+          UI.calc_padoverviewW = UI.calc_padoverview_cellside * 7 + UI.spacingX*2
         end 
-        if EXT.UI_drracklayout == 2 then --LP
-          UI.calc_padoverviewW = UI.spacingX*2
-        end 
-        local calc_padoverviewW = UI.calc_padoverviewW
-        
+        if UI.hide_padoverview == true and EXT.UI_drracklayout ~= 2 then UI.calc_padoverviewW = 0 end
+        if UI.hide_padoverview == true and EXT.UI_drracklayout == 2 then UI.calc_padoverviewW = 28 end
+         
         -- rack
-        UI.calc_rackX = DATA.display_x + UI.calc_padoverviewW
-        UI.calc_rackY = DATA.display_y + UI.spacingY --+ UI.calc_itemH
+        local rack_max_width = 500
+        local rack_min_height = 250
+        UI.calc_rackX = DATA.display_x + UI.spacingX + UI.calc_padoverviewW
+        UI.calc_rackY = DATA.display_y + UI.spacingY 
         if ImGui_IsWindowDocked( ctx ) then UI.calc_rackY = DATA.display_y + UI.spacingY end
-        local settingsfixedW = UI.settingsfixedW
-        if UI.hide_padoverview == true then 
-          calc_padoverviewW = 0
-          UI.calc_rackX = DATA.display_x+UI.spacingX
-        end
-        if UI.hide_tabs == true then settingsfixedW = UI.spacingX*4 end 
-        UI.calc_rackW = math.min(DATA.display_w - settingsfixedW - calc_padoverviewW,500)+1
+        if EXT.UI_drracklayout == 2  then rack_max_width = 600 end --launch
+        UI.calc_rackW = math.min(DATA.display_w - UI.calc_settingsW - UI.calc_padoverviewW,rack_max_width)
+        UI.calc_rackH = math.max(math.floor(DATA.display_h  -UI.spacingY )-1,rack_min_height)
         
-        
-        
-        UI.calc_rackH = math.max(math.floor(DATA.display_h  -UI.spacingY )-1,250)--- UI.calc_itemH
         UI.calc_rack_padw = math.floor((UI.calc_rackW-UI.spacingX*3) / 4)
         UI.calc_rack_padh = math.floor((UI.calc_rackH-UI.spacingY*3) / 4)
         if EXT.UI_drracklayout == 1 then --keys
           UI.calc_rack_padw = math.floor((UI.calc_rackW) / 7)-- -UI.spacingX
           UI.calc_rack_padh = math.floor((UI.calc_rackH) / 4)
         end
-        if EXT.UI_drracklayout == 2  then --launch
-          UI.calc_rack_padw = math.floor(-UI.spacingX+(UI.calc_rackW-UI.spacingX) / 8)-- 
-          UI.calc_rack_padh = math.floor(-UI.spacingY+(UI.calc_rackH) / 8)
-        end
-        
-        
         UI.calc_rack_padctrlW = UI.calc_rack_padw / 3 
         UI.calc_rack_padctrlH = UI.calc_rack_padh*0.3
         UI.calc_rack_padnameH = UI.calc_rack_padh-UI.calc_rack_padctrlH 
         
         
+        if EXT.UI_drracklayout == 2 then
+          local ID = EXT.UI_drracklayout_customID
+          if DATA.custom_layouts[ID] then
+            local cell_cnt_max = DATA.custom_layouts[ID].cell_cnt_max
+            local col_cnt = DATA.custom_layouts[ID].col_cnt
+            local row_cnt = DATA.custom_layouts[ID].row_cnt   
+            if col_cnt * row_cnt>cell_cnt_max then row_cnt = math.ceil(cell_cnt_max / col_cnt) end
+            
+            local rackx = UI.calc_rackX
+            local racky = UI.calc_rackY
+            UI.calc_rack_padw = (UI.calc_rackW-UI.spacingX) / col_cnt
+            UI.calc_rack_padh = (UI.calc_rackH-UI.spacingY) / row_cnt
+            UI.calc_rack_padctrlH = UI.calc_rack_padh*0.3
+            UI.calc_rack_padnameH = UI.calc_rack_padh-UI.calc_rack_padctrlH 
+            if UI.calc_rack_padctrlH < 30 then
+              UI.calc_rack_padctrlH = 0
+              UI.calc_rack_padnameH = UI.calc_rack_padh
+            end
+            UI.calc_rack_padctrlW = UI.calc_rack_padw / 3 
+          end
+        end
+        
+        
+        
+        
         -- settings
-        UI.calc_settingsX = UI.calc_rackW + UI.calc_padoverviewW + UI.spacingX
-        if UI.hide_padoverview == true then UI.calc_settingsX = UI.calc_rackW + UI.spacingX*2 end
-        UI.calc_settingsY = UI.spacingY*2 + UI.calc_itemH--DATA.display_y + 
+        UI.calc_settingsX = UI.calc_rackW + UI.calc_padoverviewW + UI.spacingX*2
+        UI.calc_settingsY = UI.spacingY*2 + UI.calc_itemH
         
         -- small knob controls
-        UI.calc_knob_w_small = math.floor((settingsfixedW - UI.spacingX*9) / 8) 
+        UI.calc_knob_w_small = math.floor((UI.calc_settingsW - UI.spacingX*9) / 8) 
         UI.calc_knob_h_small = 90--math.floor((DATA.display_h  - UI.calc_itemH*3-UI.spacingY*7 - UI.sampler_peaksH)/2)
         -- small macro controls
-        UI.calc_macro_w = math.floor((settingsfixedW - UI.spacingX*7) / 4)
+        UI.calc_macro_w = math.floor((UI.calc_settingsW - UI.spacingX*7) / 4)
         UI.calc_macro_h = 65--math.floor((DATA.display_h - UI.spacingY*4 - UI.calc_itemH*3) / 4)
         
         -- sampler 
-        UI.calc_sampler4ctrl_W = math.floor((settingsfixedW - UI.spacingX*5) / 4) 
+        UI.calc_sampler4ctrl_W = math.floor((UI.calc_settingsW - UI.spacingX*5) / 4) 
          
         
         
@@ -533,7 +567,7 @@ rs5kman_vrs = '4.48'
         
         
         if DATA.parent_track and DATA.parent_track.valid == true and UI.hide_tabs ~= true  then
-          ImGui.SetCursorPos(ctx,UI.calc_padoverviewW+UI.calc_rackW+UI.spacingX,UI.spacingY)
+          ImGui.SetCursorPos(ctx,UI.calc_settingsX,UI.spacingY)
           ImGui.BeginDisabled(ctx, true) ImGui.Text(ctx, DATA.UI_name_vrs)ImGui.EndDisabled(ctx)
           ImGui.SameLine(ctx)
           ImGui.Dummy(ctx,5,0)
@@ -622,8 +656,8 @@ rs5kman_vrs = '4.48'
     
     ImGui.SetCursorPosY(ctx,UI.spacingY*2 + UI.calc_itemH)
     
-    local ovrvieww = UI.calc_cellside*4
-    if EXT.UI_drracklayout == 1 then ovrvieww = UI.calc_cellside*7 end
+    local ovrvieww = UI.calc_padoverview_cellside*4
+    if EXT.UI_drracklayout == 1 then ovrvieww = UI.calc_padoverview_cellside*7 end
     --ImGui.InvisibleButton(ctx, '##padoverview',ovrvieww,-1)
     ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, 0)
     ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, 0)
@@ -691,18 +725,18 @@ rs5kman_vrs = '4.48'
       
       if note%4 == 0 then x_offs = x end
       local p_min_x = x_offs
-      local p_min_y = y+h - UI.calc_cellside*(1+(math.floor(note/4)))
-      local p_max_x = p_min_x+UI.calc_cellside-1
-      local p_max_y = p_min_y+UI.calc_cellside-1
+      local p_min_y = y+h - UI.calc_padoverview_cellside*(1+(math.floor(note/4)))
+      local p_max_x = p_min_x+UI.calc_padoverview_cellside-1
+      local p_max_y = p_min_y+UI.calc_padoverview_cellside-1
       ImGui.DrawList_AddRectFilled( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, blockcol<<8|math.floor(backgr_fill2*0xFF), 0, ImGui.DrawFlags_None )
       ImGui_SetCursorScreenPos( ctx, p_min_x, p_min_y )
-      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_cellside, UI.calc_cellside )
+      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_padoverview_cellside, UI.calc_padoverview_cellside )
       if ImGui.BeginDragDropTarget( ctx ) then  
         --UI.Drop_UI_interaction_padoverview() 
         UI.Drop_UI_interaction_pad(note) 
         ImGui_EndDragDropTarget( ctx )
       end
-      x_offs = x_offs + UI.calc_cellside
+      x_offs = x_offs + UI.calc_padoverview_cellside
     end
     
     -- selection
@@ -710,7 +744,7 @@ rs5kman_vrs = '4.48'
       local row_cnt = math.floor(127/4)
       local activerow = DATA.parent_track.ext.PARENT_DRRACKSHIFT  / 4
       local p_min_x = x
-      local p_min_y = y+h - w-UI.calc_cellside*(activerow)
+      local p_min_y = y+h - w-UI.calc_padoverview_cellside*(activerow)
       local p_max_x = p_min_x+w-1
       local p_max_y = p_min_y+w
       ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 2 )
@@ -740,18 +774,18 @@ rs5kman_vrs = '4.48'
       
       if note%4 == 0 then x_offs = x end
       local p_min_x = x_offs
-      local p_min_y = y+h - UI.calc_cellside*(1+(math.floor(note/4)))
-      local p_max_x = p_min_x+UI.calc_cellside-1
-      local p_max_y = p_min_y+UI.calc_cellside-1
+      local p_min_y = y+h - UI.calc_padoverview_cellside*(1+(math.floor(note/4)))
+      local p_max_x = p_min_x+UI.calc_padoverview_cellside-1
+      local p_max_y = p_min_y+UI.calc_padoverview_cellside-1
       ImGui.DrawList_AddRectFilled( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, blockcol<<8|math.floor(backgr_fill2*0xFF), 0, ImGui.DrawFlags_None )
       ImGui_SetCursorScreenPos( ctx, p_min_x, p_min_y )
-      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_cellside, UI.calc_cellside )
+      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_padoverview_cellside, UI.calc_padoverview_cellside )
       if ImGui.BeginDragDropTarget( ctx ) then  
         --UI.Drop_UI_interaction_padoverview() 
         UI.Drop_UI_interaction_pad(note) 
         ImGui_EndDragDropTarget( ctx )
       end
-      x_offs = x_offs + UI.calc_cellside
+      x_offs = x_offs + UI.calc_padoverview_cellside
     end
     
     -- selection
@@ -759,7 +793,7 @@ rs5kman_vrs = '4.48'
       local row_cnt = math.floor(127/4)
       local activerow = DATA.parent_track.ext.PARENT_DRRACKSHIFT  / 4
       local p_min_x = x
-      local p_min_y = y+h - w-UI.calc_cellside*(activerow)
+      local p_min_y = y+h - w-UI.calc_padoverview_cellside*(activerow)
       local p_max_x = p_min_x+w-1
       local p_max_y = p_min_y+w
       ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 1 )
@@ -794,27 +828,27 @@ rs5kman_vrs = '4.48'
       local x_offs = x_offs0
       local isblack
       if note%12 == 0 then x_offs = x_offs0 end
-      if note%12 == 1 then x_offs = x_offs0+UI.calc_cellside*0.5 isblack = true end
-      if note%12 == 2 then x_offs = x_offs0+UI.calc_cellside*1 end
-      if note%12 == 3 then x_offs = x_offs0+UI.calc_cellside*1.5 isblack = true end
-      if note%12 == 4 then x_offs = x_offs0+UI.calc_cellside*2 end
-      if note%12 == 5 then x_offs = x_offs0+UI.calc_cellside*3 end
-      if note%12 == 6 then x_offs = x_offs0+UI.calc_cellside*3.5 isblack = true end
-      if note%12 == 7 then x_offs = x_offs0+UI.calc_cellside*4 end
-      if note%12 == 8 then x_offs = x_offs0+UI.calc_cellside*4.5 isblack = true end
-      if note%12 == 9 then x_offs = x_offs0+UI.calc_cellside*5 end
-      if note%12 == 10 then x_offs = x_offs0+UI.calc_cellside*5.5 isblack = true end
-      if note%12 == 11 then x_offs = x_offs0+UI.calc_cellside*6 end
+      if note%12 == 1 then x_offs = x_offs0+UI.calc_padoverview_cellside*0.5 isblack = true end
+      if note%12 == 2 then x_offs = x_offs0+UI.calc_padoverview_cellside*1 end
+      if note%12 == 3 then x_offs = x_offs0+UI.calc_padoverview_cellside*1.5 isblack = true end
+      if note%12 == 4 then x_offs = x_offs0+UI.calc_padoverview_cellside*2 end
+      if note%12 == 5 then x_offs = x_offs0+UI.calc_padoverview_cellside*3 end
+      if note%12 == 6 then x_offs = x_offs0+UI.calc_padoverview_cellside*3.5 isblack = true end
+      if note%12 == 7 then x_offs = x_offs0+UI.calc_padoverview_cellside*4 end
+      if note%12 == 8 then x_offs = x_offs0+UI.calc_padoverview_cellside*4.5 isblack = true end
+      if note%12 == 9 then x_offs = x_offs0+UI.calc_padoverview_cellside*5 end
+      if note%12 == 10 then x_offs = x_offs0+UI.calc_padoverview_cellside*5.5 isblack = true end
+      if note%12 == 11 then x_offs = x_offs0+UI.calc_padoverview_cellside*6 end
       local oct = math.floor(note/12)
-      local y_offs = y_offs0 +h  - (UI.calc_cellside*2) * oct-UI.calc_cellside
-      if isblack then y_offs = y_offs - UI.calc_cellside end
+      local y_offs = y_offs0 +h  - (UI.calc_padoverview_cellside*2) * oct-UI.calc_padoverview_cellside
+      if isblack then y_offs = y_offs - UI.calc_padoverview_cellside end
       local p_min_x = x_offs
       local p_min_y = y_offs
-      local p_max_x = p_min_x+UI.calc_cellside-1
-      local p_max_y = p_min_y+UI.calc_cellside-1
+      local p_max_x = p_min_x+UI.calc_padoverview_cellside-1
+      local p_max_y = p_min_y+UI.calc_padoverview_cellside-1
       ImGui.DrawList_AddRectFilled( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, blockcol<<8|math.floor(backgr_fill2*0xFF), 0, ImGui.DrawFlags_None )
       ImGui_SetCursorScreenPos( ctx, p_min_x, p_min_y )
-      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_cellside, UI.calc_cellside )
+      ImGui_InvisibleButton( ctx, '##padnote'..note, UI.calc_padoverview_cellside, UI.calc_padoverview_cellside )
       if ImGui.BeginDragDropTarget( ctx ) then  
         --UI.Drop_UI_interaction_padoverview() 
         UI.Drop_UI_interaction_pad(note) 
@@ -825,7 +859,7 @@ rs5kman_vrs = '4.48'
     -- selection
     if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_DRRACKSHIFT then
       local activerow = DATA.parent_track.ext.PARENT_DRRACKSHIFT/12
-      local activerecth = UI.calc_cellside*2
+      local activerecth = UI.calc_padoverview_cellside*2
       
       local p_min_x = x_offs0
       local p_min_y = y_offs0+(10-activerow)*activerecth-1
@@ -891,7 +925,6 @@ function UI.draw_flow_COMBO(t)
 end
 --------------------------------------------------------------------------------  
 function UI.draw_tabs_Actions()
-  function _f_actions() end
   
   -- stick current track 
     local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
@@ -940,8 +973,9 @@ end
   
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_database()
-    if ImGui.TreeNode(ctx, 'Database maps', ImGui.TreeNodeFlags_None) then
-    
+    if ImGui.CollapsingHeader(ctx, 'Database maps') then
+      ImGui.Indent(ctx,UI.settings_indent)
+
       -- database
       if DATA.database_maps then 
         -- ImGui.SeparatorText(ctx, 'Database maps') -- ImGui.Text(ctx, 'Database maps') 
@@ -1004,8 +1038,18 @@ end
           end
           ImGui.EndCombo( ctx )
         end
-        if ImGui.Button(ctx, 'Load to all rack') then DATA:Database_Load() end
-        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then DATA:Database_Load(true) end
+        if ImGui.Button(ctx, 'Load to all rack') then 
+          DATA:Validate_MIDIbus_AND_ParentFolder() 
+          Undo_BeginBlock2(DATA.proj )
+          DATA:Database_Load() 
+          Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
+        end
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then 
+          DATA:Validate_MIDIbus_AND_ParentFolder() 
+          Undo_BeginBlock2(DATA.proj )
+          DATA:Database_Load(true)
+          Undo_EndBlock2( DATA.proj , 'Load database to selected pad only', 0xFFFFFFFF )
+        end
         
         
         --ImGui.Unindent(ctx, UI.settings_indent)
@@ -1014,17 +1058,16 @@ end
       ImGui.SameLine(ctx)
       UI.HelpMarker('May increase loading time, but you wont be able to use databases')
       ImGui.Text( ctx, 'Current loading time: '..(math.floor(10000*DATA.loadtest)/10000)..'s')
-      ImGui.Dummy(ctx, 0,UI.spacingY*6)
       
       
       
-      ImGui.TreePop(ctx)
+      ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_onsampleadd()
-    if ImGui.TreeNode(ctx, 'On sample add', ImGui.TreeNodeFlags_None) then  
-      
+    if ImGui.CollapsingHeader(ctx, 'On sample add') then   
+      ImGui.Indent(ctx,UI.settings_indent)
       --ImGui.SeparatorText(ctx, 'On sample add')  
         --ImGui.Indent(ctx, UI.settings_indent)
         if ImGui.Checkbox( ctx, 'Float RS5k instance',                                    EXT.CONF_onadd_float == 1 ) then EXT.CONF_onadd_float =EXT.CONF_onadd_float~1 EXT:save() end
@@ -1079,14 +1122,13 @@ end
         
         
         
-        ImGui.Dummy(ctx, 0,UI.spacingY*10)
-        
-      ImGui.TreePop(ctx)
+        ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_tcpmcp()
-    if ImGui.TreeNode(ctx, 'TCP / MCP auto collapsing', ImGui.TreeNodeFlags_None) then   
+    if ImGui.CollapsingHeader(ctx, 'TCP / MCP auto collapsing') then 
+      ImGui.Indent(ctx,UI.settings_indent)
     
         if ImGui.Checkbox( ctx, 'Collapse parent folder',                                 EXT.CONF_onadd_newchild_trackheightflags&1==1 ) then 
           EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~1  if EXT.CONF_onadd_newchild_trackheightflags&2==2 then EXT.CONF_onadd_newchild_trackheightflags = EXT.CONF_onadd_newchild_trackheightflags~2 end
@@ -1108,20 +1150,20 @@ end
         local ret, v = ImGui.SliderInt( ctx, 'New child track height',                    EXT.CONF_onadd_newchild_trackheight, 0, 300, formatin, ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_newchild_trackheight = v end
         if ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
       
-      ImGui.Dummy(ctx, 0,UI.spacingY*10) 
-      ImGui.TreePop(ctx)
+      ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
   
   
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_MIDI()
-    if ImGui.TreeNode(ctx, 'MIDI bus', ImGui.TreeNodeFlags_None) then   
-    
+    if ImGui.CollapsingHeader(ctx, 'MIDI bus') then 
+      ImGui.Indent(ctx,UI.settings_indent)
       
       --ImGui.SeparatorText(ctx, 'MIDI bus')  
         --ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('CONF_midiinput',DATA.MIDI_inputs,'##settings_drracklayout', 'MIDI bus default input') 
+        UI.draw_tabs_settings_combo('CONF_midiinput',DATA.MIDI_inputs,'##settings_drracklayout_midiin', 'MIDI bus default input') 
+        UI.draw_tabs_settings_combo('CONF_midioutput',DATA.MIDI_outputs,'##settings_drracklayout_midiout', 'MIDI bus default output') 
         ImGui.SetNextItemWidth(ctx, UI.settings_itemW) 
         local chanformat = 'Channel '..EXT.CONF_midichannel if EXT.CONF_midichannel == 0 then chanformat = 'All channels' end
         local ret, v = ImGui.SliderInt( ctx, 'MIDI bus channel',                          EXT.CONF_midichannel, 0, 16, chanformat, ImGui.SliderFlags_None ) if ret then EXT.CONF_midichannel = v EXT:save() end
@@ -1129,28 +1171,18 @@ end
         if ImGui.Checkbox( ctx, 'Auto rename MIDI bus MIDI notes',                                EXT.CONF_autorenamemidinotenames&1==1 ) then EXT.CONF_autorenamemidinotenames =EXT.CONF_autorenamemidinotenames~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Auto rename devices and children MIDI notes',                    EXT.CONF_autorenamemidinotenames&2==2 ) then EXT.CONF_autorenamemidinotenames =EXT.CONF_autorenamemidinotenames~2 EXT:save() end
         --ImGui.Unindent(ctx, UI.settings_indent)
-        ImGui.Dummy(ctx, 0,UI.spacingY*10)
         
-        
-      ImGui.TreePop(ctx)
+        ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_UI()
-    if ImGui.TreeNode(ctx, 'UI interaction', ImGui.TreeNodeFlags_None) then    
-      
-      --ImGui.SeparatorText(ctx, 'UI interaction') 
-        --ImGui.Indent(ctx, UI.settings_indent)
-        UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='Default / 8x4 pads',[1]='2 octaves keys',[2]='Launchpad (experimental)'},'##settings_drracklayout', 'DrumRack layout', 200) 
-        ImGui.Indent(ctx, UI.settings_indent)
-          if EXT.UI_drracklayout == 2 then 
-            if ImGui.Checkbox( ctx, 'Send MIDI to device on state change',                              EXT.CONF_launchpadsendMIDI == 1 ) then EXT.CONF_launchpadsendMIDI =EXT.CONF_launchpadsendMIDI~1 EXT:save() end
-          end
-        
-        ImGui.Unindent(ctx, UI.settings_indent)
+    if ImGui.CollapsingHeader(ctx, 'UI interaction') then 
+      ImGui.Indent(ctx,UI.settings_indent)
         
         if ImGui.Checkbox( ctx, 'Click on pad select track',                              EXT.UI_clickonpadselecttrack == 1 ) then EXT.UI_clickonpadselecttrack =EXT.UI_clickonpadselecttrack~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Click on pad scroll mixer',                              EXT.UI_clickonpadscrolltomixer == 1 ) then EXT.UI_clickonpadscrolltomixer =EXT.UI_clickonpadscrolltomixer~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Click on pad play sample',                              EXT.UI_clickonpadplaysample == 1 ) then EXT.UI_clickonpadplaysample =EXT.UI_clickonpadplaysample~1 EXT:save() end
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
         local ret, v = ImGui.SliderInt( ctx, 'Default playing velocity',                  EXT.CONF_default_velocity, 1, 127, '%d', ImGui.SliderFlags_None ) if ret then EXT.CONF_default_velocity = v EXT:save() end
         if ImGui.Checkbox( ctx, 'Releasing mouse on pad send NoteOff',                             EXT.UI_pads_sendnoteoff == 1 ) then EXT.UI_pads_sendnoteoff =EXT.UI_pads_sendnoteoff~1 EXT:save() end
@@ -1266,16 +1298,13 @@ end
         end
         ImGui.Unindent(ctx, UI.settings_indent)
         
-        
-        --ImGui.Unindent(ctx, UI.settings_indent)
-        ImGui.Dummy(ctx, 0,UI.spacingY*10)
-        
-      ImGui.TreePop(ctx)
+        ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
     --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_Theming()    
-    if ImGui.TreeNode(ctx, 'Colors', ImGui.TreeNodeFlags_None) then    
+    if ImGui.CollapsingHeader(ctx, 'Colors') then 
+      ImGui.Indent(ctx,UI.settings_indent)
       -- main backgr alpha
       ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
       local retval, v = ImGui.SliderDouble( ctx, 'Background transparency', EXT.UI_transparency, 0, 1, math.floor(EXT.UI_transparency*100)..'%%', ImGui.SliderFlags_None )
@@ -1295,15 +1324,13 @@ end
       
       
         
-      ImGui.Dummy(ctx, 0,UI.spacingY*10)
-        
-      ImGui.TreePop(ctx)
+      ImGui.Unindent(ctx,UI.settings_indent)
     end    
   end
     --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_AutoColor()
-    if ImGui.TreeNode(ctx, 'Auto color child tracks', ImGui.TreeNodeFlags_None) then  
-      
+    if ImGui.CollapsingHeader(ctx, 'Auto color child tracks') then 
+      ImGui.Indent(ctx,UI.settings_indent)
       local t = {
         [0]='Off',
         [1]='By note',
@@ -1337,6 +1364,7 @@ end
         if  DATA.children and DATA.children[DATA.padautocolors_selected_id] and DATA.children[DATA.padautocolors_selected_id].P_NAME then curname = DATA.padautocolors_selected_id..' '..DATA.children[DATA.padautocolors_selected_id].P_NAME end
         ImGui.Text(ctx, 'Custom pad colors')
         ImGui.Indent(ctx, UI.settings_indent)
+        
         reaper.ImGui_SetNextItemWidth( ctx, 200 )
         if ImGui.BeginCombo( ctx, '##padautocolors',curname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
           for i = 0,127 do
@@ -1348,6 +1376,8 @@ end
           ImGui.EndCombo( ctx)
         end
         
+        
+        ImGui.Unindent(ctx, UI.settings_indent)
         ImGui.SameLine(ctx)
         
         -- color input
@@ -1380,13 +1410,14 @@ end
         end
         
       end
-      ImGui.TreePop(ctx)
+      ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
     --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_Autoslice()
-  
-    if ImGui.TreeNode(ctx, 'Auto slice loop on pad drop', ImGui.TreeNodeFlags_None) then  
+    if ImGui.CollapsingHeader(ctx, 'Auto slice loop on pad drop') then 
+      ImGui.Indent(ctx,UI.settings_indent)
+      
       if ImGui.Checkbox( ctx, 'Use Autoslice',                             EXT.CONF_loopcheck == 1 ) then EXT.CONF_loopcheck =EXT.CONF_loopcheck~1 EXT:save() end
       local retval, v, buf
       if EXT.CONF_loopcheck&1==0 then goto skipset end
@@ -1401,7 +1432,7 @@ end
       if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then EXT.CONF_loopcheck_maxlen = 8 EXT:save() end      
       
       -- filt 
-      retval, buf = reaper.ImGui_InputText( ctx, 'Filter', EXT.CONF_loopcheck_filter, reaper.ImGui_InputTextFlags_None() )
+      retval, buf = reaper.ImGui_InputText( ctx, 'Filter', EXT.CONF_loopcheck_filter, reaper.ImGui_InputTextFlags_None() )ImGui.SameLine(ctx) UI.HelpMarker('Do not auto slice samples containing words in name')
       if retval then EXT.CONF_loopcheck_filter = buf end
       if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
       
@@ -1409,15 +1440,158 @@ end
       
       
       ::skipset::
-      ImGui.TreePop(ctx)
+      ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
   --------------------------------------------------------------------------------    
   function UI.draw_tabs_settings_StepSequencer()
-    if ImGui.TreeNode(ctx, 'StepSequencer', ImGui.TreeNodeFlags_None) then  
+    if ImGui.CollapsingHeader(ctx, 'Step Sequencer') then  
+      ImGui.Indent(ctx,UI.settings_indent)
+      
       if ImGui.Checkbox( ctx, 'Share data to same pattern GUIDs',                             EXT.CONF_seq_force_GUIDbasedsharing == 1 ) then EXT.CONF_seq_force_GUIDbasedsharing =EXT.CONF_seq_force_GUIDbasedsharing~1 EXT:save() end
       
-      ImGui.TreePop(ctx)
+      ImGui.Unindent(ctx,UI.settings_indent)
+    end  
+  
+  end
+  --------------------------------------------------------------------------------    
+  function UI.draw_tabs_settings_RackLayout()
+    if ImGui.CollapsingHeader(ctx, 'Rack Layout') then 
+      ImGui.Indent(ctx,UI.settings_indent)
+      
+      DATA.temp_ignore_incomingevent = true
+      UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='[factory] Default / 8x4 pads',[1]='[factory] 2 octaves keys',[2]='Custom'},'##settings_drracklayout', 'DrumRack layout', 200) 
+      
+        if EXT.UI_drracklayout == 2 then 
+        
+          local ID = EXT.UI_drracklayout_customID
+          if not DATA.custom_layouts[ID]  then DATA:Layout_Init(ID) end
+          
+          ImGui.SeparatorText(ctx, 'Note placement')
+          
+          -- cell cnt
+          local retval, v = ImGui.SliderDouble( ctx, 'Cell count limit##cell_cnt_max', DATA.custom_layouts[ID].cell_cnt_max, 1, 64, DATA.custom_layouts[ID].cell_cnt_max, ImGui.SliderFlags_None )
+          if retval then DATA.custom_layouts[ID].cell_cnt_max = math_q(v) end if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA:Layout_SaveCustomLayouts()   end
+          if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then DATA.custom_layouts[ID].cell_cnt_max = nil DATA:Layout_Init(ID,true) DATA:Layout_SaveCustomLayouts()  end
+
+          -- row_cnt
+          local retval, v = ImGui.SliderDouble( ctx, 'Rows##row_cnt', DATA.custom_layouts[ID].row_cnt, 1, 8, DATA.custom_layouts[ID].row_cnt, ImGui.SliderFlags_None )
+          if retval then DATA.custom_layouts[ID].row_cnt = math_q(v) end if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA:Layout_SaveCustomLayouts()   end
+          if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then DATA.custom_layouts[ID].row_cnt = nil DATA:Layout_Init(ID,true) DATA:Layout_SaveCustomLayouts()  end
+
+          -- col_cnt
+          local retval, v = ImGui.SliderDouble( ctx, 'Columns##col_cnt', DATA.custom_layouts[ID].col_cnt, 1, 8, DATA.custom_layouts[ID].col_cnt, ImGui.SliderFlags_None )
+          if retval then DATA.custom_layouts[ID].col_cnt = math_q(v) end if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA:Layout_SaveCustomLayouts()   end
+          if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then DATA.custom_layouts[ID].col_cnt = nil DATA:Layout_Init(ID,true) DATA:Layout_SaveCustomLayouts()  end
+           
+          
+          if ImGui.Checkbox( ctx, 'Top to bottom',                             DATA.custom_layouts[ID].toptobottom == 1 ) then DATA.custom_layouts[ID].toptobottom =DATA.custom_layouts[ID].toptobottom~1  DATA:Layout_SaveCustomLayouts() end
+          
+          --ImGui.SeparatorText(ctx, 'Notes mapping')
+          
+          -- startnote
+          local retval, v = ImGui.SliderDouble( ctx, 'Start note##cell_cnt_max', DATA.custom_layouts[ID].startnote, 0, 127, DATA.custom_layouts[ID].startnote, ImGui.SliderFlags_None )
+          if retval then DATA.custom_layouts[ID].startnote = math_q(v) end if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA:Layout_SaveCustomLayouts()   end
+          if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then DATA.custom_layouts[ID].startnote = nil DATA:Layout_Init(ID,true) DATA:Layout_SaveCustomLayouts()  end
+          -- block by X
+          local retval, v = ImGui.SliderDouble( ctx, 'BlockX##blockX', DATA.custom_layouts[ID].blockX, 1, 8, DATA.custom_layouts[ID].blockX, ImGui.SliderFlags_None )
+          if retval then DATA.custom_layouts[ID].blockX = math_q(v) end if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA:Layout_SaveCustomLayouts()   end
+          if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then DATA.custom_layouts[ID].blockX = nil DATA:Layout_Init(ID,true) DATA:Layout_SaveCustomLayouts()  end          
+          
+          ImGui.SeparatorText(ctx, 'Mapping overrides')
+          -- remove
+          if ImGui.Button(ctx, 'Remove overrides' ) then  
+            DATA.custom_layouts[ID].mapping_override  = {} 
+            DATA:Layout_SaveCustomLayouts()
+          end
+          -- remove
+          if DATA.lastMIDIinputnote and tonumber(DATA.lastMIDIinputnote) and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then 
+            if ImGui.Button(ctx, 'Map note '..DATA.lastMIDIinputnote..' to pad '..DATA.parent_track.ext.PARENT_LASTACTIVENOTE ) then  
+              if not DATA.custom_layouts[ID].mapping_override then DATA.custom_layouts[ID].mapping_override  = {}  end
+              local note = DATA.parent_track.ext.PARENT_LASTACTIVENOTE
+              DATA.custom_layouts[ID].mapping_override[note] = DATA.lastMIDIinputnote
+              DATA.custom_layouts[ID].mapping_override[DATA.lastMIDIinputnote] = -1
+              DATA:Layout_SaveCustomLayouts()
+            end
+           else
+            
+            UI.HelpMarker('Press note on keyboard to get mapping source')
+          end
+          
+          
+          
+          
+          
+        end
+      -- 
+      
+      ImGui.Unindent(ctx, UI.settings_indent)
+      
+    end  
+  
+  end
+  ---------------------------------------------------------------------------------------------------------------------------------    
+  function UI.draw_tabs_settings_Launchpad()
+    if ImGui.CollapsingHeader(ctx, 'Launchpad') then 
+      ImGui.Indent(ctx,UI.settings_indent)
+      local retval, p_visible = reaper.ImGui_CollapsingHeader( ctx, 'Drum Rack setup' )
+      if retval then
+        ImGui.Indent(ctx,10)
+        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
+Launchpad setup for Drum Rack looks like this:
+  - make sure Launchpad is presented in Preference/Audio/MIDI outputs 
+  - enable it
+  - restart script
+  - open Settings/MIDI Bus and select your MIDIOUT LaunchPad output
+  
+  This setting is valid for newly created MIDI buses.
+  You can set selected MIDI Hardware output manually or here:]])ImGui.EndDisabled(ctx)
+  
+  local buttxt = 'Set MIDI Hardware output for MIDI bus'
+  if EXT.CONF_midioutput == -1 then 
+    ImGui.BeginDisabled(ctx,true) 
+    buttxt = '[no MIDI Hardware output for MIDI bus set]'
+  end
+  if ImGui.Button(ctx, buttxt) then 
+    if DATA.MIDIbus.valid == true and DATA.MIDIbus.tr_ptr then SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) end
+  end
+  if EXT.CONF_midioutput == -1 then ImGui.EndDisabled(ctx) end
+  
+  ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[You can then light up pads using just "normal" MIDI output.
+MIDI bus will send same MIDI it sends to tracks, which will light up related pads. 
+]]) ImGui.EndDisabled(ctx)
+        ImGui.Unindent(ctx,10)
+      end
+--[[
+      local retval, p_visible = reaper.ImGui_CollapsingHeader( ctx, 'Step Sequencer setup' )
+      if retval then
+        ImGui.Indent(ctx,10)
+        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
+Launchpad setup for Step Sequencer looks like this:
+    - if you setup previously Launchpad for Drum Rack, make sure you have choke JSFX (bundled with RS5k manager) is inserted into MIDI bus. This JSFX have SysEx filter so you will not run into MIDI feedback loop. Otherwise you get your Launchpad blinking. If you haven`t it yet on MIDI bus, you can initialize it here:] ])ImGui.EndDisabled(ctx)
+        if ImGui.Button(ctx, 'Init MIDI bus choke') then DATA:CollectData_ReadChoke(true)  end
+        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
+Then you can send this SysEx for turn launchpad into Programmer Mode. This is turn on Launchpad internal setup for StepSequencer.] ]) ImGui.EndDisabled(ctx)
+        local SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7Fh F7h'  
+        if ImGui.Button(ctx, 'Set programming mode' ) then DATA:Auto_StuffSysex_stuff(SysEx_msg) end ImGui.SameLine(ctx)
+        ImGui.InputText(ctx,'##programming_sysex_lighting', SysEx_msg)
+        
+        
+        ImGui.SeparatorText(ctx, 'Revert to normal state')
+        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
+If you can`t revert to normal drum layout manually, you can trigger it here:] ]) ImGui.EndDisabled(ctx)
+        local SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 04h F7h'  
+        if ImGui.Button(ctx, 'Set drum layout' ) then DATA:Auto_StuffSysex_stuff(SysEx_msg) end ImGui.SameLine(ctx)
+        ImGui.InputText(ctx,'##drumlayout_sysex', SysEx_msg)
+        
+        
+        
+        
+        ImGui.Unindent(ctx,10)
+      end
+    ]]
+    
+      ImGui.Unindent(ctx,UI.settings_indent)
     end  
   
   end
@@ -1429,15 +1603,20 @@ end
     
     UI.tab_last = UI.tab_current 
     if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
+      
       UI.draw_tabs_settings_database()
       UI.draw_tabs_settings_onsampleadd()
       UI.draw_tabs_settings_tcpmcp()
       UI.draw_tabs_settings_MIDI()
       UI.draw_tabs_settings_UI()
+      UI.draw_tabs_settings_RackLayout()
       UI.draw_tabs_settings_Theming()
       UI.draw_tabs_settings_AutoColor()
       UI.draw_tabs_settings_Autoslice()
-      UI.draw_tabs_settings_StepSequencer()
+      UI.draw_tabs_settings_StepSequencer() 
+      UI.draw_tabs_settings_Launchpad() 
+      
+      
       
       ImGui.EndChild( ctx)
     end
@@ -1464,11 +1643,11 @@ end
   --------------------------------------------------------------------------------  
   function UI.Layout_Pads() 
     if EXT.UI_drracklayout ~= 0 then return end
-    local layout_pads_cnt = 16
+    local cell_cnt_max = 16
     local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
     local xoffs= UI.calc_rackX
     local padID0 = 0
-    for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
+    for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, cell_cnt_max-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
       UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
       xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
       if padID0%4==3 then 
@@ -1479,60 +1658,114 @@ end
     end
   end
   --------------------------------------------------------------------------------  
-  function UI.Layout_Launchpad() 
-    if not (EXT.UI_drracklayout == 2 or EXT.UI_drracklayout == 3 ) then return end
+  function UI.Layout_Custom()  
     
+    function __f__customlayout_draw() end
+    if EXT.UI_drracklayout ~= 2 then return end
+    local ID = EXT.UI_drracklayout_customID
+    if not DATA.custom_layouts[ID] then return end
     
-    --[[ drums 
-    if EXT.UI_drracklayout == 2 then
-      local layout_pads_cnt = 64
-      local yoffs = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
-      local xoffs= UI.calc_rackX
-      local xoffs2 = 0
-      local yoffs2 = 0
-      local padID0 = 0
-      local second_laneshift = false
-      for note = 0+DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do 
-        if padID0 > 31 then second_laneshift = true end
-        if second_laneshift == true then 
-          xoffs2 = UI.calc_rack_padw*4 + UI.spacingX * 4
-          yoffs2 = UI.calc_rack_padh*8 + UI.spacingY*8
-        end
-        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs + xoffs2, yoffs+yoffs2, UI.calc_rack_padw, UI.calc_rack_padh) 
-        xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
-        if padID0%4==3 then 
-          xoffs = UI.calc_rackX 
-          yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
-        end
-        padID0 = padID0 + 1
-      end
-    end]]
+    local cell_cnt_max = DATA.custom_layouts[ID].cell_cnt_max
+    local col_cnt = DATA.custom_layouts[ID].col_cnt
+    local row_cnt = DATA.custom_layouts[ID].row_cnt 
+    local startnote = DATA.custom_layouts[ID].startnote 
+    local toptobottom = DATA.custom_layouts[ID].toptobottom 
+    local blockX = DATA.custom_layouts[ID].blockX 
     
+    local rackx = UI.calc_rackX
+    local racky = UI.calc_rackY
+    local rackw = UI.calc_rackW
+    local rackh = UI.calc_rackH
+    local padw = UI.calc_rack_padw
+    local padh = UI.calc_rack_padh
     
-    -- programmer
-    if EXT.UI_drracklayout == 2 then
-      local layout_pads_cnt = 79
-      local yoffs0 = UI.calc_rackY  + UI.calc_rack_padh*7 + UI.spacingY*7--+ UI.calc_rackH
-      local xoffs0= UI.calc_rackX
-      local padID0 = 0
-      local offs = DATA.parent_track.ext.PARENT_DRRACKSHIFT
-      for note = 37, layout_pads_cnt-1+offs do 
-      --if ((note - offs)-8)%10==0 then  goto skip end
-      --if ((note - offs)-9)%10==0 then  goto skip end 
-        xoffs = xoffs0 + (UI.calc_rack_padw + UI.spacingX) * (padID0%8)--xoffs + UI.calc_rack_padw + UI.spacingX
-        yoffs = yoffs0 - (UI.calc_rack_padh+ UI.spacingY) * math.floor(padID0 / 8)
-        UI.draw_Rack_Pads_controls(DATA.children[note], note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
-        padID0 = padID0 + 1
-        ::skip::
-      end
+    local real_cell_cnt_max = math.min(cell_cnt_max, col_cnt * row_cnt) 
+    local row_cnt_real = row_cnt
+    if col_cnt * row_cnt>cell_cnt_max then row_cnt_real = math.ceil(cell_cnt_max / col_cnt) end
+    
+    local mapping = {}
+    for pad = 1, cell_cnt_max do 
+      mapping[pad] = pad + startnote-1 
+      local note = mapping[pad]
+      if DATA.custom_layouts[ID].mapping_override and DATA.custom_layouts[ID].mapping_override[note] then mapping[pad] = DATA.custom_layouts[ID].mapping_override[note] end
     end
+    
+    local padx_init = rackx
+    local pady_init = racky
+    local xpos0basedID = 0
+    local xpos0basedID_blockoffset = 0
+    local ypos0basedID = 0
+    if toptobottom == 0 then pady_init = racky + rackh - padh - UI.spacingY end
+    for pad = 1, cell_cnt_max do  
+      if ypos0basedID == row_cnt_real then
+        xpos0basedID_blockoffset = xpos0basedID_blockoffset + blockX
+        ypos0basedID = 0
+      end
+      local padx = padx_init + padw * (xpos0basedID   + xpos0basedID_blockoffset)
+      local pady = pady_init + padh * ypos0basedID
+      if toptobottom == 0 then pady = pady_init- padh * ypos0basedID end 
+      local mapped_note = mapping[pad] 
+      if (xpos0basedID  + xpos0basedID_blockoffset) < col_cnt then
+        UI.draw_Rack_Pads_controls(DATA.children[mapped_note], mapped_note, padx, pady, padw, padh) 
+      end
+      xpos0basedID = xpos0basedID + 1
+      if xpos0basedID%blockX == 0 then 
+        xpos0basedID = 0
+        ypos0basedID = ypos0basedID + 1 
+      end
+      
+    end
+    
+    
+    
+    --[[local padID0 = 0
+    local xpos0basedID_shift = 0
+    local ypos0basedID_shift = 0
+    for pad = 1, cell_cnt_max do  
+    
+      local xpos0basedID = padID0%col_cnt
+      local padx = rackx + padw * xpos0basedID  
+      local ypos0basedID = math.floor(padID0 / col_cnt) + ypos0basedID_shift
+      local pady = racky + padh * ypos0basedID
+      
+      if toptobottom == 0 then
+        pady = racky + rackh - padh * (1+ypos0basedID ) - UI.spacingY
+      end
+      
+      
+       
+      padID0 = padID0 + 1
+    end
+    ]]
+    
+
+    --[[local padID0 = 0
+    local xpos0basedID_shift = 0
+    local ypos0basedID_shift = 0
+    for pad = 1, cell_cnt_max do  
+    
+      local xpos0basedID = padID0%col_cnt
+      local padx = rackx + padw * xpos0basedID  
+      local ypos0basedID = math.floor(padID0 / col_cnt) + ypos0basedID_shift
+      local pady = racky + padh * ypos0basedID
+      
+      if toptobottom == 0 then
+        pady = racky + rackh - padh * (1+ypos0basedID ) - UI.spacingY
+      end
+      
+      local mapped_note = mapping[pad] 
+      UI.draw_Rack_Pads_controls(DATA.children[mapped_note], mapped_note, padx, pady, padw, padh) 
+      padID0 = padID0 + 1
+    end
+    ]]
+    
     
   end
   --------------------------------------------------------------------------------  
   function UI.Layout_Keys() 
     if EXT.UI_drracklayout ~= 1 then return end
     
-    local layout_pads_cnt = 24
+    local cell_cnt_max = 24
       
     local xoffs0 = UI.calc_rackX
     --local yoffs0 = UI.calc_rackY + UI.calc_rackH - UI.calc_rack_padh
@@ -1540,7 +1773,7 @@ end
     local padID0 = 0
     local oct = -1
     local xoffs, yoffs
-    for note = DATA.parent_track.ext.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
+    for note = DATA.parent_track.ext.PARENT_DRRACKSHIFT, cell_cnt_max-1+DATA.parent_track.ext.PARENT_DRRACKSHIFT do
       xoffs = xoffs0
       yoffs = yoffs0
       local note_oct = note%12
@@ -1572,7 +1805,7 @@ end
       --ImGui.DrawList_AddRectFilled( UI.draw_list, UI.calc_rackX, UI.calc_rackY, UI.calc_rackX+UI.calc_rackW, UI.calc_rackY+UI.calc_rackH, 0xFFFFFFA0, 0, 0 )
       UI.Layout_Pads() 
       UI.Layout_Keys() 
-      UI.Layout_Launchpad() 
+      UI.Layout_Custom() 
       
       
     end
@@ -1594,39 +1827,43 @@ end
       local h_name = h
       if h > min_h then h_name = UI.calc_rack_padnameH end
       if color then 
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, color, 5, ImGui.DrawFlags_RoundCornersTop) 
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h, color, 5, ImGui.DrawFlags_RoundCornersTop) 
        else 
         if note_t then
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, EXT.UI_colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop)
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h, EXT.UI_colRGBA_paddefaultbackgr, 5, ImGui.DrawFlags_RoundCornersTop)
          else
-          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h_name, EXT.UI_colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
+          ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y, x+w-1, y+h, EXT.UI_colRGBA_paddefaultbackgr_inactive, 5, ImGui.DrawFlags_RoundCornersTop) 
         end
       end
     
-    -- database
-      if note_t and note_t.has_setDB then
+    -- LED database / defice
+      if note_t then
         local offs = 5
+        local ledyspace = 2
         local sz = 5
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x+w-offs-sz, y+offs, x+w-offs, y+offs+sz, 0x00FFFFFF, 1, ImGui.DrawFlags_None) 
-        if note_t.has_setDBlocked then
-          ImGui.DrawList_AddRectFilled(UI.draw_list, x+w-offs-sz, y+offs+sz+1, x+w-offs, y+offs+1+sz*2, 0xFF5000FF, 1, ImGui.DrawFlags_None) 
-        end
+        local ledx= x+w-offs-sz
+        local ledy= y+offs 
+        if note_t.TYPE_DEVICE==true then                      ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0x00F050FF, 1, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+        if note_t.has_setDB then                              ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0x00FFFFFF, 1, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+        if note_t.has_setDB and note_t.has_setDBlocked then   ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0xFF50009F, 1, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
       end
       
-      
     -- peaks 
-      if 
+      if EXT.UI_drracklayout ~= 2 and 
         DATA.children[note] and
         DATA.children[note].layers and 
         DATA.children[note].layers[1] and 
         DATA.peakscache[note] and 
         DATA.peakscache[note].peaks_arr  then 
-        local is_pad_peak = true
-        UI.draw_peaks('pad'..note, note_t, x + UI.spacingX, y+UI.calc_itemH,w-UI.spacingX*2, UI.calc_rack_padnameH-UI.calc_itemH,DATA.peakscache[note].peaks_arr, is_pad_peak) 
+        local is_pad_peak = true 
+        local dim
+        local ypeaks = y+UI.calc_itemH
+        local hpeaks = UI.calc_rack_padnameH-UI.calc_itemH
+        UI.draw_peaks('pad'..note, note_t, x + UI.spacingX, ypeaks, w-UI.spacingX*2 , hpeaks,DATA.peakscache[note].peaks_arr, is_pad_peak, dim) 
       end
     
     -- controls background
-      if h > min_h then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0x4F4F4FFF, 5, ImGui.DrawFlags_RoundCornersBottom ) end
+      if h > min_h and UI.calc_rack_padctrlH > 0 then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0x4F4F4FFF, 5, ImGui.DrawFlags_RoundCornersBottom ) end
       
     -- controls background
       --ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom )
@@ -1642,7 +1879,12 @@ end
     ImGui.SetCursorScreenPos( ctx, x, y )  
     if ImGui.BeginChild( ctx, '##rackpad'..note, w, h, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then--|ImGui.ChildFlags_Border
       local note_format = VF_Format_Note(note,note_t)
-      if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+      if note_format then
+        if EXT.UI_drracklayout == 2 then note_format = note_format..' ('..note..')' end
+        if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+       else
+        note_format = ''
+      end
       UI.Tools_setbuttonbackg() 
       
       -- name 
@@ -1650,15 +1892,16 @@ end
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,UI.spacingX, UI.spacingY)
         local local_pos_x, local_pos_y = ImGui.GetCursorPos( ctx )
         ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
-        ImGui.Button(ctx,'##rackpad_name'..note,UI.calc_rack_padw -UI.spacingX *2+1,UI.calc_rack_padnameH-UI.spacingY*2 )
+        ImGui.Button(ctx,'##rackpad_name'..note,UI.calc_rack_padw -UI.spacingX *2+1,UI.calc_rack_padnameH-UI.spacingY*2 ) 
         UI.draw_Rack_Pads_controls_handlemouse(note_t,note)
+        
         ImGui.SetCursorPos( ctx, local_pos_x+UI.spacingX, local_pos_y+UI.spacingY )
         ImGui.TextWrapped( ctx, note_format )
         
         ImGui.PopStyleVar(ctx)
         ImGui.PopFont(ctx) 
         
-      if h > min_h then 
+      if h > min_h and UI.calc_rack_padctrlH > 0 then 
       -- mute
         ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y +UI.calc_rack_padnameH)
         local ismute = note_t and note_t.B_MUTE and note_t.B_MUTE == 1
@@ -1669,9 +1912,7 @@ end
         
       -- play
         ImGui.InvisibleButton(ctx,'P##rackpad_playinv'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH )
-        if ImGui.IsItemActivated( ctx ) then 
-          DATA:Sampler_StuffNoteOn(note) 
-        end
+        if ImGui.IsItemActivated( ctx ) then  DATA:Sampler_StuffNoteOn(note)  end
         if ImGui.IsItemDeactivated( ctx ) and EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
         
         local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
@@ -1726,12 +1967,17 @@ end
   
   --------------------------------------------------------------------------------  
   function UI.draw_Rack_Pads_controls_handlemouse(note_t,note,popup_content0)
+    if note == -1 then return end
     local popup_content
     if not popup_content0 then popup_content = 'pad' else popup_content = popup_content0 end
     if not (note_t and note_t.TYPE_DEVICE==true) and  ImGui.BeginDragDropTarget( ctx ) then  
       UI.Drop_UI_interaction_pad(note) 
       ImGui_EndDragDropTarget( ctx )
     end 
+    
+    if ImGui.IsItemActivated(ctx) then 
+      if EXT.UI_clickonpadplaysample ==1 then DATA:Sampler_StuffNoteOn(note) end
+    end
     
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
       DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
@@ -1755,7 +2001,7 @@ end
     end
      
     if ImGui.IsItemDeactivated( ctx ) then 
-      if popup_content0 == 'seq_pad' and EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
+      if EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
     end
     
     if note_t and note_t.noteID and ImGui.BeginDragDropSource( ctx, ImGui.DragDropFlags_None ) then  
@@ -1905,7 +2151,6 @@ end
   end
   -------------------------------------------------------------------------------- 
   function UI.draw_popups() 
-    function __f_popups() end
     if DATA.trig_openpopup then 
       ImGui.OpenPopup( ctx, 'mainRCmenu', ImGui.PopupFlags_None )
       DATA.trig_context = DATA.trig_openpopup 
@@ -2629,6 +2874,8 @@ end
   
 --------------------------------------------------------------------------------  
   function UI.draw()  
+    
+    DATA.temp_ignore_incomingevent = false
     if DATA.VCA_mode == 0 then 
       UI.knob_handle  = UI.knob_handle_normal 
      elseif DATA.VCA_mode == 1 then 
@@ -2745,8 +2992,15 @@ end
           end
         end
         ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, 'Load to all rack') then DATA:Database_Load() end
-        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then DATA:Database_Load(true) end
+        
+        
+        if ImGui.Button(ctx, 'Load to all rack') then 
+          DATA:Validate_MIDIbus_AND_ParentFolder() 
+          Undo_BeginBlock2(DATA.proj )
+          DATA:Database_Load() 
+          Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
+        end
+
         ImGui.Unindent(ctx, 10)
       end
       
@@ -3142,7 +3396,7 @@ end
     if size_new < 0 then return end
      
     local peakscol =  0xFFFFFF7F
-    if dim then peakscol =  0xFFFFFF15 end
+    if dim then peakscol =  0xFFFFFF35 end
     local last_xpos =plotx_abs
     for i = 1, size_new do
       local xpos = math.floor(plotx_abs + w * i/size_new )
@@ -3969,7 +4223,8 @@ end
   ---------------------------------------------------------------------  
   function UI.Drop_UI_interaction_pad(note) 
     if note == -1 then
-      for i=1,127 do if not DATA.children[i] then 
+      local starting_emptynote = 36
+      for i=starting_emptynote,127 do if not DATA.children[i] then 
         note = i 
         DATA.parent_track.ext.PARENT_LASTACTIVENOTE = note
         DATA.temp_scroll_to_note = note
@@ -4154,8 +4409,133 @@ end
     DATA:CollectDataInit_PluginParametersMapping_Get() 
     DATA:CollectDataInit_ReadDBmaps()
     DATA:CollectDataInit_LoadCustomPadStuff()
-    
+    DATA:CollectDataInit_LoadCustomLayouts()
   end 
+  
+  --[[-------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
+  function DATA:Auto_StuffSysex() 
+    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
+  end  
+  
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg  
+    if  not (EXT.CONF_launchpadsendMIDI == 1 and EXT.UI_drracklayout == 2) then return end 
+    -- search HW MIDI out 
+      local is_LPminiMK3
+      local is_LPProMK3
+      --local LPminiMK3_name = "LPMiniMK3 MIDI"
+      local LPminiMK3_name = "MIDIOUT2 (LPMiniMK3 MIDI)"
+      local LPProMK3_name = "LPProMK3 MIDI"
+      for dev = 1, reaper.GetNumMIDIOutputs() do
+        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
+        if retval and nameout == LPminiMK3_name then HWdevoutID =  dev-1 is_LPminiMK3 = true break end --nameout:match(LPminiMK3_name)
+        if retval and nameout == LPProMK3_name then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
+      end
+      if not HWdevoutID then return end
+    
+    -- action on release
+    if cmd == 'on release' then -- set to key layout
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+    end
+    
+    
+    
+    -- 
+      if cmd == 'set/refresh active state' then
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+    
+    --if cmd == 'drum layout' then
+      if cmd == 'drum mode' then
+        if is_LPminiMK3 ==true then 
+          SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 10h 01 F7h' 
+          DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+        end
+      end
+      
+      
+      if is_LPminiMK3 ==true or is_LPProMK3==true then 
+        for ledId = 0, 81 do
+          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+            local msgtype = 90
+            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then msgtype = 92 end
+            SysEx_msg = msgtype..' '..string.format("%02X", ledId)..' 16'
+            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+           else
+            local col = '00'
+            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then col = '03' end
+            SysEx_msg = '90 '..string.format("%02X", ledId)..' '..col
+            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+          end
+        end
+      end
+      
+    end]]
+    
+    
+    --[[
+    
+    if cmd == 'programmer mode' then
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'
+        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
+      end
+    end
+    
+    
+    
+    if cmd == 'programmer mode: set colors' then
+      
+        local colorstr = '' 
+        for ledId = 0, 81 do
+          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+            local lightingtype = 3 
+            local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
+            r = math.floor(((color>>16)&0xFF) * 0.5)
+            g = math.floor(((color>>8)&0xFF) * 0.5)
+            b = math.floor(((color>>0)&0xFF) * 0.5)
+            colorstr = colorstr..
+              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+              string.format("%X", r)..' '..
+              string.format("%X", g)..' '..
+              string.format("%X", b)..' '
+           else
+            local lightingtype = 0
+            local palettecol = 0
+            colorstr = colorstr..
+              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+              DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
+          end
+        end
+        
+        if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h' end
+        if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 03h '..colorstr..'F7h' end 
+  
+    end
+    
+  end ]]
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_stuff(SysEx_msg) 
+    if SysEx_msg and EXT.CONF_midioutput and EXT.CONF_midioutput ~=-1 and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid==true and DATA.MIDIbus.CHOKE_valid == true then
+      local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
+      SendMIDIMessageToHardware(EXT.CONF_midioutput, SysEx_msg_bin) 
+    end
+  end
     -----------------------------------------------------------------------------------------       
   _main()
   
