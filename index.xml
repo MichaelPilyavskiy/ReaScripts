@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f684970e9a02718c042fc6b2b80d38847b55a1b0" name="MPL Scripts">
+<index version="1" commit="bf454cb87651d250ca82279386561233a6a0833d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6481,6 +6481,51 @@
         <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f684970e9a02718c042fc6b2b80d38847b55a1b0/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f684970e9a02718c042fc6b2b80d38847b55a1b0/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
         <source file="mpl_RS5K_manager_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f684970e9a02718c042fc6b2b80d38847b55a1b0/FX%20specific/mpl_RS5K_manager_functions.lua</source>
+      </version>
+      <version name="4.49" author="MPL" time="2025-05-18T07:31:39Z">
+        <changelog><![CDATA[+ StepSequencer/Inline: draw inline editor over active steps
++ StepSequencer/Inline: allow to override step length per note
++ StepSequencer/Inline: draw step length override as reduce width
++ StepSequencer/Inline: add horizontal scroll
+# StepSequencer: fix drawing background lines incorrectly
+# StepSequencer: fix step length change error
+# StepSequencer: set start note drop number to 36
++ Settings/UI: add option to play sample on pad click, off by default
++ Settings/MIDI bus: add option to set default MIDI hardware output
+# Launchpad: add setup description in settings
+# Settings: use collapsing header for better navigation
+# Layout: internal cleanup
+- Layout: remove launchpad layout
++ Layout: add custom layout
++ Layout/Custom: allow to set maximum number of notes
++ Layout/Custom: allow to set number of rows
++ Layout/Custom: allow to set number of columns
++ Layout/Custom: allow to set start note
++ Layout/Custom: allow to set x block size
++ Layout/Custom: allow to override note mapping
++ Sampler/ADSR: drop defaults changed to A=0 D=max S=0 R=40ms
+# Rack: fix triggering NoteOn/Off
+# Rack: show DB LED  
+# Rack: improve LED placement
+# Rack: when moving pads, replicate drop of same sample, obey boundaries
+# Rack/startup: remove "Load DB to selected pads only" action
+# Database: Load DB trigger undo entry
+# Database: Load DB in ascendiung order, fix obey track order setting
+# Autoslice: add description
++ MIDI_choke: filter out SysEx messages]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_StepSequencer.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_StepSequencer.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+        <source file="mpl_RS5K_manager_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf454cb87651d250ca82279386561233a6a0833d/FX%20specific/mpl_RS5K_manager_functions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
