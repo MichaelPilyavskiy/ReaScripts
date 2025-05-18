@@ -1598,7 +1598,7 @@ end
     
     -- data
     if UI.open  and not DATA.trig_stopdefer then defer(UI.MAIN_loop) else  
-      DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
+      --DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
     end
   end
   -------------------------------------------------------------------------------- 

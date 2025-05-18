@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.49
+-- @version 4.50
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -17,40 +17,12 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + StepSequencer/Inline: draw inline editor over active steps
---    + StepSequencer/Inline: allow to override step length per note
---    + StepSequencer/Inline: draw step length override as reduce width
---    + StepSequencer/Inline: add horizontal scroll
---    # StepSequencer: fix drawing background lines incorrectly
---    # StepSequencer: fix step length change error
---    # StepSequencer: set start note drop number to 36
---    + Settings/UI: add option to play sample on pad click, off by default
---    + Settings/MIDI bus: add option to set default MIDI hardware output
---    # Launchpad: add setup description in settings
---    # Settings: use collapsing header for better navigation
---    # Layout: internal cleanup
---    - Layout: remove launchpad layout
---    + Layout: add custom layout
---    + Layout/Custom: allow to set maximum number of notes
---    + Layout/Custom: allow to set number of rows
---    + Layout/Custom: allow to set number of columns
---    + Layout/Custom: allow to set start note
---    + Layout/Custom: allow to set x block size
---    + Layout/Custom: allow to override note mapping
---    + Sampler/ADSR: drop defaults changed to A=0 D=max S=0 R=40ms
---    # Rack: fix triggering NoteOn/Off
---    # Rack: show DB LED  
---    # Rack: improve LED placement
---    # Rack: when moving pads, replicate drop of same sample, obey boundaries
---    # Rack/startup: remove "Load DB to selected pads only" action
---    # Database: Load DB trigger undo entry
---    # Database: Load DB in ascendiung order, fix obey track order setting
---    # Autoslice: add description
---    + MIDI_choke: filter out SysEx messages
+--    # Layout/Custom: do not allow notes over 127
+--    # fix error at script close
 
 
 
-rs5kman_vrs = '4.49'
+rs5kman_vrs = '4.50'
 
 
 -- TODO
@@ -625,7 +597,7 @@ rs5kman_vrs = '4.49'
     
     -- data
     if UI.open  and not DATA.trig_stopdefer then defer(UI.MAIN_loop) else  
-      DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
+      --DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
     end
   end
   -------------------------------------------------------------------------------- 
@@ -1706,7 +1678,9 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       if toptobottom == 0 then pady = pady_init- padh * ypos0basedID end 
       local mapped_note = mapping[pad] 
       if (xpos0basedID  + xpos0basedID_blockoffset) < col_cnt then
-        UI.draw_Rack_Pads_controls(DATA.children[mapped_note], mapped_note, padx, pady, padw, padh) 
+        if mapped_note <128 then
+          UI.draw_Rack_Pads_controls(DATA.children[mapped_note], mapped_note, padx, pady, padw, padh) 
+        end
       end
       xpos0basedID = xpos0basedID + 1
       if xpos0basedID%blockX == 0 then 
