@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.50
+-- @version 4.51
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -15,14 +15,33 @@
 --    [main] mpl_RS5k_manager_DrumRack_Clear.lua
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
+--    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # Layout/Custom: do not allow notes over 127
---    # fix error at script close
+--    + MIDI_choke: overhaul
+--    + MIDI_Bus_handler: use MIDI Bus container, supported from REAPER 7.06, this will be extended in future
+--    + Choke JSFX: full redesign, use simple src/dest setup per JSFX, controlled by script
+--    + MIDI_choke: allow to set any count of choking notes in Rack/Pad context menu
+--    + MIDI_choke: allow to set any count of choking notes in StepSequencer/Inline/Tools
+--    + MIDI_choke: draw yellow LED on Rack pad
+--    # fix obey MIDI octave visible offset REAPER preference
+--    + Settings/On sample add: allow to change defaults for RS5k ADSR
+--    # Rack/Startup: revert "Load to selected pads" actopn
+--    # Step sequencer/MIDI: set minimum event length to 2 PPQ
+--    + Step sequencer/Inline: when tweaking step length override, set obey NoteOff for children layers
+--    + Step sequencer/Inline: increase step length override limit to 400%
+--    + Step sequencer/Inline: LeftClick+Alt to set parameter to default value
+--    + Step sequencer/Inline/SysEx: use custom SysEx handler JSFX to extend sequencer features
+--    + Step sequencer/Inline/SysEx: allow to turn back into normal note
+--    + Step sequencer/Inline/SysEx: refresh sysex handler note on pad move
+--    + Step sequencer/Inline/SysEx: restrict changes in pitch start end at moving pad in sysex mode
+--    + Step sequencer/Inline/SysEx: share nofication for missing sysex handler JSFX
+--    + Step sequencer/Inline/SysEx: Add pitch parameter
+--    + Step sequencer/Inline/SysEx: Add probability parameter
 
 
 
-rs5kman_vrs = '4.50'
+rs5kman_vrs = '4.51'
 
 
 -- TODO
@@ -104,6 +123,11 @@ rs5kman_vrs = '4.50'
           CONF_onadd_renameinst_str = 'RS5k',
           CONF_onadd_autoLUFSnorm = -14, 
           CONF_onadd_autoLUFSnorm_toggle = 0, 
+          CONF_onadd_ADSR_flags = 0,--&1 A &2 D &4 S &8 R
+          CONF_onadd_ADSR_A = 0,
+          CONF_onadd_ADSR_D = 15,
+          CONF_onadd_ADSR_S = 0,
+          CONF_onadd_ADSR_R = 0.02,
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -113,7 +137,6 @@ rs5kman_vrs = '4.50'
           -- sampler
           CONF_cropthreshold = -60, -- db
           CONF_crop_maxlen = 30,
-          CONF_chokegr_limit = 4, 
           CONF_default_velocity = 120,
           CONF_stepmode = 0,
           CONF_stepmode_transientahead = 0.01,
@@ -246,7 +269,8 @@ rs5kman_vrs = '4.50'
           
           
           allow_space_to_play = true,
-            
+          allow_container_usage = app_vrs >=7.06,
+          MIDIhandler = 'RS5k_manager MIDI_handler',
           }
   DATA.UI_name_vrs = DATA.UI_name..' '..rs5kman_vrs
   
@@ -914,15 +938,6 @@ function UI.draw_tabs_Actions()
     ImGui.SameLine(ctx)
     UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
    
-  -- Clear ALL rack choke setup
-    if ImGui.Selectable( ctx, 'Clear ALL rack choke setup', false, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then  
-      if DATA.MIDIbus and DATA.MIDIbus.CHOKE_flags then 
-        for i = 0, 127 do DATA.MIDIbus.CHOKE_flags[i] = 0 end
-        Undo_BeginBlock2(DATA.proj )
-        DATA:WriteData_UpdateChoke()
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - Clear choke setup', 0xFFFFFFFF ) 
-      end
-    end
   
   -- fix GUID
     local fixavailable = ''
@@ -1040,36 +1055,65 @@ end
   function UI.draw_tabs_settings_onsampleadd()
     if ImGui.CollapsingHeader(ctx, 'On sample add') then   
       ImGui.Indent(ctx,UI.settings_indent)
-      --ImGui.SeparatorText(ctx, 'On sample add')  
-        --ImGui.Indent(ctx, UI.settings_indent)
-        if ImGui.Checkbox( ctx, 'Float RS5k instance',                                    EXT.CONF_onadd_float == 1 ) then EXT.CONF_onadd_float =EXT.CONF_onadd_float~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Copy samples to project path',                           EXT.CONF_onadd_copytoprojectpath == 1 ) then EXT.CONF_onadd_copytoprojectpath =EXT.CONF_onadd_copytoprojectpath~1 EXT:save() end 
-        ImGui.SameLine(ctx)
-        if ImGui.Button(ctx,'Open path') then 
-          local prpath = reaper.GetProjectPathEx( 0 )
-          prpath = prpath..'/'..EXT.CONF_onadd_copysubfoldname..'/'
-          RecursiveCreateDirectory( prpath, 0 )
-          VF_Open_URL(prpath) 
-        end
-        if ImGui.Checkbox( ctx, 'Set obey notes-off',                                     EXT.CONF_onadd_obeynoteoff == 1 ) then EXT.CONF_onadd_obeynoteoff =EXT.CONF_onadd_obeynoteoff~1 EXT:save() end 
-        if ImGui.Checkbox( ctx, 'Rename track',                                           EXT.CONF_onadd_renametrack == 1 ) then EXT.CONF_onadd_renametrack =EXT.CONF_onadd_renametrack~1 EXT:save() end 
+      
+      
+      if ImGui.CollapsingHeader(ctx, 'FX instance##On sample add_fx') then   
+        ImGui.Indent(ctx, UI.settings_indent)
         if ImGui.Checkbox( ctx, 'Rename instance',                                        EXT.CONF_onadd_renameinst == 1 ) then EXT.CONF_onadd_renameinst =EXT.CONF_onadd_renameinst~1 EXT:save() end 
-        if EXT.CONF_onadd_renameinst == 1 then
-          ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
-          local ret, buf = ImGui.InputText( ctx, 'instance name',                    EXT.CONF_onadd_renameinst_str, ImGui.InputTextFlags_EnterReturnsTrue) 
-          if ret then 
-            EXT.CONF_onadd_renameinst_str =buf 
-            EXT:save() 
-          end
+                if EXT.CONF_onadd_renameinst == 1 then
+                  ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
+                  local ret, buf = ImGui.InputText( ctx, 'instance name',                    EXT.CONF_onadd_renameinst_str, ImGui.InputTextFlags_EnterReturnsTrue) 
+                  if ret then 
+                    EXT.CONF_onadd_renameinst_str =buf 
+                    EXT:save() 
+                  end
+                  ImGui.SameLine(ctx)
+                  UI.HelpMarker(
+        [[Supported wildcards:
+          #note - note number
+          #layer - layer number
+        ]])
+                end
+        if ImGui.Checkbox( ctx, 'Float RS5k instance',                                    EXT.CONF_onadd_float == 1 ) then EXT.CONF_onadd_float =EXT.CONF_onadd_float~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Set obey notes-off',                                     EXT.CONF_onadd_obeynoteoff == 1 ) then EXT.CONF_onadd_obeynoteoff =EXT.CONF_onadd_obeynoteoff~1 EXT:save() end 
+        if ImGui.Checkbox( ctx, 'Set Gain to normalized LUFS',                                     EXT.CONF_onadd_autoLUFSnorm_toggle == 1 ) then EXT.CONF_onadd_autoLUFSnorm_toggle =EXT.CONF_onadd_autoLUFSnorm_toggle~1 EXT:save() end 
+        if EXT.CONF_onadd_autoLUFSnorm_toggle == 1 then 
           ImGui.SameLine(ctx)
-          UI.HelpMarker(
-[[Supported wildcards:
-  #note - note number
-  #layer - layer number
-]])
+          reaper.ImGui_SetNextItemWidth(ctx, 100)
+          local normformat = EXT.CONF_onadd_autoLUFSnorm ..'dB' 
+          local ret, v = ImGui.SliderInt( ctx, 'Normalize to LUFS##normlufsslider',                          EXT.CONF_onadd_autoLUFSnorm, -23, 0, normformat, ImGui.SliderFlags_None ) 
+          if ret then EXT.CONF_onadd_autoLUFSnorm = v end 
+          if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
         end
+        -- adsr
+        if ImGui.Checkbox( ctx, '##CONF_onadd_ADSR_flags_a',                                    EXT.CONF_onadd_ADSR_flags&1 == 1 ) then EXT.CONF_onadd_ADSR_flags =EXT.CONF_onadd_ADSR_flags~1 EXT:save() end ImGui.SameLine(ctx)
+        if EXT.CONF_onadd_ADSR_flags&1~=1 then ImGui.BeginDisabled(ctx, true) end
+        local ret, v = ImGui.SliderDouble( ctx, 'Attack##CONF_onadd_ADSR_A',            EXT.CONF_onadd_ADSR_A*2, 0, 0.1, '%.3f sec', ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_ADSR_A = VF_lim(v/2,0,2) end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        if EXT.CONF_onadd_ADSR_flags &1~=1 then ImGui.EndDisabled(ctx) end
         
-        if ImGui.Checkbox( ctx, 'Drop to white keys only',                                EXT.CONF_onadd_whitekeyspriority == 1 ) then EXT.CONF_onadd_whitekeyspriority =EXT.CONF_onadd_whitekeyspriority~1 EXT:save() end
+        if ImGui.Checkbox( ctx, '##CONF_onadd_ADSR_flags_d',                                    EXT.CONF_onadd_ADSR_flags&2 == 2) then EXT.CONF_onadd_ADSR_flags =EXT.CONF_onadd_ADSR_flags~2 EXT:save() end ImGui.SameLine(ctx)
+        if EXT.CONF_onadd_ADSR_flags&2~=2 then ImGui.BeginDisabled(ctx, true) end
+        local ret, v = ImGui.SliderDouble( ctx, 'Decay##CONF_onadd_ADSR_D',            EXT.CONF_onadd_ADSR_D, 0, 15, '%.3f sec', ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_ADSR_D = VF_lim(v,0,15) end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        if EXT.CONF_onadd_ADSR_flags &2~=2 then ImGui.EndDisabled(ctx) end
+        
+        if ImGui.Checkbox( ctx, '##CONF_onadd_ADSR_flags_s',                                    EXT.CONF_onadd_ADSR_flags&4 == 4 ) then EXT.CONF_onadd_ADSR_flags =EXT.CONF_onadd_ADSR_flags~4 EXT:save() end ImGui.SameLine(ctx)
+        if EXT.CONF_onadd_ADSR_flags&4~=4 then ImGui.BeginDisabled(ctx, true) end
+        local format_sus =  20*math.log(EXT.CONF_onadd_ADSR_S*2, 10)..'dB'
+        local ret, v = ImGui.SliderDouble( ctx, 'Sustain##CONF_onadd_ADSR_S',            EXT.CONF_onadd_ADSR_S, 0, 0.5, format_sus, ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_ADSR_S = VF_lim(v/2,0,0.5) end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        if EXT.CONF_onadd_ADSR_flags &4~=4 then ImGui.EndDisabled(ctx) end
+        
+        if ImGui.Checkbox( ctx, '##CONF_onadd_ADSR_flags_r',                                    EXT.CONF_onadd_ADSR_flags&8 == 8 ) then EXT.CONF_onadd_ADSR_flags =EXT.CONF_onadd_ADSR_flags~8 EXT:save() end ImGui.SameLine(ctx)
+        if EXT.CONF_onadd_ADSR_flags&8~=8 then ImGui.BeginDisabled(ctx, true) end
+        local ret, v = ImGui.SliderDouble( ctx, 'Release##CONF_onadd_ADSR_R',            EXT.CONF_onadd_ADSR_R*2, 0, 0.5, '%.3f sec', ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_ADSR_R = VF_lim(v/2,0,2) end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        if EXT.CONF_onadd_ADSR_flags &8~=8 then ImGui.EndDisabled(ctx) end
+        
+        ImGui.Unindent(ctx, UI.settings_indent)
+      end
+      
+      
+      if ImGui.CollapsingHeader(ctx, 'Track##On sample add_Track') then   
+        ImGui.Indent(ctx, UI.settings_indent)
+        if ImGui.Checkbox( ctx, 'Rename track',                                           EXT.CONF_onadd_renametrack == 1 ) then EXT.CONF_onadd_renametrack =EXT.CONF_onadd_renametrack~1 EXT:save() end 
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
         local ret, buf = ImGui.InputText( ctx, 'Custom template file',                    EXT.CONF_onadd_customtemplate, ImGui.InputTextFlags_EnterReturnsTrue) 
         if ret then 
@@ -1080,17 +1124,24 @@ end
         UI.HelpMarker('Path to file')
         UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order')  
         if ImGui.Checkbox( ctx, 'Set child color from parent color',                                     EXT.CONF_onadd_takeparentcolor == 1 ) then EXT.CONF_onadd_takeparentcolor =EXT.CONF_onadd_takeparentcolor~1 EXT:save() end 
-        if ImGui.Checkbox( ctx, 'Auto-set velocity range option enabled for new devices',                                     EXT.CONF_onadd_autosetrange == 1 ) then EXT.CONF_onadd_autosetrange =EXT.CONF_onadd_autosetrange~1 EXT:save() end 
-        --ImGui.Unindent(ctx, UI.settings_indent)
-        if ImGui.Checkbox( ctx, 'Normalize to LUFS',                                     EXT.CONF_onadd_autoLUFSnorm_toggle == 1 ) then EXT.CONF_onadd_autoLUFSnorm_toggle =EXT.CONF_onadd_autoLUFSnorm_toggle~1 EXT:save() end 
-        if EXT.CONF_onadd_autoLUFSnorm_toggle == 1 then 
-          ImGui.SameLine(ctx)
-          reaper.ImGui_SetNextItemWidth(ctx, 150)
-          local normformat = EXT.CONF_onadd_autoLUFSnorm ..'dB' 
-          local ret, v = ImGui.SliderInt( ctx, 'Normalize to LUFS##normlufsslider',                          EXT.CONF_onadd_autoLUFSnorm, -23, 0, normformat, ImGui.SliderFlags_None ) 
-          if ret then EXT.CONF_onadd_autoLUFSnorm = v end 
-          if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        ImGui.Unindent(ctx, UI.settings_indent)
+      end
+      
+      
+      if ImGui.CollapsingHeader(ctx, 'Various##On sample add_Various') then     
+        ImGui.Indent(ctx, UI.settings_indent)
+        if ImGui.Checkbox( ctx, 'Copy samples to project path',                           EXT.CONF_onadd_copytoprojectpath == 1 ) then EXT.CONF_onadd_copytoprojectpath =EXT.CONF_onadd_copytoprojectpath~1 EXT:save() end 
+        ImGui.SameLine(ctx)
+        if ImGui.Button(ctx,'Open path') then 
+          local prpath = reaper.GetProjectPathEx( 0 )
+          prpath = prpath..'/'..EXT.CONF_onadd_copysubfoldname..'/'
+          RecursiveCreateDirectory( prpath, 0 )
+          VF_Open_URL(prpath) 
         end
+        if ImGui.Checkbox( ctx, 'Drop to white keys only',                                EXT.CONF_onadd_whitekeyspriority == 1 ) then EXT.CONF_onadd_whitekeyspriority =EXT.CONF_onadd_whitekeyspriority~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Auto-set velocity range option enabled for new devices',                                     EXT.CONF_onadd_autosetrange == 1 ) then EXT.CONF_onadd_autosetrange =EXT.CONF_onadd_autosetrange~1 EXT:save() end 
+        ImGui.Unindent(ctx, UI.settings_indent)
+      end
         
         
         
@@ -1541,7 +1592,7 @@ MIDI bus will send same MIDI it sends to tracks, which will light up related pad
         ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
 Launchpad setup for Step Sequencer looks like this:
     - if you setup previously Launchpad for Drum Rack, make sure you have choke JSFX (bundled with RS5k manager) is inserted into MIDI bus. This JSFX have SysEx filter so you will not run into MIDI feedback loop. Otherwise you get your Launchpad blinking. If you haven`t it yet on MIDI bus, you can initialize it here:] ])ImGui.EndDisabled(ctx)
-        if ImGui.Button(ctx, 'Init MIDI bus choke') then DATA:CollectData_ReadChoke(true)  end
+        
         ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
 Then you can send this SysEx for turn launchpad into Programmer Mode. This is turn on Launchpad internal setup for StepSequencer.] ]) ImGui.EndDisabled(ctx)
         local SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7Fh F7h'  
@@ -1560,8 +1611,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
         
         
         ImGui.Unindent(ctx,10)
-      end
-    ]]
+      end]]
     
       ImGui.Unindent(ctx,UI.settings_indent)
     end  
@@ -1817,9 +1867,11 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
         local sz = 5
         local ledx= x+w-offs-sz
         local ledy= y+offs 
-        if note_t.TYPE_DEVICE==true then                      ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0x00F050FF, 1, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
-        if note_t.has_setDB then                              ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0x00FFFFFF, 1, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
-        if note_t.has_setDB and note_t.has_setDBlocked then   ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0xFF50009F, 1, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+        if note_t.TYPE_DEVICE==true then                      ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0x00FF50FF, 0, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+        if note_t.has_setDB then                              ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0x0090FFFF, 0, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+        if note_t.has_setDB and note_t.has_setDBlocked then   ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0xFF5000FF, 0, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+        if DATA.MIDIbus and DATA.MIDIbus.choke_setup and DATA.MIDIbus.choke_setup[note] then   
+                                                              ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0xFFFF00FF, 0, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
       end
       
     -- peaks 
@@ -2094,7 +2146,48 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       
     end
   end
-  
+  -------------------------------------------------------------------------------- 
+  function UI.draw_chokecombo(note)
+    
+    if DATA.allow_container_usage ~= true then ImGui.BeginDisabled(ctx, true) end
+    
+    ImGui.SeparatorText(ctx, 'Choke setup')
+    local preview = 'Cut by '
+    for note_src in spairs(DATA.children) do
+      if DATA.MIDIbus.choke_setup[note] and DATA.MIDIbus.choke_setup[note][note_src] and DATA.MIDIbus.choke_setup[note][note_src].exist == true then
+        preview = preview..note_src..' '
+      end
+    end
+    -- clear
+    if ImGui.Button(ctx, 'Clear',-1) then 
+      for note_src in pairs(DATA.MIDIbus.choke_setup[note]) do
+        if DATA.MIDIbus.choke_setup[note][note_src].exist == true then DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true end
+      end
+      DATA:Choke_Write()
+    end
+    
+    reaper.ImGui_SetNextItemWidth(ctx,-1)
+    
+    if ImGui.BeginCombo(ctx, '##choke_combo',preview) then 
+      for note_src in spairs(DATA.children) do
+        if note_src ~= note then 
+          local padname = DATA.children[note_src].P_NAME
+          local state = DATA.MIDIbus.choke_setup[note] and DATA.MIDIbus.choke_setup[note][note_src] and DATA.MIDIbus.choke_setup[note][note_src].exist == true
+          if ImGui.Checkbox(ctx, note_src..' - '..padname..'##choke'..note_src..'note'..note, state) then
+            if state == true then -- exist
+              DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true
+             else
+              if not DATA.MIDIbus.choke_setup[note] then DATA.MIDIbus.choke_setup[note] = {} end
+              if not DATA.MIDIbus.choke_setup[note][note_src] then DATA.MIDIbus.choke_setup[note][note_src] = {add = true} end 
+            end
+            DATA:Choke_Write()
+          end
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+    if DATA.allow_container_usage ~= true then ImGui.EndDisabled(ctx) end
+  end
   -------------------------------------------------------------------------------- 
   function UI.draw_popups_pad()
     if DATA.trig_context == 'pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
@@ -2121,6 +2214,9 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       ImGui.Indent(ctx, 10) 
       UI.draw_3rdpartyimport_context(note)  
       ImGui.Unindent(ctx, 10)
+      
+      -- choke
+      UI.draw_chokecombo(note)
     end
   end
   -------------------------------------------------------------------------------- 
@@ -2974,7 +3070,12 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
           DATA:Database_Load() 
           Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
         end
-
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pads') then 
+          DATA:Validate_MIDIbus_AND_ParentFolder() 
+          Undo_BeginBlock2(DATA.proj )
+          DATA:Database_Load(true)
+          Undo_EndBlock2( DATA.proj , 'Load database to selected pad only', 0xFFFFFFFF )
+        end
         ImGui.Unindent(ctx, 10)
       end
       
@@ -3719,32 +3820,6 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     
     
     
-    -- choke flags
-    if DATA.MIDIbus and DATA.MIDIbus.CHOKE_flags then
-      for groupID = 1, EXT.CONF_chokegr_limit do
-        local byte = 1<<(groupID-1)
-        ImGui.SetCursorScreenPos(ctx,curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, curposy_abs + (UI.calc_itemH + UI.spacingY)*(groupID-1))
-        local retval, v = ImGui.Checkbox( ctx, 'Choke group '..groupID, DATA.MIDIbus.CHOKE_flags[note]&byte==byte )
-        if retval then 
-          DATA.MIDIbus.CHOKE_flags[note] = DATA.MIDIbus.CHOKE_flags[note]~byte
-          DATA:WriteData_UpdateChoke()
-        end
-        local tooltip = ''
-        for i = 0, 127 do 
-          if DATA.MIDIbus.CHOKE_flags[i]&byte==byte and DATA.children[i]then
-            tooltip = tooltip..string.format('%02d',i)..' '..DATA.children[i].P_NAME..'\n'
-          end
-        end
-        if tooltip ~= '' then 
-          ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(UI.col_popup, 1) )
-          ImGui.SetItemTooltip( ctx, tooltip ) 
-          ImGui.PopStyleColor(ctx )
-        end
-      end
-     else
-      ImGui.SetCursorScreenPos(ctx,curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*4, curposy_abs )
-      if ImGui.Button(ctx, 'Init MIDI bus choke') then DATA:CollectData_ReadChoke(true)  end
-    end
     
   end
     ----------------------------------------------------------------------------------------- 
@@ -4486,7 +4561,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
               DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
               string.format("%X", r)..' '..
               string.format("%X", g)..' '..
-              string.format("%X", b)..' '
+              string.format("%X", b)..' ' 
            else
             local lightingtype = 0
             local palettecol = 0
@@ -4505,11 +4580,12 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
   end ]]
   ---------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_stuff(SysEx_msg) 
-    if SysEx_msg and EXT.CONF_midioutput and EXT.CONF_midioutput ~=-1 and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid==true and DATA.MIDIbus.CHOKE_valid == true then
+    if SysEx_msg and EXT.CONF_midioutput and EXT.CONF_midioutput ~=-1  then
       local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
       SendMIDIMessageToHardware(EXT.CONF_midioutput, SysEx_msg_bin) 
     end
   end
+  
     -----------------------------------------------------------------------------------------       
   _main()
-  
+   

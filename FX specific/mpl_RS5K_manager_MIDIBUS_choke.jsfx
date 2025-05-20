@@ -1,145 +1,46 @@
 desc:RS5K_manager_MIDIBUS_choke
 noindex: true
  
-options:gmem=RS5K_manager
+options:gmem=RS5K_manager_choke
 
-
-
-slider1:0<0,65535,1>-note0 1 group flags
-slider2:0<0,65535,1>-note2 3 group flags
-slider3:0<0,65535,1>-note4 5 group flags
-slider4:0<0,65535,1>-note6 7 group flags
-slider5:0<0,65535,1>-note8 9 group flags
-slider6:0<0,65535,1>-note10 11 group flags
-slider7:0<0,65535,1>-note12 13 group flags
-slider8:0<0,65535,1>-note14 15 group flags
-slider9:0<0,65535,1>-note16 17 group flags
-slider10:0<0,65535,1>-note18 19 group flags
-slider11:0<0,65535,1>-note20 21 group flags
-slider12:0<0,65535,1>-note22 23 group flags
-slider13:0<0,65535,1>-note24 25 group flags
-slider14:0<0,65535,1>-note26 27 group flags
-slider15:0<0,65535,1>-note28 29 group flags
-slider16:0<0,65535,1>-note30 31 group flags
-slider17:0<0,65535,1>-note32 33 group flags
-slider18:0<0,65535,1>-note34 35 group flags
-slider19:0<0,65535,1>-note36 37 group flags
-slider20:0<0,65535,1>-note38 39 group flags
-slider21:0<0,65535,1>-note40 41 group flags
-slider22:0<0,65535,1>-note42 43 group flags
-slider23:0<0,65535,1>-note44 45 group flags
-slider24:0<0,65535,1>-note46 47 group flags
-slider25:0<0,65535,1>-note48 49 group flags
-slider26:0<0,65535,1>-note50 51 group flags
-slider27:0<0,65535,1>-note52 53 group flags
-slider28:0<0,65535,1>-note54 55 group flags
-slider29:0<0,65535,1>-note56 57 group flags
-slider30:0<0,65535,1>-note58 59 group flags
-slider31:0<0,65535,1>-note60 61 group flags
-slider32:0<0,65535,1>-note62 63 group flags
-slider33:0<0,65535,1>-note64 65 group flags
-slider34:0<0,65535,1>-note66 67 group flags
-slider35:0<0,65535,1>-note68 69 group flags
-slider36:0<0,65535,1>-note70 71 group flags
-slider37:0<0,65535,1>-note72 73 group flags
-slider38:0<0,65535,1>-note74 75 group flags
-slider39:0<0,65535,1>-note76 77 group flags
-slider40:0<0,65535,1>-note78 79 group flags
-slider41:0<0,65535,1>-note80 81 group flags
-slider42:0<0,65535,1>-note82 83 group flags
-slider43:0<0,65535,1>-note84 85 group flags
-slider44:0<0,65535,1>-note86 87 group flags
-slider45:0<0,65535,1>-note88 89 group flags
-slider46:0<0,65535,1>-note90 91 group flags
-slider47:0<0,65535,1>-note92 93 group flags
-slider48:0<0,65535,1>-note94 95 group flags
-slider49:0<0,65535,1>-note96 97 group flags
-slider50:0<0,65535,1>-note98 99 group flags
-slider51:0<0,65535,1>-note100 101 group flags
-slider52:0<0,65535,1>-note102 103 group flags
-slider53:0<0,65535,1>-note104 105 group flags
-slider54:0<0,65535,1>-note106 107 group flags
-slider55:0<0,65535,1>-note108 109 group flags
-slider56:0<0,65535,1>-note110 111 group flags
-slider57:0<0,65535,1>-note112 113 group flags
-slider58:0<0,65535,1>-note114 115 group flags
-slider59:0<0,65535,1>-note116 117 group flags
-slider60:0<0,65535,1>-note118 119 group flags
-slider61:0<0,65535,1>-note120 121 group flags
-slider62:0<0,65535,1>-note122 123 group flags
-slider63:0<0,65535,1>-note124 125 group flags
-slider64:0<0,65535,1>-note126 127 group flags
+slider1:0<0,127,1>src
+slider2:0<0,127,1>dest
 
 @init
 
-NOTE_ON = $x90;
-NOTE_OFF = $x80;
-NUM_CHOKE_GROUPS = 4;
 
 @block
-
-// Setup lookups for notes with choke groups
-  sliderID = 1;
-  note = 0;
-  loop(64, 
-    noteflags[note] = $xFF & floor(slider(sliderID));
-    noteflags[note+1] = $xFF & floor((slider(sliderID)>>8));
-    sliderID += 1;
-    note +=2;
-  );
-  
+  src = slider1;
+  dest = slider2;
   buf = 10000;
+  buf_sendOFF = 10000;
   maxlen = 65536;
-  while ((recvlen = midirecv_buf(msgoffs,buf,maxlen)) > 0) (
-  //while ( midirecv(msgoffs,msg1,msg2,msg3)  ) ( 
-    msgchan = buf[0];//msg1 & $xF;
-
-    current_note = buf[1];//msg2;
-    note_status = buf[0] & $xF0;
-    
-    note_status == NOTE_ON ?
-    (
-      currentnote_chokeflags = noteflags[current_note];
-      note = -1;
-     
-      // Send note off if required.
-      loop(127, // loop notes, close them if current incoming note has active choke group
-        note +=1;
-        chokegroup = 0;
-        looped_noteflag = noteflags[note];
-        loop(NUM_CHOKE_GROUPS, // get current note choke group flags
-          chokegroup+=1;
-          chokegroupactive_incnote = (currentnote_chokeflags>>(chokegroup-1)) & 1;
-          chokegroupactive_loopednote = (looped_noteflag>>(chokegroup-1)) & 1;
-          // If the currentnote has any other notes in its chokegroup, we send a noteoff to those other notes
-          chokegroupactive_incnote == 1 && chokegroupactive_loopednote == 1 && note != current_note ? 
-          (
-            // send note off
-            buf[0] = NOTE_OFF|msgchan;
-            buf[1] = note;
-            midisend_buf(msgoffs,buf,recvlen)
-            //midisend(msgoffs, NOTE_OFF|msgchan,note);
-          );
-        ); 
-      );
+  while ((recvlen = midirecv_buf(offset,buf,maxlen)) > 0) (
+    ( 
       
-      // pass through note on
-      //midisend(msgoffs,msg1,msg2,msg3);
-       midisend_buf(msgoffs,buf,recvlen)
-    );
-
-    // Pass through note off if the note is not part of a choke group
-    note_status == NOTE_OFF ? (
-      currentnote_chokeflags = noteflags[current_note];
-      in_choke_group = 0;
-      chokegroup = 0;
-      loop(NUM_CHOKE_GROUPS, // get current note choke group flags
-        chokegroup += 1;
-        chokegroupactive_incnote = (currentnote_chokeflags>>(chokegroup-1)) & 1;
-        chokegroupactive_incnote ? in_choke_group = 1;
+      vel = buf[2];
+      noteON_dest = (recvlen <= 3 && buf[0] == $x90 && buf[1] == dest);
+      noteON_dest ? gmem[dest] = 0; // reset choke
+      noteOFF_dest = (recvlen <= 3 && buf[0] == $x80 && buf[1] == dest);
+      noteON_src = (recvlen <= 3 && buf[0] == $x90 && buf[1] == src);
+      closed_by_choke = gmem[dest];
+      (noteOFF_dest && closed_by_choke !=1) ? (
+        skip = 1;
+       ) : (
+        noteON_src ? (
+          buf_sendOFF[0] = $x80;
+          buf_sendOFF[1] = dest;
+          buf_sendOFF[2] = 0;
+          midisend_buf(offset,buf_sendOFF,recvlen);
+          gmem[dest]=1; // mark dest closed by choke
+          buf_sendON[0] = $x90;
+          buf_sendON[1] = src;
+          buf_sendON[2] = vel;
+          midisend_buf(offset+1,buf_sendON,recvlen);
+         ) : (
+          midisend_buf(offset,buf,recvlen);
+        );
       );
-      in_choke_group != 1 ? midisend(msgoffs,msg1,msg2,msg3);
+      noteOFF_dest ? midisend_buf(offset,buf,recvlen);
     );
-
   );
-  

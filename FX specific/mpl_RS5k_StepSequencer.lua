@@ -53,6 +53,12 @@ reaper.set_action_options(1 )
           CONF_onadd_autoLUFSnorm = -14, 
           CONF_onadd_autoLUFSnorm_toggle = 0, 
           
+          CONF_onadd_ADSR_flags = 0,--&1 A &2 D &4 S &8 R
+          CONF_onadd_ADSR_A = 0,
+          CONF_onadd_ADSR_D = 15,
+          CONF_onadd_ADSR_S = 0,
+          CONF_onadd_ADSR_R = 0.02,
+          
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
           CONF_midichannel = 0, -- 0 == all channels 
@@ -61,7 +67,6 @@ reaper.set_action_options(1 )
           -- sampler
           CONF_cropthreshold = -60, -- db
           CONF_crop_maxlen = 30,
-          CONF_chokegr_limit = 4, 
           CONF_default_velocity = 120,
           CONF_stepmode = 0,
           CONF_stepmode_transientahead = 0.01,
@@ -190,18 +195,23 @@ reaper.set_action_options(1 )
           
           seq = {} ,
           
-          allow_space_to_play = true,
+          allow_space_to_play = true, 
+          allow_container_usage = app_vrs >=7.06,
+          MIDIhandler = 'RS5k_manager MIDI_handler',
+          
           seq_param_selectorID = 1,
           seq_param_selector = { 
             {param = 'velocity', str= 'Velocity',default=120/127, maxval = 1, minval = 3/127},
             {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95},
             {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1},
-            {param = 'steplen_override', str= 'Length',default=1, maxval = 2, minval = 0.1},
+            {param = 'steplen_override', str= 'Length',default=1, maxval = 4, minval = 0.1},
+            {param = 'meta_pitch', str= 'Pitch',default=64, minval = 64-24, maxval = 64+24},
+            {param = 'meta_probability', str= 'Probability',default=1, minval = 0, maxval = 1},
           },
           
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
-          seq_UI_inlineH_area = 330,
+          seq_UI_inlineH_area = 270,
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
   
@@ -831,8 +841,9 @@ end
   function UI.draw_Seq_ctrls_inline_handlemouse(note_t)
     local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
     local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+    
       --reaper.ImGui_CloseCurrentPopup(ctx)
-    if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) or ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then
+    if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) or ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) and not ImGui.IsKeyDown(ctx,ImGui.Mod_Alt) then
       local x, y = reaper.ImGui_GetMousePos( ctx )
       DATA.temp_seq_params =
         {x = x,--(x-x1) / (x2-x1),
@@ -840,8 +851,19 @@ end
          }
     end
     
+    if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) and ImGui.IsKeyDown(ctx,ImGui.Mod_Alt) then 
+      local x, y = reaper.ImGui_GetMousePos( ctx )
+      local x_norm = VF_lim((x-x1) / (x2-x1))
+      local active_step = math.ceil(x_norm * UI.calc_seqW_steps_visible + DATA.seq.stepoffs)
+      local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
+      local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0 
+      local note = note_t.noteID
+      DATA.seq.ext.children[note].steps[active_step][parameter] = default
+      DATA:_Seq_Print()
+    end
+    
     if (ImGui.IsMouseDown( ctx, ImGui.MouseButton_Left ) or ImGui.IsMouseDown( ctx, ImGui.MouseButton_Right )) 
-      and DATA.temp_seq_params 
+      and DATA.temp_seq_params and not ImGui.IsKeyDown(ctx,ImGui.Mod_Alt)
       --and (ImGui.IsMouseDragging( ctx, ImGui.MouseButton_Left, 0 ) or ImGui.IsMouseDragging( ctx, ImGui.MouseButton_Right, 0 )) 
       then
       local dx, dy = reaper.ImGui_GetMouseDelta( ctx )
@@ -933,9 +955,37 @@ end
       ImGui.SameLine(ctx)
       if ImGui.Button(ctx,'Reset##steplenreset',butw_15x)then DATA.seq.ext.children[note].steplength = 0.25 DATA:_Seq_Print() end
       
-    -- global
-    ImGui.SeparatorText(ctx, 'Global')
-    if ImGui.Button(ctx, 'Clear all', butw_3x) then DATA:_Seq_Clear() end 
+    -- Actions
+    ImGui.PushFont(ctx,DATA.font2)
+    ImGui.SeparatorText(ctx, 'Actions')
+    --if ImGui.Button(ctx, 'Clear all', butw_3x) then DATA:_Seq_Clear() end 
+    if ImGui.BeginMenu( ctx, ' Actions', true ) then
+      ImGui.SeparatorText(ctx, 'Pattern general')
+      if ImGui.Button(ctx, 'Clear all',-1) then DATA:_Seq_Clear() end  
+      UI.draw_chokecombo(note)
+      ImGui.SeparatorText(ctx, 'Pad')
+      local SysEx_status = DATA.children[note] and DATA.children[note].SYSEXMOD == true 
+      if ImGui.Checkbox(ctx, 'SysEx mode',SysEx_status) then if SysEx_status == true then DATA:Action_RS5k_SYSEXMOD_OFF(note) else DATA:Action_RS5k_SYSEXMOD_ON(note) end   end
+      ImGui.SameLine(ctx )UI.HelpMarker([[
+ON:
+- add sysex handler JSFX to child track
+- turn sample into freely configurable mode
+- set pitch start to -64
+- set pitch end to 64
+- set note start to 0
+- set note end to 127
+- refresh internal data, this restrict changing start/end note in RS5k
+
+OFF:
+- remove sysex handler
+- turn sample into Sample mode
+- set note start to [note]
+- set note end to [note]
+- refresh internal data, this allow changing start/end note in RS5k
+]])
+      ImGui.EndMenu( ctx )
+    end
+    ImGui.PopFont(ctx)
     
     -- Parameters
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
@@ -961,7 +1011,6 @@ end
       end
     end   
     --
-    
     
     reaper.ImGui_PopFont(ctx)
   end
@@ -1048,23 +1097,48 @@ end
     
     local reset_w = 80
     local note = note_t.noteID
+    local harea = DATA.seq_UI_inlineH_area
     
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local default_val = DATA.seq_param_selector[DATA.seq_param_selectorID].default 
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
     
-      
+    
     -- work area
     ImGui.SetCursorPos(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX, posy + UI.spacingY)
-    local harea = DATA.seq_UI_inlineH_area
+    
+    
     --ImGui.Button(ctx,'active_area',-1,harea)
     ImGui.InvisibleButton(ctx,'active_area',-1,harea)
     local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
     local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
     UI.draw_Seq_ctrls_inline_handlemouse(note_t) 
-    
     ImGui.Dummy(ctx,0,UI.spacingY)
+    
+    local misiingsysex = 
+      ( parameter == 'meta_pitch' or 
+        parameter == 'meta_probability'
+      ) and DATA.children[note].SYSEXHANDLER_isvalid~=true
+      
+    if misiingsysex then  
+      ImGui.DrawList_AddText( UI.draw_list, x1+ 10, y1+50, 0xFFFFFFBF, 
+[[Not available. Drag anywhere in this area to:
+- add sysex handler JSFX to child track
+- turn sample into freely configurable mode
+- set pitch start to -64
+- set pitch end to 64
+- set note start to 0
+- set note end to 127
+
+SysEx handler JSFX basically replace incoming 
+pitch to sequencer pitch defined in inline editor.
+
+It also used for advanced sequencing parameters.
+]]
+
+)
+    end
     
     -- parameter tabs
     ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
@@ -1096,6 +1170,8 @@ end
       local mousex, mousey = reaper.ImGui_GetMousePos( ctx )
       local hstep = (y2-y1)
       local hstep_half = (y2-y1)*0.5
+      
+       
       for step = 1+DATA.seq.stepoffs, DATA.seq.ext.patternlen do
         local stepcol = stepcol_1
         if (step-1)%8> 3 then stepcol = stepcol_2 end
@@ -1108,16 +1184,19 @@ end
           local val_norm = (val - minval) / (maxval - minval)
           local ypos = y1
           
-          if    DATA.seq_param_selectorID == 1 
-            or  DATA.seq_param_selectorID == 3 
-            or  DATA.seq_param_selectorID == 4 
+          if    DATA.seq_param_selectorID == 1 -- velocity
+            or  DATA.seq_param_selectorID == 3 -- split
+            or  DATA.seq_param_selectorID == 4 -- len
+            or  DATA.seq_param_selectorID == 6 -- meta_probability
+            then 
             
-            
-            then -- vel
             hstep = (y2-y1)*val_norm
             ypos = math.min(y2-1, y1 + hfull - hstep)
             ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos,xpos + stepw -1 ,y2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
-           elseif DATA.seq_param_selectorID == 2 then -- offset
+           elseif 
+                DATA.seq_param_selectorID == 2  -- offset
+            or  DATA.seq_param_selectorID == 5 -- meta_pitch 
+            then
             if val_norm > 0.5 then 
               ypos1 = y1 + hstep_half - hstep_half* (val_norm-0.5)*2
               ypos2 = y1 + hstep_half 
@@ -1125,10 +1204,15 @@ end
               ypos1 = y1 + hstep_half
               ypos2 = ypos1  + (hstep_half - hstep_half*val_norm*2)
             end
-            ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos1,xpos + stepw -1 ,ypos2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
+            -- patch for missing sysex_handler JSFX
+            
+              
+            if misiingsysex~=true then  
+              ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos1,xpos + stepw -1 ,ypos2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
+            end
           end
           
-          -- draw values
+          -- draw formatted  values
           local txt=val 
           local txyy = math.max(ypos-20,y1)
           if DATA.seq_param_selectorID == 1  then  --velocity
@@ -1138,7 +1222,11 @@ end
            elseif DATA.seq_param_selectorID == 3  then -- split
              txt=math_q(val)        
            elseif DATA.seq_param_selectorID ==4  then --step len
-             txt=math.floor(val*100)..'%'              
+             txt=math.floor(val*100)..'%'   
+           elseif DATA.seq_param_selectorID ==5  then --meta_pitch
+             txt=math_q(val-64)    
+           elseif DATA.seq_param_selectorID ==6  then --meta_probability
+             txt=math.floor(val*100)..'%'  
           end
           mousediff = VF_lim(255-math.floor(math.abs(mousex-xpos) ),0,255)--+ math.abs(mousey-ypos)
           ImGui.DrawList_AddText( UI.draw_list, xpos, txyy, 0xFFFFFF00|mousediff, txt )
@@ -1155,6 +1243,16 @@ end
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval or 0 
+    local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0 
+    
+    
+    -- patch for missing sysex_handler JSFX
+    local misiingsysex = 
+      ( parameter == 'meta_pitch' or 
+        parameter == 'meta_probability'
+      ) and DATA.children[note].SYSEXHANDLER_isvalid~=true
+      
+    if misiingsysex then DATA:Action_RS5k_SYSEXMOD_ON(note) end
     
     -- define active step start/stop
     local active_step = math.ceil(DATA.temp_seq_params.x2_norm * UI.calc_seqW_steps_visible + DATA.seq.stepoffs)
@@ -1202,6 +1300,7 @@ end
     end
      
     DATA:_Seq_Print(nil, true) 
+    if parameter == 'steplen_override' then DATA:Action_SetObeyNoteOff(note) end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_startup() 
@@ -2072,6 +2171,47 @@ end
     if reaper.file_exists(fp)~= true then return end
     dofile(fp)
     return true
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.draw_chokecombo(note)
+    
+    if DATA.allow_container_usage ~= true then ImGui.BeginDisabled(ctx, true) end
+    
+    ImGui.SeparatorText(ctx, 'Choke setup')
+    local preview = 'Cut by '
+    for note_src in spairs(DATA.children) do
+      if DATA.MIDIbus.choke_setup[note] and DATA.MIDIbus.choke_setup[note][note_src] and DATA.MIDIbus.choke_setup[note][note_src].exist == true then
+        preview = preview..note_src..' '
+      end
+    end
+    -- clear
+    if ImGui.Button(ctx, 'Clear',-1) then 
+      for note_src in pairs(DATA.MIDIbus.choke_setup[note]) do
+        if DATA.MIDIbus.choke_setup[note][note_src].exist == true then DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true end
+      end
+      DATA:Choke_Write()
+    end
+    
+    reaper.ImGui_SetNextItemWidth(ctx,-1)
+    if ImGui.BeginCombo(ctx, '##choke_combo',preview) then 
+      for note_src in spairs(DATA.children) do
+        if note_src ~= note then 
+          local padname = DATA.children[note_src].P_NAME
+          local state = DATA.MIDIbus.choke_setup[note] and DATA.MIDIbus.choke_setup[note][note_src] and DATA.MIDIbus.choke_setup[note][note_src].exist == true
+          if ImGui.Checkbox(ctx, note_src..' - '..padname..'##choke'..note_src..'note'..note, state) then
+            if state == true then -- exist
+              DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true
+             else
+              if not DATA.MIDIbus.choke_setup[note] then DATA.MIDIbus.choke_setup[note] = {} end
+              if not DATA.MIDIbus.choke_setup[note][note_src] then DATA.MIDIbus.choke_setup[note][note_src] = {add = true} end 
+            end
+            DATA:Choke_Write()
+          end
+        end
+      end
+      ImGui.EndCombo(ctx)
+    end
+    if DATA.allow_container_usage ~= true then ImGui.EndDisabled(ctx) end
   end
   -----------------------------------------------------------------------------------------  
   function _main() 

@@ -296,6 +296,8 @@ RS5K_manager_functions_version = 4.43
     local take = t.tk_ptr
     local item_pos = t.it_pos
     
+    local metashift = 1
+     
     if not (item and take) then return end
     if not t.ext.children then return end
     
@@ -331,14 +333,28 @@ RS5K_manager_functions_version = 4.43
         if step_active == 0 then step_active = step_cnt end
         if not (t.ext.children[note].steps and t.ext.children[note].steps[step_active]) then goto skipnextstep end
         
+        -- val 
+        local val = t.ext.children[note].steps[step_active].val
+        
         -- velocity
         local velocity = 0
-        if t.ext.children[note].steps[step_active].val == 1 then velocity = default_velocity end
-        if t.ext.children[note].steps[step_active].val  == 1 and t.ext.children[note].steps[step_active].velocity then velocity = math.floor(t.ext.children[note].steps[step_active].velocity*127) end
+        if val == 1 then velocity = default_velocity end
+        if val == 1 and t.ext.children[note].steps[step_active].velocity then velocity = math.floor(t.ext.children[note].steps[step_active].velocity*127) end
 
         -- split
         local split = 1
         if t.ext.children[note].steps[step_active].split then split = math_q(t.ext.children[note].steps[step_active].split) end 
+        
+        -- meta
+        local addmeta
+        local meta_pitch = 64
+        if t.ext.children[note].steps[step_active].meta_pitch then meta_pitch = t.ext.children[note].steps[step_active].meta_pitch end 
+        local meta_probability = 1
+        if t.ext.children[note].steps[step_active].meta_probability then meta_probability = t.ext.children[note].steps[step_active].meta_probability end 
+        if val ==1 and (meta_pitch ~= 64 or meta_probability ~= 1) then 
+          addmeta = true
+        end
+        
         
         -- offset  / swing
         local offset = 0
@@ -359,7 +375,7 @@ RS5K_manager_functions_version = 4.43
         local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + beatpos_end) 
         local steppos_start_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_start_sec ) 
         local steppos_end_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_end_sec ) 
-        if  steppos_end_ppq - steppos_start_ppq < 100 then goto skipnextstep end
+        if  steppos_end_ppq - steppos_start_ppq < 2 then goto skipnextstep end
         
         --if sw_shift ~= 0 or offset ~= 0 then split = 1 end 
         
@@ -370,18 +386,47 @@ RS5K_manager_functions_version = 4.43
           steppos_end_ppq = math.floor(steppos_end_ppq)
           
           if split == 1 then 
+            if addmeta then
+              form_data[#form_data+1] = {
+                  ppq_start = steppos_start_ppq-metashift,
+                  meta = {
+                      [1] = note, -- note
+                      [2] = math_q(meta_pitch or 64), -- pitch
+                      [3] = math_q((meta_probability or 1)*127), -- probability
+                  },
+                }
+            end
+            
+            -- single note
             form_data[#form_data+1] = {
               ppq_start = steppos_start_ppq,
               ppq_end = steppos_end_ppq,
               pitch = note,
               vel = velocity,
             }
+            
+            
+            
            else
+           
+            -- split note
             local ppq_len = steppos_end_ppq - steppos_start_ppq
             local sliceppq_len = math.floor(ppq_len / split)
             for i = 1, split do
               local slice_steppos_start_ppq = steppos_start_ppq + sliceppq_len*(i-1)
               local slice_steppos_end_ppq = slice_steppos_start_ppq + sliceppq_len
+              
+              if addmeta then
+                form_data[#form_data+1] = {
+                  ppq_start = slice_steppos_start_ppq-metashift,
+                  meta = {
+                    [1] = note, -- note
+                    [2] = math_q(meta_pitch or 64), -- pitch
+                    [3] = math_q((meta_probability or 1)*127), -- probability
+                  },
+                }
+              end
+              
               form_data[#form_data+1] = {
                 ppq_start = slice_steppos_start_ppq,
                 ppq_end = slice_steppos_end_ppq,
@@ -389,6 +434,8 @@ RS5K_manager_functions_version = 4.43
                 vel = velocity,
               }
             end
+            
+            
             
           end
           
@@ -415,15 +462,32 @@ RS5K_manager_functions_version = 4.43
     for i = 1, sz do 
       local ppq = form_data[i].ppq_start
       local offset = ppq - lastppq
-      local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x90, form_data[i].pitch, form_data[i].vel )
-      str = str..str_per_msg
-      lastppq = ppq
       
-      local ppq = form_data[i].ppq_end
-      local offset = ppq - lastppq
-      local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x80, form_data[i].pitch, 0)
-      str = str..str_per_msg
-      lastppq = ppq 
+      -- notes
+      if form_data[i].pitch and  form_data[i].vel then
+        local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x90, form_data[i].pitch, form_data[i].vel )
+        str = str..str_per_msg
+        lastppq = ppq
+        
+        local ppq = form_data[i].ppq_end
+        local offset = ppq - lastppq
+        local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x80, form_data[i].pitch, 0)
+        str = str..str_per_msg
+        lastppq = ppq 
+      end
+      
+      --meta
+      if form_data[i].meta then
+        local ppq = form_data[i].ppq_start
+        local offset = ppq - lastppq
+        local SysEx_msg = 'F0 60 01 '
+        for id = 1, #form_data[i].meta do SysEx_msg= SysEx_msg..string.format("%X", form_data[i].meta[id])..' ' end SysEx_msg= SysEx_msg..'F7'
+        local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
+        local str_per_msg = string.pack("i4Bs4", offset, flags , SysEx_msg_bin)
+        str = str..str_per_msg
+        lastppq = ppq 
+      end
+      
     end
     
     -- close loop source
@@ -796,26 +860,14 @@ end
     local offs = 0
     if DATA.REAPERini and DATA.REAPERini.REAPER and DATA.REAPERini.REAPER.midioctoffs then offs = DATA.REAPERini.REAPER.midioctoffs end
     local val = math.floor(note)
-    local oct = math.floor(note / 12)
+    local oct = math.floor(note / 12) + offs
     local note = math.fmod(note,  12)
     local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'}
     
     local out_str 
     
     -- handle names
-      if t and t.P_NAME then out_str = t.P_NAME end 
-    --[[ handle db
-      if t and t.layers then 
-        local hasdb
-        for layer = 1, #t.layers do
-          if t.layers[layer].SET_useDB and t.layers[layer].SET_useDB&1==1 then 
-            hasdb = true
-          end
-        end
-        if hasdb == true then out_str = '[DB] '..out_str  end
-      end]]
-      
-      if out_str then return out_str end
+      if t and t.P_NAME then return t.P_NAME end
       
     -- note  
       if note and oct and key_names[note+1] then 
@@ -960,7 +1012,7 @@ end
     DATA:CollectData_Macro()
      
     -- other
-    DATA:CollectData_ReadChoke() 
+    DATA:Choke_Read() 
     
     -- seq
     DATA:CollectData_Seq()
@@ -1526,44 +1578,6 @@ end
         
       end   
   end
-  --------------------------------------------------------------------- 
-  function DATA:CollectData_ReadChoke(allow_add_choke) 
-    -- validate choke
-      if not DATA.MIDIbus.tr_ptr then return end
-      local tr =  DATA.MIDIbus.tr_ptr
-      local fxname = 'mpl_RS5K_manager_MIDIBUS_choke.jsfx' 
-      local chokeJSFX_pos =  TrackFX_AddByName( tr, fxname, false, 0 )
-      local CHOKE_GUID
-      if chokeJSFX_pos == -1 then  
-        if allow_add_choke == true then 
-          DATA.MIDIbus.CHOKE_valid = true 
-          chokeJSFX_pos =  TrackFX_AddByName( tr, fxname, false, -1000 ) 
-          CHOKE_GUID = TrackFX_GetFXGUID( tr, chokeJSFX_pos ) 
-          DATA:WriteData_Child(tr, {CHOKE_GUID=CHOKE_GUID}) 
-          TrackFX_Show( tr, chokeJSFX_pos, 0|2 )
-        end
-        --for i = 1, 16 do TrackFX_SetParamNormalized( tr, chokeJSFX_pos, 33+i, i/1024 ) end -- ini source gmem IDs]]
-       else
-        CHOKE_GUID = TrackFX_GetFXGUID(tr, chokeJSFX_pos ) 
-      end
-      if chokeJSFX_pos == -1 then return end
-    
-    -- print to table
-      DATA.MIDIbus.CHOKE_valid = true
-      DATA.MIDIbus.CHOKE_pos = chokeJSFX_pos
-      DATA.MIDIbus.CHOKE_GUID = CHOKE_GUID
-     
-    -- read group flags
-      DATA.MIDIbus.CHOKE_flags = {} 
-      for slider = 0, 63 do
-        local flags = TrackFX_GetParamNormalized( tr, chokeJSFX_pos, slider )
-        flags = math.floor(flags*65535)
-        local noteID1 = slider*2
-        local noteID2 = slider*2+1
-        DATA.MIDIbus.CHOKE_flags[noteID1] = flags&0xFF
-        DATA.MIDIbus.CHOKE_flags[noteID2] = (flags>>8)&0xFF 
-      end
-  end 
   -----------------------------------------------------------------------
   function DATA:Sampler_NewRandomKit() 
     if not (DATA.parent_track and DATA.parent_track.ext) then return end
@@ -1849,6 +1863,17 @@ end
           noteID=note,
           IP_TRACKNUMBER_0based=IP_TRACKNUMBER_0based,
         } end 
+      
+      -- SYSHANDLER
+        if DATA.children[note].SYSEXHANDLER_isvalid~=true then 
+          local SYSHANDLER_ID = TrackFX_AddByName(track, 'sysex_handler', false, 0 )
+          if SYSHANDLER_ID ~= -1 then
+            DATA.children[note].SYSEXHANDLER_isvalid = true
+            DATA.children[note].SYSEXHANDLER_ID = SYSHANDLER_ID
+          end
+          local ret, SYSEXMOD =          GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_SYSEXMOD', 0, false) SYSEXMOD = (tonumber(SYSEXMOD) or 0)==1
+          DATA.children[note].SYSEXMOD = SYSEXMOD
+        end
         
                 
       -- define type (regular_child / device / device_child)
@@ -1890,8 +1915,8 @@ end
         
       -- add layer to note if device child
         if TYPE_DEVICECHILD == true or TYPE_REGCHILD == true then  
-          local midifilt_pos = TrackFX_AddByName( track, 'midi_note_filter', false, 0) 
-          if midifilt_pos == - 1 then midifilt_pos = nil end
+            local midifilt_pos = TrackFX_AddByName( track, 'midi_note_filter', false, 0) 
+            if midifilt_pos == - 1 then midifilt_pos = nil end
             local layer = #DATA.children[note].layers +1 
             DATA.children[note].layers[layer] = { 
                                               
@@ -2095,6 +2120,7 @@ end
   end 
   ---------------------------------------------------------------------  
   function DATA:CollectData_Children_FXParams(note_layer_t)  
+    
     if not note_layer_t then return end
     -- ReaEQ
     note_layer_t.fx_reaeq_isvalid = false
@@ -2133,6 +2159,9 @@ end
         note_layer_t.fx_ws_drive_format = (math.floor(1000*note_layer_t.fx_ws_drive)/10)..'%'
       end
     end
+    
+    
+    
   end 
   --------------------------------------------------------------------- 
   function DATA:CollectData_Children_ExtState(t) 
@@ -2309,36 +2338,6 @@ end
     -- clear string
     GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN', '', true) 
   end
-  --------------------------------------------------------------------- 
-  function DATA:WriteData_UpdateChoke() 
-    if not (DATA.MIDIbus.CHOKE_valid and DATA.MIDIbus.CHOKE_flags ) then return end 
-    local tr = DATA.MIDIbus.tr_ptr 
-    local fx = DATA.MIDIbus.CHOKE_pos
-    -- write group flags
-    Undo_BeginBlock2(DATA.proj )
-    for slider = 0, 63 do
-      local noteID1 = slider*2
-      local noteID2 = slider*2+1
-      local flags1 = DATA.MIDIbus.CHOKE_flags[noteID1]
-      local flags2 = DATA.MIDIbus.CHOKE_flags[noteID2]
-      local out_mixed = (flags2<<8) + flags1
-      TrackFX_SetParamNormalized( tr, fx, slider, out_mixed/65535 )
-    end 
-    
-    -- auto set obey note off
-    for note = 0, 127 do
-      if DATA.children[note] and DATA.children[note].layers then
-        for layer = 1, #DATA.children[note].layers do
-          if DATA.children[note].layers[layer].ISRS5K == true then
-            local tr_ptr = DATA.children[note].layers[layer].tr_ptr
-            local instrument_pos = DATA.children[note].layers[layer].instrument_pos
-            TrackFX_SetParamNormalized( tr_ptr, instrument_pos, 11, 1 )
-          end
-        end
-      end
-    end
-    Undo_EndBlock2( DATA.proj , 'RS5k manager - update choke', 0xFFFFFFFF ) 
-  end
   ---------------------------------------------------------------------
   function DATA:WriteData_Child(tr, t) 
     if not ValidatePtr2(DATA.proj,tr,'MediaTrack*') then return end
@@ -2352,7 +2351,6 @@ end
     
     -- meta FX
       if t.MACRO_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_MACRO_GUID', t.MACRO_GUID, true) end
-      if t.CHOKE_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHOKE_GUID', t.CHOKE_GUID, true) end
       if t.MIDIFILT_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_MIDIFILTGUID', t.MIDIFILT_GUID, true) end 
       if t.FX_REAEQ_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_REAEQ_GUID', t.FX_REAEQ_GUID, true) end      
       if t.FX_WS_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_WS_GUID', t.FX_WS_GUID, true) end      
@@ -2385,6 +2383,7 @@ end
       if t.SET_SAMPLELEN then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_SAMPLELEN', t.SET_SAMPLELEN, true) end  
       if t.SET_SAMPLEBPM then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_SAMPLEBPM', t.SET_SAMPLEBPM, true) end  
       if t.SET_LUFSNORM then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_LUFSNORM', t.SET_LUFSNORM, true) end  
+      if t.SET_SYSEXMOD then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_SYSEXMOD', t.SET_SYSEXMOD, true) end  
       
       --[[if t.INSTR_PARAM_CACHE then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_CACHE', t.INSTR_PARAM_CACHE, true) end
       if t.INSTR_PARAM_VOL then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_VOL', t.INSTR_PARAM_VOL, true) end
@@ -2527,17 +2526,27 @@ end
   end
   --------------------------------------------------------------------- 
   function DATA:DropSample_ExportToRS5kSetNoteRange(note_layer_t, note) 
+    local oldnote_t 
+    local old_note = note_layer_t.noteID
+    if old_note and DATA.children[old_note] then oldnote_t = DATA.children[old_note] end
+    
+    
     local tr = note_layer_t.tr_ptr
     local instrument_pos = note_layer_t.instrument_pos
     local midifilt_pos = note_layer_t.midifilt_pos
-    
     if not note then return end
     if not midifilt_pos  then 
-      TrackFX_SetParamNormalized( tr, instrument_pos, 3, (note)/127 ) -- note range start
-      TrackFX_SetParamNormalized( tr, instrument_pos, 4, (note)/127 ) -- note range end
+      if not (oldnote_t and oldnote_t.SYSEXMOD == true) then
+        TrackFX_SetParamNormalized( tr, instrument_pos, 3, note/127 ) -- note range start
+        TrackFX_SetParamNormalized( tr, instrument_pos, 4, note/127 ) -- note range end
+      end
      else 
       TrackFX_SetParamNormalized( tr, midifilt_pos, 0, note/128)
       TrackFX_SetParamNormalized( tr, midifilt_pos, 1, note/128)
+    end
+    
+    if oldnote_t and oldnote_t.SYSEXHANDLER_ID then 
+      TrackFX_SetParam( oldnote_t.tr_ptr, oldnote_t.SYSEXHANDLER_ID, 0, note ) -- set new note
     end
   end
   --------------------------------------------------------------------- 
@@ -2830,25 +2839,29 @@ end
       end
       
       TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel 
-      TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
-      TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
+      --TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
+      --TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
       TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
       
       local obeynoteoff = EXT.CONF_onadd_obeynoteoff if drop_data and drop_data.srct and drop_data.srct.instrument_noteoff then obeynoteoff = drop_data.srct.instrument_noteoff end
       TrackFX_SetParamNormalized( track, instrument_pos, 11, obeynoteoff) -- obey note offs
       
       -- ADSR
-      local attack = 0            TrackFX_SetParamNormalized( track, instrument_pos, 9, attack ) 
-      local decay_sec = 15    /15  TrackFX_SetParamNormalized( track, instrument_pos, 24, decay_sec )
-      local release = 0.02        TrackFX_SetParamNormalized( track, instrument_pos, 10, release )
-      local sustain= 0            TrackFX_SetParamNormalized( track, instrument_pos, 25, sustain )
+      
+      local attack =    math.min(2,EXT.CONF_onadd_ADSR_A)       if EXT.CONF_onadd_ADSR_flags&1==1 then TrackFX_SetParamNormalized( track, instrument_pos, 9, attack )  end
+      local decay_sec = math.min(15,EXT.CONF_onadd_ADSR_D-0.01)/15   if EXT.CONF_onadd_ADSR_flags&2==2 then TrackFX_SetParamNormalized( track, instrument_pos, 24, decay_sec )  end
+      local sustain=    math.min(2,EXT.CONF_onadd_ADSR_S)       if EXT.CONF_onadd_ADSR_flags&4==4 then TrackFX_SetParamNormalized( track, instrument_pos, 25, sustain )  end
+      local release =   math.min(2,EXT.CONF_onadd_ADSR_R)       if EXT.CONF_onadd_ADSR_flags&8==8 then TrackFX_SetParamNormalized( track, instrument_pos, 10, release )  end
       
       
       local temp_t = {
         tr_ptr = track,
         instrument_pos = instrument_pos
       }
-      DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note)
+      
+      
+      local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD 
+      if SYSEXMOD ~= true then DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) end
     
     -- set offsets
       if drop_data and drop_data.SOFFS and drop_data.EOFFS then
@@ -2900,6 +2913,7 @@ end
             SET_noteID=note,
             SET_isrs5k=true,
           }) 
+          
         end 
       end
       
@@ -3978,3 +3992,183 @@ end
   
     --------------------------------------------------------------------------------  
   function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end    
+  --------------------------------------------------------------------- 
+  function DATA:Choke_Read()  
+    DATA.MIDIbus.choke_setup = {}
+    local ret, midi_choke_Container = DATA:MIDI_Handler_Read() 
+    if not ret then return end
+    
+    
+    local tr =  DATA.MIDIbus.tr_ptr 
+    local fxcnt = TrackFX_GetCount(tr)
+    local retval, container_count = reaper.TrackFX_GetNamedConfigParm( tr, midi_choke_Container, 'container_count' )
+    for subitem = 1, container_count do
+      local choke_childID = 0x2000000 + subitem*(fxcnt+1) + (midi_choke_Container+1)
+      local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr, choke_childID, 'renamed_name' )
+      local dest,src = fxname:match('choke (%d+) by (%d+)')
+      if src and tonumber(src) then src = tonumber(src) end
+      if dest and tonumber(dest) then dest = tonumber(dest) end
+      if dest and src then
+        if not DATA.MIDIbus.choke_setup[dest] then DATA.MIDIbus.choke_setup[dest] = {} end 
+        local retval, container_itemID = reaper.TrackFX_GetNamedConfigParm( tr, midi_choke_Container, 'container_item.'..(subitem-1) )
+        DATA.MIDIbus.choke_setup[dest][src] = {exist = true, container_itemID = tonumber(container_itemID)}
+      end
+    end
+  end  
+  --------------------------------------------------------------------- 
+  function DATA:MIDI_Handler_Read(allow_to_write)   
+    if DATA.allow_container_usage ~= true then return end  
+    if not DATA.MIDIbus.tr_ptr then return end 
+    local container_name = DATA.MIDIhandler
+    local tr =  DATA.MIDIbus.tr_ptr 
+    local midi_choke_Container =  TrackFX_AddByName( tr, container_name, false, 0 ) 
+    if allow_to_write~= true then 
+      if midi_choke_Container == -1 then return end
+     else 
+      if midi_choke_Container == -1 then 
+        midi_choke_Container =  TrackFX_AddByName( tr, 'Container', false, -1000 )
+        TrackFX_SetNamedConfigParm( tr, midi_choke_Container, 'renamed_name', container_name )
+        TrackFX_SetOpen( tr, midi_choke_Container, false ) 
+      end 
+      if midi_choke_Container == -1 then return end
+    end
+    
+    return true, midi_choke_Container
+  end  
+  --------------------------------------------------------------------- 
+  function DATA:Choke_Write()  
+    -- get/init container ID
+    local ret, midi_choke_Container = DATA:MIDI_Handler_Read(true) 
+    if not ret then return end
+    
+    -- colect for remove 
+    local tr =  DATA.MIDIbus.tr_ptr 
+    local removeID = {}
+    local retval, container_count = reaper.TrackFX_GetNamedConfigParm( tr, midi_choke_Container, 'container_count' )
+    for dest in pairs(DATA.MIDIbus.choke_setup) do
+      for src in pairs( DATA.MIDIbus.choke_setup[dest]) do
+        if DATA.MIDIbus.choke_setup[dest][src].mark_for_remove == true then 
+          removeID[DATA.MIDIbus.choke_setup[dest][src].container_itemID] = true
+        end
+      end
+    end
+    
+    -- mark for add
+    local add_FX = {}
+    local addcnt = 0
+    for dest in pairs(DATA.MIDIbus.choke_setup) do
+      for src in pairs( DATA.MIDIbus.choke_setup[dest]) do
+        if DATA.MIDIbus.choke_setup[dest][src].add == true then 
+          if not add_FX[dest] then add_FX[dest] = {} end
+          add_FX[dest][#add_FX[dest]+1] = src
+          addcnt=addcnt+1
+        end
+      end
+    end
+    
+    for fxID in spairs(removeID, function(t,a,b) return b < a end) do
+      TrackFX_Delete( tr,fxID )
+    end
+    
+    for dest in pairs(add_FX) do
+      for id=1, #add_FX[dest] do
+        local src = add_FX[dest][id]
+        local choke_ID =  TrackFX_AddByName( tr, 'mpl_RS5K_manager_MIDIBUS_choke', false, -1 )
+        local retval, container_count = reaper.TrackFX_GetNamedConfigParm( tr, midi_choke_Container, 'container_count' )
+        local subitem = container_count + 1
+        local choke_childID_dest = 0x2000000 + subitem*(TrackFX_GetCount(tr)+1) + (midi_choke_Container+1) 
+        TrackFX_CopyToTrack( tr, choke_ID, tr, choke_childID_dest, true )
+        local choke_childID_dest = 0x2000000 + subitem*(TrackFX_GetCount(tr)+1) + (midi_choke_Container+1) 
+        TrackFX_SetOpen( tr, choke_childID_dest, false ) 
+        TrackFX_SetNamedConfigParm( tr, choke_childID_dest, 'renamed_name', 'choke '..dest..' by '..src )
+        TrackFX_SetParam( tr, choke_childID_dest, 0, src )
+        TrackFX_SetParam( tr, choke_childID_dest, 1, dest )
+      end
+    end
+    
+    -- set obey note off
+    if addcnt > 0 then
+      for dest in pairs(add_FX) do DATA:Action_SetObeyNoteOff(dest) end
+      DATA.upd = true 
+    end
+  end    
+  --------------------------------------------------------------------- 
+  function DATA:Action_SetObeyNoteOff(note)
+    local note_t = DATA.children[note]
+    if note_t and note_t.layers then
+      for layer = 1, #note_t.layers do
+        local note_layer_t = note_t.layers[layer]
+        if note_layer_t.ISRS5K then TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, 11, 1 ) end
+      end
+    end
+  end
+  --------------------------------------------------------------------- 
+  function DATA:MIDI_SysexHandler_init(note)   
+    if not (DATA.children and DATA.children[note]) then return end
+    local tr =  DATA.children[note].tr_ptr 
+    local sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, -1000 ) 
+    if sysex_handler ~= -1 then 
+      TrackFX_SetNamedConfigParm( tr, sysex_handler, 'renamed_name', 'sysex_handler' )
+      TrackFX_SetParam( tr, sysex_handler, 0, note ) -- set note
+      TrackFX_SetOpen( tr, sysex_handler, false ) 
+     else
+      return
+    end 
+    return true
+  end  
+  --------------------------------------------------------------------- 
+  function DATA:Action_RS5k_SYSEXMOD_ON(note)
+    
+    Undo_BeginBlock2(-1) 
+    local note_t = DATA.children[note]
+    DATA:WriteData_Child(note_t.tr_ptr,{SET_SYSEXMOD=1})
+    if note_t and note_t.layers then
+      for layer = 1, #note_t.layers do
+        local note_layer_t = note_t.layers[layer]
+        if note_layer_t.ISRS5K then 
+          local track = note_layer_t.tr_ptr
+          local fx = note_layer_t.instrument_pos 
+          TrackFX_SetNamedConfigParm( track, fx, 'MODE', 0 ) -- turn sample into freely configurable mode
+          TrackFX_SetParam( track, fx, 3, 0 ) -- set note start to 0
+          TrackFX_SetParam( track, fx, 4, 1 ) -- set note end to 127
+          TrackFX_SetParam( track, fx, 5, 0.5 - 0.5*64/80 ) -- set pitch start to -64
+          TrackFX_SetParam( track, fx, 6, 0.5 + 0.5*64/80 ) -- set pitch end to 64
+        end
+      end
+    end
+    
+    DATA:MIDI_SysexHandler_init(note) -- add sysex handler to child track
+    Undo_EndBlock2(-1, 'Convert pad '..note..' to SysEx mode', 0xFFFFFFFF)
+    DATA.children[note].SYSEXHANDLER_isvalid = true 
+    DATA.upd = true
+    
+  end
+  --------------------------------------------------------------------- 
+  function DATA:Action_RS5k_SYSEXMOD_OFF(note)
+    Undo_BeginBlock2(-1) 
+    local note_t = DATA.children[note]
+    if note_t then DATA:WriteData_Child(note_t.tr_ptr,{SET_SYSEXMOD=0}) end
+    
+    if note_t and note_t.layers then
+      for layer = 1, #note_t.layers do
+        local note_layer_t = note_t.layers[layer]
+        if note_layer_t.ISRS5K then 
+          local track = note_layer_t.tr_ptr
+          local fx = note_layer_t.instrument_pos 
+          TrackFX_SetNamedConfigParm( track, fx, 'MODE', 1 ) -- turn sample into freely configurable mode
+          TrackFX_SetParam( track, fx, 3, note/127 )
+          TrackFX_SetParam( track, fx, 4, note/127 ) 
+          TrackFX_SetParamNormalized( track, fx, 5, 0.5 ) -- pitch for start
+          TrackFX_SetParamNormalized( track, fx, 6, 0.5 ) -- pitch for end
+        end
+      end
+    end
+    
+    -- remove handler
+    local tr =  note_t.tr_ptr 
+    local sysex_handler =  TrackFX_AddByName( tr, 'sysex_handler', false, 0 ) 
+    if sysex_handler ~= -1 then TrackFX_Delete( tr, sysex_handler ) end
+    
+    Undo_EndBlock2(-1, 'Convert pad '..note..' to normal mode', 0xFFFFFFFF)
+    
+  end
