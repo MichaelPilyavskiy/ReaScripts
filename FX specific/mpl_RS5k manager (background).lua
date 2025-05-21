@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.52
+-- @version 4.53
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,12 +18,13 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # RS5k defaults: fix not setting pitch offsets
---    # RS5k defaults: always set mode except when in SteSeq/Inline/SysEx mode
+--    # StepSequencer: UI tweaks
+--    # StepSequencer/MIDI: reduce meta messages ppq shift to 0
+--    # Settings/On sample add: add option to enable sysex mode for new childs
 
 
 
-rs5kman_vrs = '4.52'
+rs5kman_vrs = '4.53'
 
 
 -- TODO
@@ -110,6 +111,7 @@ rs5kman_vrs = '4.52'
           CONF_onadd_ADSR_D = 15,
           CONF_onadd_ADSR_S = 0,
           CONF_onadd_ADSR_R = 0.02,
+          CONF_onadd_sysexmode = 1,
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -1106,7 +1108,10 @@ end
         UI.HelpMarker('Path to file')
         UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order')  
         if ImGui.Checkbox( ctx, 'Set child color from parent color',                                     EXT.CONF_onadd_takeparentcolor == 1 ) then EXT.CONF_onadd_takeparentcolor =EXT.CONF_onadd_takeparentcolor~1 EXT:save() end 
+        if ImGui.Checkbox( ctx, 'Enable sysex mode for new childs',                                     EXT.CONF_onadd_sysexmode == 1 ) then EXT.CONF_onadd_sysexmode =EXT.CONF_onadd_sysexmode~1 EXT:save() end 
         ImGui.Unindent(ctx, UI.settings_indent)
+        
+        
       end
       
       

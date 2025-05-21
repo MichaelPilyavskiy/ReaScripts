@@ -52,6 +52,7 @@ reaper.set_action_options(1 )
           CONF_onadd_renameinst_str = 'RS5k',
           CONF_onadd_autoLUFSnorm = -14, 
           CONF_onadd_autoLUFSnorm_toggle = 0, 
+          CONF_onadd_sysexmode = 1,
           
           CONF_onadd_ADSR_flags = 0,--&1 A &2 D &4 S &8 R
           CONF_onadd_ADSR_A = 0,
@@ -205,9 +206,14 @@ reaper.set_action_options(1 )
             {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95},
             {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1},
             {param = 'steplen_override', str= 'Length',default=1, maxval = 4, minval = 0.1},
+            {param = 'meta', str= 'Meta'},
+          },
+          
+          seq_param_selector_metaID = 1,
+          seq_param_selector_meta = { 
             {param = 'meta_pitch', str= 'Pitch',default=64, minval = 64-24, maxval = 64+24},
             {param = 'meta_probability', str= 'Probability',default=1, minval = 0, maxval = 1},
-          },
+          }, 
           
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
@@ -994,6 +1000,16 @@ OFF:
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
     
+    -- handle meta
+    local parameter_parent = parameter
+    if parameter == 'meta' then
+      parameter = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].param
+      parameterstr ='Meta: '.. DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].str 
+      default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
+      maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
+      minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
+    end
+    
     ImGui.SeparatorText(ctx, parameterstr) 
     if default_val and DATA.seq.ext.children[note].steps then
       if ImGui.Button(ctx, 'Reset##resparamvalues') then --,-UI.spacingX
@@ -1104,6 +1120,14 @@ OFF:
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
     
+    -- handle meta
+    local parameter_parent = parameter
+    if parameter == 'meta' then
+      parameter = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].param
+      default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
+      maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
+      minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
+    end
     
     -- work area
     ImGui.SetCursorPos(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX, posy + UI.spacingY)
@@ -1116,10 +1140,18 @@ OFF:
     UI.draw_Seq_ctrls_inline_handlemouse(note_t) 
     ImGui.Dummy(ctx,0,UI.spacingY)
     
+    
+    -- patch for missing sysex_handler JSFX
     local misiingsysex = 
-      ( parameter == 'meta_pitch' or 
-        parameter == 'meta_probability'
+      ( parameter_parent == 'meta' and 
+        (
+          parameter == 'meta_pitch' or 
+          parameter == 'meta_probability'
+        )
       ) and DATA.children[note].SYSEXHANDLER_isvalid~=true
+      
+      
+      
       
     if misiingsysex then  
       ImGui.DrawList_AddText( UI.draw_list, x1+ 10, y1+50, 0xFFFFFFBF, 
@@ -1142,14 +1174,26 @@ It also used for advanced sequencing parameters.
     
     -- parameter tabs
     ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
-    if ImGui.BeginTabBar( ctx, 'paraminlinetabs', ImGui.TabItemFlags_None ) then
+    if ImGui.BeginTabBar( ctx, 'paraminlinetabs', ImGui.TabItemFlags_None|ImGui.TabBarFlags_FittingPolicyResizeDown ) then
       for i = 1, #DATA.seq_param_selector do
         local formatIn = DATA.seq_param_selector[i].str
         if ImGui.BeginTabItem( ctx, formatIn..'##inlinetabs', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selectorID = i  ImGui.EndTabItem( ctx)  end 
       end
       ImGui.EndTabBar( ctx)
     end
+    
+    if parameter_parent == 'meta' then
+      ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
+      if ImGui.BeginTabBar( ctx, 'paraminlinetabs_meta', ImGui.TabItemFlags_None|ImGui.TabBarFlags_FittingPolicyResizeDown ) then
+        for i = 1, #DATA.seq_param_selector_meta do
+          local formatIn = DATA.seq_param_selector_meta[i].str
+          if ImGui.BeginTabItem( ctx, formatIn..'##inlinetabs_meta', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selector_metaID = i  ImGui.EndTabItem( ctx)  end 
+        end
+        ImGui.EndTabBar( ctx)
+      end
+    end
      
+    
     -- STEPS
     local stepw = UI.seq_stepW
     local hfull = (y2-y1)
@@ -1187,7 +1231,7 @@ It also used for advanced sequencing parameters.
           if    DATA.seq_param_selectorID == 1 -- velocity
             or  DATA.seq_param_selectorID == 3 -- split
             or  DATA.seq_param_selectorID == 4 -- len
-            or  DATA.seq_param_selectorID == 6 -- meta_probability
+            or  (DATA.seq_param_selectorID == 5 and DATA.seq_param_selector_metaID == 2) -- meta_probability
             then 
             
             hstep = (y2-y1)*val_norm
@@ -1195,7 +1239,7 @@ It also used for advanced sequencing parameters.
             ImGui.DrawList_AddRectFilled( UI.draw_list, xpos,ypos,xpos + stepw -1 ,y2, stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
            elseif 
                 DATA.seq_param_selectorID == 2  -- offset
-            or  DATA.seq_param_selectorID == 5 -- meta_pitch 
+            or  (DATA.seq_param_selectorID == 5 and DATA.seq_param_selector_metaID == 1) -- meta_pitch 
             then
             if val_norm > 0.5 then 
               ypos1 = y1 + hstep_half - hstep_half* (val_norm-0.5)*2
@@ -1223,9 +1267,9 @@ It also used for advanced sequencing parameters.
              txt=math_q(val)        
            elseif DATA.seq_param_selectorID ==4  then --step len
              txt=math.floor(val*100)..'%'   
-           elseif DATA.seq_param_selectorID ==5  then --meta_pitch
+           elseif DATA.seq_param_selectorID ==5 and DATA.seq_param_selector_metaID ==1 then --meta_pitch
              txt=math_q(val-64)    
-           elseif DATA.seq_param_selectorID ==6  then --meta_probability
+           elseif DATA.seq_param_selectorID ==5 and DATA.seq_param_selector_metaID ==2 then --meta_probability
              txt=math.floor(val*100)..'%'  
           end
           mousediff = VF_lim(255-math.floor(math.abs(mousex-xpos) ),0,255)--+ math.abs(mousey-ypos)
@@ -1245,11 +1289,22 @@ It also used for advanced sequencing parameters.
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval or 0 
     local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0 
     
+    -- handle meta
+    local parameter_parent = parameter
+    if parameter == 'meta' then
+      parameter = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].param
+      default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
+      maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
+      minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
+    end
     
     -- patch for missing sysex_handler JSFX
     local misiingsysex = 
-      ( parameter == 'meta_pitch' or 
-        parameter == 'meta_probability'
+      ( parameter_parent == 'meta' and 
+        (
+          parameter == 'meta_pitch' or 
+          parameter == 'meta_probability'
+        )
       ) and DATA.children[note].SYSEXHANDLER_isvalid~=true
       
     if misiingsysex then DATA:Action_RS5k_SYSEXMOD_ON(note) end
@@ -1335,7 +1390,7 @@ It also used for advanced sequencing parameters.
       maxval = math.max(maxval,16)
       format = (DATA.seq.stepoffs+1)..'-'..maxval..' steps' 
     end
-    local ret, v = ImGui.SliderDouble(ctx,'##horizscroll',DATA.seq_horiz_scroll,0,1,format,ImGui.SliderFlags_None)
+    local ret, v = ImGui.SliderDouble(ctx,'##horizscroll',DATA.seq_horiz_scroll,0,0.99,format,ImGui.SliderFlags_None)
     if ret then 
       DATA.seq_horiz_scroll = v
       DATA:_Seq_RefreshHScroll()
@@ -1421,11 +1476,24 @@ It also used for advanced sequencing parameters.
       DATA:_Seq_Print()
     end
     
+    
+    -- drop sample
+    ImGui.SetCursorPosX(ctx,UI.calc_seqXL_padname+UI.spacingX)
+    ImGui.Button( ctx, '[drop sample]', UI.seq_padnameW)
+    if ImGui.BeginDragDropTarget( ctx ) then  
+      UI.Drop_UI_interaction_pad(-1) 
+      DATA.upd = true
+      ImGui_EndDragDropTarget( ctx )
+    end
+    
+    UI.draw_Seq_horizscroll()  
+    
+    
     -- draw main stuff
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,0,0)  
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0) 
     local xoffs_abs = UI.calc_seqX
-    local yoffs_abs = UI.calc_seqY
+    local yoffs_abs = UI.calc_seqY+UI.calc_itemH+UI.spacingY
     
     
     ImGui.SetCursorScreenPos(ctx,xoffs_abs,yoffs_abs)  
@@ -1437,7 +1505,7 @@ It also used for advanced sequencing parameters.
     
     local flagscroll = 0
     if UI.anypopupopen == true then flagscroll = ImGui.WindowFlags_NoScrollWithMouse end
-    if ImGui.BeginChild( ctx, 'seq', 0, -UI.calc_itemH - UI.spacingY*2, ImGui.ChildFlags_None|ImGui.ChildFlags_Border, ImGui.WindowFlags_None|flagscroll ) then-- --|ImGui.WindowFlags_MenuBar |ImGui.ChildFlags_Border  
+    if ImGui.BeginChild( ctx, 'seq', 0, -UI.spacingY, ImGui.ChildFlags_None|ImGui.ChildFlags_Border, ImGui.WindowFlags_None|flagscroll ) then-- --|ImGui.WindowFlags_MenuBar |ImGui.ChildFlags_Border  ---UI.calc_itemH - 
       
       ImGui.Dummy(ctx,0,UI.spacingY)
       
@@ -1460,16 +1528,6 @@ It also used for advanced sequencing parameters.
     ImGui.PopStyleVar(ctx,2)
     ImGui.Dummy(ctx,0,0)
     
-    -- drop sample
-    ImGui.SetCursorPosX(ctx,UI.calc_seqXL_padname+UI.spacingX)
-    ImGui.Button( ctx, '[drop sample]', UI.seq_padnameW)
-    if ImGui.BeginDragDropTarget( ctx ) then  
-      UI.Drop_UI_interaction_pad(-1) 
-      DATA.upd = true
-      ImGui_EndDragDropTarget( ctx )
-    end
-    
-    UI.draw_Seq_horizscroll()  
       
   end  
   --------------------------------------------------------------------------------  

@@ -296,13 +296,13 @@ RS5K_manager_functions_version = 4.43
     local take = t.tk_ptr
     local item_pos = t.it_pos
     
-    local metashift = 1
+    local metashift = 0
      
     if not (item and take) then return end
     if not t.ext.children then return end
     
     -- init ppq
-     form_data = {}
+    local form_data = {}
     local steplength = 0.25 -- do not touch
     local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
     local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
@@ -2921,12 +2921,15 @@ end
       
     -- rename track
     DATA:DropSample_RenameTrack(track,note,filename,drop_data) 
-    
+    -- set DB
     if drop_data.set_DB then 
       DATA:WriteData_Child(track, {
         SET_useDB = 1,
         SET_useDB_name = drop_data.set_DB})  
     end
+    
+    -- фгещ ыныуч ьщву
+    if EXT.CONF_onadd_sysexmode == 1 then DATA:Action_RS5k_SYSEXMOD_ON(note, true, track, instrument_pos)end
   end  
   -----------------------------------------------------------------------  
   function DATA:DropSample_RenameTrack(track,note,filename,drop_data) 
@@ -4105,10 +4108,19 @@ end
     end
   end
   --------------------------------------------------------------------- 
-  function DATA:MIDI_SysexHandler_init(note)   
-    if not (DATA.children and DATA.children[note]) then return end
-    local tr =  DATA.children[note].tr_ptr 
-    local sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, -1000 ) 
+  function DATA:MIDI_SysexHandler_init(note, drop_tr)   
+    local tr
+    if not drop_tr then
+      if not (DATA.children and DATA.children[note]) then return end
+      tr =  DATA.children[note].tr_ptr 
+     else 
+      tr=drop_tr
+    end
+    
+    if not tr then return end
+    local dr_id = -1000
+    if drop_tr then dr_id = 0 end
+    local sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, dr_id ) 
     if sysex_handler ~= -1 then 
       TrackFX_SetNamedConfigParm( tr, sysex_handler, 'renamed_name', 'sysex_handler' )
       TrackFX_SetParam( tr, sysex_handler, 0, note ) -- set note
@@ -4116,14 +4128,30 @@ end
      else
       return
     end 
+    
+    
     return true
   end  
   --------------------------------------------------------------------- 
-  function DATA:Action_RS5k_SYSEXMOD_ON(note)
+  function DATA:Action_RS5k_SYSEXMOD_ON(note, at_rs5k_drop, drop_tr, drop_rs5kpos)
+    if at_rs5k_drop==true then 
+      DATA:WriteData_Child(drop_tr,{SET_SYSEXMOD=1})
+      TrackFX_SetNamedConfigParm( drop_tr, drop_rs5kpos, 'MODE', 0 ) -- turn sample into freely configurable mode
+      TrackFX_SetParam( drop_tr, drop_rs5kpos, 3, 0 ) -- set note start to 0
+      TrackFX_SetParam( drop_tr, drop_rs5kpos, 4, 1 ) -- set note end to 127
+      TrackFX_SetParam( drop_tr, drop_rs5kpos, 5, 0.5 - 0.5*64/80 ) -- set pitch start to -64
+      TrackFX_SetParam( drop_tr, drop_rs5kpos, 6, 0.5 + 0.5*64/80 ) -- set pitch end to 64
+      DATA:MIDI_SysexHandler_init(note, drop_tr) -- add sysex handler to child track
+      return
+    end
+    
     
     Undo_BeginBlock2(-1) 
     local note_t = DATA.children[note]
-    DATA:WriteData_Child(note_t.tr_ptr,{SET_SYSEXMOD=1})
+    if note_t then 
+      DATA:WriteData_Child(note_t.tr_ptr,{SET_SYSEXMOD=1})
+      note_t.SYSEXHANDLER_isvalid = true 
+    end
     if note_t and note_t.layers then
       for layer = 1, #note_t.layers do
         local note_layer_t = note_t.layers[layer]
@@ -4141,8 +4169,8 @@ end
     
     DATA:MIDI_SysexHandler_init(note) -- add sysex handler to child track
     Undo_EndBlock2(-1, 'Convert pad '..note..' to SysEx mode', 0xFFFFFFFF)
-    DATA.children[note].SYSEXHANDLER_isvalid = true 
-    DATA.upd = true
+    
+    --DATA.upd = true
     
   end
   --------------------------------------------------------------------- 
