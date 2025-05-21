@@ -2838,9 +2838,19 @@ end
         TrackFX_SetNamedConfigParm( track, instrument_pos, 'renamed_name', str)
       end
       
+      local temp_t = {
+        tr_ptr = track,
+        instrument_pos = instrument_pos
+      }
+      local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD 
+      if SYSEXMOD ~= true then 
+        DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) 
+       else
+        TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
+        TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
+        TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE', 1 ) -- turn sample into freely configurable mode
+      end
       TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel 
-      --TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
-      --TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
       TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
       
       local obeynoteoff = EXT.CONF_onadd_obeynoteoff if drop_data and drop_data.srct and drop_data.srct.instrument_noteoff then obeynoteoff = drop_data.srct.instrument_noteoff end
@@ -2854,14 +2864,6 @@ end
       local release =   math.min(2,EXT.CONF_onadd_ADSR_R)       if EXT.CONF_onadd_ADSR_flags&8==8 then TrackFX_SetParamNormalized( track, instrument_pos, 10, release )  end
       
       
-      local temp_t = {
-        tr_ptr = track,
-        instrument_pos = instrument_pos
-      }
-      
-      
-      local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD 
-      if SYSEXMOD ~= true then DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) end
     
     -- set offsets
       if drop_data and drop_data.SOFFS and drop_data.EOFFS then
@@ -4155,7 +4157,7 @@ end
         if note_layer_t.ISRS5K then 
           local track = note_layer_t.tr_ptr
           local fx = note_layer_t.instrument_pos 
-          TrackFX_SetNamedConfigParm( track, fx, 'MODE', 1 ) -- turn sample into freely configurable mode
+          TrackFX_SetNamedConfigParm( track, fx, 'MODE', 1 )
           TrackFX_SetParam( track, fx, 3, note/127 )
           TrackFX_SetParam( track, fx, 4, note/127 ) 
           TrackFX_SetParamNormalized( track, fx, 5, 0.5 ) -- pitch for start

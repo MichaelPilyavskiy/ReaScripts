@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.51
+-- @version 4.52
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,30 +18,12 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + MIDI_choke: overhaul
---    + MIDI_Bus_handler: use MIDI Bus container, supported from REAPER 7.06, this will be extended in future
---    + Choke JSFX: full redesign, use simple src/dest setup per JSFX, controlled by script
---    + MIDI_choke: allow to set any count of choking notes in Rack/Pad context menu
---    + MIDI_choke: allow to set any count of choking notes in StepSequencer/Inline/Tools
---    + MIDI_choke: draw yellow LED on Rack pad
---    # fix obey MIDI octave visible offset REAPER preference
---    + Settings/On sample add: allow to change defaults for RS5k ADSR
---    # Rack/Startup: revert "Load to selected pads" actopn
---    # Step sequencer/MIDI: set minimum event length to 2 PPQ
---    + Step sequencer/Inline: when tweaking step length override, set obey NoteOff for children layers
---    + Step sequencer/Inline: increase step length override limit to 400%
---    + Step sequencer/Inline: LeftClick+Alt to set parameter to default value
---    + Step sequencer/Inline/SysEx: use custom SysEx handler JSFX to extend sequencer features
---    + Step sequencer/Inline/SysEx: allow to turn back into normal note
---    + Step sequencer/Inline/SysEx: refresh sysex handler note on pad move
---    + Step sequencer/Inline/SysEx: restrict changes in pitch start end at moving pad in sysex mode
---    + Step sequencer/Inline/SysEx: share nofication for missing sysex handler JSFX
---    + Step sequencer/Inline/SysEx: Add pitch parameter
---    + Step sequencer/Inline/SysEx: Add probability parameter
+--    # RS5k defaults: fix not setting pitch offsets
+--    # RS5k defaults: always set mode except when in SteSeq/Inline/SysEx mode
 
 
 
-rs5kman_vrs = '4.51'
+rs5kman_vrs = '4.52'
 
 
 -- TODO
