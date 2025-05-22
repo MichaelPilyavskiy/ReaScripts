@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.54
+-- @version 4.55
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,11 +18,24 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # Settings/On sample add/enable sysex mode for new childs: set default OFF, sorry
+--    # StepSequencer: UI tweaks
+--    # StepSequencer: set GUID sharing default to OFF
+--    + Settings/StepSequencer: allow to invert instruments order
+--    + StepSequencer: call inline tools refresh RS5k manager
+--    + StepSequencer: click on name refresh RS5k manager
+--    + StepSequencer: click on step on changing active note refresh RS5k manager
+--    - StepSequencer: remove drop sample area
+--    + StepSequencer: use all work area as drop area
+--    + StepSequencer/Horizontal scroll:  redesign
+--    + StepSequencer/Horizontal scroll: show play cursor if pattern length more than 32 steps
+--    + StepSequencer/Horizontal scroll: show step offset at hovering only
+--    + StepSequencer/Horizontal scroll: quantize scroll to 16 for long patters >128 steps
+--    + StepSequencer: increase step length maximum to 1024
+--    # StepSequencer: improve displaying current step at the top of list
 
 
 
-rs5kman_vrs = '4.54'
+rs5kman_vrs = '4.55'
 
 
 -- TODO
@@ -183,10 +196,10 @@ rs5kman_vrs = '4.54'
           
           -- seq
           CONF_seq_random_probability = 0.5,
-          CONF_seq_force_GUIDbasedsharing = 1,
+          CONF_seq_force_GUIDbasedsharing = 0,
           CONF_seq_treat_mouserelease_as_majorchange  = 0,
           CONF_seq_patlen_extendchildrenlen = 0,
-          
+          CONF_seq_instrumentsorder = 1, 
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -1107,6 +1120,7 @@ end
         UI.draw_tabs_settings_combo('CONF_onadd_ordering',{[0]='Sort by note',[1]='To the top', [2]='To the bottom'},'##settings_childorder', 'New reg child order')  
         if ImGui.Checkbox( ctx, 'Set child color from parent color',                                     EXT.CONF_onadd_takeparentcolor == 1 ) then EXT.CONF_onadd_takeparentcolor =EXT.CONF_onadd_takeparentcolor~1 EXT:save() end 
         if ImGui.Checkbox( ctx, 'Enable sysex mode for new childs',                                     EXT.CONF_onadd_sysexmode == 1 ) then EXT.CONF_onadd_sysexmode =EXT.CONF_onadd_sysexmode~1 EXT:save() end 
+        ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
         ImGui.Unindent(ctx, UI.settings_indent)
         
         
@@ -1457,6 +1471,10 @@ end
       ImGui.Indent(ctx,UI.settings_indent)
       
       if ImGui.Checkbox( ctx, 'Share data to same pattern GUIDs',                             EXT.CONF_seq_force_GUIDbasedsharing == 1 ) then EXT.CONF_seq_force_GUIDbasedsharing =EXT.CONF_seq_force_GUIDbasedsharing~1 EXT:save() end
+      ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
+      
+      if ImGui.Checkbox( ctx, 'Use ascending order of intruments',                             EXT.CONF_seq_instrumentsorder == 1 ) then EXT.CONF_seq_instrumentsorder =EXT.CONF_seq_instrumentsorder~1 EXT:save() end
+      ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
       
       ImGui.Unindent(ctx,UI.settings_indent)
     end  

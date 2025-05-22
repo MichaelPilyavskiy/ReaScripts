@@ -229,6 +229,9 @@ RS5K_manager_functions_version = 4.43
     patlen = DATA.seq.ext.patternlen or 16
     DATA.seq.max_scroll = math.max(16,patlen-16) 
     DATA.seq.stepoffs = math.floor((DATA.seq_horiz_scroll or 0)*DATA.seq.max_scroll)
+    if DATA.seq.ext.patternlen >= 128 then
+      DATA.seq.stepoffs = 16 * math.floor(DATA.seq.stepoffs / 16) 
+    end
   end
   
   --------------------------------------------------------------------------------  
@@ -1316,6 +1319,10 @@ end
       if DATA.parent_track and DATA.parent_track.ext then 
         DATA:Sampler_RemovePad(DATA.parent_track.ext.PARENT_LASTACTIVENOTE)
       end
+    end
+    
+    if actions == 10 then   -- refresh
+      DATA.upd = true
     end
     
     
