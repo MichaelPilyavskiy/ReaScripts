@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.53
+-- @version 4.54
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,13 +18,11 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: UI tweaks
---    # StepSequencer/MIDI: reduce meta messages ppq shift to 0
---    # Settings/On sample add: add option to enable sysex mode for new childs
+--    # Settings/On sample add/enable sysex mode for new childs: set default OFF, sorry
 
 
 
-rs5kman_vrs = '4.53'
+rs5kman_vrs = '4.54'
 
 
 -- TODO
@@ -111,7 +109,7 @@ rs5kman_vrs = '4.53'
           CONF_onadd_ADSR_D = 15,
           CONF_onadd_ADSR_S = 0,
           CONF_onadd_ADSR_R = 0.02,
-          CONF_onadd_sysexmode = 1,
+          CONF_onadd_sysexmode = 0,
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
