@@ -1325,6 +1325,17 @@ end
       DATA.upd = true
     end
     
+    --[[TO DO - make this only seq related 
+      if actions == 11 then   -- refresh step seq at moving pad 
+      if DATA.seq and DATA.seq.ext and DATA.seq.ext.children and srcnote and DATA.seq.ext.children[srcnote] then
+        DATA.upd = true
+      end
+    end]]
+    
+    -- 11 
+      -- gmem_write(1025,11|(DATA.parent_track.ext.PARENT_LASTACTIVENOTE<<8)|(note<<16))
+      -- UI.Drop_UI_interaction_pad(note) 
+    
     
     gmem_write(1025,0 )
   end
@@ -2935,7 +2946,7 @@ end
         SET_useDB_name = drop_data.set_DB})  
     end
     
-    -- фгещ ыныуч ьщву
+    -- 
     if EXT.CONF_onadd_sysexmode == 1 then DATA:Action_RS5k_SYSEXMOD_ON(note, true, track, instrument_pos)end
   end  
   -----------------------------------------------------------------------  
@@ -2945,11 +2956,13 @@ end
     if DATA.padcustomnames and DATA.padcustomnames[note] and DATA.padcustomnames[note] ~='' then outname = DATA.padcustomnames[note] end
     if outname == '' and filename then
       local filename_sh = VF_GetShortSmplName(filename)
-      if filename_sh:match('(.*)%.[%a]+') then filename_sh = filename_sh:match('(.*)%.[%a]+') end -- remove extension
-      if drop_data and drop_data.tr_name_add then filename_sh = filename_sh .. ' '..drop_data.tr_name_add end
+      if filename_sh and filename_sh:match('(.*)%.[%a]+') then filename_sh = filename_sh:match('(.*)%.[%a]+') end -- remove extension
+      if drop_data and drop_data.tr_name_add and filename_sh then filename_sh = filename_sh .. ' '..drop_data.tr_name_add end
       outname = filename_sh
     end
-    GetSetMediaTrackInfo_String( track, 'P_NAME', outname, true )
+    if outname then
+      GetSetMediaTrackInfo_String( track, 'P_NAME', outname, true )
+    end
   end
 
 --------------------------------------------------------------------------------  
@@ -4128,14 +4141,20 @@ end
     local dr_id = -1000
     if drop_tr then dr_id = 0 end
     local sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, dr_id ) 
+    
     if sysex_handler ~= -1 then 
-      TrackFX_SetNamedConfigParm( tr, sysex_handler, 'renamed_name', 'sysex_handler' )
-      TrackFX_SetParam( tr, sysex_handler, 0, note ) -- set note
-      TrackFX_SetOpen( tr, sysex_handler, false ) 
+      
+     elseif dr_id == 0 then
+      sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, -1000 ) 
      else
       return
     end 
     
+    if sysex_handler ~= -1 then
+      TrackFX_SetNamedConfigParm( tr, sysex_handler, 'renamed_name', 'sysex_handler' )
+      TrackFX_SetParam( tr, sysex_handler, 0, note ) -- set note
+      TrackFX_SetOpen( tr, sysex_handler, false ) 
+    end
     
     return true
   end  

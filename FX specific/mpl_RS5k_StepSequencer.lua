@@ -74,6 +74,7 @@ reaper.set_action_options(1 )
           CONF_stepmode_keeplen = 1, 
           
           -- UI
+          UI_transparency = 0.9,
           UI_processoninit = 0,
           UI_addundototabclicks = 0,
           UI_clickonpadselecttrack = 1, 
@@ -137,7 +138,7 @@ reaper.set_action_options(1 )
         
   -------------------------------------------------------------------------------- INIT data
   DATA = {
-          
+  
           upd = true,
           upd2 = {},
           ES_key = 'MPL_RS5K manager',
@@ -994,6 +995,9 @@ OFF:
 - set note end to [note]
 - refresh internal data, this allow changing start/end note in RS5k
 ]])
+      if ImGui.Button(ctx, 'Remove pad content',-1) then
+        DATA:Sampler_RemovePad(note) 
+      end
       ImGui.EndMenu( ctx )
     end
     ImGui.PopFont(ctx)
@@ -1696,7 +1700,7 @@ It also used for advanced sequencing parameters.
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 1))
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, EXT.UI_transparency))
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
@@ -2308,10 +2312,12 @@ It also used for advanced sequencing parameters.
     end
     -- clear
     if ImGui.Button(ctx, 'Clear',-1) then 
-      for note_src in pairs(DATA.MIDIbus.choke_setup[note]) do
-        if DATA.MIDIbus.choke_setup[note][note_src].exist == true then DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true end
+      if (DATA.MIDIbus and DATA.MIDIbus.choke_setup and DATA.MIDIbus.choke_setup[note]) then 
+        for note_src in pairs(DATA.MIDIbus.choke_setup[note]) do
+          if DATA.MIDIbus.choke_setup[note][note_src].exist == true then DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true end
+        end
+        DATA:Choke_Write()
       end
-      DATA:Choke_Write()
     end
     
     reaper.ImGui_SetNextItemWidth(ctx,-1)

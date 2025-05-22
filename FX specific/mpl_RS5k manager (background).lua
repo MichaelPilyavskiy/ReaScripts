@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.55
+-- @version 4.56
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,30 +18,30 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: UI tweaks
---    # StepSequencer: set GUID sharing default to OFF
---    + Settings/StepSequencer: allow to invert instruments order
---    + StepSequencer: call inline tools refresh RS5k manager
---    + StepSequencer: click on name refresh RS5k manager
---    + StepSequencer: click on step on changing active note refresh RS5k manager
---    - StepSequencer: remove drop sample area
---    + StepSequencer: use all work area as drop area
---    + StepSequencer/Horizontal scroll:  redesign
---    + StepSequencer/Horizontal scroll: show play cursor if pattern length more than 32 steps
---    + StepSequencer/Horizontal scroll: show step offset at hovering only
---    + StepSequencer/Horizontal scroll: quantize scroll to 16 for long patters >128 steps
---    + StepSequencer: increase step length maximum to 1024
---    # StepSequencer: improve displaying current step at the top of list
+--    # Choke JSFX: fix Clear action
+--    # 3rd party/Rack: fix rename track on move 
+--    # SysEx JSFX: fix add if not exist
+--    + StepSequencer/Inline/Actions: add "Remove pad content" action
+--    + Settings/Colors: transparency affect StepSequencer (require restart)
+--    + Settings/Colors: expose pad controls background
+--    + Settings/Colors: expose sampler peaks background
 
 
 
-rs5kman_vrs = '4.55'
+rs5kman_vrs = '4.56'
 
 
 -- TODO
---[[  seq
+--[[  
+      ext
+        CollectData_Always_ExtActions separate rack/seq actions
+      
+      seq
         if pattern has same GUId than other BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
         control parameters of plugins / sendds
+        groups
+        share AI to track params
+        share AI to track FX
         
       sampler/sample
         hot record from master bus 
@@ -56,7 +56,7 @@ rs5kman_vrs = '4.55'
         wildcards - samples path 
         
       layout
-        step seq mode
+        step seq mode + input write step + scroll control over programming mode
           
       sampler/fx
         compressor
@@ -159,6 +159,8 @@ rs5kman_vrs = '4.55'
           UI_colRGBA_paddefaultbackgr = 0x1C1C1C7F ,
           UI_colRGBA_paddefaultbackgr_inactive = 0x6060603F,
           UI_col_tinttrackcoloralpha = 0x7F,
+          UI_colRGBA_padctrl = 0x4F4F4FFF,
+          UI_colRGBA_smplrbackgr = 0xFFFFFF2F,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -323,6 +325,8 @@ rs5kman_vrs = '4.55'
     UI.col_popup = 0x005300 
     UI.def_colRGBA_paddefaultbackgr = 0x1C1C1C7F
     UI.def_colRGBA_paddefaultbackgr_inactive = 0x6060603F
+    UI.def_colRGBA_padctrl = 0x4F4F4FFF
+    UI.colRGBA_smplrbackgr = 0xFFFFFF2F
     -- various
     UI.tab_context = '' -- for context menu
     
@@ -414,7 +418,7 @@ rs5kman_vrs = '4.55'
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          UI.Tools_RGBA(0x1F1F1F, 0.7))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,    UI.Tools_RGBA(UI.main_col, .6))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,   UI.Tools_RGBA(UI.main_col, 0.7))
-      ImGui.PushStyleColor(ctx, ImGui.Col_Header,           UI.Tools_RGBA(UI.main_col, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,           UI.Tools_RGBA(UI.main_col, 0.3) )
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive,     UI.Tools_RGBA(UI.main_col, 1) )
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    UI.Tools_RGBA(UI.main_col, 0.98) )
       ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(0x303030, 1) )
@@ -1339,6 +1343,15 @@ end
       local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Inactive pad default', EXT.UI_colRGBA_paddefaultbackgr_inactive, ImGui.ColorEditFlags_AlphaBar )  
       if retval then EXT.UI_colRGBA_paddefaultbackgr_inactive = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
       if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_paddefaultbackgr_inactive = UI.def_colRGBA_paddefaultbackgr_inactive EXT:save() end
+      --ctrls
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Pad buttons backgr', EXT.UI_colRGBA_padctrl, ImGui.ColorEditFlags_AlphaBar )  
+      if retval then EXT.UI_colRGBA_padctrl = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_padctrl = UI.def_colRGBA_padctrl EXT:save() end
+      --ctrls
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Sampler peaks backgr', EXT.UI_colRGBA_smplrbackgr, ImGui.ColorEditFlags_AlphaBar )  
+      if retval then EXT.UI_colRGBA_smplrbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_smplrbackgr = UI.colRGBA_smplrbackgr EXT:save() end      
+      
       --trackcol tint
       ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
       local retval, v = ImGui.SliderInt( ctx, 'Tint track color to pads', EXT.UI_col_tinttrackcoloralpha, 0, 255, math.floor(100*EXT.UI_col_tinttrackcoloralpha/255)..'%%', ImGui.SliderFlags_None )
@@ -1629,6 +1642,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     UI.tab_last = UI.tab_current 
     if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
       
+      
       UI.draw_tabs_settings_database()
       UI.draw_tabs_settings_onsampleadd()
       UI.draw_tabs_settings_tcpmcp()
@@ -1640,7 +1654,6 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       UI.draw_tabs_settings_Autoslice()
       UI.draw_tabs_settings_StepSequencer() 
       UI.draw_tabs_settings_Launchpad() 
-      
       
       
       ImGui.EndChild( ctx)
@@ -1891,8 +1904,8 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
         UI.draw_peaks('pad'..note, note_t, x + UI.spacingX, ypeaks, w-UI.spacingX*2 , hpeaks,DATA.peakscache[note].peaks_arr, is_pad_peak, dim) 
       end
     
-    -- controls background
-      if h > min_h and UI.calc_rack_padctrlH > 0 then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0x4F4F4FFF, 5, ImGui.DrawFlags_RoundCornersBottom ) end
+    -- controls background 
+      if h > min_h and UI.calc_rack_padctrlH > 0 then ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, EXT.UI_colRGBA_padctrl, 5, ImGui.DrawFlags_RoundCornersBottom ) end
       
     -- controls background
       --ImGui.DrawList_AddRectFilled( UI.draw_list, x+1, y+UI.calc_rack_padnameH, x+w-1, y+h-1, 0xFFFFFF1F, 5, ImGui.DrawFlags_RoundCornersBottom )
@@ -3233,7 +3246,9 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), UI.colRGBA_ADSRrectHov)
     
     -- test
-    ImGui.DrawList_AddRectFilled( UI.draw_list, x10,y10,x20,y20, 0xFFFFFF2F, 2, ImGui.DrawFlags_None )
+    ImGui.DrawList_AddRectFilled( UI.draw_list, x10,y10,x20,y20, EXT.UI_colRGBA_smplrbackgr, 2, ImGui.DrawFlags_None )
+    
+    
     --ImGui.DrawList_AddRectFilled( UI.draw_list, x1,y1,x2,y2, 0xFFFFFF0F, 2, ImGui.DrawFlags_None )
     
     -- attack
@@ -4313,7 +4328,10 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       if retval and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then 
         Undo_BeginBlock2(DATA.proj )
         local retval, types, payload, is_preview, is_delivery = reaper.ImGui_GetDragDropPayload( ctx )
-        if retval and tonumber(payload)then DATA:Drop_Pad(tonumber(payload),note) end  
+        if retval and tonumber(payload)then 
+          DATA:Drop_Pad(tonumber(payload),note)  
+          gmem_write(1026,11|(DATA.parent_track.ext.PARENT_LASTACTIVENOTE<<8)|(note<<16))
+        end  
         Undo_EndBlock2( DATA.proj , 'RS5k manager - move pad', 0xFFFFFFFF ) 
       end 
     end
