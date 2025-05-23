@@ -1,12 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.15
+-- @version 3.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Settings: add option to show available sends even in receive mode and if track receive
+--    # fix input error
 
 
-    vrs = 3.15
+    vrs = 3.17
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1078,7 +1078,7 @@
             local dbval = tonumber(retvals_csv)
             if not ( dbval > -90 and dbval < 12) then return end
             local outvol = WDL_DB2VAL(dbval)
-            SetTrackSendInfo_Value( t.srcPtr, t.direction, t.sendidx, 'D_VOL', outvol)
+            SetTrackSendInfo_Value( t.srcPtr, 0, t.sendidx, 'D_VOL', outvol)
             SetTrackSendUIVol( t.srcPtr, t.sendidx, outvol, 1 )
             DATA.upd = true
           end
