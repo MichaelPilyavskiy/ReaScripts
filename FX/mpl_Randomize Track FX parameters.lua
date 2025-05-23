@@ -1,14 +1,14 @@
 -- @description Randomize Track FX parameters
--- @version 3.56
+-- @version 3.57
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    # fix filter saving
+--    # correctly clear reaper-extstate.ini
 
 
 
 
-vrs = 3.56
+vrs = 3.57
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -261,8 +261,8 @@ vrs = 3.56
   end
   -------------------------------------------------------------------------------- 
   function EXT:save() 
-    if not DATA.ES_key then return end  
-    EXT.CONF_pluginfilter_b64 = '' -- 3.55 clear old big chunks
+    if not DATA.ES_key then return end 
+    reaper.DeleteExtState( DATA.ES_key, 'CONF_pluginfilter_b64', true )-- 3.55 clear old big chunks
     for key in pairs(EXT) do 
       if (type(EXT[key]) == 'string' or type(EXT[key]) == 'number') then 
         SetExtState( DATA.ES_key, key, EXT[key], true  ) 
