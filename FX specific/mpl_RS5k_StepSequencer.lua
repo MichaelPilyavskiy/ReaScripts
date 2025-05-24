@@ -85,6 +85,9 @@ reaper.set_action_options(1 )
           UI_drracklayout = 0,
           UIdatabase_maps_current = 1,
           UI_padcustomnames = '',
+          UI_padcustomnamesB64 = '', -- patch for 4.57
+          UI_padautocolors = '',
+          UI_padautocolorsB64 = '',-- patch for 4.57
           CONF_showplayingmeters = 1,
           CONF_showpadpeaks = 1,
           --UI_optimizedockerusage = 0,
@@ -117,7 +120,7 @@ reaper.set_action_options(1 )
           
           -- auto color
           CONF_autocol = 0, -- 1 sort by note 
-          UI_padautocolors = '',
+
           
           -- loop check
           CONF_loopcheck = 1, 

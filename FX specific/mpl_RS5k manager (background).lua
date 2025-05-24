@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.56
+-- @version 4.57
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,21 +18,22 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # Choke JSFX: fix Clear action
---    # 3rd party/Rack: fix rename track on move 
---    # SysEx JSFX: fix add if not exist
---    + StepSequencer/Inline/Actions: add "Remove pad content" action
---    + Settings/Colors: transparency affect StepSequencer (require restart)
---    + Settings/Colors: expose pad controls background
---    + Settings/Colors: expose sampler peaks background
+--    # fix extstate multiline issue [t=298318]
+--    # fix sysex handler add multiple times on sample change, clear copies if already was added
 
 
 
-rs5kman_vrs = '4.56'
+rs5kman_vrs = '4.57'
 
 
 -- TODO
 --[[  
+      3rd party
+        add menu
+        
+      settings 
+        color reset button
+        
       ext
         CollectData_Always_ExtActions separate rack/seq actions
       
@@ -99,6 +100,7 @@ rs5kman_vrs = '4.56'
           viewport_posH = 300, 
           viewport_dockID = 0,
           
+          INI_fix = 0,
           
           -- rs5k on add
           CONF_onadd_float = 0,
@@ -153,6 +155,9 @@ rs5kman_vrs = '4.56'
           UI_drracklayout_customID = 0,
           UIdatabase_maps_current = 1,
           UI_padcustomnames = '',
+          UI_padcustomnamesB64 = '', -- patch for 4.57
+          UI_padautocolors = '',
+          UI_padautocolorsB64 = '',-- patch for 4.57
           CONF_showplayingmeters = 1,
           CONF_showpadpeaks = 1,
           --UI_optimizedockerusage = 0,
@@ -186,7 +191,6 @@ rs5kman_vrs = '4.56'
           
           -- auto color
           CONF_autocol = 0, -- 1 sort by note 
-          UI_padautocolors = '',
           
           -- loop check
           CONF_loopcheck = 1, 
@@ -1245,12 +1249,12 @@ end
         if ImGui_IsItemDeactivatedAfterEdit( ctx ) then
           local outstr = ''
           for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padcustomnames[i] or '')..'" ' end
-          EXT.UI_padcustomnames = outstr 
+          EXT.UI_padcustomnamesB64 = VF_encBase64(outstr)
           EXT:save() 
         end
         
-        if ImGui.Button(ctx, 'General MIDI bank') then 
-          EXT.UI_padcustomnames = [[
+        if ImGui.Button(ctx, 'General MIDI bank') then --
+          EXT.UI_padcustomnamesB64 = VF_encBase64([[
         27="High Q or Filter Snap"
         28="Slap Noise"
         29="Scratch Push"
@@ -1313,12 +1317,12 @@ end
         79="Open Cuíca"
         80="Mute Triangle"
         81="Open Triangle"
-]]          
+]]          )
           EXT:save()
           DATA:CollectDataInit_LoadCustomPadStuff()
         end        
         if ImGui.Button(ctx, 'Clear custom pad names') then 
-          EXT.UI_padcustomnames = ''
+          EXT.UI_padcustomnamesB64 = ''
           EXT:save()
           DATA:CollectDataInit_LoadCustomPadStuff()
         end
@@ -1388,7 +1392,7 @@ end
         ImGui.SameLine(ctx)
         if ImGui.Selectable( ctx, 'Reset ALL##CONF_autocol_selectorresetall', ImGui.SelectableFlags_None) then  
           DATA.padautocolors = {}
-          EXT.UI_padautocolors = '' 
+          EXT.UI_padautocolorsB64 = '' 
           EXT:save() 
           DATA.upd = true
         end
@@ -1428,7 +1432,7 @@ end
           if ImGui_IsItemDeactivatedAfterEdit( ctx ) then
             local outstr = ''
             for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padautocolors[i] or '')..'" ' end
-            EXT.UI_padautocolors = outstr 
+            EXT.UI_padautocolorsB64 = VF_encBase64(outstr )
             EXT:save() 
           end
         end
@@ -1439,7 +1443,7 @@ end
           DATA.padautocolors[DATA.padautocolors_selected_id]  = 0
           local outstr = ''
           for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padautocolors[i] or '')..'" ' end
-          EXT.UI_padautocolors = outstr 
+          EXT.UI_padautocolorsB64 = VF_encBase64(outstr )
           EXT:save() 
           DATA.upd = true
         end
@@ -4450,6 +4454,70 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     dofile(script_path .. "mpl_RS5K_manager_functions.lua")
   end
   -----------------------------------------------------------------------------------------  
+  function mpl_FixExtStateINI()
+    -- IO
+      local val = reaper.GetExtState( 'MPL_Scripts', 'INI_fix' )
+      val = tonumber(val) or 0
+      if val==1 then return end -- if this configuration is not fixed yet
+      
+      local fn = reaper.get_ini_file():lower()
+      local fn_ext = fn:gsub('reaper%.ini', 'reaper-extstate.ini' )
+      if not reaper.file_exists(fn_ext) then return end
+      local content
+      local f=io.open(fn_ext,'rb')
+      if f then
+        content = f:read('a')
+        f:close()
+      end
+      if not content then return end 
+    
+    -- print chunk to table
+      t = {} local i = 0 for line in content:gmatch('[^\r\n]+') do i=i+1 t[i]=line end local sz=#t
+    
+    -- modify chunk
+      lines_cache = {}
+      for i = sz,1,-1 do
+        local cond
+        local line = t[i] 
+        local line_exist
+        if lines_cache[line] then line_exist = true end
+        lines_cache[line] = true
+        local line_is_section = line:match('%[(.-)%]')~=nil and line:match('=') == nil
+        local emptyline = line:match('%s+')==line
+        local key,value = line:match('([%_%a%d]+)%=(.*)')
+        local missedkv = not (key and value) and line~='[MPL_RS5K manager]'
+        local key_is_number = key and key:match('[%_%d]+')==key 
+        if (emptyline==true or missedkv==true or key_is_number == true or line_exist == true) and line_is_section~=true then table.remove(t,i) end
+      end 
+      local chunk_new = table.concat(t,'\n')  
+    
+    -- backup
+      local fn_ext_backup = fn_ext..'-backup'
+      if not reaper.file_exists(fn_ext_backup) then
+        local f=io.open(fn_ext_backup,'wb')
+        if f then
+          f:write(content)
+          f:close()
+        end
+      end
+    
+    -- write chunk_new
+      local f=io.open(fn_ext,'wb')
+      if f then
+        content = f:write(chunk_new)
+        f:close()
+      end
+    
+    reaper.SetExtState( 'MPL_Scripts', 'INI_fix', 1, false  ) -- refresh state
+    reaper.SetExtState( 'MPL_Scripts', 'INI_fix', 1, true  ) -- print persistently 
+    
+    
+  end
+  ------------------------------------------------------------------------------------------------------
+  function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
+     if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
+  end 
+  -----------------------------------------------------------------------------------------  
   function _main() 
     _main_LoadLibraries()
     -- get sequencer ID
@@ -4480,7 +4548,9 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     DATA:CollectDataInit_ReadDBmaps()
     DATA:CollectDataInit_LoadCustomPadStuff()
     DATA:CollectDataInit_LoadCustomLayouts()
+    --mpl_FixExtStateINI()
   end 
+  
   
   --[[-------------------------------------------------------------------  
   function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end

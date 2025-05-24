@@ -826,6 +826,7 @@ end
   end
   ------------------------------------------------------------------------------------------------------
   function VF_decBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    if not data then return end
     local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
       data = string.gsub(data, '[^'..b..'=]', '')
       return (data:gsub('.', function(x)
@@ -940,6 +941,7 @@ end
       end 
     end 
     EXT:load()
+    
   end
   -------------------------------------------------------------------------------- 
   function EXT:load() 
@@ -3811,9 +3813,16 @@ end
   ------------------------------------------------------------------------------------------ 
   function DATA:CollectDataInit_LoadCustomPadStuff() 
     DATA.padcustomnames = {}
-    DATA.padautocolors = {}
-    
     local str = EXT.UI_padcustomnames
+    -- 4.57 patch fixing extstate multiline issue https://forum.cockos.com/showthread.php?t=298318
+    local strB64 = EXT.UI_padcustomnamesB64
+    if str~='' then
+      EXT.UI_padcustomnamesB64 = VF_encBase64(EXT.UI_padcustomnames)
+      EXT.UI_padcustomnames = ''
+      EXT:save()
+     else
+      str = VF_decBase64(strB64)
+    end
     if str == '' then return end
     for pair in str:gmatch('[%d]+%=".-"') do
       local id, val = pair:match('([%d]+)="(.-)%"')
@@ -3823,7 +3832,18 @@ end
       end
     end
     
+    DATA.padautocolors = {}
     local str = EXT.UI_padautocolors
+    -- 4.57 patch fixing extstate multiline issue https://forum.cockos.com/showthread.php?t=298318
+    local strB64 = EXT.UI_padautocolorsB64
+    if str~='' then
+      EXT.UI_padautocolorsB64 = VF_encBase64(EXT.UI_padautocolors)
+      EXT.UI_padautocolors = ''
+      EXT:save()
+     else
+      str = VF_decBase64(strB64)
+    end
+    
     if str == '' then return end
     for pair in str:gmatch('[%d]+%=".-"') do
       local id, val = pair:match('([%d]+)="(.-)%"')
@@ -4128,6 +4148,17 @@ end
     end
   end
   --------------------------------------------------------------------- 
+  function DATA:MIDI_SysexHandler_fixmultiple(track,fx0)
+    -- 4.57 patch
+    local cnt = TrackFX_GetCount( track )
+    for fx = cnt,1,-1 do
+      local retval, buf = reaper.TrackFX_GetNamedConfigParm( track, fx-1, 'renamed_name' )
+      if buf == 'sysex_handler' then 
+        if fx0 ~= fx-1  then TrackFX_Delete( track, fx-1 ) end
+      end
+    end
+  end
+  --------------------------------------------------------------------- 
   function DATA:MIDI_SysexHandler_init(note, drop_tr)   
     local tr
     if not drop_tr then
@@ -4140,12 +4171,13 @@ end
     if not tr then return end
     local dr_id = -1000
     if drop_tr then dr_id = 0 end
-    local sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, dr_id ) 
+    local sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, dr_id )  
+    if sysex_handler == -1 then sysex_handler = TrackFX_AddByName( tr, 'sysex_handler', false, 0 ) end
     
-    if sysex_handler ~= -1 then 
-      
+    if sysex_handler ~= -1 then  
      elseif dr_id == 0 then
-      sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, -1000 ) 
+      sysex_handler =  TrackFX_AddByName( tr, 'sysex_handler', false, 0 ) 
+      if sysex_handler == -1 then sysex_handler =  TrackFX_AddByName( tr, 'RS5K_manager_sysex_handler', false, -1000 )  end
      else
       return
     end 
@@ -4153,7 +4185,8 @@ end
     if sysex_handler ~= -1 then
       TrackFX_SetNamedConfigParm( tr, sysex_handler, 'renamed_name', 'sysex_handler' )
       TrackFX_SetParam( tr, sysex_handler, 0, note ) -- set note
-      TrackFX_SetOpen( tr, sysex_handler, false ) 
+      TrackFX_SetOpen( tr, sysex_handler, false )  
+      DATA:MIDI_SysexHandler_fixmultiple(tr,sysex_handler)
     end
     
     return true
@@ -4228,3 +4261,4 @@ end
     Undo_EndBlock2(-1, 'Convert pad '..note..' to normal mode', 0xFFFFFFFF)
     
   end
+  
