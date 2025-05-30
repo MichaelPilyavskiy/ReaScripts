@@ -966,8 +966,8 @@
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      -- ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      -- ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
     -- init UI 
