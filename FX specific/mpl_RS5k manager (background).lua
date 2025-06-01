@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.57
+-- @version 4.58
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,31 +18,42 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # fix extstate multiline issue [t=298318]
---    # fix sysex handler add multiple times on sample change, clear copies if already was added
+--    # rename Settings/Colors to 'Theming'
+--    # Settings/Theming: add reset buttons
+--    + StepSequencer: reset Y scroll at drop on pad follow ordering
+--    + StepSequencer: display sysex mode LED
+--    + StepSequencer: init scroll from bottom if ascending order is OFF 
+--    + StepSequencer/Inline/Track: add support for track pan
+--    + StepSequencer/Inline/Track: add support for track sends volume
+--    + StepSequencer/Inline/FX: add support for FX parametes
+--    + StepSequencer: write undo point at major pattern change
+--    # StepSequencer/Inline/Length: do not refresh state when change obey note off
+--    # StepSequencer: fix mousewheel scrolling dragint values/page collisions
+--    # StepSequencer: fix obey step length with meta events (require pattern refresh)
+--    # StepSequencer: fix flipped 2 and 8 fill
+--    # StepSequencer: reduce step length by 1 ppq for better sysex reading
+--    # ExternalActions: make sure StepSequencer is restricted
+--    # Peformance: make sure RS5k manager is restricted to read seq data
+--    # inherrit obeying note off from existing pad if replacing
+--    # Actions/Explode MIDI Bus take: overhaul
+--    + Actions/Explode MIDI Bus take: support converting RS5k sequencer sysex to output notes
+--    + Actions/Explode MIDI Bus take: bypass sysex_handler JSFX after explode for childs in sysex mode
+--    + Actions/Explode MIDI Bus take: bypass midi_note_filter JSFX after explode for childs in sysex mode
+--    + 3rd party: add menu enumerating installed plugins by type and vendor
+--    + 3rd party: when turn into sysex mode, move note filter above sysex handler
+--    # sysex_handler JSFX: various fixes
 
 
 
-rs5kman_vrs = '4.57'
+rs5kman_vrs = '4.58'
 
 
 -- TODO
 --[[  
-      3rd party
-        add menu
-        
-      settings 
-        color reset button
-        
-      ext
-        CollectData_Always_ExtActions separate rack/seq actions
       
       seq
         if pattern has same GUId than other BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
-        control parameters of plugins / sendds
         groups
-        share AI to track params
-        share AI to track FX
         
       sampler/sample
         hot record from master bus 
@@ -84,7 +95,7 @@ rs5kman_vrs = '4.57'
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
     if app_vrs < 6.73 then return reaper.MB('This script require REAPER 6.73+','',0) end
-    local ImGui
+    --local ImGui
     
     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require reaimgui extension','',0) end
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -286,6 +297,7 @@ rs5kman_vrs = '4.57'
         font2sz=14,
         font3sz=13,
         font4sz=12,
+        font5sz=11,
       -- mouse
         hoverdelay = 0.8,
         hoverdelayshort = 0.5,
@@ -639,6 +651,7 @@ rs5kman_vrs = '4.57'
     DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
     DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
     DATA.font4 = ImGui.CreateFont(UI.font, UI.font4sz) ImGui.Attach(ctx, DATA.font4)  
+    DATA.font5 = ImGui.CreateFont(UI.font, UI.font5sz) ImGui.Attach(ctx, DATA.font5)  
      
     -- config
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
@@ -955,9 +968,7 @@ function UI.draw_tabs_Actions()
     if available_extGUID ~= true then ImGui.EndDisabled(ctx) end
     
   -- explode take
-    if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then
-      DATA:Action_ExplodeTake()
-    end
+    if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then DATA:Action_ExplodeTake() end
 end
   
   
@@ -1333,33 +1344,34 @@ end
   end
     --------------------------------------------------------------------------------
   function UI.draw_tabs_settings_Theming()    
-    if ImGui.CollapsingHeader(ctx, 'Colors') then 
+    if ImGui.CollapsingHeader(ctx, 'Theming') then 
       ImGui.Indent(ctx,UI.settings_indent)
       -- main backgr alpha
       ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
       local retval, v = ImGui.SliderDouble( ctx, 'Background transparency', EXT.UI_transparency, 0, 1, math.floor(EXT.UI_transparency*100)..'%%', ImGui.SliderFlags_None )
       if retval then EXT.UI_transparency = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      --Active pad default
-      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Active pad default', EXT.UI_colRGBA_paddefaultbackgr, ImGui.ColorEditFlags_AlphaBar )  
-      if retval then EXT.UI_colRGBA_paddefaultbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_paddefaultbackgr = UI.def_colRGBA_paddefaultbackgr EXT:save() end
-      --Inactive pad default
-      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Inactive pad default', EXT.UI_colRGBA_paddefaultbackgr_inactive, ImGui.ColorEditFlags_AlphaBar )  
-      if retval then EXT.UI_colRGBA_paddefaultbackgr_inactive = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_paddefaultbackgr_inactive = UI.def_colRGBA_paddefaultbackgr_inactive EXT:save() end
-      --ctrls
-      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Pad buttons backgr', EXT.UI_colRGBA_padctrl, ImGui.ColorEditFlags_AlphaBar )  
-      if retval then EXT.UI_colRGBA_padctrl = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_padctrl = UI.def_colRGBA_padctrl EXT:save() end
-      --ctrls
-      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Sampler peaks backgr', EXT.UI_colRGBA_smplrbackgr, ImGui.ColorEditFlags_AlphaBar )  
-      if retval then EXT.UI_colRGBA_smplrbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      if reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left()) then EXT.UI_colRGBA_smplrbackgr = UI.colRGBA_smplrbackgr EXT:save() end      
-      
       --trackcol tint
       ImGui_SetNextItemWidth(ctx, UI.settings_itemW)
       local retval, v = ImGui.SliderInt( ctx, 'Tint track color to pads', EXT.UI_col_tinttrackcoloralpha, 0, 255, math.floor(100*EXT.UI_col_tinttrackcoloralpha/255)..'%%', ImGui.SliderFlags_None )
       if retval then EXT.UI_col_tinttrackcoloralpha = v end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      
+      --Active pad default
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Active pad default', EXT.UI_colRGBA_paddefaultbackgr, ImGui.ColorEditFlags_AlphaBar|ImGui.ColorEditFlags_NoInputs )  
+      if retval then EXT.UI_colRGBA_paddefaultbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##res_Active pad default') then EXT.UI_colRGBA_paddefaultbackgr = UI.def_colRGBA_paddefaultbackgr EXT:save() end
+      --Inactive pad default
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Inactive pad default', EXT.UI_colRGBA_paddefaultbackgr_inactive, ImGui.ColorEditFlags_AlphaBar|ImGui.ColorEditFlags_NoInputs )  
+      if retval then EXT.UI_colRGBA_paddefaultbackgr_inactive = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##res_Inactive pad default') then EXT.UI_colRGBA_paddefaultbackgr_inactive = UI.def_colRGBA_paddefaultbackgr_inactive EXT:save() end
+      --ctrls
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Pad buttons backgr', EXT.UI_colRGBA_padctrl, ImGui.ColorEditFlags_AlphaBar |ImGui.ColorEditFlags_NoInputs)  
+      if retval then EXT.UI_colRGBA_padctrl = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##res_Pad buttons backgr') then EXT.UI_colRGBA_padctrl = UI.def_colRGBA_padctrl EXT:save() end
+      --ctrls
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Sampler peaks backgr', EXT.UI_colRGBA_smplrbackgr, ImGui.ColorEditFlags_AlphaBar|ImGui.ColorEditFlags_NoInputs )  
+      if retval then EXT.UI_colRGBA_smplrbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##res_Sampler peaks backgr') then EXT.UI_colRGBA_smplrbackgr = UI.colRGBA_smplrbackgr EXT:save() end      
+      
       
       
         
@@ -2060,38 +2072,6 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       ImGui.EndDragDropSource(ctx)
     end
     
-  end
-  -------------------------------------------------------------------------------- 
-  function UI.draw_3rdpartyimport_context(note,drop_data) 
-    local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
-    local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
-    local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
-    local is_instrument = (fx_namesrc:match('[%a]+i%:.*') or fx_namesrc:lower():match('synth')) and not (fx_namesrc: match('ReaSampl')or fx_namesrc:match('Macro'))
-    local fx_name = VF_ReduceFXname(fx_namesrc)
-    if retval and fx_name and is_instrument then
-      if ImGui.Button(ctx, fx_name,-1)then-- then--'Import ['..fx_name..'] as instrument'
-        DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
-        ImGui.CloseCurrentPopup(ctx) 
-      end   
-     else
-      ImGui.BeginDisabled(ctx,true) ImGui.Button(ctx, 'Import last touched FX as instrument',-1)ImGui.EndDisabled(ctx)
-    end
-    
-    --[[local regx= ImGui.GetContentRegionMax( ctx )
-    local curposX = ImGui.GetCursorPosX( ctx )
-    ImGui.SetNextItemWidth( ctx,(regx - curposX)/2) ]]
-    ImGui.SetNextItemWidth( ctx,-100)
-    local retval, buf = reaper.ImGui_InputText( ctx, 'Import FX##fxinput', '', ImGui.InputTextFlags_EnterReturnsTrue )
-    if retval then
-      local track = GetMasterTrack(-1) 
-      local fxidx = TrackFX_AddByName( track, buf, false, -1 )
-      if fxidx ~= -1 then
-        local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
-        local fx_name = VF_ReduceFXname(fx_namesrc)
-        DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
-        ImGui.CloseCurrentPopup(ctx)
-      end
-    end
   end
   -------------------------------------------------------------------------------- 
   function UI.draw_popups_macro()
@@ -4291,55 +4271,6 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       end
     end
   end   
-  ---------------------------------------------------------------------  
-  function UI.Drop_UI_interaction_pad(note) 
-    if note == -1 then
-      local starting_emptynote = 36
-      for i=starting_emptynote,127 do if not DATA.children[i] then 
-        note = i 
-        DATA.parent_track.ext.PARENT_LASTACTIVENOTE = note
-        DATA.temp_scroll_to_note = note
-        DATA:WriteData_Parent()
-        break 
-        end 
-      end
-    end
-    
-    -- validate is file or pad dropped
-    local retval, count = ImGui.AcceptDragDropPayloadFiles( ctx, 127, ImGui.DragDropFlags_None )
-    if retval then 
-      local loop_success
-      if count == 1 then loop_success, do_not_share = DATA:Auto_LoopSlice(note, count) end
-      
-      if do_not_share == true then return end
-      
-      
-      -- import sample directly
-      if loop_success ~= true then
-      
-        Undo_BeginBlock2(DATA.proj )
-        for i = 1, count do 
-          local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, i-1 )
-          if not retval then return end  
-          DATA:DropSample(filename, note + i-1, {layer=1})
-        end 
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - drop samples to pads', 0xFFFFFFFF ) 
-      end
-        
-      
-     else
-      local retval, payload = reaper.ImGui_AcceptDragDropPayload( ctx, 'moving_pad', '', ImGui.DragDropFlags_None )-- accept pad drop
-      if retval and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then 
-        Undo_BeginBlock2(DATA.proj )
-        local retval, types, payload, is_preview, is_delivery = reaper.ImGui_GetDragDropPayload( ctx )
-        if retval and tonumber(payload)then 
-          DATA:Drop_Pad(tonumber(payload),note)  
-          gmem_write(1026,11|(DATA.parent_track.ext.PARENT_LASTACTIVENOTE<<8)|(note<<16))
-        end  
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - move pad', 0xFFFFFFFF ) 
-      end 
-    end
-  end
   --------------------------------------------------------------------------------
   function UI.draw_tabs_Sampler_tabs_device()
     local note_layer_t, note, layer0 = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end  
@@ -4548,6 +4479,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     DATA:CollectDataInit_ReadDBmaps()
     DATA:CollectDataInit_LoadCustomPadStuff()
     DATA:CollectDataInit_LoadCustomLayouts()
+    DATA:CollectDataInit_EnumeratePlugins()
     --mpl_FixExtStateINI()
   end 
   

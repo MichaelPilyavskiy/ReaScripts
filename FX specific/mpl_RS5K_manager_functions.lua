@@ -7,11 +7,232 @@
 if not DATA then DATA = {} end
 if not EXT then EXT = {} end
 if not ImGui then ImGui = {} end
-
-RS5K_manager_functions_version = 4.43
+if not UI then UI = {} end
 
   
-    -------------------------------------------------------------------------------- 
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintEnvelopes_GetEnvByParamName(track, param) local seq_envelope
+    if not track then return end
+    if not param then return end
+    if not param:match('env_') then return end
+    
+    if param:match('env_pan') then 
+      seq_envelope = GetTrackEnvelopeByChunkName( track, '<PANENV2' )
+      if seq_envelope then  
+        return seq_envelope, GetEnvelopeScalingMode( seq_envelope )
+      end
+    end
+    
+    if param:match('env_tracksend') then 
+      local destGUID = param:match('(%{.-%})')
+      if not destGUID then return end 
+      local cntsends = GetTrackNumSends( track, 0 )
+      for sendidx = 1, cntsends do 
+        local P_DESTTRACK = GetTrackSendInfo_Value( track, 0, sendidx-1, 'P_DESTTRACK' )
+        local P_DESTTRACKGUID = GetTrackGUID(P_DESTTRACK)
+        if P_DESTTRACKGUID == destGUID then 
+          seq_envelope =  GetTrackSendInfo_Value( track, 0, sendidx-1, 'P_ENV:<VOLENV' )
+          if seq_envelope then  
+            return seq_envelope, GetEnvelopeScalingMode( seq_envelope )
+          end
+        end
+      end
+    end
+    
+    if param:match('env_FX') then 
+      local fxGUID,paramID = param:match('env_FX_(%{.-%})([%d]+)')
+      if fxGUID and paramID then
+        local ret,tr, fxid = VF_GetFXByGUID(fxGUID, track, DATA.proj)
+        seq_envelope = GetFXEnvelope( track, fxid, paramID, true )
+        if seq_envelope then  
+          return seq_envelope, GetEnvelopeScalingMode( seq_envelope )
+        end
+      end
+    end
+    
+    
+  
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintEnvelopes(t)
+    if not (t.ext and t.ext.children) then return end
+    local pat_st = DATA.seq.it_pos
+    local pat_end = pat_st + DATA.seq.it_len
+    local item_pos = DATA.seq.it_pos
+    local take = DATA.seq.tk_ptr
+        
+    local steplength = 0.25 -- do not touch
+    local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
+    local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
+    local seqend_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + DATA.seq.ext.patternlen *steplength ) 
+    local seqend_endppq = MIDI_GetPPQPosFromProjTime( take, seqend_sec) 
+    
+    for note in pairs(t.ext.children) do
+      -- 0 as a step check for existing params
+      if not (DATA.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[0]) then goto nextnote end
+      local srctr = DATA.children[note].tr_ptr
+      for param in pairs(DATA.seq.ext.children[note].steps[0]) do
+        local seq_envelope, scaling_mode = DATA:_Seq_PrintEnvelopes_GetEnvByParamName(srctr, param)
+        if seq_envelope then
+        
+          -- init if not 
+            local retval, ACTIVE = GetSetEnvelopeInfo_String( seq_envelope, 'ACTIVE', '', false )
+            if ACTIVE and ACTIVE == '0' then 
+              GetSetEnvelopeInfo_String( seq_envelope, 'ACTIVE', '1', true ) 
+              GetSetEnvelopeInfo_String( seq_envelope, 'VISIBLE', '1', true ) 
+              TrackList_AdjustWindows( false )
+            end
+          
+          -- clear env + boundary clamp
+            DeleteEnvelopePointRange( seq_envelope, pat_st, pat_end-0.001 )
+            local retval, cur_value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( seq_envelope, pat_st, DATA.SR, 1 )
+            local shape = 0
+            local tension = 0
+            InsertEnvelopePoint( seq_envelope, pat_st, cur_value, shape, tension, false, true )
+            --InsertEnvelopePoint( seq_envelope, pat_st, 0, shape, tension, false, true )
+            InsertEnvelopePoint( seq_envelope, pat_end-0.001, cur_value, shape, tension, false, true )
+            --InsertEnvelopePoint( seq_envelope, pat_end-0.002, 0, shape, tension, false, true )
+            
+          -- write values
+            local steplength = 0.25
+            if t.ext.children[note].steplength then steplength = t.ext.children[note].steplength end 
+            local step_cnt = t.ext.children[note].step_cnt 
+            if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
+            local patlen_mult = 1
+            if steplength<0.25 then patlen_mult = math.ceil(0.25/steplength) end
+            local app_swing 
+            if DATA.seq.ext.swing~= 0 and steplength==0.25 then app_swing = DATA.seq.ext.swing end
+            if not t.ext.children[note].steps then t.ext.children[note].steps = {} end
+            if not t.ext.children[note].steps[1] then t.ext.children[note].steps[1] = {val = 0} end
+            for step = 1, DATA.seq.ext.patternlen*patlen_mult do
+              local step_active = step%step_cnt 
+              if step_active == 0 then step_active = step_cnt end
+              if not (t.ext.children[note].steps and t.ext.children[note].steps[step_active]) then goto skipnextstep end 
+              local active = t.ext.children[note].steps[step_active].val and  t.ext.children[note].steps[step_active].val == 1
+              if not active then goto skipnextstep end 
+              local val = t.ext.children[note].steps[step_active][param]
+              
+              if not val then goto skipnextstep end 
+              val = ScaleToEnvelopeMode( scaling_mode, val )
+              
+              -- offset  / swing
+              local offset = 0
+              local sw_shift = 0
+              if t.ext.children[note].steps[step_active].offset then offset = t.ext.children[note].steps[step_active].offset*steplength end 
+              if app_swing and step%2==0 then sw_shift = app_swing*steplength*0.5 end
+              local beatpos = (step-1)*steplength
+              local beatlen = steplength
+              local beatpos_st = math.max(0, beatpos +offset + sw_shift)
+              local beatpos_end =  math.min(beatpos+beatlen + offset ,DATA.seq.ext.patternlen)
+              if  beatpos_st > DATA.seq.ext.patternlen then goto skipnextstep end
+              local steppos_start_sec = pat_st + TimeMap2_beatsToTime(   DATA.proj, seqstart_fullbeats + beatpos_st )
+              local steppos_end_sec = pat_st + TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + beatpos_end - 0.001) 
+              
+              local shape = 1
+              local tension = 0
+              
+              --InsertEnvelopePoint( seq_envelope, steppos_start_sec-0.001, 0, shape, tension, false, true )
+              InsertEnvelopePoint( seq_envelope, steppos_start_sec, val, shape, tension, false, true )
+              --InsertEnvelopePoint( seq_envelope, steppos_end_sec-0.001, val, shape, tension, false, true )
+              --InsertEnvelopePoint( seq_envelope, steppos_end_sec, 0, shape, tension, false, true )
+              ::skipnextstep::
+            end
+            
+          -- sort 
+            Envelope_SortPoints( seq_envelope )
+            
+            
+            
+        end
+      end
+      ::nextnote:: 
+    end
+      
+    
+  end 
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_AddLastTouchedFX() 
+    local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
+    if not retval then return end
+    local track = GetTrack(DATA.proj,trackidx)
+    if not track then return end
+    if itemidx >=0 then return end
+    
+    local note_layer_t, note, layer = DATA:Sampler_GetActiveNoteLayer()  
+    if not note_layer_t then return end
+    if note_layer_t.tr_ptr ~= track then return end
+    
+    if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
+    if not DATA.seq.ext.children[note].env_FXparamlist then DATA.seq.ext.children[note].env_FXparamlist = {} end
+    
+    local fxGUID = TrackFX_GetFXGUID( track, fxidx )
+    if not fxGUID then return end
+    if not DATA.seq.ext.children[note].env_FXparamlist[fxGUID] then DATA.seq.ext.children[note].env_FXparamlist[fxGUID] = {} end
+    DATA.seq.ext.children[note].env_FXparamlist[fxGUID][parm] = 1
+    
+    
+    DATA:_Seq_Print()
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_CollectTrackEnv(fxGUID0,parm0 ) 
+    local note_layer_t,note, layer = DATA:Sampler_GetActiveNoteLayer()  
+    if not note_layer_t then return end
+    
+    -- track env 
+    DATA.seq_param_selector_trackenv = {}
+    
+    -- pan
+    DATA.seq_param_selector_trackenv[#DATA.seq_param_selector_trackenv+1] = {
+      param = 'env_pan', 
+      str= 'Pan',
+      default=0, 
+      minval = -1, 
+      maxval = 1
+      } 
+      
+    -- add sends
+    if note_layer_t.sends then
+      for sendidx = 1, #note_layer_t.sends do
+        local P_DESTTRACKGUID=  note_layer_t.sends[sendidx].P_DESTTRACKGUID
+        local str = 'Send: '..note_layer_t.sends[sendidx].P_DESTTRACKname
+        DATA.seq_param_selector_trackenv[#DATA.seq_param_selector_trackenv+1] = {
+          param = 'env_tracksend'..P_DESTTRACKGUID, 
+          str= str,
+          default=0, 
+          minval = 0, 
+          maxval = 1
+          }
+      end
+    end
+    
+    
+    -- track env  
+    DATA.seq_param_selector_trackFXenv = {}
+    if DATA.seq.ext.children[note].env_FXparamlist then 
+      for fxGUID in spairs(DATA.seq.ext.children[note].env_FXparamlist) do
+        for paramID in spairs(DATA.seq.ext.children[note].env_FXparamlist[fxGUID]) do
+          if DATA.children[note] and DATA.children[note].tr_ptr then 
+            local ret,tr, fxid = VF_GetFXByGUID(fxGUID, DATA.children[note].tr_ptr, DATA.proj)
+            if fxid then
+              local retval, fxname = reaper.TrackFX_GetFXName( DATA.children[note].tr_ptr, fxid )
+              fxname = VF_ReduceFXname(fxname)
+              local retval, paramname = reaper.TrackFX_GetParamName( DATA.children[note].tr_ptr, fxid,paramID)
+              DATA.seq_param_selector_trackFXenv[#DATA.seq_param_selector_trackFXenv+1] = {
+                  param = 'env_FX_'..fxGUID..paramID, 
+                  str= fxname..' / #'..paramID..' - '..paramname, 
+                  default=0, 
+                  minval = 0, 
+                  maxval = 1
+                  }
+              
+            end
+          end
+        end
+      end
+    end
+    
+  end
+  -------------------------------------------------------------------------------- 
   function DATA:_Seq_Clear(note)
     if not (DATA.seq.ext and DATA.seq.ext.children ) then return end
     
@@ -49,25 +270,27 @@ RS5K_manager_functions_version = 4.43
     
   end
   --------------------------------------------------------------------------------  
-  function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
-  --------------------------------------------------------------------------------  
   function DATA:_Seq_Print(do_not_ignore_empty, minor_change) 
     if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end
     if not (DATA.seq.it_ptr and DATA.seq.tk_ptr) then return end
     if not DATA.seq.ext.children then return end 
     local item = DATA.seq.it_ptr
     local take = DATA.seq.tk_ptr
-    --SetMediaItemInfo_Value( item, 'B_LOOPSRC',1 )
+     
     if minor_change~=true then 
+      Undo_BeginBlock2(DATA.proj)
       --test = time_precise()
-      local outstr = table.savestring(DATA.seq.ext) 
-      --outstr = VF_encBase64(outstr) -- 4.43 off
+      local outstr = table.savestring(DATA.seq.ext) --outstr = VF_encBase64(outstr) -- 4.43 off 
       GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', outstr, true)
-      GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA_IGNOREB64', 1, true) 
+      GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA_IGNOREB64', 1, true) -- 4.43 patch DO NOT REMOVE
       --msg(os.date()..' '..time_precise()-test)
-      DATA:_Seq_PrintMIDI_ShareGUID(DATA.seq ,outstr) 
-    end
-    DATA:_Seq_PrintMIDI(DATA.seq)  
+      DATA:_Seq_PrintMIDI_ShareGUID(DATA.seq ,outstr) -- store pattern data to the same GUID takes 
+      Undo_EndBlock2(DATA.proj, 'Pattern edit', 0xFFFFFFFF)
+      
+      
+    end 
+    DATA:_Seq_PrintEnvelopes(DATA.seq)
+    DATA:_Seq_PrintMIDI(DATA.seq) 
     GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATGUID', DATA.seq.ext.GUID, true) 
     
   end
@@ -91,7 +314,9 @@ RS5K_manager_functions_version = 4.43
       end
     end
     
-  end
+  end 
+  --------------------------------------------------------------------------------  
+  function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
   --------------------------------------------------------------------------------  
   function DATA:Auto_LoopSlice_CreatePattern(loop_t) 
     if not loop_t then return end
@@ -140,6 +365,8 @@ RS5K_manager_functions_version = 4.43
   
   -------------------------------------------------------------------------------  
   function DATA:CollectData_Seq() 
+    if DATA.seq_functionscall ~= true then return end
+    
     -- init pattern defaults
     DATA.seq = {
       valid = false,
@@ -222,6 +449,7 @@ RS5K_manager_functions_version = 4.43
     end
     
     DATA:_Seq_RefreshHScroll()
+    DATA:_Seq_CollectTrackEnv()
     
   end
   --------------------------------------------------------------------------------  
@@ -300,12 +528,13 @@ RS5K_manager_functions_version = 4.43
     local item_pos = t.it_pos
     
     local metashift = 0
+    local ppqreduce = 1
      
     if not (item and take) then return end
     if not t.ext.children then return end
     
     -- init ppq
-    local form_data = {}
+    form_data = {}
     local steplength = 0.25 -- do not touch
     local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
     local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
@@ -343,7 +572,8 @@ RS5K_manager_functions_version = 4.43
         local velocity = 0
         if val == 1 then velocity = default_velocity end
         if val == 1 and t.ext.children[note].steps[step_active].velocity then velocity = math.floor(t.ext.children[note].steps[step_active].velocity*127) end
-
+        if velocity == 0 and step_active ~= 1 then goto skipnextstep end 
+        
         -- split
         local split = 1
         if t.ext.children[note].steps[step_active].split then split = math_q(t.ext.children[note].steps[step_active].split) end 
@@ -377,7 +607,7 @@ RS5K_manager_functions_version = 4.43
         local steppos_start_sec = TimeMap2_beatsToTime(   DATA.proj, seqstart_fullbeats + beatpos_st ) 
         local steppos_end_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + beatpos_end) 
         local steppos_start_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_start_sec ) 
-        local steppos_end_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_end_sec ) 
+        local steppos_end_ppq = MIDI_GetPPQPosFromProjTime( take, steppos_end_sec )
         if  steppos_end_ppq - steppos_start_ppq < 2 then goto skipnextstep end
         
         --if sw_shift ~= 0 or offset ~= 0 then split = 1 end 
@@ -389,23 +619,23 @@ RS5K_manager_functions_version = 4.43
           steppos_end_ppq = math.floor(steppos_end_ppq)
           
           if split == 1 then 
+            
+            local meta
             if addmeta then
-              form_data[#form_data+1] = {
-                  ppq_start = steppos_start_ppq-metashift,
                   meta = {
                       [1] = note, -- note
                       [2] = math_q(meta_pitch or 64), -- pitch
                       [3] = math_q((meta_probability or 1)*127), -- probability
-                  },
-                }
+                  }
             end
             
             -- single note
             form_data[#form_data+1] = {
               ppq_start = steppos_start_ppq,
-              ppq_end = steppos_end_ppq,
+              ppq_end = steppos_end_ppq-ppqreduce,
               pitch = note,
               vel = velocity,
+              meta=CopyTable(meta),
             }
             
             
@@ -418,23 +648,21 @@ RS5K_manager_functions_version = 4.43
             for i = 1, split do
               local slice_steppos_start_ppq = steppos_start_ppq + sliceppq_len*(i-1)
               local slice_steppos_end_ppq = slice_steppos_start_ppq + sliceppq_len
-              
+              local meta
               if addmeta then
-                form_data[#form_data+1] = {
-                  ppq_start = slice_steppos_start_ppq-metashift,
                   meta = {
                     [1] = note, -- note
                     [2] = math_q(meta_pitch or 64), -- pitch
                     [3] = math_q((meta_probability or 1)*127), -- probability
-                  },
-                }
+                  }
               end
               
               form_data[#form_data+1] = {
                 ppq_start = slice_steppos_start_ppq,
-                ppq_end = slice_steppos_end_ppq,
+                ppq_end = slice_steppos_end_ppq-ppqreduce,
                 pitch = note,
                 vel = velocity,
+                meta=meta,
               }
             end
             
@@ -463,33 +691,39 @@ RS5K_manager_functions_version = 4.43
     local str = ''
     local sz = #form_data
     for i = 1, sz do 
-      local ppq = form_data[i].ppq_start
-      local offset = ppq - lastppq
-      
-      -- notes
-      if form_data[i].pitch and  form_data[i].vel then
-        local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x90, form_data[i].pitch, form_data[i].vel )
-        str = str..str_per_msg
-        lastppq = ppq
-        
-        local ppq = form_data[i].ppq_end
-        local offset = ppq - lastppq
-        local str_per_msg = string.pack("i4Bi4BBB", offset, flags, 3, 0x80, form_data[i].pitch, 0)
-        str = str..str_per_msg
-        lastppq = ppq 
-      end
       
       --meta
+      local SysEx_msg_bin = '' 
       if form_data[i].meta then
-        local ppq = form_data[i].ppq_start
-        local offset = ppq - lastppq
         local SysEx_msg = 'F0 60 01 '
         for id = 1, #form_data[i].meta do SysEx_msg= SysEx_msg..string.format("%X", form_data[i].meta[id])..' ' end SysEx_msg= SysEx_msg..'F7'
-        local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
-        local str_per_msg = string.pack("i4Bs4", offset, flags , SysEx_msg_bin)
-        str = str..str_per_msg
+        for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
+      end
+      
+      -- notes
+      local pitch = form_data[i].pitch
+      if pitch and  form_data[i].vel then
+        local ppq = form_data[i].ppq_start
+        local offset = ppq - lastppq
+        
+        -- note ON
+        local offs_sysex = offset
+        local offs_noteon = offset
+        if SysEx_msg_bin ~= '' then 
+          str = str..string.pack("i4Bs4", offs_sysex, flags, SysEx_msg_bin)
+          offs_noteon = 0
+        end
+        str = str..string.pack("i4Bi4BBB", offs_noteon, flags, 3, 0x90, pitch, form_data[i].vel ) 
+        lastppq = ppq
+        
+        -- noteOFF
+        local ppq = form_data[i].ppq_end
+        local offset = ppq - lastppq
+        str = str..string.pack("i4Bi4BBB", offset, flags, 3, 0x80, pitch, 0)
+        
         lastppq = ppq 
       end
+      
       
     end
     
@@ -925,11 +1159,12 @@ end
   
   -------------------------------------------------------------------------------- 
   function DATA:CollectData2() -- do various stuff after refresh main data 
-    if not (DATA.upd2 and DATA.upd2.refresh == true) then return end
-    if DATA.upd2.updatedevicevelocityrange then DATA:Auto_Device_RefreshVelocityRange(DATA.upd2.updatedevicevelocityrange) end
-    if DATA.upd2.seqprint then DATA:_Seq_Print(nil, DATA.upd2.seqprint_minor)  end
-    DATA:CollectData2_GetPeaks()
-    DATA.upd2 = {} 
+    if not DATA.upd2 then return end
+    
+    if DATA.upd2.updatedevicevelocityrange then DATA:Auto_Device_RefreshVelocityRange(DATA.upd2.updatedevicevelocityrange) DATA.upd2.updatedevicevelocityrange = nil end
+    if DATA.upd2.seqprint then DATA:_Seq_Print(nil, DATA.upd2.seqprint_minor) DATA.upd2.seqprint=nil DATA.upd2.seqprint_minor=nil end
+    if DATA.upd2.refreshpeaks then DATA:CollectData2_GetPeaks() end
+    --DATA.upd2.refreshscroll
   end  
   
   -------------------------------------------------------------------------------- 
@@ -1027,7 +1262,7 @@ end
     DATA:Auto_TCPMCP() 
      
     
-    DATA.upd2.refresh = true
+    DATA.upd2.refreshpeaks = true
   end
   -------------------------------------------------------------------------------- 
   function DATA:Auto_TCPMCP(force_show)
@@ -1261,6 +1496,7 @@ end
   end
   ----------------------------------------------------------------------
   function DATA:CollectData_Always_ExtActions()
+    if DATA.seq_functionscall == true then return end -- restrict ext actions for sequencer 
     local actions = gmem_read(1025)
     if actions == 0 then return end
     
@@ -1275,7 +1511,8 @@ end
     end
     
     -- next sample
-    if actions == 3 then   
+    if actions == 3 then  
+      msg(1)
       local note_layer_t, spls = DATA:Sampler_GetActiveNoteLayer()
       DATA:Sampler_NextPrevSample(note_layer_t,0 )  
     end
@@ -1455,6 +1692,7 @@ end
     end
       
   end
+  
   --------------------------------------------------------------------------------  
   function DATA:CollectDataInit_MIDIdevices()
     DATA.MIDI_inputs = {[63]='All inputs',[62]='Virtual keyboard'}
@@ -1833,6 +2071,7 @@ end
   function DATA:CollectData_FormatVolume(D_VOL)  
     return ( math.floor(WDL_VAL2DB(D_VOL)*10)/10) ..'dB'
   end
+  
   -------------------------------------------------------------------------------- 
   function DATA:CollectData_Children()   
     if DATA.parent_track.valid ~= true then return end 
@@ -1847,7 +2086,7 @@ end
         if retMIDI == true then goto nexttrack end         
  
         
-      -- get base child data
+      -- get track data
         local retval, trGUID =             GetSetMediaTrackInfo_String( track, 'GUID', '', false ) 
         local retval, P_NAME =             GetSetMediaTrackInfo_String( track, 'P_NAME', '', false ) 
         local IP_TRACKNUMBER_0based =             GetMediaTrackInfo_Value( track, 'IP_TRACKNUMBER')
@@ -1866,7 +2105,25 @@ end
           if I_PLAY_OFFSET_FLAG&2==2 then PLAY_OFFSET = D_PLAY_OFFSET / DATA.SR else PLAY_OFFSET = D_PLAY_OFFSET end
         end
         local PLAY_OFFSET_format =        math.floor(PLAY_OFFSET*1000)..'ms'
-  
+        local sends = {}
+        local cntsends = GetTrackNumSends( track, 0 )
+        for sendidx = 1, cntsends do 
+          local sD_VOL = GetTrackSendInfo_Value( track, 0, sendidx-1, 'D_VOL' )
+          local sD_PAN = GetTrackSendInfo_Value( track, 0, sendidx-1, 'D_PAN' )
+          local P_DESTTRACK = GetTrackSendInfo_Value( track, 0, sendidx-1, 'P_DESTTRACK' )
+          local ret, P_DESTTRACKname = GetTrackName(P_DESTTRACK)
+          local P_DESTTRACKGUID = GetTrackGUID(P_DESTTRACK)
+          sends[sendidx] ={
+            D_VOL=sD_VOL,
+            D_PAN=sD_PAN,
+            P_DESTTRACK=P_DESTTRACK,
+            P_DESTTRACKname=P_DESTTRACKname,
+            P_DESTTRACKGUID=P_DESTTRACKGUID,
+            
+            }
+        end
+        
+        
       -- validate attached note
         local ret, note =                   GetSetMediaTrackInfo_String         ( track, 'P_EXT:MPLRS5KMAN_NOTE',0, false) 
         note = tonumber(note) 
@@ -1882,6 +2139,7 @@ end
           tr_ptr = track,
           noteID=note,
           IP_TRACKNUMBER_0based=IP_TRACKNUMBER_0based,
+          sends=sends,
         } end 
       
       -- SYSHANDLER
@@ -1937,6 +2195,7 @@ end
         if TYPE_DEVICECHILD == true or TYPE_REGCHILD == true then  
             local midifilt_pos = TrackFX_AddByName( track, 'midi_note_filter', false, 0) 
             if midifilt_pos == - 1 then midifilt_pos = nil end
+            
             local layer = #DATA.children[note].layers +1 
             DATA.children[note].layers[layer] = { 
                                               
@@ -1966,6 +2225,7 @@ end
                                               PLAY_OFFSET_format = PLAY_OFFSET_format,
                                               
                                               midifilt_pos=midifilt_pos,
+                                              sends=sends,
                                               }
           DATA:CollectData_Children_ExtState          (DATA.children[note].layers[layer])  
           DATA:CollectData_Children_InstrumentParams  (DATA.children[note].layers[layer]) 
@@ -1994,6 +2254,7 @@ end
           DATA.children[note].I_CUSTOMCOLOR = I_CUSTOMCOLOR
           DATA.children[note].I_FOLDERDEPTH = I_FOLDERDEPTH
           DATA.children[note].P_NAME = P_NAME
+          DATA.children[note].sends = sends
         end
       
       
@@ -2675,7 +2936,6 @@ end
         ReorderSelectedTracks( beforeTrackIdx, 0 )--make sure parent is folder
         DATA:Auto_Reposition_TrackRestoreSelection()
         DATA.upd2.updatedevicevelocityrange = note
-        DATA.upd2.refresh = true
       end
    
     -- new device
@@ -2833,7 +3093,15 @@ end
       if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1000 ) end
       if instrument_pos == -1 then return end
     end
-      
+    
+    -- validate instrument_noteoff
+    local instrument_noteoff
+    if DATA.children[note] and DATA.children[note].layers and DATA.children[note].layers[layer or 1] and DATA.children[note].layers[layer or 1].instrument_noteoff then instrument_noteoff = DATA.children[note].layers[layer or 1].instrument_noteoff end 
+    if instrument_noteoff then 
+      if not drop_data.srct then drop_data.srct = {} end
+      drop_data.srct.instrument_noteoff = instrument_noteoff
+    end
+    
     DATA:DropSample_ExportToRS5k(track, instrument_pos, filename, note, drop_data) 
     DATA.autoreposition = true
   end   
@@ -2966,75 +3234,317 @@ end
       GetSetMediaTrackInfo_String( track, 'P_NAME', outname, true )
     end
   end
-
---------------------------------------------------------------------------------  
-  function DATA:Action_ExplodeTake()
-    Undo_BeginBlock2(DATA.proj)
-    for i = 1, reaper.CountSelectedMediaItems(DATA.proj) do
-      local item = GetSelectedMediaItem(DATA.proj, i-1)
-      if not item then goto nextitem end
-      local take = GetActiveTake(item)
-      if not (take and reaper.TakeIsMIDI(take)) then goto nextitem end
+  --------------------------------------------------------------------------------  
+  function DATA:Action_ExplodeTake_sub_readparent(take)
+    local MIDIdata = {}
+    local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+    local MIDIlen = MIDIstring:len()
+    local stringPos = 1
+    local offset, flags, msg1
+    local ppq_pos = 0
+    local sysex_handler = {}
+    while stringPos < MIDIlen do
+      offset, flags, msg1, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos) 
+      ppq_pos = ppq_pos + offset
       
+      
+      local validsysex = msg1:len()>3 and msg1:byte(1)==0xF0 and msg1:byte(2)==0x60 and msg1:byte(3)==0x01
+      local CC = msg1:len()==3 and msg1:byte(1)&0xF0==0xB0
+      local noteON = msg1:len()==3 and msg1:byte(1)&0xF0==0x90
+      local noteOFF = msg1:len()==3 and msg1:byte(1)&0xF0==0x80
+      
+      local active_note = msg1:byte(2)
+      if not active_note then goto skipmsg end
+      if validsysex == true then active_note = msg1:byte(4) end 
+      if CC == true and active_note == 123 then active_note = 'AllNotesOFF' end
+       
+      if not MIDIdata[active_note] then MIDIdata[active_note] = {} end
+      local id = #MIDIdata[active_note] + 1 
+      MIDIdata[active_note][id] = 
+        {
+          ppq_pos=ppq_pos,
+          msg1=msg1,
+          flags=flags
+        }
+        
+      if sysex_handler [active_note] then 
+        MIDIdata[active_note][id].meta = CopyTable(sysex_handler [active_note]) 
+        sysex_handler [active_note] = nil
+      end
+      
+      ::skipmsg::
+    end
+      
+    return MIDIdata
+  end
+--------------------------------------------------------------------------------  
+  function DATA:Action_ExplodeTake_sub_writechildren(item, take, MIDIdata)
+    -- get boundary
       local D_POSITION = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local D_LENGTH = GetMediaItemInfo_Value( item, 'D_LENGTH' )
-      local B_LOOPSRC = GetMediaItemInfo_Value( item, 'B_LOOPSRC' )
-      SetMediaItemInfo_Value( item, 'B_MUTE', 1 )
+      local B_LOOPSRC = GetMediaItemInfo_Value( item, 'B_LOOPSRC' ) 
       local D_STARTOFFS = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
       local D_PLAYRATE = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
       local I_CUSTOMCOLOR = GetMediaItemTakeInfo_Value( take, 'I_CUSTOMCOLOR' )
       local pcmsrc = GetMediaItemTake_Source( take )
       local srclen, lengthIsQN = reaper.GetMediaSourceLength( pcmsrc )
       
-      local t_pitch= {}
-       tableEvents = {}
-      local t = 0
-      local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
-      local MIDIlen = MIDIstring:len()
-      local stringPos = 1
-      local offset, flags, msg1
-      local val = 1
-      while stringPos < MIDIlen do
-        offset, flags, msg1, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos)
-        tableEvents[#tableEvents+1] = {
-          offset=offset,
-          flags=flags,
-          msg1=msg1,
-        }
-        local pitch = msg1:byte(2)
-        t_pitch[pitch]=true
-      end
       
-      
-      
-      for note in pairs(t_pitch) do
-        if note and DATA.children[note] then
-          local track = DATA.children[note].tr_ptr
-          if track then
-            local new_item = CreateNewMIDIItemInProj( track, D_POSITION, D_POSITION + D_LENGTH )
-            local take = GetActiveTake(new_item)
-            SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS',D_STARTOFFS )
-            SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE',D_PLAYRATE ) 
-            SetMediaItemTakeInfo_Value( take, 'I_CUSTOMCOLOR',I_CUSTOMCOLOR ) 
-            SetMediaItemInfo_Value( new_item, 'B_LOOPSRC',B_LOOPSRC ) 
-            
-            local MIDIstring = ""
-            for i = 1, #tableEvents-1 do
-              local msg1 = tableEvents[i].msg1
-              if msg1:byte(2) ~= note then msg1 = '' end
-              MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[i].offset, tableEvents[i].flags, msg1)
-            end
-            MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[#tableEvents].offset, tableEvents[#tableEvents].flags, tableEvents[#tableEvents].msg1)
-            MIDI_SetAllEvts(take, MIDIstring)
-            MIDI_Sort(take)
+    for note in pairs(MIDIdata) do
+      if note and DATA.children[note] then
+        local track = DATA.children[note].tr_ptr
+        local SYSEXMOD = DATA.children[note].SYSEXMOD
+        if DATA.children[note].SYSEXHANDLER_ID and DATA.children[note].SYSEXHANDLER_isvalid==true then TrackFX_SetEnabled( track, DATA.children[note].SYSEXHANDLER_ID, false ) end
+        if DATA.children[note].layers and DATA.children[note].layers[1] and DATA.children[note].layers[1].midifilt_pos then TrackFX_SetEnabled( DATA.children[note].layers[1].tr_ptr, DATA.children[note].layers[1].midifilt_pos, false ) end 
+        if track then
+        
+          local new_item = CreateNewMIDIItemInProj( track, D_POSITION, D_POSITION + D_LENGTH )
+          local childtake = GetActiveTake(new_item)
+          SetMediaItemTakeInfo_Value( childtake, 'D_STARTOFFS',D_STARTOFFS )
+          SetMediaItemTakeInfo_Value( childtake, 'D_PLAYRATE',D_PLAYRATE ) 
+          SetMediaItemTakeInfo_Value( childtake, 'I_CUSTOMCOLOR',I_CUSTOMCOLOR ) 
+          SetMediaItemInfo_Value( new_item, 'B_LOOPSRC',B_LOOPSRC )
+          
+          -- add events
+          local MIDIstring = ""
+          local offset = 0
+          local ppq_pos_last = 0
+          for i = 1, #MIDIdata[note] do 
+            local ppq_pos = MIDIdata[note][i].ppq_pos
+            offset = ppq_pos - ppq_pos_last
+            MIDIstring = MIDIstring..string.pack("i4Bs4",offset, MIDIdata[note][i].flags, MIDIdata[note][i].msg1)
+            ppq_pos_last = ppq_pos 
+            ::nextevent::
           end
+          
+          -- add all note off
+          AllNotesOFF_t = MIDIdata['AllNotesOFF'][1]
+          local ppq_pos = AllNotesOFF_t.ppq_pos
+          offset = ppq_pos - ppq_pos_last
+          MIDIstring = MIDIstring..string.pack("i4Bs4",offset, 0, AllNotesOFF_t.msg1)
+          MIDI_SetAllEvts(childtake, MIDIstring)
+          MIDI_Sort(childtake)
+          
+          if SYSEXMOD == true then DATA:Action_ExplodeTake_sub_sysexhandler(childtake) end
         end
       end
+    end
+    
+    
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:Action_ExplodeTake_sub_sysexhandler(take)
+    local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+    local MIDIlen = MIDIstring:len()
+    local stringPos = 1
+    local offset, flags, msg1
+    local ppq_pos = 0
+    local sysex_handler = {}
+    local MIDIstring_out = ''
+    
+    local pitch_correction = 0; 
+    local val_rand = 0;
+    local probability = 1; 
+    
+    while stringPos < MIDIlen do
+      offset, flags, msg1, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos) 
       
-      ::nextitem::
+      --// received sysex is F0 60 01 ...some_parameters.. F7
+      if msg1:len() > 3 and msg1:byte(1)==0xF0 and msg1:byte(2)==0x60 and msg1:byte(3)==0x01 then 
+        pitch_correction = msg1:byte(5);
+        probability = msg1:byte(6)/127; 
+        MIDIstring_out = MIDIstring_out..string.pack("i4Bs4", offset, 0, '') -- clear / preserve offset 
+          
+          
+      --// note ON        
+       elseif msg1:len() == 3 and msg1:byte(1)==0x90 then
+        outpitch = 64;
+        if pitch_correction ~= 0 then outpitch = pitch_correction end;
+        MIDIstring_out = MIDIstring_out..string.pack("i4BI4BBB", offset, flags, 3, 
+          msg1:byte(1),
+          outpitch,
+          msg1:byte(3))
+          
+      --// note OFF        
+       elseif msg1:len() == 3 and msg1:byte(1)==0x80 then    
+        outpitch = 64;
+        if pitch_correction ~= 0 then outpitch = pitch_correction end;
+        MIDIstring_out = MIDIstring_out..string.pack("i4BI4BBB", offset, flags, 3, 
+          msg1:byte(1),
+          outpitch,
+          msg1:byte(3))
+       elseif msg1:len() == 3 and msg1:byte(1)==0xB0 then    
+        MIDIstring_out = MIDIstring_out..string.pack("i4BI4BBB", offset, flags, 3, 
+          msg1:byte(1),
+          msg1:byte(2),
+          msg1:byte(3))          
+      end
+    end
+    MIDI_SetAllEvts(take, MIDIstring_out)
+    MIDI_Sort(take)
+    
+    
+    --[[
+    
+    local outpitch = note
+    if SYSEXMOD == true then 
+      outpitch = 64 
+      if tableEvents[i].meta and tableEvents[i].meta.pitchcorection then outpitch  = tableEvents[i].meta.pitchcorection end
+    end
+    
+    
+    activenote = msg1:byte(4)
+    pitchcorection = msg1:byte(5)
+    if pitchcorection == 0 then pitchcorection = 64 end
+    probability = msg1:byte(6)
+    meta[activenote]={
+        pitchcorection=pitchcorection,
+        probability=probability
+      }]]
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:Action_ExplodeTake_sub(item)
+    if not item then return end
+    local take = GetActiveTake(item)
+    if not (take and reaper.TakeIsMIDI(take)) then return end
+    MIDI_Sort(take)
+    MIDIdata = DATA:Action_ExplodeTake_sub_readparent(take)
+    if not MIDIdata then return end
+    DATA:Action_ExplodeTake_sub_writechildren(item, take, MIDIdata) 
+    
+    -- mute item
+    SetMediaItemInfo_Value( item, 'B_MUTE', 1 )
+  end
+--------------------------------------------------------------------------------  
+  function DATA:Action_ExplodeTake()
+    Undo_BeginBlock2(DATA.proj)
+    for i = 1, reaper.CountSelectedMediaItems(DATA.proj) do
+      local item = GetSelectedMediaItem(DATA.proj, i-1)
+      DATA:Action_ExplodeTake_sub(item)
     end
     Undo_EndBlock2(DATA.proj, 'Explode MIDI bus take by note', 0xFFFFFFFF)
   end
+  --[[
+  
+  --------------------------------------------------------------------------------  
+    function DATA:Action_ExplodeTake_old01062025()
+      Undo_BeginBlock2(DATA.proj)
+      for i = 1, reaper.CountSelectedMediaItems(DATA.proj) do
+        local item = GetSelectedMediaItem(DATA.proj, i-1)
+        if not item then goto nextitem end
+        local take = GetActiveTake(item)
+        if not (take and reaper.TakeIsMIDI(take)) then goto nextitem end
+        
+        MIDI_Sort(take)
+        
+        local D_POSITION = GetMediaItemInfo_Value( item, 'D_POSITION' )
+        local D_LENGTH = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+        local B_LOOPSRC = GetMediaItemInfo_Value( item, 'B_LOOPSRC' )
+        SetMediaItemInfo_Value( item, 'B_MUTE', 1 )
+        local D_STARTOFFS = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+        local D_PLAYRATE = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+        local I_CUSTOMCOLOR = GetMediaItemTakeInfo_Value( take, 'I_CUSTOMCOLOR' )
+        local pcmsrc = GetMediaItemTake_Source( take )
+        local srclen, lengthIsQN = reaper.GetMediaSourceLength( pcmsrc )
+        
+        local t_pitch= {}
+         tableEvents = {}
+        local t = 0
+        local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+        local MIDIlen = MIDIstring:len()
+        local stringPos = 1
+        local offset, flags, msg1
+        local val = 1
+        local meta = {}
+        local ppq_pos = 0
+        while stringPos < MIDIlen do
+          offset, flags, msg1, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos) 
+          ppq_pos = ppq_pos + offset
+          if msg1:len()>3 and msg1:byte(1)==0xF0 and msg1:byte(2)==0x60 and msg1:byte(3)==0x01 then
+            activenote = msg1:byte(4)
+            pitchcorection = msg1:byte(5)
+            if pitchcorection == 0 then pitchcorection = 64 end
+            probability = msg1:byte(6)
+            meta={
+              pitchcorection=pitchcorection,
+              probability=probability
+              }
+            tableEvents[#tableEvents+1] = {
+              offset=offset,
+              flags=flags,
+              msg1='',
+            }
+            goto nextevt
+          end
+              
+          local pitch = msg1:byte(2) 
+          tableEvents[#tableEvents+1] = {
+            offset=offset,
+            flags=flags,
+            msg1=msg1,
+            tp= string.format("%x", msg1:byte(1)),
+            meta=CopyTable(meta),
+          }
+          meta=nil
+          t_pitch[pitch]=true 
+          
+          ::nextevt::
+        end
+        
+        
+        for note in pairs(t_pitch) do
+          if note and DATA.children[note] then
+            local track = DATA.children[note].tr_ptr
+            local SYSEXMOD = DATA.children[note].SYSEXMOD
+            if DATA.children[note].SYSEXHANDLER_ID and DATA.children[note].SYSEXHANDLER_isvalid==true then TrackFX_SetEnabled( track, DATA.children[note].SYSEXHANDLER_ID, false ) end
+            if DATA.children[note].layers and DATA.children[note].layers[1] and DATA.children[note].layers[1].midifilt_pos then TrackFX_SetEnabled( DATA.children[note].layers[1].tr_ptr, DATA.children[note].layers[1].midifilt_pos, false ) end 
+            if track then
+              local new_item = CreateNewMIDIItemInProj( track, D_POSITION, D_POSITION + D_LENGTH )
+              local childtake = GetActiveTake(new_item)
+              SetMediaItemTakeInfo_Value( childtake, 'D_STARTOFFS',D_STARTOFFS )
+              SetMediaItemTakeInfo_Value( childtake, 'D_PLAYRATE',D_PLAYRATE ) 
+              SetMediaItemTakeInfo_Value( childtake, 'I_CUSTOMCOLOR',I_CUSTOMCOLOR ) 
+              SetMediaItemInfo_Value( new_item, 'B_LOOPSRC',B_LOOPSRC )  
+              local MIDIstring = ""
+              for i = 1, #tableEvents-1 do
+                
+                
+                
+                
+                if msg1:byte(2) ~= note then MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[i].offset, tableEvents[i].flags, '') goto nextevent end  
+                
+                if tableEvents[i].meta and tableEvents[i].meta.pitchcorection  then
+                  test = tableEvents[i].meta
+                  MIDIstring = MIDIstring..string.pack("i4BI4BBB", tableEvents[i].offset, tableEvents[i].flags, 3, 
+                    tableEvents[i].msg1:byte(1),
+                    tableEvents[i].meta.pitchcorection,
+                    tableEvents[i].msg1:byte(3))
+                 else
+                  if SYSEXMOD == true then -- alway print 64
+                    MIDIstring = MIDIstring..string.pack("i4BI4BBB", tableEvents[i].offset, tableEvents[i].flags, 3, 
+                      tableEvents[i].msg1:byte(1),
+                      64,
+                      tableEvents[i].msg1:byte(3))
+                   else
+                    MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[i].offset, tableEvents[i].flags, tableEvents[i].msg1)
+                  end
+                end
+                
+                
+                ::nextevent::
+              end
+              MIDIstring = MIDIstring..string.pack("i4Bs4", tableEvents[#tableEvents].offset, tableEvents[#tableEvents].flags, tableEvents[#tableEvents].msg1)
+              MIDI_SetAllEvts(childtake, MIDIstring)
+              MIDI_Sort(childtake)
+            end
+          end
+        end
+        
+        ::nextitem::
+      end
+      Undo_EndBlock2(DATA.proj, 'Explode MIDI bus take by note', 0xFFFFFFFF)
+    end
+    ]]
 --------------------------------------------------------------------------------  
   function DATA:Database_Load(sel_pad_only)
     if not EXT.UIdatabase_maps_current then return end
@@ -3197,6 +3707,109 @@ end
       TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.mod.visible', 0)
   end
   
+  --------------------------------------------------------------------------------  
+  function DATA:CollectDataInit_EnumeratePlugins()
+    local plugs_data = {
+      types = {},
+      vendors = {},
+    } 
+    for i = 1, 10000 do
+      local retval, name, ident = reaper.EnumInstalledFX( i-1 )
+      if not retval then break end
+      if name:match('i%:') then
+        local checkname=name
+          :gsub('%(x64%)','')
+          :gsub('%(x86%)','')
+        local vendor = checkname:match('%((.-)%)')
+        if not vendor or (vendor and vendor == '')then vendor = '[unknown]'end
+        fxtype = name:match('(.-)%:') or 'Other'
+        plugs_data.types[fxtype]=(plugs_data.types[fxtype] or 0) + 1
+        plugs_data.vendors[vendor]=(plugs_data.vendors[vendor] or 0) + 1
+        
+        plugs_data[#plugs_data+1] = {name = name, 
+                                     reduced_name = VF_ReduceFXname(name) ,
+                                     ident = ident,
+                                     vendor=vendor,
+                                     fxtype=fxtype,
+                                     }
+  
+      end                                   
+    end
+    DATA.installed_plugins = plugs_data
+  end
+  -------------------------------------------------------------------------------- 
+  function UI.draw_3rdpartyimport_context(note,drop_data) 
+    local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
+    local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
+    local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+    local is_instrument = (fx_namesrc:match('[%a]+i%:.*') or fx_namesrc:lower():match('synth')) and not (fx_namesrc: match('ReaSampl')or fx_namesrc:match('Macro'))
+    local fx_name = VF_ReduceFXname(fx_namesrc)
+    if retval and fx_name and is_instrument then
+      if ImGui.Button(ctx, fx_name,-1)then-- then--'Import ['..fx_name..'] as instrument'
+        DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
+        ImGui.CloseCurrentPopup(ctx) 
+      end   
+     else
+      ImGui.BeginDisabled(ctx,true) ImGui.Button(ctx, 'Import last touched FX as instrument',-1)ImGui.EndDisabled(ctx)
+    end
+    
+    ImGui.SetNextItemWidth( ctx,-100)
+    
+    
+    if ImGui.BeginMenu( ctx, 'Import 3rd party plugin', true ) then
+      
+      local cnt_com = #DATA.installed_plugins
+      
+      -- by type
+      reaper.ImGui_SeparatorText(ctx, 'By type')
+      for typestr in spairs(DATA.installed_plugins.types) do
+        local cnt = DATA.installed_plugins.types[typestr]
+        if ImGui.BeginMenu( ctx, typestr..' ('..cnt..')', true ) then 
+          for i = 1, cnt_com do
+            if DATA.installed_plugins[i].fxtype == typestr then 
+              local name = DATA.installed_plugins[i].name or 'untitled'
+              if name:match('%:(.*)') then name = name:match('%:(.*)') end
+              local retval, p_selected = reaper.ImGui_MenuItem( ctx, name..'##plug'..i..typestr )
+            end
+          end
+          ImGui.EndMenu( ctx)
+        end
+      end
+      
+      -- by vendor
+      reaper.ImGui_SeparatorText(ctx, 'By vendor')
+      for vendorstr in spairs(DATA.installed_plugins.vendors) do
+        local cnt = DATA.installed_plugins.vendors[vendorstr]
+        if ImGui.BeginMenu( ctx, vendorstr..' ('..cnt..')', true ) then 
+          for i = 1, cnt_com do
+            if DATA.installed_plugins[i].vendor == vendorstr then 
+              local name = DATA.installed_plugins[i].name or 'untitled'
+              local retval, p_selected = reaper.ImGui_MenuItem( ctx, name..'##plug'..i..vendorstr )
+            end
+          end
+          ImGui.EndMenu( ctx)
+        end
+      end
+      
+      -- enter
+      reaper.ImGui_SeparatorText(ctx, 'By entered name')
+      local retval, buf = reaper.ImGui_InputText( ctx, '##fxinput', '', ImGui.InputTextFlags_EnterReturnsTrue )
+      if retval then
+        local track = GetMasterTrack(-1) 
+        local fxidx = TrackFX_AddByName( track, buf, false, -1 )
+        if fxidx ~= -1 then
+          local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+          local fx_name = VF_ReduceFXname(fx_namesrc)
+          DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
+          ImGui.CloseCurrentPopup(ctx)
+        end
+      end
+      
+      
+      ImGui.EndMenu( ctx)
+    end
+    
+  end
   -----------------------------------------------------------------------  
   function DATA:Macro_InitChildrenMacro(child_mode, srct)
     --if DATA.parent_track.macro.valid == true and not child_mode then return end
@@ -4143,7 +4756,8 @@ end
     if note_t and note_t.layers then
       for layer = 1, #note_t.layers do
         local note_layer_t = note_t.layers[layer]
-        if note_layer_t.ISRS5K then TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, 11, 1 ) end
+        local obeynoteoff = TrackFX_GetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, 11 )
+        if note_layer_t.ISRS5K and obeynoteoff == 0 then TrackFX_SetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, 11, 1 ) end
       end
     end
   end
@@ -4189,6 +4803,8 @@ end
       DATA:MIDI_SysexHandler_fixmultiple(tr,sysex_handler)
     end
     
+    local midifilt_pos = TrackFX_AddByName( tr, 'midi_note_filter', false, 0) 
+    if midifilt_pos ~= 0 then reaper.TrackFX_CopyToTrack( tr, midifilt_pos, tr, 0, true ) end
     return true
   end  
   --------------------------------------------------------------------- 
@@ -4229,6 +4845,7 @@ end
     DATA:MIDI_SysexHandler_init(note) -- add sysex handler to child track
     Undo_EndBlock2(-1, 'Convert pad '..note..' to SysEx mode', 0xFFFFFFFF)
     
+    
     --DATA.upd = true
     
   end
@@ -4262,3 +4879,104 @@ end
     
   end
   
+  --------------------------------------------------------------------------------  
+  function UI.VDragInt(ctx, str_id, size_w, size_h, v, v_min, v_max, formatIn, flagsIn, floor, default, image)
+    
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,1) 
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,1, 1) 
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,1, 1)
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5)
+    ImGui.PushFont(ctx, DATA.font4) 
+    
+    local x,y = reaper.ImGui_GetCursorPos(ctx)
+    local v_out
+    local dx, dy = reaper.ImGui_GetMouseDelta( ctx )
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,size_h/2)
+    ImGui.PopStyleVar(ctx)
+    
+    ImGui.InvisibleButton( ctx, str_id, size_w, size_h, reaper.ImGui_ButtonFlags_None() )
+    local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+    local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+    if reaper.ImGui_IsItemActivated(ctx) then 
+      local x, y = reaper.ImGui_GetMousePos( ctx )
+      DATA.temp_VDragInt_y = y
+      DATA.temp_VDragInt_v = v
+      DATA.temp_VDragInt_str_id = str_id
+    end
+    if reaper.ImGui_IsItemActive(ctx) and DATA.temp_VDragInt_y and DATA.temp_VDragInt_v and DATA.temp_VDragInt_str_id == str_id then
+      local x, y = reaper.ImGui_GetMousePos( ctx )
+      local dy = DATA.temp_VDragInt_y - y
+      v_out = VF_lim(DATA.temp_VDragInt_v + dy/UI.dragY_res,v_min, v_max)
+      if floor then v_out = math.floor(v_out) end
+    end
+    if ImGui.IsItemHovered(ctx) then DATA.temp_ismousewheelcontrol_hovered = true end
+    if default and ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) then v_out = default dy = 1 end
+    local deact = ImGui.IsItemDeactivated(ctx)
+    local rightclick = ImGui.IsItemHovered(ctx) and ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Right)
+    local vertical, horizontal = ImGui.GetMouseWheel( ctx )
+    local mousewheel = ImGui.IsItemHovered(ctx) and vertical ~= 0
+    if mousewheel then mousewheel = math.abs(vertical)/vertical end
+      
+    ImGui.SetCursorPos(ctx,x,y)
+    
+    if formatIn then ImGui.Button(ctx, formatIn..str_id..'info',size_w, size_h) end
+  
+    
+    ImGui.PopFont(ctx) 
+    ImGui.PopStyleVar(ctx,4)
+    
+    -- prevent commit when mouse is not moving
+    if dy == 0 then return nil, nil,deact,rightclick,mousewheel end 
+    if v_out then return  true,v_out,deact,rightclick,mousewheel end
+  end
+  
+  ---------------------------------------------------------------------  
+  function UI.Drop_UI_interaction_pad(note) 
+    if note == -1 then
+      local starting_emptynote = 36
+      for i=starting_emptynote,127 do if not DATA.children[i] then 
+        note = i 
+        DATA.parent_track.ext.PARENT_LASTACTIVENOTE = note
+        DATA.temp_scroll_to_note = note
+        DATA:WriteData_Parent()
+        break 
+        end 
+      end
+    end
+    
+    -- validate is file or pad dropped
+    local retval, count = ImGui.AcceptDragDropPayloadFiles( ctx, 127, ImGui.DragDropFlags_None )
+    if retval then 
+      DATA.upd2.refreshscroll = 1 --UI.draw_Seq() refresh
+      local loop_success
+      if count == 1 then loop_success, do_not_share = DATA:Auto_LoopSlice(note, count) end
+      
+      if do_not_share == true then return end
+      
+      
+      -- import sample directly
+      if loop_success ~= true then
+      
+        Undo_BeginBlock2(DATA.proj )
+        for i = 1, count do 
+          local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, i-1 )
+          if not retval then return end  
+          DATA:DropSample(filename, note + i-1, {layer=1})
+        end 
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - drop samples to pads', 0xFFFFFFFF ) 
+      end
+        
+      
+     else
+      local retval, payload = reaper.ImGui_AcceptDragDropPayload( ctx, 'moving_pad', '', ImGui.DragDropFlags_None )-- accept pad drop
+      if retval and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then 
+        Undo_BeginBlock2(DATA.proj )
+        local retval, types, payload, is_preview, is_delivery = reaper.ImGui_GetDragDropPayload( ctx )
+        if retval and tonumber(payload)then 
+          DATA:Drop_Pad(tonumber(payload),note)  
+          gmem_write(1026,11|(DATA.parent_track.ext.PARENT_LASTACTIVENOTE<<8)|(note<<16))
+        end  
+        Undo_EndBlock2( DATA.proj , 'RS5k manager - move pad', 0xFFFFFFFF ) 
+      end 
+    end
+  end

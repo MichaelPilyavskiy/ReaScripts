@@ -6,34 +6,45 @@ options:gmem=RS5K_manager
 slider1:0<0,127,1>src
 
 @init
-
-
+pitch_correction = 0; 
+active_note = 0;
+val_rand = 0;
 @block
-    buf = 10000;
-    active_note = 0;
-    pitch_correction = 0;
+    buf = 0;
     probability = 1; 
     maxlen = 65536;
     while ((recvlen = midirecv_buf(offset,buf,maxlen)) > 0) (
        (recvlen >3 && buf[0]==$xF0 && buf[1]==$x60 && buf[2]==$x01 && buf[3] == slider1) ? (
+        
        // received sysex is F0 60 01 ...some_parameters.. F7
         pitch_correction = buf[4];
         probability = buf[5]/127; 
-       ) : (recvlen ==3 && (buf[0]&$x90==$x90 || buf[0]&$x80==$x80) && buf[1] == slider1 ) ? (
-        
-        // receive note 
-        pitch_correction == 0 ? pitch_correction = 64;
-        buf[1] = pitch_correction;
+       
+       // note ON
+       ) : (recvlen ==3 && buf[0]&$xF0==$x90 && buf[1] == slider1 ) ? (
+        outpitch = 64;
+        pitch_correction != 0 ? outpitch = pitch_correction;
+        buf[1] = outpitch;
         
         val_rand = rand(1);
-        buf[0]&$x90==$x90 && probability!=1 ? 
-        (
+        probability!=1 ? (
           val_rand < probability ? midisend_buf(offset,buf,recvlen);
          ) : ( 
-          midisend_buf(offset,buf,recvlen); // passthrough other events 
+          midisend(offset,$x90,outpitch,buf[2])
         );
+      
+       // note OFF
+       ) : (recvlen ==3 && buf[0]&$xF0==$x80 && buf[1] == slider1 ) ? ( 
+        outpitch = 64;
+        pitch_correction != 0 ? outpitch = pitch_correction;
+        buf[1] = outpitch;
         
-        
+        probability!=1 ? (
+          val_rand < probability ? midisend_buf(offset,buf,recvlen);
+         ) : ( 
+          midisend(offset,$x80,outpitch,0);
+        );
+        //midisend_buf(offset,buf,recvlen);
         
        )
     );

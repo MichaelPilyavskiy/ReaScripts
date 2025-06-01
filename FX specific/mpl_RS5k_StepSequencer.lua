@@ -1,10 +1,7 @@
 -- @description RS5k StepSequencer
--- @version 1.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @noindex
--- @changelog
---    + init
 
 
 reaper.set_action_options(1 )
@@ -16,7 +13,7 @@ reaper.set_action_options(1 )
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
     if app_vrs < 6.73 then return reaper.MB('This script require REAPER 6.73+','',0) end
-    local ImGui
+    --local ImGui
     
     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -212,6 +209,8 @@ reaper.set_action_options(1 )
             {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1},
             {param = 'steplen_override', str= 'Length',default=1, maxval = 4, minval = 0.1},
             {param = 'meta', str= 'Meta'},
+            {param = 'trackenv', str= 'Track'},
+            {param = 'trackFXenv', str= 'FX'},
           },
           
           seq_param_selector_metaID = 1,
@@ -220,9 +219,17 @@ reaper.set_action_options(1 )
             {param = 'meta_probability', str= 'Probability',default=1, minval = 0, maxval = 1},
           }, 
           
+          seq_param_selector_trackenvID = 1,
+          seq_param_selector_trackenv = {},
+          
+          seq_param_selector_trackFXenvID = 1,
+          seq_param_selector_trackFXenv = {},
+          
+          seq_functionscall = true,
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
           seq_UI_inlineH_area = 270,
+          seq_init_Yscroll = 0,
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
   
@@ -237,6 +244,7 @@ reaper.set_action_options(1 )
         font2sz=14,
         font3sz=13,
         font4sz=12,
+        font5sz=11,
       -- mouse
         hoverdelay = 0.8,
         hoverdelayshort = 0.5,
@@ -299,53 +307,6 @@ reaper.set_action_options(1 )
     UI.seq_maxstepcnt = 1024
     
   
-  ---------------------------------------------------------------------  
-  function UI.Drop_UI_interaction_pad(note) 
-    if note == -1 then
-      local starting_emptynote = 36
-      for i=starting_emptynote,127 do if not DATA.children[i] then 
-        note = i 
-        DATA.parent_track.ext.PARENT_LASTACTIVENOTE = note
-        gmem_write(1025,10 ) -- push a trigger to refresh Rack
-        DATA.temp_scroll_to_note = note
-        DATA:WriteData_Parent()
-        break 
-        end 
-      end
-    end
-    
-    -- validate is file or pad dropped
-    local retval, count = ImGui.AcceptDragDropPayloadFiles( ctx, 127, ImGui.DragDropFlags_None )
-    if retval then 
-      local loop_success
-      if count == 1 then loop_success, do_not_share = DATA:Auto_LoopSlice(note, count) end
-      
-      if do_not_share == true then return end
-      
-      
-      -- import sample directly
-      if loop_success ~= true then
-      
-        Undo_BeginBlock2(DATA.proj )
-        for i = 1, count do 
-          local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, i-1 )
-          if not retval then return end  
-          DATA:DropSample(filename, note + i-1, {layer=1})
-        end 
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - drop samples to pads', 0xFFFFFFFF ) 
-      end
-        
-      
-     else
-      local retval, payload = reaper.ImGui_AcceptDragDropPayload( ctx, 'moving_pad', '', ImGui.DragDropFlags_None )-- accept pad drop
-      if retval and DATA.parent_track.ext.PARENT_LASTACTIVENOTE then 
-        Undo_BeginBlock2(DATA.proj )
-        local retval, types, payload, is_preview, is_delivery = reaper.ImGui_GetDragDropPayload( ctx )
-        if retval and tonumber(payload)then DATA:Drop_Pad(tonumber(payload),note) end  
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - move pad', 0xFFFFFFFF ) 
-      end 
-    end
-  end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_Step(note_t, x0,y0)  
     if not note_t then return end 
@@ -486,7 +447,6 @@ reaper.set_action_options(1 )
       DATA.temp_holdmode_stepline = nil
       DATA.temp_holdmode_step = nil
       --DATA:_Seq_Print()
-      DATA.upd2.refresh = true
       DATA.upd2.seqprint = true
       --DATA.upd = true
       if DATA.parent_track.ext.PARENT_LASTACTIVENOTE~=DATA.temp_holdmode_note then 
@@ -531,7 +491,6 @@ reaper.set_action_options(1 )
        elseif not (DATA.seq.ext.children[active_note].steps[step].val and DATA.seq.ext.children[active_note].steps[step].val == out)  then  
         DATA.seq.ext.children[active_note].steps[step].val = out 
         local minor_change = true
-        DATA.upd2.refresh = true
         DATA.upd2.seqprint = true
         DATA.upd2.seqprint_minor = true
       end]]
@@ -541,7 +500,6 @@ reaper.set_action_options(1 )
         DATA.seq.ext.children[active_note].steps[step].val = out 
         local minor_change = true
         --DATA:_Seq_Print(nil, minor_change)
-        DATA.upd2.refresh = true
         DATA.upd2.seqprint = true
         DATA.upd2.seqprint_minor = minor_change
       end
@@ -558,56 +516,6 @@ reaper.set_action_options(1 )
     UI.Tools_unsetbuttonstyle()
     ImGui.PopFont(ctx) 
   end
-
---------------------------------------------------------------------------------  
-function UI.VDragInt(ctx, str_id, size_w, size_h, v, v_min, v_max, formatIn, flagsIn, floor, default, image)
-  
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,1) 
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,1, 1) 
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,1, 1)
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5)
-  ImGui.PushFont(ctx, DATA.font4) 
-  
-  local x,y = reaper.ImGui_GetCursorPos(ctx)
-  local v_out
-  local dx, dy = reaper.ImGui_GetMouseDelta( ctx )
-  ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,size_h/2)
-  ImGui.PopStyleVar(ctx)
-  
-  ImGui.InvisibleButton( ctx, str_id, size_w, size_h, reaper.ImGui_ButtonFlags_None() )
-  local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
-  local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
-  if reaper.ImGui_IsItemActivated(ctx) then 
-    local x, y = reaper.ImGui_GetMousePos( ctx )
-    DATA.temp_VDragInt_y = y
-    DATA.temp_VDragInt_v = v
-    DATA.temp_VDragInt_str_id = str_id
-  end
-  if reaper.ImGui_IsItemActive(ctx) and DATA.temp_VDragInt_y and DATA.temp_VDragInt_v and DATA.temp_VDragInt_str_id == str_id then
-    local x, y = reaper.ImGui_GetMousePos( ctx )
-    local dy = DATA.temp_VDragInt_y - y
-    v_out = VF_lim(DATA.temp_VDragInt_v + dy/UI.dragY_res,v_min, v_max)
-    if floor then v_out = math.floor(v_out) end
-  end
-  if default and ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) then v_out = default dy = 1 end
-  local deact = ImGui.IsItemDeactivated(ctx)
-  local rightclick = ImGui.IsItemHovered(ctx) and ImGui.IsMouseClicked(ctx, ImGui.MouseButton_Right)
-  local vertical, horizontal = ImGui.GetMouseWheel( ctx )
-  local mousewheel = ImGui.IsItemHovered(ctx) and vertical ~= 0
-  if mousewheel then mousewheel = math.abs(vertical)/vertical end
-    
-  ImGui.SetCursorPos(ctx,x,y)
-  
-  if formatIn then ImGui.Button(ctx, formatIn..str_id..'info',size_w, size_h) end
-
-  
-  ImGui.PopFont(ctx) 
-  ImGui.PopStyleVar(ctx,4)
-  
-  -- prevent commit when mouse is not moving
-  if dy == 0 then return nil, nil,deact,rightclick,mousewheel end 
-  if v_out then return  true,v_out,deact,rightclick,mousewheel end
-end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls(note_t)
     
@@ -771,7 +679,16 @@ end
         gmem_write(1025,10 ) -- push a trigger to refresh Rack
         ImGui.OpenPopup( ctx, 'note_seq_params'..note, ImGui.PopupFlags_None ) 
       end
-          
+      
+    -- LED database / defice
+      if DATA.children[note] then
+        local offs = 5
+        local ledyspace = 2
+        local sz = 4
+        local ledx= x1+offs--sz
+        local ledy= y1+offs 
+        if DATA.children[note].SYSEXMOD == true then                      ImGui.DrawList_AddRectFilled( UI.draw_list, ledx, ledy, ledx+sz, ledy+sz, 0xF0FF50FF, 0, ImGui.DrawFlags_None) ledy=ledy+offs+ledyspace end
+      end          
           
           
       UI.draw_Rack_Pads_controls_handlemouse(note_t,note, 'seq_pad')
@@ -857,6 +774,10 @@ end
     local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
     local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
     
+    local note = note_t.noteID
+    local parameter, maxval, minval, default_val, parameter_parent = UI.draw_Seq_ctrls_inline_getactiveparam()
+    
+    
       --reaper.ImGui_CloseCurrentPopup(ctx)
     if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) or ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) and not ImGui.IsKeyDown(ctx,ImGui.Mod_Alt) then
       local x, y = reaper.ImGui_GetMousePos( ctx )
@@ -868,12 +789,11 @@ end
     
     if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Left) and ImGui.IsKeyDown(ctx,ImGui.Mod_Alt) then 
       local x, y = reaper.ImGui_GetMousePos( ctx )
-      local x_norm = VF_lim((x-x1) / (x2-x1))
+      local x_norm = VF_lim((x-x1) / (x2-x1)) 
       local active_step = math.ceil(x_norm * UI.calc_seqW_steps_visible + DATA.seq.stepoffs)
-      local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
-      local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0 
-      local note = note_t.noteID
-      DATA.seq.ext.children[note].steps[active_step][parameter] = default
+      
+      DATA.seq.ext.children[note].steps[active_step][parameter] = default_val
+      DATA.seq.ext.children[note].steps[0][parameter] = 0
       DATA:_Seq_Print()
     end
     
@@ -891,6 +811,7 @@ end
         DATA.temp_seq_params.y1_norm = 1-VF_lim((DATA.temp_seq_params.y-y1) / (y2-y1))
         DATA.temp_seq_params.y2_norm = 1-VF_lim((y-y1) / (y2-y1)) 
         UI.draw_Seq_ctrls_inline_appstuff(note_t,ImGui.IsMouseDown( ctx, ImGui.MouseButton_Right )) 
+        
       end
     end
     
@@ -911,9 +832,9 @@ end
     
     -- fill ------------------------------------
     ImGui.SeparatorText(ctx, 'Fill')
-    if ImGui.Button(ctx,'Fill each 2 steps', butw_3x) then DATA:_Seq_Fill(note, '10000000') DATA:_Seq_Print() end 
-    if ImGui.Button(ctx,'Fill each 4 steps', butw_3x) then DATA:_Seq_Fill(note, '1000') DATA:_Seq_Print() end 
-    if ImGui.Button(ctx,'Fill each 8 steps', butw_3x) then DATA:_Seq_Fill(note, '10') DATA:_Seq_Print() end 
+    if ImGui.Button(ctx,'Fill each 2 steps', butw_3x) then DATA:_Seq_Fill(note, '10') DATA:_Seq_Print() end 
+    if ImGui.Button(ctx,'Fill each 4 steps', butw_3x) then DATA:_Seq_Fill(note, '1000') DATA:_Seq_Print() end  
+    if ImGui.Button(ctx,'Fill each 8 steps', butw_3x) then DATA:_Seq_Fill(note, '10000000') DATA:_Seq_Print() end 
     
     -- tools ------------------------------------
     ImGui.SeparatorText(ctx, 'Steps')
@@ -1119,7 +1040,6 @@ OFF:
     ImGui.PopStyleVar(ctx)
     
   end
-  
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls_inline_drawstuff(note_t, posx, posy)
     
@@ -1127,18 +1047,36 @@ OFF:
     local note = note_t.noteID
     local harea = DATA.seq_UI_inlineH_area
     
+    local parameter, maxval, minval, default_val, parameter_parent = UI.draw_Seq_ctrls_inline_getactiveparam()
+    
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local default_val = DATA.seq_param_selector[DATA.seq_param_selectorID].default 
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
-    
-    -- handle meta
     local parameter_parent = parameter
+    
+    -- handle meta 
     if parameter == 'meta' then
       parameter = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].param
       default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
       maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
       minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
+    end
+    
+    -- handle trackenv
+    if parameter == 'trackenv' and DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID]  then
+      parameter = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].param
+      default_val = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].default 
+      maxval = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].maxval  or 1
+      minval = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].minval  or 0
+    end
+    
+    -- handle trackenv
+    if parameter == 'trackFXenv' and DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID]  then
+      parameter = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].param
+      default_val = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].default 
+      maxval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].maxval  or 1
+      minval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].minval  or 0
     end
     
     -- work area
@@ -1205,6 +1143,36 @@ It also used for advanced sequencing parameters.
       end
     end
      
+    if parameter_parent == 'trackenv' then
+      ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
+      if ImGui.BeginTabBar( ctx, 'paraminlinetabs_trackenv', ImGui.TabItemFlags_None|ImGui.TabBarFlags_FittingPolicyResizeDown ) then
+        for i = 1, #DATA.seq_param_selector_trackenv do
+          local formatIn = DATA.seq_param_selector_trackenv[i].str
+          if ImGui.BeginTabItem( ctx, formatIn..'##inlinetabs_trackenv', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selector_trackenvID = i  ImGui.EndTabItem( ctx)  end 
+        end
+        ImGui.EndTabBar( ctx)
+      end
+    end
+    
+    if parameter_parent == 'trackFXenv' then
+      ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
+      if ImGui.Button(ctx, '+ Add last touched') then 
+        DATA:_Seq_AddLastTouchedFX() 
+      end
+      ImGui.SameLine(ctx)
+      local preview = ''
+      if DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID] then
+        preview = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].str
+      end
+      if ImGui.BeginCombo( ctx, '##paraminlinetabs_trackFXenvcomb', preview, reaper.ImGui_ComboFlags_None() ) then
+        for i = 1, #DATA.seq_param_selector_trackFXenv do
+          local formatIn = DATA.seq_param_selector_trackFXenv[i].str
+          if ImGui.Selectable( ctx, formatIn..'##inlinetabs_trackFXenv', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selector_trackFXenvID = i  end 
+        end
+        ImGui.EndCombo( ctx )
+      end
+    end
+    
     
     -- STEPS
     local stepw = UI.seq_stepW
@@ -1232,7 +1200,7 @@ It also used for advanced sequencing parameters.
         local stepcol = stepcol_1
         if (step-1)%8> 3 then stepcol = stepcol_2 end
         local activestep = step 
-        if DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].val and DATA.seq.ext.children[note].steps[activestep].val == 1 then 
+        if DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].val and DATA.seq.ext.children[note].steps[activestep].val == 1 and default_val then 
           local val = default_val
           if DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep][parameter] then val = DATA.seq.ext.children[note].steps[activestep][parameter] end 
           local xpos = x1 + (stepw) * (step-1-DATA.seq.stepoffs)
@@ -1240,10 +1208,19 @@ It also used for advanced sequencing parameters.
           local val_norm = (val - minval) / (maxval - minval)
           local ypos = y1
           
+          local istrackpanenv = 
+              (DATA.seq_param_selectorID ==6 
+                and DATA.seq_param_selector_trackenvID 
+                and DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].param 
+                and DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].param == 'env_pan'
+               )
+          
           if    DATA.seq_param_selectorID == 1 -- velocity
             or  DATA.seq_param_selectorID == 3 -- split
             or  DATA.seq_param_selectorID == 4 -- len
-            or  (DATA.seq_param_selectorID == 5 and DATA.seq_param_selector_metaID == 2) -- meta_probability
+            or  (DATA.seq_param_selectorID == 5 and DATA.seq_param_selector_metaID == 2) -- meta_probability 
+            or  (DATA.seq_param_selectorID == 6 and istrackpanenv ~= true)-- track env
+            or  DATA.seq_param_selectorID == 7-- track env
             then 
             
             hstep = (y2-y1)*val_norm
@@ -1252,6 +1229,7 @@ It also used for advanced sequencing parameters.
            elseif 
                 DATA.seq_param_selectorID == 2  -- offset
             or  (DATA.seq_param_selectorID == 5 and DATA.seq_param_selector_metaID == 1) -- meta_pitch 
+            or  istrackpanenv == true
             then
             if val_norm > 0.5 then 
               ypos1 = y1 + hstep_half - hstep_half* (val_norm-0.5)*2
@@ -1283,32 +1261,68 @@ It also used for advanced sequencing parameters.
              txt=math_q(val-64)    
            elseif DATA.seq_param_selectorID ==5 and DATA.seq_param_selector_metaID ==2 then --meta_probability
              txt=math.floor(val*100)..'%'  
+           elseif (DATA.seq_param_selectorID == 6  and istrackpanenv ~= true) then --track env
+             txt=math.floor(val*100)..'%'      
+           elseif istrackpanenv == true then --track pan
+             if val > 0 then txt= math.floor(val*100)..'R'               
+               elseif val < 0 then txt= math.floor(-val*100)..'L'               
+               elseif val == 0 then txt='C'
+             end
+           elseif DATA.seq_param_selectorID ==7 then --fx
+             txt=math.floor(val*100)..'%'               
           end
           mousediff = VF_lim(255-math.floor(math.abs(mousex-xpos) ),0,255)--+ math.abs(mousey-ypos)
-          ImGui.DrawList_AddText( UI.draw_list, xpos, txyy, 0xFFFFFF00|mousediff, txt )
+          
+          ImGui.PushFont(ctx, DATA.font5) 
+          ImGui.DrawList_AddText( UI.draw_list, xpos, txyy, 0xFFFFFF00|mousediff, txt ) 
+          ImGui.PopFont(ctx) 
         end
       end
       
   end
   --------------------------------------------------------------------------------  
-  function UI.draw_Seq_ctrls_inline_appstuff(note_t, rightbutton)
-    local note = note_t.noteID
-    
+  function UI.draw_Seq_ctrls_inline_getactiveparam()
     -- define min/max
-    local patlen = DATA.seq.ext.patternlen
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval or 0 
-    local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0 
+    local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0  
+    local parameter_parent = parameter
     
     -- handle meta
-    local parameter_parent = parameter
-    if parameter == 'meta' then
+    if parameter_parent == 'meta' then
       parameter = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].param
       default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
       maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
       minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
     end
+    
+    -- handle trackenv
+    if parameter_parent == 'trackenv' and DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID] then
+      parameter = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].param
+      default_val = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].default 
+      maxval = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].maxval  or 1
+      minval = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].minval  or 0
+    end
+    
+    -- handle trackFXenv
+    if parameter_parent == 'trackFXenv' and DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID] then
+      parameter = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].param
+      default_val = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].default 
+      maxval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].maxval  or 1
+      minval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].minval  or 0
+    end 
+    
+    return parameter, maxval, minval, default, parameter_parent
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_Seq_ctrls_inline_appstuff(note_t, rightbutton)
+    local note = note_t.noteID 
+    local patlen = DATA.seq.ext.patternlen
+    local parameter, maxval, minval, default_val, parameter_parent = UI.draw_Seq_ctrls_inline_getactiveparam()
+    
+   
+    
     
     -- patch for missing sysex_handler JSFX
     local misiingsysex = 
@@ -1343,6 +1357,9 @@ It also used for advanced sequencing parameters.
       local out = DATA.temp_seq_params.y2_norm
       out = out* (maxval - minval)  + minval
       DATA.seq.ext.children[note].steps[active_step][parameter] = VF_lim(out, minval,maxval)
+      -- preint step 0 for extended features
+      if not DATA.seq.ext.children[note].steps[0] then DATA.seq.ext.children[note].steps[0] = {} end
+      DATA.seq.ext.children[note].steps[0][parameter] = 0
     end
     
     -- right click to set area
@@ -1358,16 +1375,27 @@ It also used for advanced sequencing parameters.
           if invert ==true then out = out2 + (out1- out2) * scale end
           out = out* (maxval - minval)  + minval
           DATA.seq.ext.children[note].steps[step][parameter] = VF_lim(out, minval,maxval)
+          -- preint step 0 for extended features
+          if not DATA.seq.ext.children[note].steps[0] then DATA.seq.ext.children[note].steps[0] = {} end
+          DATA.seq.ext.children[note].steps[0][parameter] = 0
         end
        else
         local out = DATA.temp_seq_params.y2_norm
         out = out* (maxval - minval)  + minval
         DATA.seq.ext.children[note].steps[active_step][parameter] = VF_lim(out, minval,maxval)
+        -- preint step 0 for extended features
+        if not DATA.seq.ext.children[note].steps[0] then DATA.seq.ext.children[note].steps[0] = {} end
+        DATA.seq.ext.children[note].steps[0][parameter] = 0
+        
       end
     end
      
+    
     DATA:_Seq_Print(nil, true) 
-    if parameter == 'steplen_override' then DATA:Action_SetObeyNoteOff(note) end
+    
+    
+    -- enable obey note off is tweaking step length
+    if parameter_parent == 'steplen_override' then DATA:Action_SetObeyNoteOff(note) end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_startup() 
@@ -1378,9 +1406,9 @@ It also used for advanced sequencing parameters.
             1. Select MIDI item placed in RS5k manager MIDI bus track. Or create it:]]) --ImGui.SameLine(ctx) 
             ImGui.Dummy(ctx,30,0) ImGui.SameLine(ctx)
             if ImGui.Button(ctx, 'Insert new pattern') then 
-              Undo_BeginBlock2(-1)
+              Undo_BeginBlock2(DATA.proj)
               DATA:_Seq_Insert() 
-              Undo_EndBlock2(-1, 'Insert new pattern', 0xFFFFFFFF)
+              Undo_EndBlock2(DATA.proj, 'Insert new pattern', 0xFFFFFFFF)
               DATA.upd = true
             end
             
@@ -1452,6 +1480,8 @@ It also used for advanced sequencing parameters.
   end
     -------------------------------------------------------------------------------- 
   function UI.draw_Seq()   
+    local mdx, mdy = reaper.ImGui_GetMouseDelta( ctx )
+    if mdx ~= 0 and mdy ~=0 then DATA.temp_ismousewheelcontrol_hovered = nil end -- reset on move
     local ctrls_w = 100
     -- startup
       if not (DATA.parent_track and DATA.parent_track.valid == true and DATA.seq and DATA.seq.valid == true and DATA.seq.tk_ptr ) then
@@ -1485,6 +1515,11 @@ It also used for advanced sequencing parameters.
       if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then DATA:_Seq_Print() end
       
       if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then ImGui.OpenPopup( ctx, 'patterlen', ImGui.PopupFlags_None )  end
+      
+      -- mousewheel
+      local vertical, horizontal = ImGui.GetMouseWheel( ctx )
+      local mousewheel = ImGui.IsItemHovered(ctx) and vertical ~= 0
+      if mousewheel then mousewheel = math.abs(vertical)/vertical end 
       if mousewheel then
         if mousewheel > 0 then DATA.seq.ext.patternlen = VF_lim(DATA.seq.ext.patternlen * 2,1,UI.seq_maxstepcnt) else DATA.seq.ext.patternlen = VF_lim(math.floor(DATA.seq.ext.patternlen / 2),1,UI.seq_maxstepcnt) end
         DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen) 
@@ -1525,22 +1560,6 @@ It also used for advanced sequencing parameters.
     local retval, v = ImGui.DragDouble    ( ctx, '##Swing_pat', DATA.seq.ext.swing, 0.001, 0, 1, 'Swing '..math.floor(DATA.seq.ext.swing*100)..'%%', reaper.ImGui_SliderFlags_None() ) 
     if retval then DATA.seq.ext.swing = v end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then DATA:_Seq_Print() end
     
-    
-    --[[ drop sample
-    
-    ImGui.Button( ctx, '[drop sample]', UI.seq_padnameW)
-    --[[if ImGui.BeginDragDropTarget( ctx ) then  
-      UI.Drop_UI_interaction_pad(-1) 
-      DATA.upd = true
-      ImGui_EndDragDropTarget( ctx )
-    end]]
-    
-    --[[if ImGui.BeginTabBar( ctx, 'tabsbar_sseq', ImGui.TabItemFlags_None ) then
-      if ImGui.BeginTabItem( ctx, 'Seq', false, ImGui.TabItemFlags_None ) then  ImGui.EndTabItem( ctx)  end 
-      
-      ImGui.EndTabBar( ctx)
-    end
-    ]]
     ImGui.SetCursorPosX(ctx,UI.calc_seqXL_padname+UI.spacingX*3 + UI.seq_padnameW)
      
     
@@ -1558,23 +1577,23 @@ It also used for advanced sequencing parameters.
     local xA,yA = ImGui.GetCursorScreenPos(ctx)
     UI.draw_Seq_StepProgress(xL,yL, xA+UI.calc_seqXL_steps,yA) 
     
-    
     local flagscroll = 0
-    if UI.anypopupopen == true then flagscroll = ImGui.WindowFlags_NoScrollWithMouse end
+    if UI.anypopupopen == true or DATA.temp_ismousewheelcontrol_hovered == true then flagscroll = ImGui.WindowFlags_NoScrollWithMouse end
     if ImGui.BeginChild( ctx, 'seq', 0, -UI.spacingY-UI.scrollbarsz, ImGui.ChildFlags_None|ImGui.ChildFlags_Border, ImGui.WindowFlags_None|flagscroll ) then-- --|ImGui.WindowFlags_MenuBar |ImGui.ChildFlags_Border  ---UI.calc_itemH - 
       
       ImGui.Dummy(ctx,0,UI.spacingY)
       
-      function __f_seq_main() end
+      -- ascending order
       local note_start = 127
       local note_end = 0
       local incr = -1
-      
       if EXT.CONF_seq_instrumentsorder == 1 then
         note_start = 0
         note_end = 127
         incr = 1
       end
+      
+      -- loop notes
       for note = note_start,note_end,incr  do
         if DATA.children[note] then 
           if ImGui.BeginChild( ctx, 'seqchildnote'..note, 0, 0,ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeY) then   --|ImGui.ChildFlags_Border 
@@ -1586,6 +1605,29 @@ It also used for advanced sequencing parameters.
           end
         end
       end
+      
+      -- handle refresh after drop @ UI.Drop_UI_interaction_pad(note) 
+      if DATA.upd2.refreshscroll then  
+        if DATA.upd2.refreshscroll == 1 then 
+          DATA.upd2.refreshscroll = DATA.upd2.refreshscroll + 1 -- forward next frame
+         elseif DATA.upd2.refreshscroll == 2 then 
+          if EXT.CONF_seq_instrumentsorder == 0 then
+            ImGui.SetScrollY( ctx, 0) 
+           else
+            ImGui.SetScrollY( ctx, ImGui.GetScrollMaxY( ctx )+4000) 
+          end
+          DATA.upd2.refreshscroll = nil 
+        end 
+      end
+      
+      -- seq_init_Yscroll
+      if DATA.seq_init_Yscroll == 0 then
+        DATA.seq_init_Yscroll  = DATA.seq_init_Yscroll  + 1 -- forward next frame
+       elseif DATA.seq_init_Yscroll == 1 then
+        if EXT.CONF_seq_instrumentsorder == 0 then ImGui.SetScrollY( ctx, ImGui.GetScrollMaxY( ctx )+4000)  end
+        DATA.seq_init_Yscroll = 2
+      end
+      
       
       ImGui.EndChild( ctx)
     end
@@ -1841,6 +1883,7 @@ It also used for advanced sequencing parameters.
     DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
     DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
     DATA.font4 = ImGui.CreateFont(UI.font, UI.font4sz) ImGui.Attach(ctx, DATA.font4)  
+    DATA.font5 = ImGui.CreateFont(UI.font, UI.font5sz) ImGui.Attach(ctx, DATA.font5)  
      
     -- config
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
@@ -2353,7 +2396,7 @@ It also used for advanced sequencing parameters.
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
     UI.MAIN_definecontext() 
     DATA:CollectDataInit_LoadCustomPadStuff()
-    
+    DATA:CollectDataInit_EnumeratePlugins()
   end   
        
   _main()
