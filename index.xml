@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7c2a90bcf5a2ee00921698162464b2f221abc131" name="MPL Scripts">
+<index version="1" commit="7115e5dff59652906a383094cdc3bb08aee1f298" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14649,6 +14649,15 @@ various fixes]]></changelog>
       <version name="3.17" author="MPL" time="2025-05-23T20:21:45Z">
         <changelog><![CDATA[# fix input error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c88f05d313247be6790ec46c68b1349fcab6a15a/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.18" author="MPL" time="2025-06-01T17:34:46Z">
+        <changelog><![CDATA[# improve sizing policy, add compact mode
+# fix logic around left side sends combo list
+- VCA: remove all obsolete VCA stuff
++ VCA: add support for VCA-style separate fader, press V to open
++ VCA: support to control both receives and sends depending on mode
++ VCA: support to lock track from VCA control, use menu on track controls]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7115e5dff59652906a383094cdc3bb08aee1f298/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
