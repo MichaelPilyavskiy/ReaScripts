@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fab9a1b6d2646047999b6d0d27371b861c8e8149" name="MPL Scripts">
+<index version="1" commit="7c2a90bcf5a2ee00921698162464b2f221abc131" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6708,6 +6708,46 @@
         <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fab9a1b6d2646047999b6d0d27371b861c8e8149/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
         <source type="effect" file="mpl_RS5K_manager_sysex_handler.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fab9a1b6d2646047999b6d0d27371b861c8e8149/FX%20specific/mpl_RS5K_manager_sysex_handler.jsfx</source>
         <source file="mpl_RS5K_manager_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fab9a1b6d2646047999b6d0d27371b861c8e8149/FX%20specific/mpl_RS5K_manager_functions.lua</source>
+      </version>
+      <version name="4.58" author="MPL" time="2025-06-01T13:50:55Z">
+        <changelog><![CDATA[# rename Settings/Colors to 'Theming'
+# Settings/Theming: add reset buttons
++ StepSequencer: reset Y scroll at drop on pad follow ordering
++ StepSequencer: display sysex mode LED
++ StepSequencer: init scroll from bottom if ascending order is OFF 
++ StepSequencer/Inline/Track: add support for track pan
++ StepSequencer/Inline/Track: add support for track sends volume
++ StepSequencer/Inline/FX: add support for FX parametes
++ StepSequencer: write undo point at major pattern change
+# StepSequencer/Inline/Length: do not refresh state when change obey note off
+# StepSequencer: fix mousewheel scrolling dragint values/page collisions
+# StepSequencer: fix obey step length with meta events (require pattern refresh)
+# StepSequencer: fix flipped 2 and 8 fill
+# StepSequencer: reduce step length by 1 ppq for better sysex reading
+# ExternalActions: make sure StepSequencer is restricted
+# Peformance: make sure RS5k manager is restricted to read seq data
+# inherrit obeying note off from existing pad if replacing
+# Actions/Explode MIDI Bus take: overhaul
++ Actions/Explode MIDI Bus take: support converting RS5k sequencer sysex to output notes
++ Actions/Explode MIDI Bus take: bypass sysex_handler JSFX after explode for childs in sysex mode
++ Actions/Explode MIDI Bus take: bypass midi_note_filter JSFX after explode for childs in sysex mode
++ 3rd party: add menu enumerating installed plugins by type and vendor
++ 3rd party: when turn into sysex mode, move note filter above sysex handler
+# sysex_handler JSFX: various fixes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_StepSequencer.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_StepSequencer.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_sysex_handler.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5K_manager_sysex_handler.jsfx</source>
+        <source file="mpl_RS5K_manager_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c2a90bcf5a2ee00921698162464b2f221abc131/FX%20specific/mpl_RS5K_manager_functions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
