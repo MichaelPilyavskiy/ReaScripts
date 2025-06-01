@@ -1,12 +1,18 @@
 ﻿-- @description SendFader
--- @version 3.17
+-- @version 3.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix input error
+--    # improve sizing policy, add compact mode
+--    # fix logic around left side sends combo list
+--    - VCA: remove all obsolete VCA stuff
+--    + VCA: add support for VCA-style separate fader, press V to open
+--    + VCA: support to control both receives and sends depending on mode
+--    + VCA: support to lock track from VCA control, use menu on track controls
 
 
-    vrs = 3.17
+
+    vrs = 3.18
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -35,7 +41,6 @@
           
           CONF_showpeaks = 1,
           --CONF_autoadjustwidth = 0,
-          CONF_showselection = 0,
           CONF_allowreceivefader_mode = 1,  -- &2 = allow show send list in receive mode
           CONF_allowsametrackmultsends = 0,
         }
@@ -58,7 +63,9 @@
             '-6',
             '0',
             '+12',
-            } 
+            } ,
+          VCA_faderval = 1,
+          
           }
           
   -------------------------------------------------------------------------------- INIT UI locals
@@ -84,6 +91,7 @@
               textcol_a_disabled = 0.5,
               but_hovered = 0x878787,
               windowBg = 0x303030,
+              col_green = 0x00B300,
           }
       UI.fader_scale_limratio = 0.8 
       UI.fader_scale_coeff = 30      
@@ -92,6 +100,9 @@
       UI.faderW = 70
       UI.GrabMinSize = 20
       UI.peaks_cnt = 4
+      UI.compactmodeH = 350 
+      UI.minsizeW = UI.faderW+UI.spacingX*4
+      UI.minsizeW2 = UI.faderW*2+UI.spacingX*8
       
       
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
@@ -193,8 +204,9 @@
     UI.pushcnt_col = 0
   end 
   -------------------------------------------------------------------------------- 
-  function UI.MAIN_styledefinition(open)  
+  function UI.MAIN_styledefinition(open)   
     
+    local w_min,h_min = UI.minsizeW, 250
     -- window_flags
       local window_flags = ImGui.WindowFlags_None
       --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
@@ -259,8 +271,10 @@
         ImGui.PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
         
         ImGui.PushStyle('Col_SliderGrab',0x3D85E0 , 0.6)  
+        ImGui.PushStyle('Col_SliderGrabActive',0x3D85E0 , 1)  
         if DATA.selected_track_is_receive == true then  
           ImGui.PushStyle('Col_SliderGrab',0x00B300 , 0.6)
+          ImGui.PushStyle('Col_SliderGrabActive',0x00B300 , 1)
         end
         
         
@@ -305,11 +319,13 @@
         local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
         UI.calc_itemH = calcitemh + frameh * 2
         UI.calc_trnamew = DATA.display_w - UI.menubutw*2
-        UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*8-UI.spacingY*13
-        if EXT.CONF_showselection == 1 then
-          UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*9-UI.spacingY*14
-        end
+        UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*8-UI.spacingY*8-UI.spacingY*5
         UI.calc_comboW = math.floor(UI.faderW - UI.spacingY*2)/2
+        
+        if DATA.display_h < UI.compactmodeH then 
+          UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*1-UI.spacingY*3
+        end
+        
       -- draw stuff
         UI.draw()
         ImGui.Dummy(ctx,0,0) 
@@ -325,8 +341,9 @@
       -- cnt popups 
       local ppupcnt = 0 
       for key in pairs(UI.popups) do  ppupcnt = ppupcnt + 1 end 
-      if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then  if ppupcnt == 0 then return else ImGui.CloseCurrentPopup( ctx ) UI.popups = {} end end
-    
+      if ImGui.IsKeyPressed(  ctx, ImGui.Key_Escape,false )   then  if ppupcnt == 0 then return else ImGui.CloseCurrentPopup( ctx ) UI.popups = {} end end 
+      
+      
       return open
   end
   -----------------------------------------------------
@@ -389,8 +406,6 @@
       local ret, destName  = reaper.GetTrackName( srcPtr ) 
       local destCol  = GetTrackColor( destPtr ) 
       
-      local retval, ext_vcasel = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:vcasel_source', '', false )
-      ext_vcasel = tonumber(ext_vcasel) or 0
       
       local automode = GetTrackAutomationMode( srcPtr )
       local automode_global = GetGlobalAutomationOverride()
@@ -400,9 +415,11 @@
         if automode_global ~= -1 and automode_global > 0 then automode = automode_global end 
       end
       
+      
+      local retval, VCALOCK =GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
+      
       DATA.srctr.receives[id] = {
             sendidx=sendidx_from_src,
-            sendidx_vcacheck = sendidx-1,
             
             vol=vol, 
             B_MUTE =B_MUTE,
@@ -423,7 +440,7 @@
             destCol=destCol,
             peaks = {},
             
-            ext_vcasel = ext_vcasel,
+            VCALOCK=VCALOCK,
             
             automode_follow=automode_follow,
             automode_env = DATA:CollectData_GetEnv(tr,destPtr),
@@ -487,8 +504,9 @@
       local destCol  = GetTrackColor( destPtr ) 
       local id = #DATA.srctr.sends+1
       
-      local retval, ext_vcasel = GetSetMediaTrackInfo_String( destPtr, 'P_EXT:vcasel', '', false )
-      ext_vcasel = tonumber(ext_vcasel) or 0
+      
+      local retval, VCALOCK = reaper.GetSetMediaTrackInfo_String( destPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
+      
       
       local automode = GetTrackAutomationMode( tr )
       local automode_global = GetGlobalAutomationOverride()
@@ -502,7 +520,6 @@
             
             srcPtr = DATA.srctr.ptr,
             sendidx=sendidx-1,
-            sendidx_vcacheck = sendidx-1,
             
             vol=vol, 
             B_MUTE =B_MUTE,
@@ -522,7 +539,7 @@
             destCol=destCol,
             peaks = {},
             
-            ext_vcasel = ext_vcasel,
+            VCALOCK = VCALOCK,
             
             automode_follow=automode_follow,
             automode_env = DATA:CollectData_GetEnv(tr,destPtr),
@@ -824,133 +841,198 @@
     end
   end
   --------------------------------------------------------------------------------  
-  function UI.draw_menu()  
-    if ImGui.BeginMenuBar( ctx ) then  
-      
-      if DATA.srctr.ptr and ImGui.Selectable( ctx,  DATA.srctr.name,false, ImGui.SelectableFlags_None, UI.calc_trnamew, 0 )then  end
-      
-      if EXT.CONF_alwaysshowreceives==0 and DATA.srctr and DATA.srctr.ptr then 
-        if ImGui.BeginMenu( ctx, 'Add', true ) then
-          for i = 1, #DATA.receives do
-            if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
-              CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
-              DATA.upd = true 
-            end
-          end
-          if #DATA.receives == 0 then 
-            ImGui.MenuItem( ctx, '[not found, see options]', '', false, true )
-          end
-          ImGui.EndMenu( ctx)
-        end
-       else
-        ImGui.Dummy(ctx, 27,0)
-      end
-      
-      
-      -- solo source
-      if DATA.srctr and DATA.srctr.UIsolotxt then 
-        if ImGui.MenuItem( ctx, DATA.srctr.UIsolotxt, '', DATA.srctr and DATA.srctr.solo > 0, true ) then 
-          local tr = DATA.srctr.ptr
-          if DATA.srctr.solo==0 then 
-            SetMediaTrackInfo_Value( tr, 'I_SOLO', 4 ) 
-            SetTrackUISolo( tr, 4, 2 )
-           else 
-            SetMediaTrackInfo_Value( tr, 'I_SOLO', 0 ) 
-            SetTrackUISolo( tr,0, 2 )
-          end 
-          TrackList_AdjustWindows( false )
+  function UI.draw_menu_add() 
+    if not(DATA.srctr and DATA.srctr.ptr) then return end
+    
+    if ImGui.BeginMenu( ctx, '+ ['..DATA.srctr.name..']', true ) then
+      for i = 1, #DATA.receives do
+        if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
+          CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
           DATA.upd = true 
         end
       end
-      if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then
-        local tr = DATA.srctr.ptr
-        local solod  = GetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT' ) 
-        SetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT', solod~1 ) 
-        TrackList_AdjustWindows( false )
-        DATA.upd = true 
+      if #DATA.receives == 0 then 
+        ImGui.MenuItem( ctx, '[not found, see options]', '', false, true )
       end
+      --reaper.ImGui_Separator(ctx)
+      --if ImGui.MenuItem( ctx, 'VCA', 'V', false, true ) then ImGui.OpenPopup(ctx, 'vcapopup', ImGui.PopupFlags_None) end
       
-      
-      
-      
-      
-      --if ImGui.Selectable( ctx,  'Options', false, ImGui.SelectableFlags_None, UI.menubutw, 0 ) then
-      if ImGui.BeginMenu( ctx, 'Options', true ) then
-        ImGui.SeparatorText(ctx, 'Add send definition')
-        if ImGui.MenuItem( ctx, 'Show sends that marked as sends in SendFader', '', EXT.CONF_marksendint==1, true ) then EXT.CONF_marksendint=EXT.CONF_marksendint~1 EXT:save() DATA.upd = true end
-        if EXT.CONF_marksendint==1 then 
-          ImGui.Indent(ctx, UI.indent_menu)
-          if ImGui.Button( ctx, '[Action] Mark selected tracks as receives',-1) then DATA:MarkSelectedTracksAsSend(1) DATA.upd = true end
-          if ImGui.Button( ctx, '[Action] Unmark selected tracks as receives',-1) then DATA:MarkSelectedTracksAsSend(0) DATA.upd = true end
-          ImGui.Unindent(ctx, UI.indent_menu)
-        end
-        if ImGui.MenuItem( ctx, 'Show sends match words', '', EXT.CONF_marksendwordsmatch==1, true ) then EXT.CONF_marksendwordsmatch=EXT.CONF_marksendwordsmatch~1 EXT:save() DATA.upd = true end
-        if EXT.CONF_marksendwordsmatch==1 then 
-          ImGui.Indent(ctx, UI.indent_menu)
-          local retval, buf = ImGui.InputText( ctx, 'Send names CSV', EXT.CONF_definebyname, ImGui.InputTextFlags_EnterReturnsTrue )
-          if retval then 
-            if buf == '' then buf = '[none]' end
-            EXT.CONF_definebyname = buf 
-            EXT:save() 
-            DATA.upd = true 
-          end
-          ImGui.Unindent(ctx, UI.indent_menu)
-        end 
-        if ImGui.MenuItem( ctx, 'Show sends with parent folder match words', '', EXT.CONF_marksendparentwordsmatch==1, true ) then EXT.CONF_marksendparentwordsmatch=EXT.CONF_marksendparentwordsmatch~1 EXT:save() DATA.upd = true end
-        if EXT.CONF_marksendparentwordsmatch==1  then 
-          ImGui.Indent(ctx, UI.indent_menu)
-          local retval, buf = ImGui.InputText( ctx, 'Folder names CSV', EXT.CONF_definebygroup, ImGui.InputTextFlags_EnterReturnsTrue )
-          if retval then 
-            if buf == '' then buf = '[none]' end
-            EXT.CONF_definebygroup = buf 
-            EXT:save() 
-            DATA.upd = true 
-          end
-          ImGui.Unindent(ctx, UI.indent_menu)
-        end
-        ImGui.SeparatorText(ctx, 'Other')
-        if ImGui.MenuItem( ctx, 'Show peaks', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
-        
-        local t = {
-          [1] = 'Hide',
-          [0] = 'List',
-          [2] = 'Combo',
-        }
-        local preview_value = 'Marked receives view: '..t[EXT.CONF_alwaysshowreceives]
-        if ImGui.BeginCombo( ctx, '##Marked receives', preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then 
-          for val in pairs(t ) do 
-            if ImGui.Selectable( ctx, t[val]..'##markreccombo'..val, val == EXT.CONF_alwaysshowreceives, ImGui.SelectableFlags_None) then EXT.CONF_alwaysshowreceives=val EXT:save() DATA.upd = true end
-          end
-          ImGui.EndCombo( ctx)
-        end
-        --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Show VCA selection marks', '', EXT.CONF_showselection==1, true ) then EXT.CONF_showselection=EXT.CONF_showselection~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&1==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
-        if EXT.CONF_allowreceivefader_mode&1==1 then 
-          if ImGui.MenuItem( ctx, 'Allow show sends in ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&2==2, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~2 EXT:save() DATA.upd = true end
-        end
-        if ImGui.MenuItem( ctx, 'Allow multiple sends to the same track', '', EXT.CONF_allowsametrackmultsends&1==1, true ) then EXT.CONF_allowsametrackmultsends=EXT.CONF_allowsametrackmultsends~1 EXT:save() DATA.upd = true end
-        
-        
-        ImGui.EndMenu( ctx)
-      end
-      
-      ImGui.EndMenuBar( ctx )
+      ImGui.EndMenu( ctx)
     end
-    
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_menu_options() 
+    if DATA.display_w <= UI.minsizeW2 then return end 
+    if ImGui.BeginMenu( ctx, 'Options', true ) then
+      ImGui.SeparatorText(ctx, 'Add send definition')
+      if ImGui.MenuItem( ctx, 'Show sends that marked as sends in SendFader', '', EXT.CONF_marksendint==1, true ) then EXT.CONF_marksendint=EXT.CONF_marksendint~1 EXT:save() DATA.upd = true end
+      if EXT.CONF_marksendint==1 then 
+        ImGui.Indent(ctx, UI.indent_menu)
+        if ImGui.Button( ctx, '[Action] Mark selected tracks as receives',-1) then DATA:MarkSelectedTracksAsSend(1) DATA.upd = true end
+        if ImGui.Button( ctx, '[Action] Unmark selected tracks as receives',-1) then DATA:MarkSelectedTracksAsSend(0) DATA.upd = true end
+        ImGui.Unindent(ctx, UI.indent_menu)
+      end
+      if ImGui.MenuItem( ctx, 'Show sends match words', '', EXT.CONF_marksendwordsmatch==1, true ) then EXT.CONF_marksendwordsmatch=EXT.CONF_marksendwordsmatch~1 EXT:save() DATA.upd = true end
+      if EXT.CONF_marksendwordsmatch==1 then 
+        ImGui.Indent(ctx, UI.indent_menu)
+        local retval, buf = ImGui.InputText( ctx, 'Send names CSV', EXT.CONF_definebyname, ImGui.InputTextFlags_EnterReturnsTrue )
+        if retval then 
+          if buf == '' then buf = '[none]' end
+          EXT.CONF_definebyname = buf 
+          EXT:save() 
+          DATA.upd = true 
+        end
+        ImGui.Unindent(ctx, UI.indent_menu)
+      end 
+      if ImGui.MenuItem( ctx, 'Show sends with parent folder match words', '', EXT.CONF_marksendparentwordsmatch==1, true ) then EXT.CONF_marksendparentwordsmatch=EXT.CONF_marksendparentwordsmatch~1 EXT:save() DATA.upd = true end
+      if EXT.CONF_marksendparentwordsmatch==1  then 
+        ImGui.Indent(ctx, UI.indent_menu)
+        local retval, buf = ImGui.InputText( ctx, 'Folder names CSV', EXT.CONF_definebygroup, ImGui.InputTextFlags_EnterReturnsTrue )
+        if retval then 
+          if buf == '' then buf = '[none]' end
+          EXT.CONF_definebygroup = buf 
+          EXT:save() 
+          DATA.upd = true 
+        end
+        ImGui.Unindent(ctx, UI.indent_menu)
+      end
+      
+      
+      
+      -- engine
+        ImGui.SeparatorText(ctx, 'Engine') 
+        --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&1==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Allow multiple sends to the same track', '', EXT.CONF_allowsametrackmultsends&1==1, true ) then EXT.CONF_allowsametrackmultsends=EXT.CONF_allowsametrackmultsends~1 EXT:save() DATA.upd = true end
+      
+      
+      
+      -- UI
+        ImGui.SeparatorText(ctx, 'UI')
+        if ImGui.MenuItem( ctx, 'Allow show sends in ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&2==2, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~2 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Show track levels', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Show available sends in left combo', '', EXT.CONF_alwaysshowreceives==2, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~2 EXT:save() DATA.upd = true end
+        --local t = { [1] = 'Hide', [0] = 'List', [2] = 'Combo', } local preview_value = 'Tracks marked for send: '..t[EXT.CONF_alwaysshowreceives]
+        --if ImGui.BeginCombo( ctx, '##Marked receives', preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then  for val in pairs(t ) do if ImGui.Selectable( ctx, t[val]..'##markreccombo'..val, val == EXT.CONF_alwaysshowreceives, ImGui.SelectableFlags_None) then EXT.CONF_alwaysshowreceives=val EXT:save() DATA.upd = true end end ImGui.EndCombo( ctx) end
+      
+      ImGui.EndMenu( ctx)
+    end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_menu_solo() 
+    if not(DATA.srctr and DATA.srctr.UIsolotxt ) then return end
+    if DATA.display_w <= UI.minsizeW2 then return end 
+    if ImGui.MenuItem( ctx, DATA.srctr.UIsolotxt, '', DATA.srctr and DATA.srctr.solo > 0, true ) then 
+      local tr = DATA.srctr.ptr
+      if DATA.srctr.solo==0 then 
+        SetMediaTrackInfo_Value( tr, 'I_SOLO', 4 ) 
+        SetTrackUISolo( tr, 4, 2 )
+       else 
+        SetMediaTrackInfo_Value( tr, 'I_SOLO', 0 ) 
+        SetTrackUISolo( tr,0, 2 )
+      end 
+      TrackList_AdjustWindows( false )
+      DATA.upd = true 
+    end
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then
+      local tr = DATA.srctr.ptr
+      local solod  = GetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT' ) 
+      SetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT', solod~1 ) 
+      TrackList_AdjustWindows( false )
+      DATA.upd = true 
+    end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_menu()   
+    if ImGui.BeginMenuBar( ctx ) then 
+      UI.draw_menu_add() 
+      UI.draw_menu_solo()
+      UI.draw_menu_options()
+      ImGui.EndMenuBar( ctx )
+    end 
   end 
   --------------------------------------------------------------------------------  
   function UI.draw()  
     UI.draw_menu() 
     
     ImGui.PushFont(ctx, DATA.font2) 
-    ImGui.SameLine(ctx)
+    --ImGui.SameLine(ctx)
     UI.draw_sends()  
     ImGui.PopFont(ctx)
     
-    
+    if ImGui_IsKeyPressed(  ctx, ImGui.Key_V,false )        then ImGui.OpenPopup(ctx, 'vcapopup', ImGui.PopupFlags_None) end
+    UI.draw_VCAfader() 
     UI.draw_popups() 
   end 
+  --------------------------------------------------------------------------------  
+  function UI.draw_VCAfader_handlemouse(v) 
+    if DATA.selected_track_is_receive then 
+    
+      if ImGui.IsItemActivated(ctx) then 
+        DATA.temp_vca = CopyTable(DATA.srctr.receives)
+       elseif ImGui.IsItemActive(ctx) and DATA.temp_vca then 
+        for i = 1, #DATA.temp_vca do
+          local srcPtr = DATA.temp_vca[i].srcPtr
+          local sendidx = DATA.temp_vca[i].sendidx
+          local src_vol = DATA.temp_vca[i].vol
+          local newvalue = src_vol * v^2
+          local ret, VCALOCK = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
+          if VCALOCK == 0 then 
+            SetTrackSendInfo_Value( srcPtr,0, sendidx, 'D_VOL', VF_lim(newvalue,0,2) ) 
+            DATA.srctr.receives[i].vol = newvalue
+          end
+          
+        end
+      end
+      
+     else
+      
+      if ImGui.IsItemActivated(ctx) then 
+        DATA.temp_vca = CopyTable(DATA.srctr.sends)
+       elseif ImGui.IsItemActive(ctx) and DATA.temp_vca then 
+        for i = 1, #DATA.temp_vca do
+          local srcPtr = DATA.srctr.ptr
+          local sendidx = DATA.temp_vca[i].sendidx
+          local src_vol = DATA.temp_vca[i].vol
+          local newvalue = src_vol * v^2
+          local ret, VCALOCK = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
+          if VCALOCK == 0 then 
+            SetTrackSendInfo_Value( srcPtr, 0, sendidx, 'D_VOL', VF_lim(newvalue,0,2) ) 
+            DATA.srctr.sends[i].vol = newvalue
+          end
+          
+        end
+      end
+      
+    end  
+    
+    if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA.VCA_faderval = 1 end
+    
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_VCAfader() 
+    vca_w = UI.faderW+UI.spacingX*2
+    vca_h = 205
+    ImGui_SetNextWindowPos(ctx, DATA.display_x+(DATA.display_w-vca_w)/2,DATA.display_y+(DATA.display_h-vca_h)/2, ImGui.Cond_Appearing)
+    ImGui_SetNextWindowSize(ctx, vca_w,vca_h, ImGui.Cond_Always)
+    if ImGui.BeginPopup(ctx, 'vcapopup', ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then
+      if reaper.ImGui_BeginChild(ctx, 'vcachild',vca_w,vca_h,ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY, ImGui.WindowFlags_NoScrollbar) then
+        ImGui.SeparatorText(ctx,'VCA')
+        
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,0x7D0F0FBF)  
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,0xBD0F0FBF)  
+        -- slider
+        local retval, v = ImGui.VSliderDouble( ctx, '##mainVCA', UI.faderW, UI.calc_faderH, DATA.VCA_faderval, 0, 2, '', ImGui.SliderFlags_None)
+        UI.draw_VCAfader_handlemouse(v) 
+          
+        ImGui.Dummy(ctx,10,30)
+        ImGui.PopStyleColor(ctx,2)
+        
+        reaper.ImGui_EndChild(ctx)
+      end
+      ImGui.EndPopup(ctx)
+    end
+  end
   --------------------------------------------------------------------------------  
   function UI.draw_popups()  
     for key in pairs(UI.popups) do
@@ -979,46 +1061,6 @@
       end
       return copy
   end 
-  ----------------------------------------------------------------------------------------- 
-  function UI.draw_sends_sub_slider_handlevca(t, sendidx_master) 
-    if not DATA.temp_vca then return end
-    if EXT.CONF_showselection~=1 then return end
-    if relation == 1 or relation == 0 then return end
-    
-    -- get src
-    local src_vol,dest_vol
-    for i = 1, #DATA.temp_vca do
-      local sendidx = DATA.temp_vca[i].sendidx
-      local sendidx_vcacheck = DATA.temp_vca[i].sendidx_vcacheck
-      local ext_vcasel = DATA.temp_vca[i].ext_vcasel
-      
-      if ext_vcasel == 1 and sendidx_master == sendidx_vcacheck then 
-        src_vol = DATA.temp_vca[i].vol
-        dest_vol = t.vol
-        break
-      end 
-    end
-    
-    if not (src_vol and dest_vol) then return end
-    local src_vol_fader = DATA:Convert_Val2Fader(src_vol)
-    local dest_vol_fader = DATA:Convert_Val2Fader(dest_vol)
-    local fader_diff =   dest_vol_fader / src_vol_fader
-    -- app dest
-    for i = 1, #DATA.temp_vca do
-      local sendidx = DATA.temp_vca[i].sendidx
-      local sendidx_vcacheck = DATA.temp_vca[i].sendidx_vcacheck
-      local src_vol = DATA.temp_vca[i].vol
-      if DATA.temp_vca[i].ext_vcasel == 1 and sendidx_master ~= sendidx_vcacheck then 
-        local src_vol_fader = DATA:Convert_Val2Fader(src_vol)
-        local dest_vol_fader = fader_diff * src_vol_fader
-        local dest_vol = DATA:Convert_Fader2Val(dest_vol_fader)
-        
-        SetTrackSendInfo_Value( t.srcPtr, 0, sendidx, 'D_VOL', dest_vol)
-        SetTrackSendUIVol(t.srcPtr, sendidx, dest_vol,0)
-      end 
-    end
-    
-  end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_slider(t) 
     local str_id = t.str_id
@@ -1109,6 +1151,17 @@
     --if hovered == true then 
       UI.draw_sends_sub_slider_scale(t,x, y, UI.faderW, UI.calc_faderH) 
     --end
+    
+    
+    -- LED
+      local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+      local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+      local ledsz = 5
+      local ledoffs = 5
+      draw_list = ImGui.GetWindowDrawList( ctx )
+      if t.VCALOCK and t.VCALOCK == 1 then
+        ImGui.DrawList_AddRectFilled( draw_list, x1+ledoffs,y1+ledoffs, x1+ledoffs+ledsz,y1+ledoffs+ledsz, 0xF95F0FBF, 2, reaper.ImGui_DrawFlags_None() )
+      end
     
     -- show peaks
     if EXT.CONF_showpeaks == 1 then 
@@ -1468,7 +1521,7 @@
     if not (DATA.tracks and DATA.srctr and DATA.srctr.sends) then return end 
     
     -- show list of available sends in list
-    if (EXT.CONF_alwaysshowreceives == 2 and DATA.selected_track_is_receive ~= true) or EXT.CONF_allowreceivefader_mode&2==2 then
+    if EXT.CONF_alwaysshowreceives == 2 and (DATA.selected_track_is_receive ~= true or (DATA.selected_track_is_receive == true and EXT.CONF_allowreceivefader_mode&2==2)) then
       for i = 1, #DATA.receives do
         if (DATA.srctr.ptr~=DATA.receives[i].ptr ) then
           if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Border) then
@@ -1509,9 +1562,9 @@
     
   end
   ----------------------------------------------------------------------------------------- 
-  function UI.draw_sends_sub_FX(t)
+  function UI.draw_sends_sub_FX_menu(t) 
     local str_id = t.str_id  if not str_id then return end
-    if ImGui.Button(ctx, 'FX##destFX'..str_id,UI.faderW) then 
+    if ImGui.Button(ctx, 'FX##destFX'..str_id,UI.calc_comboW+13) then 
       local PreEQ = TrackFX_AddByName( t.destPtr, 'PreEQ', false, 0 )
       local PostEQ = TrackFX_AddByName( t.destPtr, 'PostEQ', false, 0 )
       
@@ -1521,6 +1574,21 @@
         if TrackFX_GetCount( t.destPtr ) > 2 then TrackFX_Show( t.destPtr, PreEQ+1, 3) else TrackFX_Show( t.destPtr, 0,1 )  end
       end
     end
+    
+    
+    ImGui.SameLine(ctx)
+    reaper.ImGui_SetNextItemWidth(ctx,UI.calc_comboW)
+    if ImGui.BeginCombo(ctx, '##vcalock'..str_id, '', reaper.ImGui_ComboFlags_NoPreview()) then 
+      if ImGui.Selectable(ctx, 'Lock from VCA control##vcalocktoggle'..str_id, t.VCALOCK == 1, ImGui.SelectableFlags_None) then
+        local tr = t.destPtr
+        if DATA.selected_track_is_receive == true then tr = t.srcPtr end
+        GetSetMediaTrackInfo_String( tr, 'P_EXT:VCALOCK', t.VCALOCK~1, true )
+        DATA.upd = true
+      end
+      ImGui.EndCombo(ctx)
+    end
+    
+    
   end
   --------------------------------------------------------------------------------  
   function UI.draw_setbuttoncolor(col) 
@@ -1552,28 +1620,6 @@
     
   end
   ----------------------------------------------------------------------------------------- 
-  function UI.draw_sends_sub_vcacheck(t) 
-    if EXT.CONF_showselection ~= 1 then return end
-    if DATA.selected_track_is_receive == true then ImGui.Dummy(ctx,0,UI.calc_itemH)return end
-    local str_id = t.str_id
-    if not str_id then return end
-    local destPtr = t.destPtr
-    local srcPtr = t.srcPtr
-    
-    
-    local state = t.ext_vcasel == 1
-    if ImGui.Checkbox(ctx,'##sel'..str_id, state) then
-      
-      if DATA.selected_track_is_receive == true then
-        GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:vcasel_source', t.ext_vcasel~1, true )
-       else
-        GetSetMediaTrackInfo_String( destPtr, 'P_EXT:vcasel', t.ext_vcasel~1, true )
-      end 
-      
-      DATA.upd = true
-    end
-  end
-  ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub(t)
     local str_id = t.str_id
     if not str_id then return end
@@ -1585,19 +1631,20 @@
       destCol = (destCol << 8) | math.floor(0.5*255)
       ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,destCol)
     end
-    if ImGui.BeginChild( ctx, str_id, 0, 0, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
-      UI.draw_sends_sub_vcacheck(t) 
+    if ImGui.BeginChild( ctx, str_id, 0, -1, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, ImGui.WindowFlags_None) then
       UI.draw_sends_sub_slider(t) 
       UI.draw_sends_sub_destname(t) 
       if t.is_receive ~= true then
-        UI.draw_sends_sub_chan(t)
-        UI.draw_sends_sub_muteremove(t)
-        UI.draw_sends_sub_mode(t)
-        UI.draw_sends_sub_pan(t)
-        UI.draw_sends_sub_filt(t)
-        UI.draw_sends_sub_filt(t, true)
-        UI.draw_sends_sub_FX(t)
-        UI.draw_sends_sub_monophase(t)
+        if DATA.display_h > UI.compactmodeH then 
+          UI.draw_sends_sub_chan(t)
+          UI.draw_sends_sub_muteremove(t)
+          UI.draw_sends_sub_mode(t)
+          UI.draw_sends_sub_pan(t)
+          UI.draw_sends_sub_filt(t)
+          UI.draw_sends_sub_filt(t, true)
+          UI.draw_sends_sub_FX_menu(t)
+          UI.draw_sends_sub_monophase(t) 
+        end
       end
       
       ImGui.EndChild( ctx)
@@ -1653,7 +1700,8 @@
         local ret, destName  = reaper.GetTrackName( tr )
         local retval, destGUID = GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
         local destCol  = GetTrackColor( tr ) 
-         
+        
+        
         if seltr and tr == seltr and EXT.CONF_allowreceivefader_mode&1 == 1 then DATA.selected_track_is_receive = true end
         
         DATA.receives[#DATA.receives+1] = {
@@ -1663,6 +1711,7 @@
             destCol = destCol,
             destGUID = destGUID,
             destName = destName,
+            
           }
       end
     end
