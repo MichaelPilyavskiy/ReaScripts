@@ -43,10 +43,10 @@ if not UI then UI = {} end
       local fxGUID,paramID = param:match('env_FX_(%{.-%})([%d]+)')
       if fxGUID and paramID then
         local ret,tr, fxid = VF_GetFXByGUID(fxGUID, track, DATA.proj)
-        local retval, minval, maxval = reaper.TrackFX_GetParam( track, fxid, paramID)
-        seq_envelope = GetFXEnvelope( track, fxid, paramID, true )
-        if seq_envelope then  
-          return seq_envelope, GetEnvelopeScalingMode( seq_envelope ),minval, maxval
+        if fxid then
+          local retval, minval, maxval = reaper.TrackFX_GetParam( track, fxid, paramID)
+          seq_envelope = GetFXEnvelope( track, fxid, paramID, true )
+          if seq_envelope then  return seq_envelope, GetEnvelopeScalingMode( seq_envelope ),minval, maxval end
         end
       end
     end
@@ -55,103 +55,126 @@ if not UI then UI = {} end
   
   end
   --------------------------------------------------------------------------------  
-  function DATA:_Seq_PrintEnvelopes(t)
-    if not (t.ext and t.ext.children) then return end
-    local pat_st = DATA.seq.it_pos
-    local pat_end = pat_st + DATA.seq.it_len
-    local item_pos = DATA.seq.it_pos
-    local take = DATA.seq.tk_ptr
-        
-    local steplength = 0.25 -- do not touch
-    local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
-    local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
-    local seqend_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + DATA.seq.ext.patternlen *steplength ) 
-    local seqend_endppq = MIDI_GetPPQPosFromProjTime( take, seqend_sec) 
+  function DATA:_Seq_PrintEnvelopes_writesteps(param_t, note)
+    -- param t
+      local seq_envelope = param_t.seq_envelope
+      local scaling_mode = param_t.scaling_mode
+      local minval = param_t.minval
+      local maxval = param_t.maxval
+      local param = param_t.param
+       
+    -- seq
+      local t = DATA.seq
     
-    for note in pairs(t.ext.children) do
-      -- 0 as a step check for existing params
-      if not (DATA.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[0]) then goto nextnote end
-      local srctr = DATA.children[note].tr_ptr
-      for param in pairs(DATA.seq.ext.children[note].steps[0]) do
-        local seq_envelope, scaling_mode,minval, maxval = DATA:_Seq_PrintEnvelopes_GetEnvByParamName(srctr, param)
+    -- pat data
+      local pat_st = t.it_pos 
+      local pat_end = pat_st + t.it_len
+      local step_cnt = t.ext.children[note].step_cnt 
+      if step_cnt == -1 then step_cnt = t.ext.patternlen end
+      local steplength = 0.25
+      if t.ext.children[note].steplength then steplength = t.ext.children[note].steplength end 
+      local patlen_mult = 1
+      if steplength<0.25 then patlen_mult = math.ceil(0.25/steplength) end
+      local app_swing 
+      if t.ext.swing~= 0 and steplength==0.25 then app_swing = t.ext.swing end
+      if not t.ext.children[note].steps then t.ext.children[note].steps = {} end
+      if not t.ext.children[note].steps[1] then t.ext.children[note].steps[1] = {val = 0} end
+    
+    -- clear env 
+      DeleteEnvelopePointRange( seq_envelope, pat_st, pat_end-0.001 )
+      
+    -- boundary clamp
+      local retval, cur_value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( seq_envelope, pat_st-0.001, DATA.SR, 1 ) 
+      local retval, cur_value_end, dVdS, ddVdS, dddVdS = Envelope_Evaluate( seq_envelope, pat_end, DATA.SR, 1 ) 
+      local shape = 0
+      local tension = 0
+      InsertEnvelopePoint( seq_envelope, pat_st, cur_value, shape, tension, false, true )
+      InsertEnvelopePoint( seq_envelope, pat_end-0.001, cur_value_end, shape, tension, false, true )
+      local cur_value_scaled = ScaleFromEnvelopeMode( scaling_mode, cur_value )
+      
+    -- write values
+      -- loop pattern length
+      for step = 1, t.ext.patternlen*patlen_mult do 
+        -- step pos
+          local step_active = step%step_cnt 
+          if step_active == 0 then step_active = step_cnt end 
+          
+        -- clamp strat of pattern if step not exist
+          if not (t.ext.children[note].steps and t.ext.children[note].steps[step_active]) and step ~= 1 then goto skipnextstep end  
+          local active = t.ext.children[note].steps[step_active] and t.ext.children[note].steps[step_active].val and  t.ext.children[note].steps[step_active].val == 1
+          
+          if step ~= 1  then
+            if not active then goto skipnextstep end  
+          end
+          
+        -- val definition
+          local val = t.ext.children[note].steps[step_active][param] 
+          if not val or (step == 1 and not active)  then val = cur_value_scaled end
+          val = ScaleToEnvelopeMode( scaling_mode, minval + val*(maxval-minval) ) 
+          
+        -- position
+          local offset = 0
+          local sw_shift = 0
+          if t.ext.children[note].steps[step_active].offset then offset = t.ext.children[note].steps[step_active].offset*steplength end 
+          if app_swing and step%2==0 then sw_shift = app_swing*steplength*0.5 end
+          local beatpos = (step-1)*steplength
+          local beatlen = steplength
+          local beatpos_st = math.max(0, beatpos + offset + sw_shift)
+          local beatpos_end =  math.min(beatpos+beatlen + offset ,t.ext.patternlen) 
+          local point_pos = TimeMap2_beatsToTime(   DATA.proj, t.it_pos_fullbeats + beatpos_st )  
+          if point_pos > pat_end then goto skipnextstep end  
+        -- insert point
+          local shape = 1
+          local tension = 0 
+          InsertEnvelopePoint( seq_envelope, point_pos, val, shape, tension, false, true ) 
+          
+        ::skipnextstep::
+      end
+      
+    -- sort 
+      Envelope_SortPoints( seq_envelope )
+    
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintEnvelopes_note(note)
+    if not (DATA.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[0]) then return end -- 0 as a step check for existing params
+    
+    local srctr = DATA.children[note].tr_ptr 
+    
+    -- get parameters
+    local parameters = {} 
+    for param in pairs(DATA.seq.ext.children[note].steps[0]) do 
+      local seq_envelope, scaling_mode,minval, maxval = DATA:_Seq_PrintEnvelopes_GetEnvByParamName(srctr, param)
+      if seq_envelope then
         if not minval then minval = 0 end
         if not maxval then maxval = 1 end
-        if seq_envelope then
-        
-          -- init if not 
-            local retval, ACTIVE = GetSetEnvelopeInfo_String( seq_envelope, 'ACTIVE', '', false )
-            if ACTIVE and ACTIVE == '0' then 
-              GetSetEnvelopeInfo_String( seq_envelope, 'ACTIVE', '1', true ) 
-              GetSetEnvelopeInfo_String( seq_envelope, 'VISIBLE', '1', true ) 
-              TrackList_AdjustWindows( false )
-            end
+        parameters[#parameters+1] = {
+          param=param,
+          seq_envelope=seq_envelope,
+          scaling_mode=scaling_mode,
+          minval=minval,
+          maxval=maxval,
+          } 
           
-          -- clear env + boundary clamp
-            DeleteEnvelopePointRange( seq_envelope, pat_st, pat_end-0.001 )
-            local retval, cur_value, dVdS, ddVdS, dddVdS = Envelope_Evaluate( seq_envelope, pat_st, DATA.SR, 1 )
-            local shape = 0
-            local tension = 0
-            InsertEnvelopePoint( seq_envelope, pat_st, cur_value, shape, tension, false, true )
-            --InsertEnvelopePoint( seq_envelope, pat_st, 0, shape, tension, false, true )
-            InsertEnvelopePoint( seq_envelope, pat_end-0.001, cur_value, shape, tension, false, true )
-            --InsertEnvelopePoint( seq_envelope, pat_end-0.002, 0, shape, tension, false, true )
-            
-          -- write values
-            local steplength = 0.25
-            if t.ext.children[note].steplength then steplength = t.ext.children[note].steplength end 
-            local step_cnt = t.ext.children[note].step_cnt 
-            if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
-            local patlen_mult = 1
-            if steplength<0.25 then patlen_mult = math.ceil(0.25/steplength) end
-            local app_swing 
-            if DATA.seq.ext.swing~= 0 and steplength==0.25 then app_swing = DATA.seq.ext.swing end
-            if not t.ext.children[note].steps then t.ext.children[note].steps = {} end
-            if not t.ext.children[note].steps[1] then t.ext.children[note].steps[1] = {val = 0} end
-            for step = 1, DATA.seq.ext.patternlen*patlen_mult do
-              local step_active = step%step_cnt 
-              if step_active == 0 then step_active = step_cnt end
-              if not (t.ext.children[note].steps and t.ext.children[note].steps[step_active]) then goto skipnextstep end 
-              local active = t.ext.children[note].steps[step_active].val and  t.ext.children[note].steps[step_active].val == 1
-              if not active then goto skipnextstep end 
-              local val = t.ext.children[note].steps[step_active][param]
-              
-              if not val then goto skipnextstep end 
-              val = ScaleToEnvelopeMode( scaling_mode, minval + val*(maxval-minval) )
-              
-              -- offset  / swing
-              local offset = 0
-              local sw_shift = 0
-              if t.ext.children[note].steps[step_active].offset then offset = t.ext.children[note].steps[step_active].offset*steplength end 
-              if app_swing and step%2==0 then sw_shift = app_swing*steplength*0.5 end
-              local beatpos = (step-1)*steplength
-              local beatlen = steplength
-              local beatpos_st = math.max(0, beatpos +offset + sw_shift)
-              local beatpos_end =  math.min(beatpos+beatlen + offset ,DATA.seq.ext.patternlen)
-              if  beatpos_st > DATA.seq.ext.patternlen then goto skipnextstep end
-              local steppos_start_sec = pat_st + TimeMap2_beatsToTime(   DATA.proj, seqstart_fullbeats + beatpos_st )
-              local steppos_end_sec = pat_st + TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + beatpos_end - 0.001) 
-              
-              local shape = 1
-              local tension = 0
-              
-              --InsertEnvelopePoint( seq_envelope, steppos_start_sec-0.001, 0, shape, tension, false, true )
-              InsertEnvelopePoint( seq_envelope, steppos_start_sec, val, shape, tension, false, true )
-              --InsertEnvelopePoint( seq_envelope, steppos_end_sec-0.001, val, shape, tension, false, true )
-              --InsertEnvelopePoint( seq_envelope, steppos_end_sec, 0, shape, tension, false, true )
-              ::skipnextstep::
-            end
-            
-          -- sort 
-            Envelope_SortPoints( seq_envelope )
-            
-            
-            
+        -- initialize if not  exist
+        local retval, ACTIVE = GetSetEnvelopeInfo_String( seq_envelope, 'ACTIVE', '', false )
+        if ACTIVE and ACTIVE == '0' then 
+          GetSetEnvelopeInfo_String( seq_envelope, 'ACTIVE', '1', true ) 
+          GetSetEnvelopeInfo_String( seq_envelope, 'VISIBLE', '1', true ) 
+          TrackList_AdjustWindows( false )
         end
+        
       end
-      ::nextnote:: 
-    end
-      
+    end 
+    local parameter_sz = #parameters
+    if parameter_sz == 0 then return end 
+    for paramID = 1, parameter_sz do DATA:_Seq_PrintEnvelopes_writesteps(parameters[paramID], note) end
     
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintEnvelopes(t)
+    if not (t.ext and t.ext.children) then return end
+    for note in pairs(t.ext.children) do DATA:_Seq_PrintEnvelopes_note(note, seqstart_fullbeats) end 
   end 
   --------------------------------------------------------------------------------  
   function DATA:_Seq_AddLastTouchedFX() 
@@ -172,7 +195,7 @@ if not UI then UI = {} end
     if not fxGUID then return end
     if not DATA.seq.ext.children[note].env_FXparamlist[fxGUID] then DATA.seq.ext.children[note].env_FXparamlist[fxGUID] = {} end
     DATA.seq.ext.children[note].env_FXparamlist[fxGUID][parm] = 1
-    
+    DATA.temp_forceLTP_kselection = {fxGUID=fxGUID,parm=parm}
     
     DATA:_Seq_Print()
   end
@@ -215,19 +238,25 @@ if not UI then UI = {} end
       for fxGUID in spairs(DATA.seq.ext.children[note].env_FXparamlist) do
         for paramID in spairs(DATA.seq.ext.children[note].env_FXparamlist[fxGUID]) do
           if DATA.children[note] and DATA.children[note].tr_ptr then 
-            local ret,tr, fxid = VF_GetFXByGUID(fxGUID, DATA.children[note].tr_ptr, DATA.proj)
+            local ret, tr, fxid = VF_GetFXByGUID(fxGUID, DATA.children[note].tr_ptr, DATA.proj)
             if fxid then
               local retval, fxname = reaper.TrackFX_GetFXName( DATA.children[note].tr_ptr, fxid )
               fxname = VF_ReduceFXname(fxname)
               local retval, paramname = reaper.TrackFX_GetParamName( DATA.children[note].tr_ptr, fxid,paramID)
-              DATA.seq_param_selector_trackFXenv[#DATA.seq_param_selector_trackFXenv+1] = {
+              local id = #DATA.seq_param_selector_trackFXenv+1
+              DATA.seq_param_selector_trackFXenv[id] = {
                   param = 'env_FX_'..fxGUID..paramID, 
                   str= fxname..' / #'..paramID..' - '..paramname, 
                   default=0, 
                   minval = 0, 
                   maxval = 1
                   }
-              
+              if DATA.temp_forceLTP_kselection and  DATA.temp_forceLTP_kselection.fxGUID and DATA.temp_forceLTP_kselection.parm then
+                if DATA.temp_forceLTP_kselection.fxGUID == fxGUID and DATA.temp_forceLTP_kselection.parm == paramID then 
+                  DATA.seq_param_selector_trackFXenvID = id
+                  DATA.temp_forceLTP_kselection = nil
+                end
+              end
             end
           end
         end
@@ -279,7 +308,9 @@ if not UI then UI = {} end
     if not DATA.seq.ext.children then return end 
     local item = DATA.seq.it_ptr
     local take = DATA.seq.tk_ptr
-     
+    if not (take and ValidatePtr2(DATA.proj, take, 'MediaItem_Take*')) then DATA.seq = nil return end
+    
+    
     if minor_change~=true then 
       Undo_BeginBlock2(DATA.proj)
       --test = time_precise()
@@ -370,6 +401,8 @@ if not UI then UI = {} end
   function DATA:CollectData_Seq() 
     if DATA.seq_functionscall ~= true then return end
     
+    last_valid_seq = CopyTable(DATA.seq)
+    
     -- init pattern defaults
     DATA.seq = {
       valid = false,
@@ -383,11 +416,11 @@ if not UI then UI = {} end
       }
     
     -- init
-    if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end
+    if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then DATA.seq = last_valid_seq return end
     local track = DATA.MIDIbus.tr_ptr
     local item = GetSelectedMediaItem( DATA.proj, 0 )
-    if not item then return end
-    if GetMediaItem_Track( item ) ~= track then return end  
+    if not item then                            DATA.seq = last_valid_seq return end
+    if GetMediaItem_Track( item ) ~= track then DATA.seq = last_valid_seq return end  
     local take = GetActiveTake(item)
     
     -- init
@@ -395,6 +428,8 @@ if not UI then UI = {} end
     DATA.seq.it_ptr = item
     DATA.seq.tk_ptr = take 
     DATA.seq.it_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+    local retval, measures, cml, seqstart_fullbeats, cdenom = reaper.TimeMap2_timeToBeats(DATA.proj, DATA.seq.it_pos ) 
+    DATA.seq.it_pos_fullbeats = seqstart_fullbeats
     DATA.seq.it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
     DATA.seq.I_GROUPID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
     DATA.seq.D_STARTOFFS = GetMediaItemTakeInfo_Value( take,'D_STARTOFFS' )
@@ -540,7 +575,6 @@ if not UI then UI = {} end
     form_data = {}
     local steplength = 0.25 -- do not touch
     local _, _, _ seqstart_fullbeats = reaper.TimeMap2_timeToBeats( DATA.proj, item_pos ) 
-    local seqst_sec = MIDI_GetPPQPosFromProjTime( take, item_pos) 
     local seqend_sec = TimeMap2_beatsToTime(     DATA.proj, seqstart_fullbeats + DATA.seq.ext.patternlen *steplength ) 
     local seqend_endppq = MIDI_GetPPQPosFromProjTime( take, seqend_sec) 
     t.seqend_endppq = seqend_endppq -- send to childs export
@@ -690,7 +724,6 @@ if not UI then UI = {} end
     local ppq 
     
     local lastppq = 0
-    --if #form_data< 1 then lastppq = seqst_sec end
     local str = ''
     local sz = #form_data
     for i = 1, sz do 
@@ -1239,6 +1272,11 @@ end
     DATA.proj, DATA.proj_fn = EnumProjects( -1 )
     DATA.SR = VF_GetProjectSampleRate()
     
+    DATA.mainstate_manager = gmem_read(1026) == 1
+    DATA.mainstate_seq = gmem_read(1027) == 1
+    
+    
+    
      -- parent
     DATA.parent_track = {
         valid = false,
@@ -1259,11 +1297,18 @@ end
     
     -- seq
     DATA:CollectData_Seq()
-    -- auto handle routing and stuff
-    DATA:Auto_MIDIrouting() 
-    DATA:Auto_MIDInotenames() 
-    DATA:Auto_TCPMCP() 
-     
+    
+    --
+    local allow_trig_auto_stuff = true
+    if DATA.mainstate_manager == true and DATA.mainstate_seq == true then
+      if DATA.seq_functionscall == true then allow_trig_auto_stuff = false end
+    end
+    if allow_trig_auto_stuff == true then 
+      -- auto handle stuff
+      DATA:Auto_MIDIrouting() 
+      DATA:Auto_MIDInotenames() 
+      DATA:Auto_TCPMCP() 
+    end
     
     DATA.upd2.refreshpeaks = true
   end

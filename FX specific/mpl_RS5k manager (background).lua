@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.59
+-- @version 4.60
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,15 +18,18 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # overwrite default preset mode on sample drop
---    # StepSequencer/Inline/Pan: invert
---    # StepSequencer/Inline/Meta: fix default values
---    # StepSequencer/Inline: show above line if doesn`t fit window 
---    # StepSequencer/Inline/FX: fix boundaries for JSFX
+--    # avoid performing script automation twice when both rs5k manager and step sequencer opened
+--    # StepSequencer/Inline/FX: fix error on lost FX
+--    # StepSequencer/Inline/FX: set selection to last touched on add
+--    # StepSequencer/Inline/Tools: improve support for envelopes
+--    # StepSequencer/Envelopes: various fixes and improvements
+--    + StepSequencer/Envelopes: default to clamped value until step get changes
+--    + StepSequencer/Envelopes: alt+click on step reset value to clamped value
+--    + StepSequencer: keep pattern active until another pattern is selected, reset on losing context
 
 
 
-rs5kman_vrs = '4.59'
+rs5kman_vrs = '4.60'
 
 
 -- TODO
@@ -82,7 +85,9 @@ rs5kman_vrs = '4.59'
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
     ImGui = require 'imgui' '0.9.3.2'
     
-    
+    -- gmem 1025: actions
+    -- gmem 1026: rs5k manager state
+    -- gmem 1027: rs5k stepseq state
     
   -------------------------------------------------------------------------------- init external defaults 
   EXT = {
@@ -616,7 +621,8 @@ rs5kman_vrs = '4.59'
     DATA:handleViewportXYWH()
     
     -- data
-    if UI.open  and not DATA.trig_stopdefer then defer(UI.MAIN_loop) else  
+    if UI.open  and not DATA.trig_stopdefer then defer(UI.MAIN_loop) else
+      gmem_write(1026, 0) -- rs5k manager opened
       --DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
     end
   end
@@ -4446,7 +4452,10 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     
     
     local loadtest = time_precise()
+    
     gmem_attach('RS5K_manager')
+    gmem_write(1026, 1) -- rs5k manager opened
+    
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
     DATA:CollectDataInit_MIDIdevices() 
     

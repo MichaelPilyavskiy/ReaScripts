@@ -19,7 +19,9 @@ reaper.set_action_options(1 )
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
     ImGui = require 'imgui' '0.9.3.2'
     
-    
+    -- gmem 1025: actions
+    -- gmem 1026: rs5k manager state
+    -- gmem 1027: rs5k stepseq state
     
   -------------------------------------------------------------------------------- init external defaults 
   EXT = {
@@ -138,7 +140,9 @@ reaper.set_action_options(1 )
         
   -------------------------------------------------------------------------------- INIT data
   DATA = {
-  
+          
+          seq_functionscall = true,
+          
           upd = true,
           upd2 = {},
           ES_key = 'MPL_RS5K manager',
@@ -225,11 +229,11 @@ reaper.set_action_options(1 )
           seq_param_selector_trackFXenvID = 1,
           seq_param_selector_trackFXenv = {},
           
-          seq_functionscall = true,
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
           seq_UI_inlineH_area = 270,
           seq_init_Yscroll = 0,
+          
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
   
@@ -792,7 +796,12 @@ reaper.set_action_options(1 )
       local x_norm = VF_lim((x-x1) / (x2-x1)) 
       local active_step = math.ceil(x_norm * UI.calc_seqW_steps_visible + DATA.seq.stepoffs)
       
-      DATA.seq.ext.children[note].steps[active_step][parameter] = default_val
+      if parameter:match('env_') then 
+        DATA.seq.ext.children[note].steps[active_step][parameter] = nil
+       else 
+        DATA.seq.ext.children[note].steps[active_step][parameter] = default_val
+      end
+      
       DATA.seq.ext.children[note].steps[0][parameter] = 0
       DATA:_Seq_Print()
     end
@@ -926,40 +935,32 @@ OFF:
     end
     ImGui.PopFont(ctx)
     
-    -- Parameters
-    local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
-    local parameterstr = DATA.seq_param_selector[DATA.seq_param_selectorID].str 
-    local default_val = DATA.seq_param_selector[DATA.seq_param_selectorID].default 
-    local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval  or 1
-    local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval  or 0
+    local parameter, maxval, minval, default_val, parameter_parent, parameterstr = UI.draw_Seq_ctrls_inline_getactiveparam()
     
-    -- handle meta
-    local parameter_parent = parameter
-    if parameter == 'meta' then
-      parameter = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].param
-      parameterstr ='Meta: '.. DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].str 
-      default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
-      maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
-      minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
-    end
+    -- globals
+      ImGui.SeparatorText(ctx, parameterstr) 
+      if default_val and DATA.seq.ext.children[note].steps then
+        if ImGui.Button(ctx, 'Reset##resparamvalues') then --,-UI.spacingX
+          if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+          for step in pairs( DATA.seq.ext.children[note].steps) do DATA.seq.ext.children[note].steps[step][parameter] = default_val end
+          DATA:_Seq_Print() 
+        end
+      end
+      ImGui.SameLine(ctx)
+      if default_val and DATA.seq.ext.children[note].steps then
+        if ImGui.Button(ctx, 'Random##randparamvalues') then --,-UI.spacingX
+          if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
+          for step in pairs( DATA.seq.ext.children[note].steps) do DATA.seq.ext.children[note].steps[step][parameter] = math.random() * (maxval - minval) + minval end
+          DATA:_Seq_Print() 
+        end
+      end   
     
-    ImGui.SeparatorText(ctx, parameterstr) 
-    if default_val and DATA.seq.ext.children[note].steps then
-      if ImGui.Button(ctx, 'Reset##resparamvalues') then --,-UI.spacingX
-        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
-        for step in pairs( DATA.seq.ext.children[note].steps) do DATA.seq.ext.children[note].steps[step][parameter] = default_val end
-        DATA:_Seq_Print() 
+    -- fx
+      if parameter_parent == 'trackFXenv' then
+        if ImGui.Button(ctx, '+ Add last touched') then 
+          DATA:_Seq_AddLastTouchedFX() 
+        end
       end
-    end
-    ImGui.SameLine(ctx)
-    if default_val and DATA.seq.ext.children[note].steps then
-      if ImGui.Button(ctx, 'Random##randparamvalues') then --,-UI.spacingX
-        if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end
-        for step in pairs( DATA.seq.ext.children[note].steps) do DATA.seq.ext.children[note].steps[step][parameter] = math.random() * (maxval - minval) + minval end
-        DATA:_Seq_Print() 
-      end
-    end   
-    --
     
     reaper.ImGui_PopFont(ctx)
   end
@@ -1160,18 +1161,17 @@ It also used for advanced sequencing parameters.
     
     if parameter_parent == 'trackFXenv' then
       ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
-      if ImGui.Button(ctx, '+ Add last touched') then 
-        DATA:_Seq_AddLastTouchedFX() 
-      end
-      ImGui.SameLine(ctx)
       local preview = ''
       if DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID] then
         preview = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].str
       end
+      reaper.ImGui_SetNextItemWidth(ctx,-1)
       if ImGui.BeginCombo( ctx, '##paraminlinetabs_trackFXenvcomb', preview, reaper.ImGui_ComboFlags_None() ) then
-        for i = 1, #DATA.seq_param_selector_trackFXenv do
-          local formatIn = DATA.seq_param_selector_trackFXenv[i].str
-          if ImGui.Selectable( ctx, formatIn..'##inlinetabs_trackFXenv', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selector_trackFXenvID = i  end 
+        for i = 1, #DATA.seq_param_selector_trackFXenv do 
+          if i~= DATA.seq_param_selector_trackFXenvID then
+            local formatIn = DATA.seq_param_selector_trackFXenv[i].str
+            if ImGui.Selectable( ctx, formatIn..'##inlinetabs_trackFXenv', false, ImGui.TabItemFlags_None ) then DATA.seq_param_selector_trackFXenvID = i  end 
+          end
         end
         ImGui.EndCombo( ctx )
       end
@@ -1288,6 +1288,7 @@ It also used for advanced sequencing parameters.
   function UI.draw_Seq_ctrls_inline_getactiveparam()
     -- define min/max
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
+    local parameterstr = DATA.seq_param_selector[DATA.seq_param_selectorID].str
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval or 0 
     local default_val = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0  
@@ -1299,6 +1300,7 @@ It also used for advanced sequencing parameters.
       default_val = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].default 
       maxval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].maxval  or 1
       minval = DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].minval  or 0
+      parameterstr = 'Meta: '..DATA.seq_param_selector_meta[DATA.seq_param_selector_metaID].str
     end
     
     -- handle trackenv
@@ -1307,6 +1309,7 @@ It also used for advanced sequencing parameters.
       default_val = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].default 
       maxval = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].maxval  or 1
       minval = DATA.seq_param_selector_trackenv[DATA.seq_param_selector_trackenvID].minval  or 0
+      parameterstr = 'Track envelope'
     end
     
     -- handle trackFXenv
@@ -1315,9 +1318,10 @@ It also used for advanced sequencing parameters.
       default_val = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].default 
       maxval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].maxval  or 1
       minval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].minval  or 0
+      parameterstr = 'FX envelope'
     end 
     
-    return parameter, maxval, minval, default_val, parameter_parent
+    return parameter, maxval, minval, default_val, parameter_parent, parameterstr
   end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls_inline_appstuff(note_t, rightbutton)
@@ -1863,16 +1867,15 @@ It also used for advanced sequencing parameters.
     -- draw UI
     if not reaper.ImGui_ValidatePtr( ctx, 'ImGui_Context*') then UI.MAIN_definecontext() end
     UI.open = UI.MAIN_styledefinition(true) 
-    
-    
+     
     DATA:CollectData2() 
-    
-    
+     
     -- handle xy
     DATA:handleViewportXYWH()
     
     -- data
     if UI.open  and not DATA.trig_stopdefer then defer(UI.MAIN_loop) else  
+      gmem_write(1027, 0) -- rs5k stepseq state
       --DATA:Auto_StuffSysex_sub('on release') -- send keys layout to launchpad
     end
   end
@@ -2398,6 +2401,7 @@ It also used for advanced sequencing parameters.
     
     local loadtest = time_precise()
     gmem_attach('RS5K_manager')
+    gmem_write(1027, 1) -- rs5k stepseq opened
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
     UI.MAIN_definecontext() 
     DATA:CollectDataInit_LoadCustomPadStuff()
