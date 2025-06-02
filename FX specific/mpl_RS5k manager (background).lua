@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.60
+-- @version 4.61
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,18 +18,11 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # avoid performing script automation twice when both rs5k manager and step sequencer opened
---    # StepSequencer/Inline/FX: fix error on lost FX
---    # StepSequencer/Inline/FX: set selection to last touched on add
---    # StepSequencer/Inline/Tools: improve support for envelopes
---    # StepSequencer/Envelopes: various fixes and improvements
---    + StepSequencer/Envelopes: default to clamped value until step get changes
---    + StepSequencer/Envelopes: alt+click on step reset value to clamped value
---    + StepSequencer: keep pattern active until another pattern is selected, reset on losing context
+--    # minor fixes
 
 
 
-rs5kman_vrs = '4.60'
+rs5kman_vrs = '4.61'
 
 
 -- TODO

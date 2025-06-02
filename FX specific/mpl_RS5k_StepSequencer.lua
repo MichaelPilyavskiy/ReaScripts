@@ -314,7 +314,11 @@ reaper.set_action_options(1 )
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_Step(note_t, x0,y0)  
     if not note_t then return end 
+    
     local note= note_t.noteID 
+    if not (DATA.seq and DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].step_cnt) then return end
+    
+    
     if not DATA.seq.ext.patternlen then return end
     
     function __f_draw_Seq_Step() end
@@ -525,7 +529,7 @@ reaper.set_action_options(1 )
     
     --function __f_draw_Seq_ctrls() end
     local note= note_t.noteID
-    
+    if not (DATA.seq and DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].step_cnt) then return end
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,1) 
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,1, 1) 
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX, 1)
