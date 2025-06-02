@@ -43,9 +43,10 @@ if not UI then UI = {} end
       local fxGUID,paramID = param:match('env_FX_(%{.-%})([%d]+)')
       if fxGUID and paramID then
         local ret,tr, fxid = VF_GetFXByGUID(fxGUID, track, DATA.proj)
+        local retval, minval, maxval = reaper.TrackFX_GetParam( track, fxid, paramID)
         seq_envelope = GetFXEnvelope( track, fxid, paramID, true )
         if seq_envelope then  
-          return seq_envelope, GetEnvelopeScalingMode( seq_envelope )
+          return seq_envelope, GetEnvelopeScalingMode( seq_envelope ),minval, maxval
         end
       end
     end
@@ -72,7 +73,9 @@ if not UI then UI = {} end
       if not (DATA.children[note] and DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[0]) then goto nextnote end
       local srctr = DATA.children[note].tr_ptr
       for param in pairs(DATA.seq.ext.children[note].steps[0]) do
-        local seq_envelope, scaling_mode = DATA:_Seq_PrintEnvelopes_GetEnvByParamName(srctr, param)
+        local seq_envelope, scaling_mode,minval, maxval = DATA:_Seq_PrintEnvelopes_GetEnvByParamName(srctr, param)
+        if not minval then minval = 0 end
+        if not maxval then maxval = 1 end
         if seq_envelope then
         
           -- init if not 
@@ -113,7 +116,7 @@ if not UI then UI = {} end
               local val = t.ext.children[note].steps[step_active][param]
               
               if not val then goto skipnextstep end 
-              val = ScaleToEnvelopeMode( scaling_mode, val )
+              val = ScaleToEnvelopeMode( scaling_mode, minval + val*(maxval-minval) )
               
               -- offset  / swing
               local offset = 0
@@ -3130,14 +3133,8 @@ end
         tr_ptr = track,
         instrument_pos = instrument_pos
       }
-      local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD 
-      if SYSEXMOD ~= true then 
-        DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) 
-       else
-        TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
-        TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
-        TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE', 1 ) -- turn sample into freely configurable mode
-      end
+      
+      
       TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel 
       TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
       
@@ -3216,8 +3213,20 @@ end
         SET_useDB_name = drop_data.set_DB})  
     end
     
-    -- 
+    
     if EXT.CONF_onadd_sysexmode == 1 then DATA:Action_RS5k_SYSEXMOD_ON(note, true, track, instrument_pos)end
+    
+    TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE',1 ) -- 
+    DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) 
+    
+    local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD == true
+    if SYSEXMOD == true then 
+      TrackFX_SetParamNormalized( track, instrument_pos, 3,0 ) -- note start
+      TrackFX_SetParamNormalized( track, instrument_pos, 4, 1 ) -- note end
+      TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
+      TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
+      TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE', 0 ) -- turn sample into freely configurable mode
+    end
   end  
   -----------------------------------------------------------------------  
   function DATA:DropSample_RenameTrack(track,note,filename,drop_data) 
@@ -4809,6 +4818,7 @@ end
   end  
   --------------------------------------------------------------------- 
   function DATA:Action_RS5k_SYSEXMOD_ON(note, at_rs5k_drop, drop_tr, drop_rs5kpos)
+    if DATA.children[note] then DATA.children[note].SYSEXMOD = true end
     if at_rs5k_drop==true then 
       DATA:WriteData_Child(drop_tr,{SET_SYSEXMOD=1})
       TrackFX_SetNamedConfigParm( drop_tr, drop_rs5kpos, 'MODE', 0 ) -- turn sample into freely configurable mode

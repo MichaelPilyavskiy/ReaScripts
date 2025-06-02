@@ -974,7 +974,11 @@ OFF:
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local width_area = DATA.display_w-UI.calc_seqXL_padname - UI.scrollbarsz-- UI.calc_seqW_steps + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX
     local seq_yA = DATA.children[note].seq_yA[DATA.temp_stepline] or DATA.children[note].seq_yA[0]
-    ImGui.SetNextWindowPos( ctx, UI.calc_seqX + UI.calc_seqXL_padname, seq_yA   , ImGui.Cond_Always, 0, 0 )--UI.calc_seqXL_steps--+ UI.seq_padH
+    if  seq_yA+DATA.seq_UI_inlineH_area  > DATA.display_viewport_h then
+      ImGui.SetNextWindowPos( ctx, UI.calc_seqX + UI.calc_seqXL_padname, seq_yA -UI.seq_padH-DATA.seq_UI_inlineH_area-15  , ImGui.Cond_Always, 0, 0 )--
+     else
+      ImGui.SetNextWindowPos( ctx, UI.calc_seqX + UI.calc_seqXL_padname, seq_yA , ImGui.Cond_Always, 0, 0 )--
+    end
     ImGui.SetNextWindowSize( ctx, width_area, 0, ImGui.Cond_Always )
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,2)  
     
@@ -1264,8 +1268,8 @@ It also used for advanced sequencing parameters.
            elseif (DATA.seq_param_selectorID == 6  and istrackpanenv ~= true) then --track env
              txt=math.floor(val*100)..'%'      
            elseif istrackpanenv == true then --track pan
-             if val > 0 then txt= math.floor(val*100)..'R'               
-               elseif val < 0 then txt= math.floor(-val*100)..'L'               
+             if val > 0 then txt= math.floor(val*100)..'L'               
+               elseif val < 0 then txt= math.floor(-val*100)..'R'               
                elseif val == 0 then txt='C'
              end
            elseif DATA.seq_param_selectorID ==7 then --fx
@@ -1286,7 +1290,7 @@ It also used for advanced sequencing parameters.
     local parameter = DATA.seq_param_selector[DATA.seq_param_selectorID].param
     local maxval = DATA.seq_param_selector[DATA.seq_param_selectorID].maxval or 1
     local minval = DATA.seq_param_selector[DATA.seq_param_selectorID].minval or 0 
-    local default = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0  
+    local default_val = DATA.seq_param_selector[DATA.seq_param_selectorID].default or 0  
     local parameter_parent = parameter
     
     -- handle meta
@@ -1313,7 +1317,7 @@ It also used for advanced sequencing parameters.
       minval = DATA.seq_param_selector_trackFXenv[DATA.seq_param_selector_trackFXenvID].minval  or 0
     end 
     
-    return parameter, maxval, minval, default, parameter_parent
+    return parameter, maxval, minval, default_val, parameter_parent
   end
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls_inline_appstuff(note_t, rightbutton)
@@ -1750,6 +1754,7 @@ It also used for advanced sequencing parameters.
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+      DATA.display_viewport_w, DATA.display_viewport_h = ImGui.Viewport_GetSize(main_viewport) 
       
       --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
       --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)

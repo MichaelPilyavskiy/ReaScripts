@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.58
+-- @version 4.59
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -11,41 +11,22 @@
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Solo.lua
---    [main] mpl_RS5k_manager_DrumRack_Mute.lua
+--    [main] mpl_RS5k_manager_DrumRack_Mute.lua 
 --    [main] mpl_RS5k_manager_DrumRack_Clear.lua
 --    [jsfx] mpl_RS5k_manager_MacroControls.jsfx
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # rename Settings/Colors to 'Theming'
---    # Settings/Theming: add reset buttons
---    + StepSequencer: reset Y scroll at drop on pad follow ordering
---    + StepSequencer: display sysex mode LED
---    + StepSequencer: init scroll from bottom if ascending order is OFF 
---    + StepSequencer/Inline/Track: add support for track pan
---    + StepSequencer/Inline/Track: add support for track sends volume
---    + StepSequencer/Inline/FX: add support for FX parametes
---    + StepSequencer: write undo point at major pattern change
---    # StepSequencer/Inline/Length: do not refresh state when change obey note off
---    # StepSequencer: fix mousewheel scrolling dragint values/page collisions
---    # StepSequencer: fix obey step length with meta events (require pattern refresh)
---    # StepSequencer: fix flipped 2 and 8 fill
---    # StepSequencer: reduce step length by 1 ppq for better sysex reading
---    # ExternalActions: make sure StepSequencer is restricted
---    # Peformance: make sure RS5k manager is restricted to read seq data
---    # inherrit obeying note off from existing pad if replacing
---    # Actions/Explode MIDI Bus take: overhaul
---    + Actions/Explode MIDI Bus take: support converting RS5k sequencer sysex to output notes
---    + Actions/Explode MIDI Bus take: bypass sysex_handler JSFX after explode for childs in sysex mode
---    + Actions/Explode MIDI Bus take: bypass midi_note_filter JSFX after explode for childs in sysex mode
---    + 3rd party: add menu enumerating installed plugins by type and vendor
---    + 3rd party: when turn into sysex mode, move note filter above sysex handler
---    # sysex_handler JSFX: various fixes
+--    # overwrite default preset mode on sample drop
+--    # StepSequencer/Inline/Pan: invert
+--    # StepSequencer/Inline/Meta: fix default values
+--    # StepSequencer/Inline: show above line if doesn`t fit window 
+--    # StepSequencer/Inline/FX: fix boundaries for JSFX
 
 
 
-rs5kman_vrs = '4.58'
+rs5kman_vrs = '4.59'
 
 
 -- TODO
@@ -152,7 +133,7 @@ rs5kman_vrs = '4.58'
           
           -- UI
           
-          UI_transparency = 0.9,
+          UI_transparency = 1,
           UI_processoninit = 0,
           UI_addundototabclicks = 0,
           UI_clickonpadselecttrack = 1,
