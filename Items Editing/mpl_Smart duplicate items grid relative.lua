@@ -1,9 +1,12 @@
 -- @description Smart duplicate items grid relative
--- @version 1.17
+-- @version 1.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # fix precision while searching active tempo marker
+--    # fix calculating nudge with various tempo
+
+
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -17,6 +20,7 @@
       return true
     end
   end
+    function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
   --------------------------------------------------------------------  
   function main()
     local floating_point_threshold = 0.000001
@@ -28,7 +32,7 @@
      _, _, _, fullbeats_st = reaper.TimeMap2_timeToBeats( 0, min_pos )
      _, _, _, fullbeats_end = reaper.TimeMap2_timeToBeats( 0, max_pos )
     
-    local tsmarker = FindTempoTimeSigMarker( 0, min_pos )
+    local tsmarker = FindTempoTimeSigMarker( 0, min_pos+0.01)
     local retval1, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = GetTempoTimeSigMarker( 0, tsmarker )
     if retval1 == false or timesig_num == -1 then
       local test_time = TimeMap2_beatsToTime( 0, 0, 1 )
@@ -38,7 +42,9 @@
     -- find x = how much ceiling grid divisions is inside selection 
     local div_inside_area = math.ceil((fullbeats_end - fullbeats_st) / (division*timesig_denom))
     local shift_beats = div_inside_area*(division*timesig_denom)
-    local nudge_diff = TimeMap2_beatsToTime( 0, shift_beats, 0 )
+    local min_pos_new = TimeMap2_beatsToTime( 0, fullbeats_st + shift_beats)
+    
+    local nudge_diff = min_pos_new - min_pos --TimeMap2_beatsToTime( 0, shift_beats, 0 )
     AppNudgeToGroupedItems(nudge_diff, group_t)
   end
   ----------------------------------------------------------------------
@@ -86,6 +92,7 @@
       end 
     end
   end
+    ----------------------------------------------------------------------
   if VF_CheckReaperVrs(6.78,true)then 
     Undo_BeginBlock2( 0 )
     main() 
