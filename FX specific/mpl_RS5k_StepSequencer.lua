@@ -19,9 +19,6 @@ reaper.set_action_options(1 )
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
     ImGui = require 'imgui' '0.9.3.2'
     
-    -- gmem 1025: actions
-    -- gmem 1026: rs5k manager state
-    -- gmem 1027: rs5k stepseq state
     
   -------------------------------------------------------------------------------- init external defaults 
   EXT = {
@@ -32,7 +29,6 @@ reaper.set_action_options(1 )
           viewport_posH = 300, 
           viewport_dockID = 0,
           
-          CONF_leftpanelmode = 1,
           
           -- rs5k on add
           CONF_onadd_float = 0,
@@ -59,7 +55,7 @@ reaper.set_action_options(1 )
           CONF_onadd_ADSR_S = 0,
           CONF_onadd_ADSR_R = 0.02,
           
-          -- midi bus
+          -- midi bus 
           CONF_midiinput = 63, -- 63 all 62 midi kb
           CONF_midichannel = 0, -- 0 == all channels 
           CONF_midioutput = -1, 
@@ -93,6 +89,7 @@ reaper.set_action_options(1 )
           UI_colRGBA_paddefaultbackgr = 0x606060FF ,
           UI_colRGBA_paddefaultbackgr_inactive = 0x6060603F,
           UI_col_tinttrackcoloralpha = 0x7F,
+          UI_allowshortcuts = 1,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -136,12 +133,16 @@ reaper.set_action_options(1 )
           CONF_seq_treat_mouserelease_as_majorchange  = 0,
           CONF_seq_patlen_extendchildrenlen = 0,
           CONF_seq_instrumentsorder = 1,
+          CONF_seq_stuffMIDItoLP = 0,  
+          CONF_seq_defaultstepcnt = 16
+          
          }
         
   -------------------------------------------------------------------------------- INIT data
   DATA = {
           
           seq_functionscall = true,
+          scheduler = {},
           
           upd = true,
           upd2 = {},
@@ -231,8 +232,9 @@ reaper.set_action_options(1 )
           
           seq_horiz_scroll = 0,
           seq_patlen_extendchildrenlen = 0,
-          seq_UI_inlineH_area = 270,
+          seq_UI_inlineH_area = 285,
           seq_init_Yscroll = 0,
+          seq_LPstepseqmode = 0,
           
           }
   DATA.UI_name_vrs = DATA.UI_name--..' '..StepSequencer_vrs
@@ -579,17 +581,30 @@ reaper.set_action_options(1 )
         local posx,posy = ImGui.GetCursorPos(ctx)
         local set
         ImGui.Indent(ctx,10)
-        local num = {4,8,16,24,32,64,128}
+        ImGui.SeparatorText(ctx,'Step count')
+        local num = {-1,4,8,16,24,32,64,128}
         for i = 1, #num do
           local setnum = num[i]
-          if DATA.seq.ext.patternlen >=setnum and ImGui.Selectable(ctx, setnum..' steps', nil, reaper.ImGui_SelectableFlags_None(), 100) then set = setnum end 
+          local str = setnum..' steps'
+          if setnum == -1 then str = 'Follow pattern length' end
+          if DATA.seq.ext.patternlen >=setnum or setnum == -1 then
+            if ImGui.Selectable(ctx, str, setnum == DATA.seq.ext.children[note].step_cnt, reaper.ImGui_SelectableFlags_None(), 150) then set = setnum end 
+          end
         end
         if set then
           DATA.seq.ext.children[note].step_cnt = set
           DATA:_Seq_Print()
           reaper.ImGui_CloseCurrentPopup(ctx)
         end
-         ImGui.Unindent(ctx,10)
+        
+        ImGui.SeparatorText(ctx,'Actions')
+        local allow_print_to_full = DATA.seq.ext.children[note].step_cnt ~= -1 and DATA.seq.ext.children[note].step_cnt < DATA.seq.ext.patternlen 
+        if allow_print_to_full~=true then ImGui.BeginDisabled(ctx, true)  end
+          if ImGui.Selectable(ctx, 'Print to full pattern length', nil, reaper.ImGui_SelectableFlags_None(), 150) then DATA:_Seq_FillNoteStepsToFullLength(note) end  
+        if allow_print_to_full~=true then ImGui.EndDisabled(ctx)  end
+        
+        
+        ImGui.Unindent(ctx,10)
         ImGui.Dummy(ctx,0,UI.spacingY)
         reaper.ImGui_EndPopup(ctx)
       end
@@ -932,6 +947,7 @@ OFF:
 - set note end to [note]
 - refresh internal data, this allow changing start/end note in RS5k
 ]])
+
       if ImGui.Button(ctx, 'Remove pad content',-1) then
         DATA:Sampler_RemovePad(note) 
       end
@@ -961,9 +977,13 @@ OFF:
     
     -- fx
       if parameter_parent == 'trackFXenv' then
-        if ImGui.Button(ctx, '+ Add last touched') then 
+        if ImGui.Button(ctx, '+ Add last touched',110) then 
           DATA:_Seq_AddLastTouchedFX() 
         end
+        
+        if ImGui.Button(ctx, 'Remove',110) then DATA:_Seq_FXremove(note, parameter)  end
+        
+        
       end
     
     reaper.ImGui_PopFont(ctx)
@@ -1113,6 +1133,8 @@ OFF:
       
       
     if misiingsysex then  
+      ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
+     
       ImGui.DrawList_AddText( UI.draw_list, x1+ 10, y1+50, 0xFFFFFFBF, 
 [[Not available. Drag anywhere in this area to:
 - add sysex handler JSFX to child track
@@ -1129,6 +1151,8 @@ It also used for advanced sequencing parameters.
 ]]
 
 )
+
+
     end
     
     -- parameter tabs
@@ -1141,7 +1165,7 @@ It also used for advanced sequencing parameters.
       ImGui.EndTabBar( ctx)
     end
     
-    if parameter_parent == 'meta' then
+    if parameter_parent == 'meta' and misiingsysex ~= true then
       ImGui.SetCursorPosX(ctx, posx + UI.seq_audiolevelW + UI.seq_padnameW + UI.spacingX)
       if ImGui.BeginTabBar( ctx, 'paraminlinetabs_meta', ImGui.TabItemFlags_None|ImGui.TabBarFlags_FittingPolicyResizeDown ) then
         for i = 1, #DATA.seq_param_selector_meta do
@@ -1494,18 +1518,29 @@ It also used for advanced sequencing parameters.
   function UI.draw_Seq()   
     local mdx, mdy = reaper.ImGui_GetMouseDelta( ctx )
     if mdx ~= 0 and mdy ~=0 then DATA.temp_ismousewheelcontrol_hovered = nil end -- reset on move
+    
     local ctrls_w = 100
     -- startup
       if not (DATA.parent_track and DATA.parent_track.valid == true and DATA.seq and DATA.seq.valid == true and DATA.seq.tk_ptr ) then
         UI.draw_Seq_startup() 
         return
       end
+
      
     -- UI name
       ImGui.SameLine(ctx)
       ImGui.BeginDisabled(ctx, true) ImGui.Text(ctx, DATA.UI_name_vrs)ImGui.EndDisabled(ctx)
-    
+
+    -- new
+      if ImGui.Button(ctx, 'New') then 
+        Undo_BeginBlock2(DATA.proj)
+        DATA:_Seq_Insert() 
+        Undo_EndBlock2(DATA.proj, 'Insert new pattern', 0xFFFFFFFF)
+        DATA.upd = true
+      end
+      
     -- pattern rename
+      ImGui.SameLine(ctx)
       ImGui.SetNextItemWidth(ctx, 150)
       local tkname = DATA.seq.tkname
       if tkname == '' then tkname = '[untitled pattern]' end
@@ -1515,6 +1550,7 @@ It also used for advanced sequencing parameters.
         DATA.seq.tkname = buf
         GetSetMediaItemTakeInfo_String( DATA.seq.tk_ptr, 'P_NAME', DATA.seq.tkname, true )
       end
+
     
     -- patternlen 
       local patternlen = DATA.seq.ext.patternlen 
@@ -1524,8 +1560,7 @@ It also used for advanced sequencing parameters.
       --local retval, v = ImGui.SliderDouble  ( ctx, '##Swing_pat', DATA.seq.ext.swing, 0, 1, 'Swing '..math.floor(DATA.seq.ext.swing*100)..'%%', reaper.ImGui_SliderFlags_None() ) 
       local retval, v = ImGui.DragInt    ( ctx, '##patternlen', DATA.seq.ext.patternlen, 0.1, 1, UI.seq_maxstepcnt, 'Length '..DATA.seq.ext.patternlen, reaper.ImGui_SliderFlags_None() )
       if retval then DATA.seq.ext.patternlen = v DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen) end
-      if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then DATA:_Seq_Print() end
-      
+      if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then DATA:_Seq_Print() end 
       if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then ImGui.OpenPopup( ctx, 'patterlen', ImGui.PopupFlags_None )  end
       
       -- mousewheel
@@ -1542,21 +1577,24 @@ It also used for advanced sequencing parameters.
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,2)   
       if reaper.ImGui_BeginPopup(ctx,'patterlen') then
         local posx,posy = ImGui.GetCursorPos(ctx)
+        ImGui.SeparatorText(ctx,'Step count')
         local set
-        if ImGui.Selectable(ctx, '16 steps') then set = 16 end 
-        if ImGui.Selectable(ctx, '32 steps') then set = 32 end
-        if ImGui.Selectable(ctx, '64 steps') then set = 64 end 
-        if ImGui.Selectable(ctx, '128 steps') then set = 128 end
-        if ImGui.Selectable(ctx, '1024 steps') then set = 1024 end
-        if ImGui.Checkbox(ctx, 'Force children step count', EXT.CONF_seq_patlen_extendchildrenlen&1==1) then EXT.CONF_seq_patlen_extendchildrenlen=EXT.CONF_seq_patlen_extendchildrenlen~1 EXT:save()end 
-        
+        if ImGui.Selectable(ctx, '16 steps', DATA.seq.ext.patternlen==16) then set = 16 end 
+        if ImGui.Selectable(ctx, '32 steps', DATA.seq.ext.patternlen==32) then set = 32 end
+        if ImGui.Selectable(ctx, '64 steps', DATA.seq.ext.patternlen==64) then set = 64 end 
+        if ImGui.Selectable(ctx, '128 steps', DATA.seq.ext.patternlen==128) then set = 128 end
+        if ImGui.Selectable(ctx, '1024 steps', DATA.seq.ext.patternlen==1024) then set = 1024 end
+        ImGui.SeparatorText(ctx,'Options')
+        if ImGui.Checkbox(ctx, 'Change children step count', EXT.CONF_seq_patlen_extendchildrenlen&1==1) then EXT.CONF_seq_patlen_extendchildrenlen=EXT.CONF_seq_patlen_extendchildrenlen~1 EXT:save()end  
         if set then
           DATA.seq.ext.patternlen = set
           DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen)
           DATA:_Seq_Print()
           reaper.ImGui_CloseCurrentPopup(ctx)
         end
-         
+        ImGui.SeparatorText(ctx,'Actions')
+        if ImGui.Selectable(ctx, 'Print to full pattern length', nil, reaper.ImGui_SelectableFlags_None(), 180) then DATA:_Seq_FillNoteStepsToFullLength(note) end  
+        
         ImGui.Dummy(ctx,0,UI.spacingY)
         reaper.ImGui_EndPopup(ctx)
       end
@@ -1828,8 +1866,13 @@ It also used for advanced sequencing parameters.
         UI.draw() 
         UI.draw_popups()  
         ImGui.Dummy(ctx,0,0)  
-        if DATA.allow_space_to_play == true then if ImGui.IsKeyPressed(ctx, ImGui.Key_Space) then if GetPlayState()&1==1 then CSurf_OnStop() else CSurf_OnPlay() end end end
-        
+        if EXT.UI_allowshortcuts==1 then
+          if DATA.allow_space_to_play == true then if ImGui.IsKeyPressed(ctx, ImGui.Key_Space) then 
+            --if DATA.mainstate_manager ~= true and DATA.mainstate_seq == true then
+              if GetPlayState()&1==1 then CSurf_OnStop() else CSurf_OnPlay() end end 
+            --end
+          end
+        end
         
         ImGui.End(ctx)
       end 
@@ -2407,10 +2450,14 @@ It also used for advanced sequencing parameters.
     gmem_attach('RS5K_manager')
     gmem_write(1027, 1) -- rs5k stepseq opened
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
-    UI.MAIN_definecontext() 
+    
+    
+    UI.MAIN_definecontext() -- + EXT:load
+    
+    DATA:CollectDataInit_MIDIdevices() 
     DATA:CollectDataInit_LoadCustomPadStuff()
     DATA:CollectDataInit_EnumeratePlugins()
   end   
-       
+    ---------------------------------------------------------------------  
   _main()
   

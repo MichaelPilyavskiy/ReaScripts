@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.61
+-- @version 4.62
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,11 +18,20 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # minor fixes
+--    # Immediately forward RS5k manager configuration/settings to RS5k Step Sequencer
+--    # Sampler/General: fix error on missing macros
+--    # Sampler/General: fix obey midi octave offset
+--    # Settings/UI interaction: option to disable pass shortcuts
+--    + StepSequencer: add New button
+--    + Settings/StepSequencer: option to init steps from 16 steps or follow pattern length
+--    + StepSequencer: allow to set 'follow pattern length' in step count selector
+--    + StepSequencer: allow to print note steps to full pattern length in step count selector
+--    # StepSequencer: clear state on project mismatch on switching tabs
+--    + StepSequencer/Inline/FX: allow to remove parameter
+--    # fix error on macro knob right click
 
 
-
-rs5kman_vrs = '4.61'
+rs5kman_vrs = '4.62'
 
 
 -- TODO
@@ -31,6 +40,7 @@ rs5kman_vrs = '4.61'
       seq
         if pattern has same GUId than other BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
         groups
+        launchpad interaction
         
       sampler/sample
         hot record from master bus 
@@ -78,9 +88,17 @@ rs5kman_vrs = '4.61'
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
     ImGui = require 'imgui' '0.9.3.2'
     
-    -- gmem 1025: actions
-    -- gmem 1026: rs5k manager state
-    -- gmem 1027: rs5k stepseq state
+    --[[
+      gmem 1025: actions 
+        / 10=refresh rack
+        / 11=refresh steseq
+      gmem 1026: rs5k manager state
+      gmem 1027: rs5k stepseq state
+      gmem 1028: force stepseq read extstate
+      gmem 1029: incoming note for launchpad step seq   
+    ]]
+    
+    
     
   -------------------------------------------------------------------------------- init external defaults 
   EXT = {
@@ -156,6 +174,7 @@ rs5kman_vrs = '4.61'
           UI_col_tinttrackcoloralpha = 0x7F,
           UI_colRGBA_padctrl = 0x4F4F4FFF,
           UI_colRGBA_smplrbackgr = 0xFFFFFF2F,
+          UI_allowshortcuts = 1, -- allow space to play
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -193,13 +212,18 @@ rs5kman_vrs = '4.61'
           -- seq
           CONF_seq_random_probability = 0.5,
           CONF_seq_force_GUIDbasedsharing = 0,
-          CONF_seq_treat_mouserelease_as_majorchange  = 0,
+          CONF_seq_treat_mouserelease_as_majorchange  = 0, 
           CONF_seq_patlen_extendchildrenlen = 0,
           CONF_seq_instrumentsorder = 1, 
+          CONF_seq_stuffMIDItoLP = 0, 
+          CONF_seq_defaultstepcnt = 16, -- -1 follow pattern length
          }
         
   -------------------------------------------------------------------------------- INIT data
   DATA = {
+          
+          scheduler = {},
+          
           
           upd = true,
           upd2 = {},
@@ -552,7 +576,9 @@ rs5kman_vrs = '4.61'
         UI.draw() 
         UI.draw_popups()  
         ImGui.Dummy(ctx,0,0)  
-        if DATA.allow_space_to_play == true then if ImGui.IsKeyPressed(ctx, ImGui.Key_Space) then if GetPlayState()&1==1 then CSurf_OnStop() else CSurf_OnPlay() end end end
+        if EXT.UI_allowshortcuts==1 then
+          if DATA.allow_space_to_play == true then if ImGui.IsKeyPressed(ctx, ImGui.Key_Space) then if GetPlayState()&1==1 then CSurf_OnStop() else CSurf_OnPlay() end end end
+        end
         
         
         
@@ -871,87 +897,121 @@ rs5kman_vrs = '4.61'
       ImGui.EndCombo( ctx)
     end
   end
---------------------------------------------------------------------------------  
-function UI.draw_flow_COMBO(t)
-  local trig_action
-  local preview_value
-  if t.hide == true then return end
-  if type(EXT[t.extstr]) == 'number' then 
-    for key in pairs(t.values) do 
-      local isint = ({math.modf(EXT[t.extstr])})[2] == 0 and ({math.modf(key)})[2] == 0 
-      if type(key) == 'number' and key ~= 0 and ((isint==true and EXT[t.extstr]&key==key) or EXT[t.extstr]==key) then preview_value = t.values[key] break end 
+  --------------------------------------------------------------------------------  
+  function UI.draw_flow_COMBO(t)
+    local trig_action
+    local preview_value
+    if t.hide == true then return end
+    if type(EXT[t.extstr]) == 'number' then 
+      for key in pairs(t.values) do 
+        local isint = ({math.modf(EXT[t.extstr])})[2] == 0 and ({math.modf(key)})[2] == 0 
+        if type(key) == 'number' and key ~= 0 and ((isint==true and EXT[t.extstr]&key==key) or EXT[t.extstr]==key) then preview_value = t.values[key] break end 
+      end
+     elseif type(EXT[t.extstr]) == 'string' then 
+      preview_value = EXT[t.extstr] 
     end
-   elseif type(EXT[t.extstr]) == 'string' then 
-    preview_value = EXT[t.extstr] 
-  end
-  if not preview_value and t.values[0] then preview_value = t.values[0] end 
-  ImGui.SetNextItemWidth( ctx, t.extw or -1 )
-  if ImGui.BeginCombo( ctx, t.key, preview_value ) then
-    for id in spairs(t.values) do
-      local selected 
-      if type(EXT[t.extstr]) == 'number' then 
+    if not preview_value and t.values[0] then preview_value = t.values[0] end 
+    ImGui.SetNextItemWidth( ctx, t.extw or -1 )
+    if ImGui.BeginCombo( ctx, t.key, preview_value ) then
+      for id in spairs(t.values) do
+        local selected 
+        if type(EXT[t.extstr]) == 'number' then 
+          
+          local isint = ({math.modf(EXT[t.extstr])})[2] == 0 and ({math.modf(id)})[2] == 0 
+          selected = ((isint==true and id&EXT[t.extstr]==EXT[t.extstr]) or id==EXT[t.extstr])  and EXT[t.extstr]~= 0 
+        end
+        if type(EXT[t.extstr]) == 'string' then selected = EXT[t.extstr]==id end
         
-        local isint = ({math.modf(EXT[t.extstr])})[2] == 0 and ({math.modf(id)})[2] == 0 
-        selected = ((isint==true and id&EXT[t.extstr]==EXT[t.extstr]) or id==EXT[t.extstr])  and EXT[t.extstr]~= 0 
-      end
-      if type(EXT[t.extstr]) == 'string' then selected = EXT[t.extstr]==id end
-      
-      if ImGui.Selectable( ctx, t.values[id],selected  ) then
-        EXT[t.extstr] = id
-        trig_action = true
-        EXT:save()
-        if EXT.CONF_applylive == 1 then DATA:Process() end
-      end
-    end
-    ImGui.EndCombo(ctx)
-  end
-  
-  -- reset
-  if reaper.ImGui_IsItemHovered( ctx, ImGui.HoveredFlags_None ) and ImGui_IsMouseClicked( ctx, ImGui.MouseButton_Right ) then
-    DATA.PRESET_RestoreDefaults(t.extstr)
-    trig_action = true
-    if EXT.CONF_applylive == 1 then DATA:Process() end
-  end  
-  if t.tooltip then  ImGui.SetItemTooltip(ctx, t.tooltip) end
-  return  trig_action
-end
---------------------------------------------------------------------------------  
-function UI.draw_tabs_Actions()
-  
-  -- stick current track 
-    local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
-    if DATA.parent_track and DATA.parent_track.trGUID then
-      if ImGui.Checkbox( ctx, 'Stick current rack to this project', stickstate) then 
-        if DATA.parent_track.ext_load == true then 
-          SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID','')
-          DATA.upd = true
-         else
-          SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID',DATA.parent_track.trGUID )
-          DATA.upd = true
+        if ImGui.Selectable( ctx, t.values[id],selected  ) then
+          EXT[t.extstr] = id
+          trig_action = true
+          EXT:save()
+          if EXT.CONF_applylive == 1 then DATA:Process() end
         end
       end
+      ImGui.EndCombo(ctx)
     end
-    ImGui.SameLine(ctx)
-    UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
-   
-  
-  -- fix GUID
-    local fixavailable = ''
-    local available_extGUID = not (DATA.parent_track and DATA.parent_track.valid == true and DATA.parent_track.ext.PARENT_GUID_INTERNAL)
-    if available_extGUID == true then fixavailable = '[not available] ' end
-    if available_extGUID ~= true then ImGui.BeginDisabled(ctx, true) end
-    if ImGui.Selectable( ctx, fixavailable..'Fix GUID of parent track', EXT.CONF_lastmacroaction==1, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then 
-      GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'GUID', DATA.parent_track.ext.PARENT_GUID_INTERNAL, true )
-      DATA.upd = true
-    end 
-    ImGui.SameLine(ctx) UI.HelpMarker('Use this if rack doesn`t handled by RS5k manager after import template')
-    if available_extGUID ~= true then ImGui.EndDisabled(ctx) end
     
-  -- explode take
-    if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then DATA:Action_ExplodeTake() end
-end
+    -- reset
+    if reaper.ImGui_IsItemHovered( ctx, ImGui.HoveredFlags_None ) and ImGui_IsMouseClicked( ctx, ImGui.MouseButton_Right ) then
+      DATA.PRESET_RestoreDefaults(t.extstr)
+      trig_action = true
+      if EXT.CONF_applylive == 1 then DATA:Process() end
+    end  
+    if t.tooltip then  ImGui.SetItemTooltip(ctx, t.tooltip) end
+    return  trig_action
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_tabs_Actions()
+
+    -------------- General
+    ImGui.SeparatorText(ctx, 'General')
+    ImGui.Indent(ctx, 10)
+    -- stick current track 
+      local stickstate = DATA.parent_track and DATA.parent_track.ext_load == true
+      if DATA.parent_track and DATA.parent_track.trGUID then
+        if ImGui.Checkbox( ctx, 'Stick current rack to this project', stickstate) then 
+          if DATA.parent_track.ext_load == true then 
+            SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID','')
+            DATA.upd = true
+           else
+            SetProjExtState( DATA.proj, 'MPLRS5KMAN', 'STICKPARENTGUID',DATA.parent_track.trGUID )
+            DATA.upd = true
+          end
+        end
+      end
+      ImGui.SameLine(ctx)
+      UI.HelpMarker('This rack will be always displayed even if selected track is not related to this rack.\nThis also ignores other racks in project.')
+    -- fix GUID
+      local fixavailable = ''
+      local available_extGUID = not (DATA.parent_track and DATA.parent_track.valid == true and DATA.parent_track.ext.PARENT_GUID_INTERNAL)
+      if available_extGUID == true then fixavailable = '[not available] ' end
+      if available_extGUID ~= true then ImGui.BeginDisabled(ctx, true) end
+      if ImGui.Selectable( ctx, fixavailable..'Fix GUID of parent track', EXT.CONF_lastmacroaction==1, reaper.ImGui_SelectableFlags_None(), 0, 0 ) then 
+        GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'GUID', DATA.parent_track.ext.PARENT_GUID_INTERNAL, true )
+        DATA.upd = true
+      end 
+      ImGui.SameLine(ctx) UI.HelpMarker('Use this if rack doesn`t handled by RS5k manager after import template')
+      if available_extGUID ~= true then ImGui.EndDisabled(ctx) end
+    ImGui.Unindent(ctx, 10)
   
   
+    -------------- MIDI
+    ImGui.SeparatorText(ctx, 'MIDI')
+    ImGui.Indent(ctx, 10) 
+    -- explode take
+      if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then DATA:Action_ExplodeTake() end
+    ImGui.Unindent(ctx, 10)
+
+
+    --[[------------ LP
+    ImGui.SeparatorText(ctx, 'LaunchPad')
+      ImGui.Indent(ctx, 10)  
+      if ImGui.Checkbox( ctx, 'Drum layout', EXT.CONF_seq_sendsysextoLP==0) then       
+        DATA:Launchpad_StuffSysex('F0h 00h 20h 29h 02h 0Dh 00h 04h F7h'  ) 
+        EXT.CONF_seq_sendsysextoLP = EXT.CONF_seq_sendsysextoLP~1 EXT:save()
+        if DATA.MIDIbus.valid == true and DATA.MIDIbus.tr_ptr then SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) end
+        DATA.upd = true
+      end --  Drum layout
+      ImGui.SameLine(ctx) ImGui.Dummy(ctx, 20, 0) ImGui.SameLine(ctx)
+      if EXT.CONF_seq_sendsysextoLP == 1 then reaper.ImGui_BeginDisabled(ctx, true )  end
+      if ImGui.Checkbox( ctx, 'Enable monitoring', DATA.MIDIbus.valid == true and DATA.MIDIbus.I_RECMON>0) then       DATA:Launchpad_StuffSysex(nil,1 ) DATA.upd = true end --  Drum layout
+      if EXT.CONF_seq_sendsysextoLP == 1 then reaper.ImGui_EndDisabled(ctx )  end
+      ImGui.Indent(ctx,10)ImGui.TextDisabled(ctx, '+ MIDI bus: disable monitoring, set MIDI HW output')ImGui.Unindent(ctx,10)
+      
+      if ImGui.Checkbox( ctx, 'Programmer mode + enable send sequencer data to LP', EXT.CONF_seq_sendsysextoLP==1) then   
+        DATA:Launchpad_StuffSysex('F0h 00h 20h 29h 02h 0Dh 00h 7Fh F7h'  ) 
+        EXT.CONF_seq_sendsysextoLP = EXT.CONF_seq_sendsysextoLP~1 EXT:save()
+        if DATA.MIDIbus.valid == true and DATA.MIDIbus.tr_ptr then SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_MIDIHWOUT', -1) end
+        DATA.upd = true
+      end --  Programmer mode layout
+      ImGui.Indent(ctx,10)ImGui.TextDisabled(ctx, '+ MIDI bus: disable monitoring, unset MIDI HW output')ImGui.Unindent(ctx,10)
+            ]]
+            
+      ImGui.Unindent(ctx, 10)
+      
+    
+  end 
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_database()
     if ImGui.CollapsingHeader(ctx, 'Database maps') then
@@ -1220,105 +1280,111 @@ end
         -- custom note names
         local curname = string.format('%02d', DATA.padcustomnames_selected_id)
         if DATA.padcustomnames[i] then name = DATA.padcustomnames[i] end
-        ImGui.Text(ctx, 'Custom pad names')
-        ImGui.Indent(ctx, UI.settings_indent)
-        reaper.ImGui_SetNextItemWidth( ctx, 50 )
-        if ImGui.BeginCombo( ctx, '##custompadnames',curname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
-          for i = 0,127 do
-            local name = string.format('%02d', i)
-            if DATA.padcustomnames[i] then name = name..' - '..DATA.padcustomnames[i] end
-            if ImGui.Selectable( ctx, name..'##custpadname'..i, i == DATA.padcustomnames_selected_id, ImGui.SelectableFlags_None) then DATA.padcustomnames_selected_id = i end
+        --ImGui.Text(ctx, 'Custom pad names')
+        if ImGui.CollapsingHeader(ctx, 'Custom pad names') then 
+          
+          ImGui.Indent(ctx, UI.settings_indent)
+          reaper.ImGui_SetNextItemWidth( ctx, 50 )
+          if ImGui.BeginCombo( ctx, '##custompadnames',curname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
+            for i = 0,127 do
+              local name = string.format('%02d', i)
+              if DATA.padcustomnames[i] then name = name..' - '..DATA.padcustomnames[i] end
+              if ImGui.Selectable( ctx, name..'##custpadname'..i, i == DATA.padcustomnames_selected_id, ImGui.SelectableFlags_None) then DATA.padcustomnames_selected_id = i end
+            end
+            ImGui.EndCombo( ctx)
           end
-          ImGui.EndCombo( ctx)
-        end
-        ImGui.SameLine(ctx)
-        local retval, buf = ImGui_InputText( ctx, '##custpadnameinput'..DATA.padcustomnames_selected_id, DATA.padcustomnames[DATA.padcustomnames_selected_id], ImGui_InputTextFlags_None() )
-        if retval then 
-          buf = buf:gsub('[^%a%d%s%-]+','')
-          DATA.padcustomnames[DATA.padcustomnames_selected_id] = buf
-        end
-        if ImGui_IsItemDeactivatedAfterEdit( ctx ) then
-          local outstr = ''
-          for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padcustomnames[i] or '')..'" ' end
-          EXT.UI_padcustomnamesB64 = VF_encBase64(outstr)
-          EXT:save() 
+          ImGui.SameLine(ctx)
+          local retval, buf = ImGui_InputText( ctx, '##custpadnameinput'..DATA.padcustomnames_selected_id, DATA.padcustomnames[DATA.padcustomnames_selected_id], ImGui_InputTextFlags_None() )
+          if retval then 
+            buf = buf:gsub('[^%a%d%s%-]+','')
+            DATA.padcustomnames[DATA.padcustomnames_selected_id] = buf
+          end
+          if ImGui_IsItemDeactivatedAfterEdit( ctx ) then
+            local outstr = ''
+            for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.padcustomnames[i] or '')..'" ' end
+            EXT.UI_padcustomnamesB64 = VF_encBase64(outstr)
+            EXT:save() 
+          end
+          
+          if ImGui.Button(ctx, 'General MIDI bank') then --
+            EXT.UI_padcustomnamesB64 = VF_encBase64([[
+          27="High Q or Filter Snap"
+          28="Slap Noise"
+          29="Scratch Push"
+          30="Scratch Pull"
+          31="Drum sticks"
+          32="Square Click"
+          33="Metronome Click"
+          34="Metronome Bell"
+          82="Shaker"
+          83="Jingle Bell"
+          84="Belltree"
+          85="Castanets"
+          86="Mute Surdo"
+          87="Open Surdo"
+          
+          35="Acoustic Bass Drum or Low Bass Drum"
+          36="Electric Bass Drum or High Bass Drum"
+          37="Side Stick"
+          38="Acoustic Snare"
+          39="Hand Clap"
+          40="Electric Snare or Rimshot"
+          41="Low Floor Tom"
+          42="Closed Hi-hat"
+          43="High Floor Tom"
+          44="Pedal Hi-hat"
+          45="Low Tom"
+          46="Open Hi-hat"
+          47="Low-Mid Tom"
+          48="High-Mid Tom"
+          49="Crash Cymbal 1"
+          50="High Tom"
+          51="Ride Cymbal 1"
+          52="Chinese Cymbal"
+          53="Ride Bell"
+          54="Tambourine"
+          55="Splash Cymbal"
+          56="Cowbell"
+          57="Crash Cymbal 2"
+          58="Vibraslap"
+          59="Ride Cymbal 2"
+          60="High Bongo"
+          61="Low Bongo"
+          62="Mute High Conga"
+          63="Open High Conga"
+          64="Low Conga"
+          65="High Timbale"
+          66="Low Timbale"
+          67="High Agogô"
+          68="Low Agogô"
+          69="Cabasa"
+          70="Maracas"
+          71="Short Whistle"
+          72="Long Whistle"
+          73="Short Güiro"
+          74="Long Güiro"
+          75="Claves"
+          76="High Woodblock"
+          77="Low Woodblock"
+          78="Mute Cuíca"
+          79="Open Cuíca"
+          80="Mute Triangle"
+          81="Open Triangle"
+  ]]          )
+            EXT:save()
+            DATA:CollectDataInit_LoadCustomPadStuff()
+          end        
+          if ImGui.Button(ctx, 'Clear custom pad names') then 
+            EXT.UI_padcustomnamesB64 = ''
+            EXT:save()
+            DATA:CollectDataInit_LoadCustomPadStuff()
+          end
+          
+          ImGui.Unindent(ctx, UI.settings_indent)
         end
         
-        if ImGui.Button(ctx, 'General MIDI bank') then --
-          EXT.UI_padcustomnamesB64 = VF_encBase64([[
-        27="High Q or Filter Snap"
-        28="Slap Noise"
-        29="Scratch Push"
-        30="Scratch Pull"
-        31="Drum sticks"
-        32="Square Click"
-        33="Metronome Click"
-        34="Metronome Bell"
-        82="Shaker"
-        83="Jingle Bell"
-        84="Belltree"
-        85="Castanets"
-        86="Mute Surdo"
-        87="Open Surdo"
         
-        35="Acoustic Bass Drum or Low Bass Drum"
-        36="Electric Bass Drum or High Bass Drum"
-        37="Side Stick"
-        38="Acoustic Snare"
-        39="Hand Clap"
-        40="Electric Snare or Rimshot"
-        41="Low Floor Tom"
-        42="Closed Hi-hat"
-        43="High Floor Tom"
-        44="Pedal Hi-hat"
-        45="Low Tom"
-        46="Open Hi-hat"
-        47="Low-Mid Tom"
-        48="High-Mid Tom"
-        49="Crash Cymbal 1"
-        50="High Tom"
-        51="Ride Cymbal 1"
-        52="Chinese Cymbal"
-        53="Ride Bell"
-        54="Tambourine"
-        55="Splash Cymbal"
-        56="Cowbell"
-        57="Crash Cymbal 2"
-        58="Vibraslap"
-        59="Ride Cymbal 2"
-        60="High Bongo"
-        61="Low Bongo"
-        62="Mute High Conga"
-        63="Open High Conga"
-        64="Low Conga"
-        65="High Timbale"
-        66="Low Timbale"
-        67="High Agogô"
-        68="Low Agogô"
-        69="Cabasa"
-        70="Maracas"
-        71="Short Whistle"
-        72="Long Whistle"
-        73="Short Güiro"
-        74="Long Güiro"
-        75="Claves"
-        76="High Woodblock"
-        77="Low Woodblock"
-        78="Mute Cuíca"
-        79="Open Cuíca"
-        80="Mute Triangle"
-        81="Open Triangle"
-]]          )
-          EXT:save()
-          DATA:CollectDataInit_LoadCustomPadStuff()
-        end        
-        if ImGui.Button(ctx, 'Clear custom pad names') then 
-          EXT.UI_padcustomnamesB64 = ''
-          EXT:save()
-          DATA:CollectDataInit_LoadCustomPadStuff()
-        end
-        ImGui.Unindent(ctx, UI.settings_indent)
-        
+        if ImGui.Checkbox( ctx, 'Allow space to play',                              EXT.UI_allowshortcuts == 1 ) then EXT.UI_allowshortcuts =EXT.UI_allowshortcuts~1 EXT:save() end
         ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
@@ -1485,6 +1551,24 @@ end
       if ImGui.Checkbox( ctx, 'Use ascending order of intruments',                             EXT.CONF_seq_instrumentsorder == 1 ) then EXT.CONF_seq_instrumentsorder =EXT.CONF_seq_instrumentsorder~1 EXT:save() end
       ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
       
+      local map  ={
+        [-1] = 'Follow pattern length',
+        [16] = '16 steps'
+      }
+      --ImGui.SetNextItemWidth(ctx, -1)
+      if ImGui.BeginCombo( ctx, 'Default steps count##defcntsteps', map[EXT.CONF_seq_defaultstepcnt], ImGui.ComboFlags_None ) then
+        for val in pairs(map) do
+          if ImGui.Selectable( ctx, map[val], false, ImGui.SelectableFlags_None) then 
+            EXT.CONF_seq_defaultstepcnt = val
+            EXT:save()
+          end
+        end
+        ImGui.EndCombo( ctx )
+      end
+      
+      
+     -- 
+      
       ImGui.Unindent(ctx,UI.settings_indent)
     end  
   
@@ -1566,69 +1650,62 @@ end
   
   end
   ---------------------------------------------------------------------------------------------------------------------------------    
+  function UI.Launchpad_drumrackhelp()
+            ImGui.Indent(ctx,10)
+            ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
+Launchpad setuplooks like this:
+    1. make sure Launchpad is presented in REAPER Preference / Audio / MIDI outputs 
+    2. enable it
+    3. restart script
+    
+Then,
+    if you using Drum Rack only
+    4a. open RS5k manager/Settings/MIDI Bus and select your MIDIOUT LaunchPad output
+    4b. Turn OFF sending MIDI feedback from step sequencer
+    
+    if you using Step Sequencer as well
+    4a. open RS5k manager/Settings/MIDI Bus and select your MIDIOUT LaunchPad output
+    4b. Turn ON sending MIDI feedback from step sequencer
+    
+This setting will be used for newly created MIDI buses. So if you already have rack ready to play, you can apply pre-defined LaunchPad output manually in MIDI bus track routing or here:]])ImGui.EndDisabled(ctx)
+      
+      
+      
+      local buttxt = 'Set MIDI Hardware output for MIDI bus'
+      if EXT.CONF_midioutput == -1 then 
+        ImGui.BeginDisabled(ctx,true) 
+        buttxt = '[no MIDI Hardware output for MIDI bus set]'
+      end
+      if ImGui.Button(ctx, buttxt) then 
+        if DATA.MIDIbus.valid == true and DATA.MIDIbus.tr_ptr then SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) end
+      end
+      if EXT.CONF_midioutput == -1 then ImGui.EndDisabled(ctx) end
+      
+      
+      
+      ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
+      
+You can then light up pads using just "normal" MIDI output.
+MIDI bus will send same MIDI it sends to tracks, which will light up related pads.
+
+
+BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Other
+    ]]) ImGui.EndDisabled(ctx)
+    
+    
+    ImGui.Unindent(ctx,10)
+  end
+  
+  ---------------------------------------------------------------------------------------------------------------------------------    
   function UI.draw_tabs_settings_Launchpad()
     if ImGui.CollapsingHeader(ctx, 'Launchpad') then 
       ImGui.Indent(ctx,UI.settings_indent)
-      local retval, p_visible = reaper.ImGui_CollapsingHeader( ctx, 'Drum Rack setup' )
-      if retval then
-        ImGui.Indent(ctx,10)
-        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
-Launchpad setup for Drum Rack looks like this:
-  - make sure Launchpad is presented in Preference/Audio/MIDI outputs 
-  - enable it
-  - restart script
-  - open Settings/MIDI Bus and select your MIDIOUT LaunchPad output
-  
-  This setting is valid for newly created MIDI buses.
-  You can set selected MIDI Hardware output manually or here:]])ImGui.EndDisabled(ctx)
-  
-  local buttxt = 'Set MIDI Hardware output for MIDI bus'
-  if EXT.CONF_midioutput == -1 then 
-    ImGui.BeginDisabled(ctx,true) 
-    buttxt = '[no MIDI Hardware output for MIDI bus set]'
-  end
-  if ImGui.Button(ctx, buttxt) then 
-    if DATA.MIDIbus.valid == true and DATA.MIDIbus.tr_ptr then SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) end
-  end
-  if EXT.CONF_midioutput == -1 then ImGui.EndDisabled(ctx) end
-  
-  ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[You can then light up pads using just "normal" MIDI output.
-MIDI bus will send same MIDI it sends to tracks, which will light up related pads. 
-]]) ImGui.EndDisabled(ctx)
-        ImGui.Unindent(ctx,10)
-      end
---[[
-      local retval, p_visible = reaper.ImGui_CollapsingHeader( ctx, 'Step Sequencer setup' )
-      if retval then
-        ImGui.Indent(ctx,10)
-        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
-Launchpad setup for Step Sequencer looks like this:
-    - if you setup previously Launchpad for Drum Rack, make sure you have choke JSFX (bundled with RS5k manager) is inserted into MIDI bus. This JSFX have SysEx filter so you will not run into MIDI feedback loop. Otherwise you get your Launchpad blinking. If you haven`t it yet on MIDI bus, you can initialize it here:] ])ImGui.EndDisabled(ctx)
-        
-        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
-Then you can send this SysEx for turn launchpad into Programmer Mode. This is turn on Launchpad internal setup for StepSequencer.] ]) ImGui.EndDisabled(ctx)
-        local SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7Fh F7h'  
-        if ImGui.Button(ctx, 'Set programming mode' ) then DATA:Auto_StuffSysex_stuff(SysEx_msg) end ImGui.SameLine(ctx)
-        ImGui.InputText(ctx,'##programming_sysex_lighting', SysEx_msg)
-        
-        
-        ImGui.SeparatorText(ctx, 'Revert to normal state')
-        ImGui.BeginDisabled(ctx,true) ImGui.TextWrapped(ctx, [[
-If you can`t revert to normal drum layout manually, you can trigger it here:] ]) ImGui.EndDisabled(ctx)
-        local SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 04h F7h'  
-        if ImGui.Button(ctx, 'Set drum layout' ) then DATA:Auto_StuffSysex_stuff(SysEx_msg) end ImGui.SameLine(ctx)
-        ImGui.InputText(ctx,'##drumlayout_sysex', SysEx_msg)
-        
-        
-        
-        
-        ImGui.Unindent(ctx,10)
-      end]]
-    
+      --[[--local retval, p_visible = reaper.ImGui_CollapsingHeader( ctx, 'Drum Rack setup' )
+      --if retval then UI.Launchpad_drumrackhelp() end
+      UI.Launchpad_drumrackhelp()]]
       ImGui.Unindent(ctx,UI.settings_indent)
-    end  
-  
-  end
+    end   
+  end      
   --------------------------------------------------------------------------------    
     function UI.draw_tabs_settings()
     
@@ -1649,7 +1726,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       UI.draw_tabs_settings_AutoColor()
       UI.draw_tabs_settings_Autoslice()
       UI.draw_tabs_settings_StepSequencer() 
-      UI.draw_tabs_settings_Launchpad() 
+      --UI.draw_tabs_settings_Launchpad() 
       
       
       ImGui.EndChild( ctx)
@@ -1694,7 +1771,6 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
   --------------------------------------------------------------------------------  
   function UI.Layout_Custom()  
     
-    function __f__customlayout_draw() end
     if EXT.UI_drracklayout ~= 2 then return end
     local ID = EXT.UI_drracklayout_customID
     if not DATA.custom_layouts[ID] then return end
@@ -2101,7 +2177,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
       if retval1 then 
         local midi2 = rawmsg:byte(2)
         local midi1 = rawmsg:byte(1)  
-        if midi1&0xB0==0xB0 then valid = true str = 'CC chan'..(1+(midi1&0x0F)*15)..' / CC#'
+        if midi1 and midi2 and  midi1&0xB0==0xB0 then valid = true str = 'CC chan'..(1+(midi1&0x0F)*15)..' / CC#'
          --elseif midi1&0x90==0x90 then valid = true str = 'NoteOn '..(1+(midi1&0x0F)*15)..' / Pitch'
          --elseif midi1&0x80==0x80 then valid = true str = 'NoteOn '..(1+(midi1&0x0F)*15)..' / Pitch'
         end
@@ -2229,7 +2305,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
        
       UI.draw_popups_pad()
       UI.draw_popups_macro() 
-      UI.draw_popups_rs5k_ctrl()  
+      UI.draw_popups_rs5k_ctrl()
       
       if DATA.trig_closepopup == true then ImGui.CloseCurrentPopup(ctx) DATA.trig_closepopup = nil end
       ImGui.EndPopup(ctx)
@@ -2239,10 +2315,16 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
   end  
   -------------------------------------------------------------------------------- 
   function UI.draw_popups_rs5k_ctrl()  
+    
     if not (DATA.trig_context == 'rs5k_ctrl' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE) then return end 
     
     local note =  DATA.parent_track.ext.PARENT_LASTACTIVENOTE
     local layer =  DATA.parent_track.ext.PARENT_LASTACTIVENOTE_LAYER 
+    
+    if not (DATA.parent_track.macro and DATA.parent_track.macro.sliders) then 
+      reaper.ImGui_TextDisabled(ctx, 'Macro links')
+      return 
+    end
     
     
     local track, fx, param
@@ -2867,12 +2949,16 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     end
   end
   -------------------------------------------------------------------------------- 
-  function UI.HelpMarker(desc)
+  function UI.HelpMarker(desc, tooltip_code)
     ImGui.TextDisabled(ctx, '(?)')
     if ImGui.BeginItemTooltip(ctx) then
-      ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
-      ImGui.Text(ctx, desc)
-      ImGui.PopTextWrapPos(ctx)
+      if tooltip_code then 
+        tooltip_code()
+       else
+        ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+        ImGui.Text(ctx, desc)
+        ImGui.PopTextWrapPos(ctx)
+      end
       ImGui.EndTooltip(ctx)
     end
   end
@@ -4450,8 +4536,7 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     gmem_write(1026, 1) -- rs5k manager opened
     
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
-    DATA:CollectDataInit_MIDIdevices() 
-    
+    DATA:CollectDataInit_MIDIdevices()  
     DATA:CollectDataInit_ParseREAPERDB()  
     DATA.loadtest = time_precise() - loadtest -- measure load databases
     
@@ -4465,133 +4550,6 @@ If you can`t revert to normal drum layout manually, you can trigger it here:] ])
     DATA:CollectDataInit_EnumeratePlugins()
     --mpl_FixExtStateINI()
   end 
-  
-  
-  --[[-------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
-  function DATA:Auto_StuffSysex() 
-    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
-  end  
-  
-  ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg  
-    if  not (EXT.CONF_launchpadsendMIDI == 1 and EXT.UI_drracklayout == 2) then return end 
-    -- search HW MIDI out 
-      local is_LPminiMK3
-      local is_LPProMK3
-      --local LPminiMK3_name = "LPMiniMK3 MIDI"
-      local LPminiMK3_name = "MIDIOUT2 (LPMiniMK3 MIDI)"
-      local LPProMK3_name = "LPProMK3 MIDI"
-      for dev = 1, reaper.GetNumMIDIOutputs() do
-        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
-        if retval and nameout == LPminiMK3_name then HWdevoutID =  dev-1 is_LPminiMK3 = true break end --nameout:match(LPminiMK3_name)
-        if retval and nameout == LPProMK3_name then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
-      end
-      if not HWdevoutID then return end
-    
-    -- action on release
-    if cmd == 'on release' then -- set to key layout
-      if is_LPminiMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-      if is_LPProMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-    end
-    
-    
-    
-    -- 
-      if cmd == 'set/refresh active state' then
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-    
-    --if cmd == 'drum layout' then
-      if cmd == 'drum mode' then
-        if is_LPminiMK3 ==true then 
-          SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 10h 01 F7h' 
-          DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-        end
-      end
-      
-      
-      if is_LPminiMK3 ==true or is_LPProMK3==true then 
-        for ledId = 0, 81 do
-          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
-            local msgtype = 90
-            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then msgtype = 92 end
-            SysEx_msg = msgtype..' '..string.format("%02X", ledId)..' 16'
-            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-           else
-            local col = '00'
-            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then col = '03' end
-            SysEx_msg = '90 '..string.format("%02X", ledId)..' '..col
-            DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-          end
-        end
-      end
-      
-    end]]
-    
-    
-    --[[
-    
-    if cmd == 'programmer mode' then
-      if is_LPminiMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-      if is_LPProMK3 ==true then 
-        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'
-        DATA:Auto_StuffSysex_stuff(SysEx_msg, HWdevoutID) 
-      end
-    end
-    
-    
-    
-    if cmd == 'programmer mode: set colors' then
-      
-        local colorstr = '' 
-        for ledId = 0, 81 do
-          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
-            local lightingtype = 3 
-            local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
-            r = math.floor(((color>>16)&0xFF) * 0.5)
-            g = math.floor(((color>>8)&0xFF) * 0.5)
-            b = math.floor(((color>>0)&0xFF) * 0.5)
-            colorstr = colorstr..
-              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
-              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
-              string.format("%X", r)..' '..
-              string.format("%X", g)..' '..
-              string.format("%X", b)..' ' 
-           else
-            local lightingtype = 0
-            local palettecol = 0
-            colorstr = colorstr..
-              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
-              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
-              DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
-          end
-        end
-        
-        if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h' end
-        if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 03h '..colorstr..'F7h' end 
-  
-    end
-    
-  end ]]
-  ---------------------------------------------------------------------  
-  function DATA:Auto_StuffSysex_stuff(SysEx_msg) 
-    if SysEx_msg and EXT.CONF_midioutput and EXT.CONF_midioutput ~=-1  then
-      local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
-      SendMIDIMessageToHardware(EXT.CONF_midioutput, SysEx_msg_bin) 
-    end
-  end
-  
     -----------------------------------------------------------------------------------------       
   _main()
    

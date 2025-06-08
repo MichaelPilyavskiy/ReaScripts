@@ -9,7 +9,19 @@ if not EXT then EXT = {} end
 if not ImGui then ImGui = {} end
 if not UI then UI = {} end
 
-  
+
+
+ 
+  --[[-------------------------------------------------------------------  
+  function DATA:Launchpad_StuffSysex(SysEx_msg, mon_state0) 
+    local mon_state = 0 if mon_state0 then mon_state = mon_state0 end
+    if  DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid == true then SetMediaTrackInfo_Value( DATA.MIDIbus.tr_ptr, 'I_RECMON', mon_state ) end -- prevent 
+        
+    if SysEx_msg and EXT.CONF_midioutput and EXT.CONF_midioutput ~=-1  then 
+      local SysEx_msg_bin = '' for hex in SysEx_msg:gmatch('[A-F,0-9]+') do  SysEx_msg_bin = SysEx_msg_bin..string.char(tonumber(hex, 16)) end 
+      SendMIDIMessageToHardware(EXT.CONF_midioutput, SysEx_msg_bin)   
+    end
+  end  ]]
   --------------------------------------------------------------------------------  
   function DATA:_Seq_PrintEnvelopes_GetEnvByParamName(track, param) local seq_envelope
     if not track then return end
@@ -176,6 +188,22 @@ if not UI then UI = {} end
     if not (t.ext and t.ext.children) then return end
     for note in pairs(t.ext.children) do DATA:_Seq_PrintEnvelopes_note(note, seqstart_fullbeats) end 
   end 
+  --------------------------------------------------------------------------------   
+  function DATA:_Seq_FXremove(note, parameter)
+    local fxGUID,paramID = parameter:match('env_FX_(%{.-%})([%d]+)')
+    if paramID and tonumber(paramID) then paramID = tonumber(paramID) end
+    if not (fxGUID and paramID) then return end
+    DATA.seq.ext.children[note].env_FXparamlist[fxGUID][paramID] = nil
+    if DATA.seq.ext.children[note].steps then 
+      for step in pairs(DATA.seq.ext.children[note].steps) do
+        DATA.seq.ext.children[note].steps[step][parameter] = nil
+        DATA.seq.ext.children[note].steps[step][parameter..'_shape'] = nil
+        DATA.seq.ext.children[note].steps[step][parameter..'_tension'] = nil
+      end
+    end
+    
+    DATA:_Seq_Print()
+  end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_AddLastTouchedFX() 
     local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
@@ -278,6 +306,41 @@ if not UI then UI = {} end
       if DATA.seq.ext.children[note  ] then DATA.seq.ext.children[note ].steps = nil end 
     end
     DATA:_Seq_Print(true) 
+  end
+    -------------------------------------------------------------------------------- 
+  function DATA:_Seq_FillNoteStepsToFullLength(note)   --Print to full pattern length 
+  
+    if note then
+      if not (DATA.seq.ext and DATA.seq.ext.children and note and DATA.seq.ext.children[note]) then return end
+      local step_cnt = DATA.seq.ext.children[note].step_cnt
+      for step = step_cnt+1, DATA.seq.ext.patternlen do
+        local activestep = (step%step_cnt)
+        if activestep == 0 then activestep = step_cnt end
+        DATA.seq.ext.children[note].steps[step] = CopyTable(DATA.seq.ext.children[note].steps[activestep])
+      end 
+      
+      DATA.seq.ext.children[note].step_cnt = -1
+      DATA:_Seq_Print()
+    end
+    
+    if not note then
+      if not (DATA.seq.ext and DATA.seq.ext.children) then return end 
+      for note in pairs(DATA.seq.ext.children) do
+        local step_cnt = DATA.seq.ext.children[note].step_cnt
+        if step_cnt ~= -1 then
+          for step = step_cnt+1, DATA.seq.ext.patternlen do
+            local activestep = (step%step_cnt)
+            if activestep == 0 then activestep = step_cnt end
+            DATA.seq.ext.children[note].steps[step] = CopyTable(DATA.seq.ext.children[note].steps[activestep])
+          end 
+          DATA.seq.ext.children[note].step_cnt = -1
+        end 
+        
+      end
+      DATA:_Seq_Print()
+    end
+    
+    
   end
     -------------------------------------------------------------------------------- 
   function DATA:_Seq_Fill(note, pat)
@@ -412,15 +475,22 @@ if not UI then UI = {} end
               children={}, 
               step_defaults={},
               swing = 0,
-            }
+            },
       }
     
     -- init
-    if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then DATA.seq = last_valid_seq return end
-    local track = DATA.MIDIbus.tr_ptr
+    if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end --DATA.seq = last_valid_seq  
+    local track = DATA.MIDIbus.tr_ptr 
+    
+    if not item and DATA.seq.it_ptr and GetItemProjectContext( DATA.seq.it_ptr ) == DATA.proj then                            
+      DATA.seq = last_valid_seq 
+      return 
+    end 
     local item = GetSelectedMediaItem( DATA.proj, 0 )
-    if not item then                            DATA.seq = last_valid_seq return end
-    if GetMediaItem_Track( item ) ~= track then DATA.seq = last_valid_seq return end  
+    if item and GetMediaItem_Track( item ) ~= track then DATA.seq = last_valid_seq return end  
+    if not item then return end
+    
+    
     local take = GetActiveTake(item)
     
     -- init
@@ -474,10 +544,10 @@ if not UI then UI = {} end
     
     
     -- fill / init
-    for note in pairs(DATA.children) do
+    for note in spairs(DATA.children) do
       if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
       if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end -- this is fixing wrong offset on misssing first step at DATA:_Seq_PrintMIDI(t) --{val=0} 
-      if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = -1 end--DATA.seq.ext.patternlen end -- init 16 steps 
+      if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = EXT.CONF_seq_defaultstepcnt end--DATA.seq.ext.patternlen end -- init 16 steps 
       if not DATA.seq.ext.children[note].steplength then DATA.seq.ext.children[note].steplength = 0.25 end -- init 16 steps 
       
       for step = 1, DATA.seq.ext.children[note].step_cnt do
@@ -488,6 +558,22 @@ if not UI then UI = {} end
     
     DATA:_Seq_RefreshHScroll()
     DATA:_Seq_CollectTrackEnv()
+    
+    local IDorder = 0
+    for note in spairs(DATA.seq.ext.children) do
+      IDorder = IDorder + 1
+      DATA.seq.ext.children[note].IDorder = 9-IDorder
+    end
+    
+    -- form matrix
+    DATA.lp_matrix = {}
+    for row = 1, 8 do
+      DATA.lp_matrix[row] = {}
+      for col = 1, 8 do
+        DATA.lp_matrix[row][col] = {MIDI_note = col + ((9-row)*10)}
+      end
+    end
+    
     
   end
   --------------------------------------------------------------------------------  
@@ -794,6 +880,7 @@ if not UI then UI = {} end
     
     SetMediaItemInfo_Value( DATA.seq.it_ptr, 'D_LENGTH', out_end_sec - DATA.seq.it_pos )
     UpdateItemInProject(DATA.seq.it_ptr)
+    
     
     if EXT.CONF_seq_patlen_extendchildrenlen ==1 and DATA.seq.ext and DATA.seq.ext.children then 
       for note in pairs(DATA.seq.ext.children) do if DATA.seq.ext.children[note].step_cnt ~= -1 then DATA.seq.ext.children[note].step_cnt = patternlen end end
@@ -1132,7 +1219,7 @@ end
   ----------------------------------------------------------------------- 
   function VF_Format_Note(note ,t) 
     local offs = 0
-    if DATA.REAPERini and DATA.REAPERini.REAPER and DATA.REAPERini.REAPER.midioctoffs then offs = DATA.REAPERini.REAPER.midioctoffs end
+    if DATA.REAPERini and DATA.REAPERini.REAPER and DATA.REAPERini.REAPER.midioctoffs then offs = DATA.REAPERini.REAPER.midioctoffs-1 end
     local val = math.floor(note)
     local oct = math.floor(note / 12) + offs
     local note = math.fmod(note,  12)
@@ -1213,6 +1300,10 @@ end
     end 
     EXT:load()
     
+    if not DATA.seq_functionscall then 
+      gmem_write(1025, 11) -- refresh step seq
+      gmem_write(1028, 1) -- force step seq to refresh EXT
+    end
   end
   -------------------------------------------------------------------------------- 
   function EXT:load() 
@@ -1270,10 +1361,9 @@ end
   --------------------------------------------------------------------------------  
   function DATA:CollectData()  
     DATA.proj, DATA.proj_fn = EnumProjects( -1 )
+    DATA.projstr = tostring(DATA.proj)
     DATA.SR = VF_GetProjectSampleRate()
     
-    DATA.mainstate_manager = gmem_read(1026) == 1
-    DATA.mainstate_seq = gmem_read(1027) == 1
     
     
     
@@ -1300,8 +1390,15 @@ end
     
     --
     local allow_trig_auto_stuff = true
-    if DATA.mainstate_manager == true and DATA.mainstate_seq == true then
-      if DATA.seq_functionscall == true then allow_trig_auto_stuff = false end
+    if DATA.mainstate_manager == true and DATA.mainstate_seq == true then 
+      if DATA.seq_functionscall == true then 
+        if gmem_read(1028) == 1 then
+          EXT:load()
+          DATA.upd = true
+          gmem_write(1028, 0)
+        end
+        allow_trig_auto_stuff = false 
+      end
     end
     if allow_trig_auto_stuff == true then 
       -- auto handle stuff
@@ -1495,27 +1592,45 @@ end
     local isNoteOn = rawmsg:byte(1)>>4 == 0x9
     local isNoteOff = rawmsg:byte(1)>>4 == 0x8
     local playingnote = rawmsg:byte(2) 
-    if isNoteOn == true and tsval > -4800 then -- only reeeally latest messages
-      if (DATA.lastMIDIinputnote and DATA.lastMIDIinputnote ~= playingnote) then triggernote = true end
+    if isNoteOn == true and tsval > -4800 then -- only reeeally latest messages 
+    
+      -- input seq edit handler
+        if DATA.seq_functionscall == true then 
+          if DATA.temp_lasttrigsend_init and (not DATA.temp_lasttrigsend or (DATA.temp_lasttrigsend and time_precise() - DATA.temp_lasttrigsend>0.5) ) then
+            DATA.temp_lasttrigsend = time_precise()
+            gmem_write(1029,playingnote ) -- push a trigger to step seq
+          end
+          DATA.temp_lasttrigsend_init = true
+        end
+        
+      if (DATA.lastMIDIinputnote and DATA.lastMIDIinputnote ~= playingnote) then triggernote = true  end
       DATA.lastMIDIinputnote = playingnote 
     end--{retval=retval, rawmsg=rawmsg, tsval=tsval, devIdx=devIdx, projPos=projPos, projLoopCnt=projLoopCnt,playingnote = rawmsg:byte(2) } 
 
     
     if triggernote == true then 
       if  EXT.UI_incomingnoteselectpad == 1 and DATA.parent_track and DATA.parent_track.ext then
-        DATA.parent_track.ext.PARENT_LASTACTIVENOTE = DATA.lastMIDIinputnote
-        DATA:WriteData_Parent() --trigger write parent at script initialization // false storing last touched note to ext state
-        DATA.upd = true
+        if EXT.CONF_seq_sendsysextoLP ~= 1 then
+          DATA.parent_track.ext.PARENT_LASTACTIVENOTE = DATA.lastMIDIinputnote
+          DATA:WriteData_Parent() --trigger write parent at script initialization // false storing last touched note to ext state
+          DATA.upd = true
+        end
       end
     end
     
   end
   --------------------------------------------------------------------------------
   function DATA:CollectData_Always()
+    
+    DATA.mainstate_manager = gmem_read(1026) == 1
+    DATA.mainstate_seq = gmem_read(1027) == 1
+    
     DATA:CollectData_Always_RecentEvent()
     DATA:CollectData_Always_ExtActions() 
     DATA:CollectData_Always_Peaks() 
     DATA:CollectData_Always_StepPositions()
+    --DATA:CollectData_Always_LaunchPadInteraction()
+    
   end
   ----------------------------------------------------------------------
   function DATA:CollectData_Always_Peaks() 
@@ -1544,10 +1659,32 @@ end
   end
   ----------------------------------------------------------------------
   function DATA:CollectData_Always_ExtActions()
-    if DATA.seq_functionscall == true then return end -- restrict ext actions for sequencer 
     local actions = gmem_read(1025)
     if actions == 0 then return end
     
+    
+    if DATA.seq_functionscall == true then 
+      
+      -- sequncer
+      if actions == 11 then 
+        DATA.upd = true 
+        gmem_write(1025,0 )
+      end
+      
+      return -- restrict ext actions for sequencer 
+      
+     else
+     
+      -- rack
+      if actions == 10 then 
+        DATA.upd = true 
+        gmem_write(1025,0 ) 
+      end
+      
+      
+    end 
+    
+    ---------------------------------------------------------- rack 
     -- Device / New kit
     if actions == 1 then    DATA:Sampler_NewRandomKit() end 
     
@@ -1560,7 +1697,6 @@ end
     
     -- next sample
     if actions == 3 then  
-      msg(1)
       local note_layer_t, spls = DATA:Sampler_GetActiveNoteLayer()
       DATA:Sampler_NextPrevSample(note_layer_t,0 )  
     end
@@ -1608,23 +1744,9 @@ end
       end
     end
     
-    if actions == 10 then   -- refresh
-      DATA.upd = true
-    end
-    
-    --[[TO DO - make this only seq related 
-      if actions == 11 then   -- refresh step seq at moving pad 
-      if DATA.seq and DATA.seq.ext and DATA.seq.ext.children and srcnote and DATA.seq.ext.children[srcnote] then
-        DATA.upd = true
-      end
-    end]]
-    
-    -- 11 
-      -- gmem_write(1025,11|(DATA.parent_track.ext.PARENT_LASTACTIVENOTE<<8)|(note<<16))
-      -- UI.Drop_UI_interaction_pad(note) 
     
     
-    gmem_write(1025,0 )
+    
   end
   -----------------------------------------------------------------------
   function DATA:Sampler_RemovePad(note, layer) 
@@ -1743,6 +1865,7 @@ end
   
   --------------------------------------------------------------------------------  
   function DATA:CollectDataInit_MIDIdevices()
+    DATA.Launchpad_output = false
     DATA.MIDI_inputs = {[63]='All inputs',[62]='Virtual keyboard'}
     for dev = 1, reaper.GetNumMIDIInputs() do
       local retval, nameout = reaper.GetMIDIInputName( dev-1, '' )
@@ -1753,7 +1876,20 @@ end
     for dev = 1, reaper.GetNumMIDIOutputs() do
       local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
       if retval then DATA.MIDI_outputs[dev-1] = nameout end
+      
+      if EXT.CONF_midioutput == dev-1 and 
+        
+        (
+          nameout:lower():match('lpmini') or
+          nameout:lower():match('lppro')
+        )
+       then
+        
+        DATA.Launchpad_output = true
+      end
     end
+    
+    
     
   end
   --------------------------------------------------------------------- 
@@ -2581,12 +2717,16 @@ end
     if not (ret and isMIDIbus == true) then return end
     local IP_TRACKNUMBER_0based = GetMediaTrackInfo_Value( track, 'IP_TRACKNUMBER')-1
     local I_FOLDERDEPTH = GetMediaTrackInfo_Value( track, 'I_FOLDERDEPTH')
+    local I_RECMON = GetMediaTrackInfo_Value( track, 'I_RECMON')
+    
     
     DATA.MIDIbus = {  tr_ptr = track, 
                       IP_TRACKNUMBER_0based = IP_TRACKNUMBER_0based,
                       valid = true,
-                      I_FOLDERDEPTH = I_FOLDERDEPTH
+                      I_FOLDERDEPTH = I_FOLDERDEPTH,
+                      I_RECMON = I_RECMON,
                   } 
+     
     return true
   end
   -----------------------------------------------------------------------------  
@@ -2804,9 +2944,7 @@ end
     SetMediaTrackInfo_Value( MIDI_tr, 'I_RECMODE', 0 ) -- record MIDI out
     local channel,physical_input = EXT.CONF_midichannel, EXT.CONF_midiinput
     SetMediaTrackInfo_Value( MIDI_tr, 'I_RECINPUT', 4096 + channel + (physical_input<<5)) -- set input to all MIDI
-    if EXT.CONF_midioutput ~= -1 then
-      SetMediaTrackInfo_Value( MIDI_tr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) -- MIDI hardware output
-    end
+    if EXT.CONF_midioutput ~= -1 then SetMediaTrackInfo_Value( MIDI_tr, 'I_MIDIHWOUT', EXT.CONF_midioutput<<5) end -- MIDI hardware output
     
     
     -- make parent track folder
@@ -2824,6 +2962,15 @@ end
     if DATA.parent_track.IP_TRACKNUMBER_0basedlast == DATA.parent_track.IP_TRACKNUMBER_0based then
       DATA.parent_track.IP_TRACKNUMBER_0basedlast = DATA.parent_track.IP_TRACKNUMBER_0based +1
     end
+    
+    --[[ add midi note filter
+    local fxname = 'JS: midi/midi_note_filter'
+    local filtID = TrackFX_AddByName( MIDI_tr, fxname, true, -1 )
+    if filtID&0xF000000~=0x1000000 then filtID = filtID|0x1000000  end
+    TrackFX_SetOpen( MIDI_tr, filtID, false )
+    TrackFX_SetParam( MIDI_tr, filtID, 0, 0 )
+    TrackFX_SetParam( MIDI_tr, filtID, 1, 127 )
+    TrackFX_SetParam( MIDI_tr, filtID, 2, 0 )]]
     
     DATA:CollectData_Children_MIDIbus(MIDI_tr)
     DATA.upd = true
@@ -4683,7 +4830,8 @@ end
     DATA.seq.active_pat_step = math.floor(pat_progress*patternlen)+1
     
     for note in pairs(DATA.children) do 
-      local step_cnt = DATA.seq.ext.children[note].step_cnt
+      local step_cnt = -1
+      if DATA.seq.ext.children[note] and DATA.seq.ext.children[note].step_cnt then step_cnt = DATA.seq.ext.children[note].step_cnt end
       if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
       local steplength = DATA.seq.ext.children[note].steplength
       local available_steps_per_pattern = pat_beats_com / steplength
@@ -4698,10 +4846,13 @@ end
       DATA.seq.active_step[note] = activestep
     end
     
-    
     DATA.temp_pos_progress = pat_progress
+    if not DATA.temp_pos_progress_last or (DATA.temp_pos_progress_last and DATA.temp_pos_progress_last ~= DATA.temp_pos_progress) then
+      DATA:Launchpad_SendState()
+    end
+    DATA.temp_pos_progress_last = DATA.temp_pos_progress
   end
-  
+ 
     --------------------------------------------------------------------------------  
   function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end    
   --------------------------------------------------------------------- 
@@ -4744,7 +4895,7 @@ end
       end 
       if midi_choke_Container == -1 then return end
     end
-    
+    DATA.MIDIbus.midi_choke_Container = midi_choke_Container
     return true, midi_choke_Container
   end  
   --------------------------------------------------------------------- 
@@ -5035,3 +5186,195 @@ end
       end 
     end
   end
+  -------------------------------------------------------------------  
+  function DATA:Launchpad_SendState()
+    if EXT.CONF_seq_stuffMIDItoLP == 0 then return end
+    if not DATA.lp_matrix then return end
+    
+    
+    -- form matrix
+      local row = 0
+      for note in spairs(DATA.seq.active_step) do
+        row = row + 1
+        
+        if DATA.lp_matrix[row] then for col = 1, 8 do DATA.lp_matrix[row][col].state = 0 end end -- reset row states
+        for step = 1, 8 do
+          if    DATA.seq 
+            and DATA.seq.ext 
+            and DATA.seq.ext.children 
+            and DATA.seq.ext.children[note] 
+            and DATA.seq.ext.children[note].steps 
+            and DATA.seq.ext.children[note].steps[step] 
+            and DATA.seq.ext.children[note].steps[step].val 
+            and DATA.seq.ext.children[note].steps[step].val == 1 
+            and DATA.lp_matrix[row] 
+            and DATA.lp_matrix[row][step] then 
+            DATA.lp_matrix[row][step].state = 2
+          end
+        end
+        local active_step = DATA.seq.active_step[note]
+        if DATA.lp_matrix[row] and DATA.lp_matrix[row][active_step] then
+          DATA.lp_matrix[row][active_step].state = 1
+        end
+      end
+    
+    local col_state
+    for row = 1, 8 do
+      for col = 1, 8 do
+        col_state = 0
+        if DATA.lp_matrix[row][col].state == 1 then col_state = 21 end
+        if DATA.lp_matrix[row][col].state == 2 then col_state = 13 end
+        StuffMIDIMessage( 16+EXT.CONF_midioutput, 0x90, DATA.lp_matrix[row][col].MIDI_note, col_state )
+      end
+    end 
+    
+    
+  end 
+  ----------------------------------------------------------------------
+  function DATA:CollectData_Always_LaunchPadInteraction()
+    if DATA.seq_functionscall ~= true then return end
+    if not (DATA.seq and DATA.seq.ext and DATA.seq.ext.children) then return end
+    
+    local playingnote = gmem_read(1029)
+    if playingnote ~= -1 then
+      gmem_write(1029,-1)
+      
+      col_edit = playingnote%10 -- step
+      row_edit = math.floor(playingnote/10) -- note
+      local note_edit
+      local step_edit = col_edit
+      
+      for note in pairs(DATA.seq.ext.children) do if DATA.seq.ext.children[note].IDorder == row_edit then note_edit = note break end end
+      if note_edit  and step_edit then  
+      
+        
+        if not DATA.seq.ext.children[note_edit].steps then DATA.seq.ext.children[note_edit].steps = {} end
+        if not DATA.seq.ext.children[note_edit].steps[step_edit] then DATA.seq.ext.children[note_edit].steps[step_edit] = {val = 0} end
+        DATA.seq.ext.children[note_edit].steps[step_edit].val = DATA.seq.ext.children[note_edit].steps[step_edit].val~1
+        DATA:_Seq_Print()
+        DATA:Launchpad_SendState()
+      end
+      
+    end
+    
+    
+  end
+  
+  --[[-------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_dec2hex(dec)  local pat = "%02X" return  string.format(pat, dec) end
+  function DATA:Auto_StuffSysex() 
+    if EXT.UI_drracklayout == 2 then DATA:Auto_StuffSysex_sub('set/refresh active state') end 
+  end  
+  
+  ---------------------------------------------------------------------  
+  function DATA:Auto_StuffSysex_sub(cmd) local SysEx_msg  
+    if  not (EXT.CONF_launchpadsendMIDI == 1 and EXT.UI_drracklayout == 2) then return end 
+    -- search HW MIDI out 
+      local is_LPminiMK3
+      local is_LPProMK3
+      --local LPminiMK3_name = "LPMiniMK3 MIDI"
+      local LPminiMK3_name = "MIDIOUT2 (LPMiniMK3 MIDI)"
+      local LPProMK3_name = "LPProMK3 MIDI"
+      for dev = 1, reaper.GetNumMIDIOutputs() do
+        local retval, nameout = reaper.GetMIDIOutputName( dev-1, '' )
+        if retval and nameout == LPminiMK3_name then HWdevoutID =  dev-1 is_LPminiMK3 = true break end --nameout:match(LPminiMK3_name)
+        if retval and nameout == LPProMK3_name then HWdevoutID =  dev-1 is_LPProMK3 = true break end 
+      end
+      if not HWdevoutID then return end
+    
+    -- action on release
+    if cmd == 'on release' then -- set to key layout
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 05 F7h' 
+        DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 04 00 00h F7h' 
+        DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+      end
+    end
+    
+    
+    
+    -- 
+      if cmd == 'set/refresh active state' then
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
+        DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+      end
+    
+    --if cmd == 'drum layout' then
+      if cmd == 'drum mode' then
+        if is_LPminiMK3 ==true then 
+          SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 10h 01 F7h' 
+          DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+        end
+      end
+      
+      
+      if is_LPminiMK3 ==true or is_LPProMK3==true then 
+        for ledId = 0, 81 do
+          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+            local msgtype = 90
+            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then msgtype = 92 end
+            SysEx_msg = msgtype..' '..string.format("%02X", ledId)..' 16'
+            DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+           else
+            local col = '00'
+            if DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE == ledId then col = '03' end
+            SysEx_msg = '90 '..string.format("%02X", ledId)..' '..col
+            DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+          end
+        end
+      end
+      
+    end]]
+    
+    
+    --[[
+    
+    if cmd == 'programmer mode' then
+      if is_LPminiMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 00h 7F F7h' 
+        DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+      end
+      if is_LPProMK3 ==true then 
+        SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 00h 11 00 00h F7h'
+        DATA:Launchpad_StuffSysex(SysEx_msg, HWdevoutID) 
+      end
+    end
+    
+    
+    
+    if cmd == 'programmer mode: set colors' then
+      
+        local colorstr = '' 
+        for ledId = 0, 81 do
+          if DATA.children and DATA.children[ledId] and DATA.children[ledId].I_CUSTOMCOLOR then
+            local lightingtype = 3 
+            local color = ImGui.ColorConvertNative(DATA.children[ledId].I_CUSTOMCOLOR) & 0xFFFFFF 
+            r = math.floor(((color>>16)&0xFF) * 0.5)
+            g = math.floor(((color>>8)&0xFF) * 0.5)
+            b = math.floor(((color>>0)&0xFF) * 0.5)
+            colorstr = colorstr..
+              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+              string.format("%X", r)..' '..
+              string.format("%X", g)..' '..
+              string.format("%X", b)..' ' 
+           else
+            local lightingtype = 0
+            local palettecol = 0
+            colorstr = colorstr..
+              DATA:Auto_StuffSysex_dec2hex(lightingtype)..' '..
+              DATA:Auto_StuffSysex_dec2hex(ledId)..' '..
+              DATA:Auto_StuffSysex_dec2hex(palettecol)..' '
+          end
+        end
+        
+        if is_LPminiMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Dh 03h '..colorstr..'F7h' end
+        if is_LPProMK3 ==true then SysEx_msg = 'F0h 00h 20h 29h 02h 0Eh 03h '..colorstr..'F7h' end 
+  
+    end
+    
+  end ]]
+  
