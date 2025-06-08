@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.15
+-- @version 4.16
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # fix old configuration color entry
+--    # fix docking (still an issue, but at least it is remember docking state,see [p=2853590])
 
 
 
 
-  local vrs = 4.15
+  local vrs = 4.16
 
   --[[ gmem map: 
   Master
@@ -966,8 +966,8 @@
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
     -- init UI 
