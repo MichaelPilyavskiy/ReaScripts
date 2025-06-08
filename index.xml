@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="57af9414b8eb7cf712c72ded664c88b62090fe72" name="MPL Scripts">
+<index version="1" commit="d11129b3c69f76ab9bbaefb7f396c226db6b38d1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7184,6 +7184,11 @@
       <version name="1.17" author="MPL" time="2024-08-31T20:39:28Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
+      </version>
+      <version name="1.18" author="MPL" time="2025-06-08T08:54:23Z">
+        <changelog><![CDATA[# fix precision while searching active tempo marker
+# fix calculating nudge with various tempo]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d11129b3c69f76ab9bbaefb7f396c226db6b38d1/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate items N times.eel" type="script" desc="Smart duplicate items N times">
