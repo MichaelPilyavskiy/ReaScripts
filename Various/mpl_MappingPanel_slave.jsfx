@@ -100,7 +100,7 @@ slider64:0<0, 4294967295, 1>-Macro 16 hex, FF per param
   tens_mapt[15] = 8;
   tens_mapt[16] = 10;
   
-@sample 
+@block 
       i = 0; 
       loop(
           16,

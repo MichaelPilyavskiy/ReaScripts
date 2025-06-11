@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.16
+-- @version 4.17
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # fix docking (still an issue, but at least it is remember docking state,see [p=2853590])
+--    # JSFX: move code to @block
 
 
 
 
-  local vrs = 4.16
+  local vrs = 4.17
 
   --[[ gmem map: 
   Master
@@ -972,7 +972,7 @@
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) --..' '..vrs..'##'..DATA.UI_name
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 

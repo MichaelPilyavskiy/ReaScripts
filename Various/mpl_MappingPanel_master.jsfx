@@ -62,7 +62,7 @@ gmem[14]=slider14;
 gmem[15]=slider15;
 gmem[16]=slider16;
 
-@sample
+@block
 gmem[100] == 1 ? (  
   slider1=gmem[1];
   slider2=gmem[2];
