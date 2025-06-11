@@ -1607,8 +1607,8 @@ It also used for advanced sequencing parameters.
     ImGui.SameLine(ctx) 
     ImGui.SetNextItemWidth(ctx, ctrls_w)
     --local retval, v = ImGui.SliderDouble  ( ctx, '##Swing_pat', DATA.seq.ext.swing, 0, 1, 'Swing '..math.floor(DATA.seq.ext.swing*100)..'%%', reaper.ImGui_SliderFlags_None() ) 
-    local retval, v = ImGui.DragDouble    ( ctx, '##Swing_pat', DATA.seq.ext.swing, 0.001, 0, 1, 'Swing '..math.floor(DATA.seq.ext.swing*100)..'%%', reaper.ImGui_SliderFlags_None() ) 
-    if retval then DATA.seq.ext.swing = v end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then DATA:_Seq_Print() end
+    local retval, v = ImGui.DragDouble    ( ctx, '##Swing_pat', math.floor(DATA.seq.ext.swing*100), 0.001, 0, 1, 'Swing '..math.floor(DATA.seq.ext.swing*100)..'%%', reaper.ImGui_SliderFlags_None() ) 
+    if retval then DATA.seq.ext.swing = math.floor( v)/100 end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then DATA:_Seq_Print() end
     
     ImGui.SetCursorPosX(ctx,UI.calc_seqXL_padname+UI.spacingX*3 + UI.seq_padnameW)
      

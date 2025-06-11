@@ -462,13 +462,28 @@ if not UI then UI = {} end
   
   -------------------------------------------------------------------------------  
   function DATA:CollectData_Seq() 
-    if DATA.seq_functionscall ~= true then return end
+    if DATA.seq_functionscall ~= true then return end 
+    local retval, cur_projfn = reaper.EnumProjects( -1 ) 
+    local last_valid_seq = CopyTable(DATA.seq)
+    local item = GetSelectedMediaItem( -1, 0 )
     
-    last_valid_seq = CopyTable(DATA.seq)
+    if last_valid_seq and last_valid_seq.valid==true and ValidatePtr(last_valid_seq.it_ptr, 'MediaItem*') then  
+      if last_valid_seq.proj == DATA.proj then -- if same project
+        if not item or (item and last_valid_seq.it_ptr == item)  then
+          
+          DATA.seq = last_valid_seq 
+          return
+        end
+      end 
+    end
+    
+    
+    
     
     -- init pattern defaults
     DATA.seq = {
       valid = false,
+      proj = DATA.proj,
       ext = {
               patternlen = 16,
               patternsteplen = 0.25,
@@ -478,22 +493,11 @@ if not UI then UI = {} end
             },
       }
     
-    -- init
-    if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end --DATA.seq = last_valid_seq  
-    local track = DATA.MIDIbus.tr_ptr 
     
-    if not item and DATA.seq.it_ptr and GetItemProjectContext( DATA.seq.it_ptr ) == DATA.proj then                            
-      DATA.seq = last_valid_seq 
-      return 
-    end 
-    local item = GetSelectedMediaItem( DATA.proj, 0 )
-    if item and GetMediaItem_Track( item ) ~= track then DATA.seq = last_valid_seq return end  
+    -- init  
+    
     if not item then return end
-    
-    
     local take = GetActiveTake(item)
-    
-    -- init
     DATA.seq.valid = true
     DATA.seq.it_ptr = item
     DATA.seq.tk_ptr = take 

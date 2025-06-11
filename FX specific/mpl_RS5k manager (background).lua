@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.62
+-- @version 4.63
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,20 +18,11 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # Immediately forward RS5k manager configuration/settings to RS5k Step Sequencer
---    # Sampler/General: fix error on missing macros
---    # Sampler/General: fix obey midi octave offset
---    # Settings/UI interaction: option to disable pass shortcuts
---    + StepSequencer: add New button
---    + Settings/StepSequencer: option to init steps from 16 steps or follow pattern length
---    + StepSequencer: allow to set 'follow pattern length' in step count selector
---    + StepSequencer: allow to print note steps to full pattern length in step count selector
---    # StepSequencer: clear state on project mismatch on switching tabs
---    + StepSequencer/Inline/FX: allow to remove parameter
---    # fix error on macro knob right click
+--    # improve catching pointers
+--    # fix swing input
 
 
-rs5kman_vrs = '4.62'
+rs5kman_vrs = '4.63'
 
 
 -- TODO
