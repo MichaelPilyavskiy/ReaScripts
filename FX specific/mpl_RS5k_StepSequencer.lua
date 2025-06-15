@@ -134,7 +134,8 @@ reaper.set_action_options(1 )
           CONF_seq_patlen_extendchildrenlen = 0,
           CONF_seq_instrumentsorder = 1,
           CONF_seq_stuffMIDItoLP = 0,  
-          CONF_seq_defaultstepcnt = 16
+          CONF_seq_defaultstepcnt = 16,
+          CONF_seq_env_clamp = 1, -- 0 == allow env points on empty steps
           
          }
         
@@ -145,7 +146,9 @@ reaper.set_action_options(1 )
           scheduler = {},
           
           upd = true,
-          upd2 = {},
+          upd2 = {
+            refreshpeaks = true,
+          },
           ES_key = 'MPL_RS5K manager',
           UI_name = 'RS5K StepSequencer', 
           version = 4, -- for ext state save
@@ -209,7 +212,7 @@ reaper.set_action_options(1 )
           
           seq_param_selectorID = 1,
           seq_param_selector = { 
-            {param = 'velocity', str= 'Velocity',default=120/127, maxval = 1, minval = 3/127},
+            {param = 'velocity', str= 'Velocity',default=120/127, maxval = 1, minval = 1/127},
             {param = 'offset', str= 'Offset',default=0, maxval = 0.95, minval = -0.95},
             {param = 'split', str= 'Split',default=1, maxval = 8, minval = 1},
             {param = 'steplen_override', str= 'Length',default=1, maxval = 4, minval = 0.1},
@@ -672,7 +675,19 @@ reaper.set_action_options(1 )
     -- name  
       -- define txt
         local note_format = VF_Format_Note(note,note_t)
-        if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+        if note_format then
+          if EXT.UI_drracklayout == 2 then note_format = note_format..' ('..note..')' end
+          if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+          if  DATA.parent_track.padcustomnames_overrides and DATA.parent_track.padcustomnames_overrides[note] and DATA.parent_track.padcustomnames_overrides[note] ~= '' then note_format = DATA.parent_track.padcustomnames_overrides[note] end
+         else
+          note_format = ''
+        end
+        
+        
+        --if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+        --if  DATA.parent_track.padcustomnames_overrides and DATA.parent_track.padcustomnames_overrides[note] and DATA.parent_track.padcustomnames_overrides[note] ~= '' then note_format = DATA.parent_track.padcustomnames_overrides[note] end
+        
+        
         local str_maxlen = 20
         if note_format:len()> str_maxlen then note_format = '...'..note_format:sub(-str_maxlen) end
       -- define color
@@ -1232,7 +1247,14 @@ It also used for advanced sequencing parameters.
         local stepcol = stepcol_1
         if (step-1)%8> 3 then stepcol = stepcol_2 end
         local activestep = step 
-        if DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].val and DATA.seq.ext.children[note].steps[activestep].val == 1 and default_val then 
+        
+        local allow_env_on_empty_steps = DATA.seq.ext.children[note].steps[activestep].val == 1
+        if EXT.CONF_seq_env_clamp == 0 then  
+          if parameter_parent:match('env') then allow_env_on_empty_steps = true end
+        end
+        
+        
+        if DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep].val  and default_val and allow_env_on_empty_steps == true then 
           local val = default_val
           if DATA.seq.ext.children[note].steps and DATA.seq.ext.children[note].steps[activestep] and DATA.seq.ext.children[note].steps[activestep][parameter] then val = DATA.seq.ext.children[note].steps[activestep][parameter] end 
           local xpos = x1 + (stepw) * (step-1-DATA.seq.stepoffs)
@@ -1526,7 +1548,7 @@ It also used for advanced sequencing parameters.
         return
       end
 
-     
+      
     -- UI name
       ImGui.SameLine(ctx)
       ImGui.BeginDisabled(ctx, true) ImGui.Text(ctx, DATA.UI_name_vrs)ImGui.EndDisabled(ctx)
@@ -1538,6 +1560,7 @@ It also used for advanced sequencing parameters.
         Undo_EndBlock2(DATA.proj, 'Insert new pattern', 0xFFFFFFFF)
         DATA.upd = true
       end
+      
       
     -- pattern rename
       ImGui.SameLine(ctx)
@@ -1688,10 +1711,36 @@ It also used for advanced sequencing parameters.
       ImGui_EndDragDropTarget( ctx )
     end
     
+      
     ImGui.PopStyleVar(ctx,2)
     ImGui.Dummy(ctx,0,0)
     
+    
     UI.draw_Seq_horizscroll(true) 
+    
+    
+    -- draw seq button
+      local manageravailable
+      if DATA.manager_ID then manageravailable = true end
+      local xoffs = 200
+      local wbut = 100
+      ImGui.SetCursorPos(ctx,xoffs,2)
+      if ImGui.InvisibleButton(ctx, 'mode', wbut, 20) then 
+        if manageravailable == true then Main_OnCommand(DATA.manager_ID,0) end 
+      end
+      x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+      x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
+      local checkbox_h = 16
+      local checkbox_r = math.floor(checkbox_h / 2)
+      local center_x = x1
+      local center_y = math.floor(y1 + (y2-y1)/2 )-1
+      local colfill = 0xF0F0F04F
+      if manageravailable == true and ImGui_IsItemHovered(ctx) then colfill = 0xF0F0F09F end
+      ImGui.DrawList_AddCircle( UI.draw_list, center_x, center_y, checkbox_r, 0xF0F0F07F, 0, 2 )
+      ImGui.DrawList_AddCircleFilled( UI.draw_list, center_x, center_y, checkbox_r-3, colfill, 0 ) 
+      ImGui.SetCursorPos(ctx,xoffs+checkbox_r+ UI.spacingX,4)
+      if manageravailable == true then ImGui.Text(ctx, 'Rack') else ImGui.TextDisabled(ctx, 'Rack') end
+      
   end  
   --------------------------------------------------------------------------------  
   function UI.draw_Seq_StepProgress(xL,yL, xA,yA) 
@@ -2445,6 +2494,16 @@ It also used for advanced sequencing parameters.
   -----------------------------------------------------------------------------------------  
   function _main() 
     local ret = _main_LoadLibraries() 
+    
+    -- get rack ID
+    for idx =0, 1000000 do
+      local retval, name = reaper.kbd_enumerateActions( section, idx )
+      if not ( retval and retval~= 0) then return end
+      if name:match('mpl_') and name:match('RS5k') and name:match('manager') then
+        DATA.manager_ID = retval
+        break
+      end
+    end
     
     local loadtest = time_precise()
     gmem_attach('RS5K_manager')

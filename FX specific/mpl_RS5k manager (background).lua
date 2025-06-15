@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.63
+-- @version 4.64
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,11 +18,17 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # improve catching pointers
---    # fix swing input
+--    # fix error on initial seq
+--    + StepSequencer: Add button to call RS5k manager
+--    + StepSequencer: allow to disable clamp envelope values toactive steps only
+--    + Rack: Allow to locally override rack pad names
+--    # 3rd party: fix 3rd party context menu
+--    # 3rd party: remove import last touched
+--    # StepSequencer/Inline/Velocity: mimimum velocity = 1
+--    # Startup: disable Load to selected pads if no pad selected
 
 
-rs5kman_vrs = '4.63'
+rs5kman_vrs = '4.64'
 
 
 -- TODO
@@ -208,6 +214,7 @@ rs5kman_vrs = '4.63'
           CONF_seq_instrumentsorder = 1, 
           CONF_seq_stuffMIDItoLP = 0, 
           CONF_seq_defaultstepcnt = 16, -- -1 follow pattern length
+          CONF_seq_env_clamp = 1, -- 0 == allow env points on empty steps
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -217,7 +224,9 @@ rs5kman_vrs = '4.63'
           
           
           upd = true,
-          upd2 = {},
+          upd2 = {
+            refreshpeaks = true,
+          },
           ES_key = 'MPL_RS5K manager',
           UI_name = 'RS5K manager', 
           version = 4, -- for ext state save
@@ -1076,6 +1085,7 @@ rs5kman_vrs = '4.63'
           DATA:Database_Load() 
           Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
         end
+        
         ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then 
           DATA:Validate_MIDIbus_AND_ParentFolder() 
           Undo_BeginBlock2(DATA.proj )
@@ -1542,6 +1552,9 @@ rs5kman_vrs = '4.63'
       if ImGui.Checkbox( ctx, 'Use ascending order of intruments',                             EXT.CONF_seq_instrumentsorder == 1 ) then EXT.CONF_seq_instrumentsorder =EXT.CONF_seq_instrumentsorder~1 EXT:save() end
       ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
       
+      if ImGui.Checkbox( ctx, 'Clamp envelopes at active steps only',                             EXT.CONF_seq_env_clamp == 1 ) then EXT.CONF_seq_env_clamp =EXT.CONF_seq_env_clamp~1 EXT:save() end
+      ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
+      
       local map  ={
         [-1] = 'Follow pattern length',
         [16] = '16 steps'
@@ -1987,6 +2000,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       if note_format then
         if EXT.UI_drracklayout == 2 then note_format = note_format..' ('..note..')' end
         if DATA.padcustomnames[note] and DATA.padcustomnames[note] ~= '' then note_format = DATA.padcustomnames[note] end
+        if  DATA.parent_track.padcustomnames_overrides and DATA.parent_track.padcustomnames_overrides[note] and DATA.parent_track.padcustomnames_overrides[note] ~= '' then note_format = DATA.parent_track.padcustomnames_overrides[note] end
        else
         note_format = ''
       end
@@ -2239,6 +2253,17 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
   function UI.draw_popups_pad()
     if DATA.trig_context == 'pad' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  then 
       ImGui.SeparatorText(ctx, 'Pad '..DATA.parent_track.ext.PARENT_LASTACTIVENOTE)
+      
+      -- local Rename
+      ImGui.Indent(ctx, 10)
+      local retval, buf = ImGui_InputText( ctx, '##custpadnameinputparent', DATA.parent_track.padcustomnames_overrides[DATA.parent_track.ext.PARENT_LASTACTIVENOTE], ImGui_InputTextFlags_None() )
+      if retval then 
+        DATA.parent_track.padcustomnames_overrides[DATA.parent_track.ext.PARENT_LASTACTIVENOTE] = buf
+        DATA:WriteData_Parent() 
+        DATA.upd = true
+      end
+      ImGui.Unindent(ctx, 10) 
+      
       -- Remove
       local note = DATA.parent_track.ext.PARENT_LASTACTIVENOTE 
       ImGui.Indent(ctx, 10)
@@ -3127,12 +3152,17 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
           DATA:Database_Load() 
           Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
         end
+        
+        
+        if DATA.parent_track.ext.PARENT_LASTACTIVENOTE == -1 then reaper.ImGui_BeginDisabled(ctx, true) end
         ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pads') then 
           DATA:Validate_MIDIbus_AND_ParentFolder() 
           Undo_BeginBlock2(DATA.proj )
           DATA:Database_Load(true)
           Undo_EndBlock2( DATA.proj , 'Load database to selected pad only', 0xFFFFFFFF )
         end
+        if DATA.parent_track.ext.PARENT_LASTACTIVENOTE == -1 then reaper.ImGui_EndDisabled(ctx) end
+        
         ImGui.Unindent(ctx, 10)
       end
       
@@ -4508,6 +4538,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
   -----------------------------------------------------------------------------------------  
   function _main() 
     _main_LoadLibraries()
+    
     -- get sequencer ID
     for idx =0, 1000000 do
       local retval, name = reaper.kbd_enumerateActions( section, idx )

@@ -112,8 +112,11 @@ if not UI then UI = {} end
           if step_active == 0 then step_active = step_cnt end 
           
         -- clamp strat of pattern if step not exist
+          local allow_empty_steps =  t.ext.children[note].steps[step_active].val == 1
+          if EXT.CONF_seq_env_clamp == 0 then allow_empty_steps = true end
+          
           if not (t.ext.children[note].steps and t.ext.children[note].steps[step_active]) and step ~= 1 then goto skipnextstep end  
-          local active = t.ext.children[note].steps[step_active] and t.ext.children[note].steps[step_active].val and  t.ext.children[note].steps[step_active].val == 1
+          local active = t.ext.children[note].steps[step_active] and t.ext.children[note].steps[step_active].val and allow_empty_steps == true
           
           if step ~= 1  then
             if not active then goto skipnextstep end  
@@ -1290,7 +1293,7 @@ end
     
     if DATA.upd2.updatedevicevelocityrange then DATA:Auto_Device_RefreshVelocityRange(DATA.upd2.updatedevicevelocityrange) DATA.upd2.updatedevicevelocityrange = nil end
     if DATA.upd2.seqprint then DATA:_Seq_Print(nil, DATA.upd2.seqprint_minor) DATA.upd2.seqprint=nil DATA.upd2.seqprint_minor=nil end
-    if DATA.upd2.refreshpeaks then DATA:CollectData2_GetPeaks() end
+    if DATA.upd2.refreshpeaks then DATA:CollectData2_GetPeaks() DATA.upd2.refreshpeaks = false end
     --DATA.upd2.refreshscroll
   end  
   
@@ -2101,10 +2104,15 @@ end
           PARENT_LASTACTIVEMACRO = -1,
           PARENT_MIDIFLAGS = 0,
           PARENT_MACRO_GUID = '',
+          PARENT_PADNAMES_OVERRIDES_b64 = ''
         }
-      if EXT.UI_drracklayout == 2 then 
-        DATA.parent_track.ext.PARENT_DRRACKSHIFT = 11
-      end
+        
+        
+        
+        
+        
+        
+      if EXT.UI_drracklayout == 2 then DATA.parent_track.ext.PARENT_DRRACKSHIFT = 11 end
     -- read values v3 (backw compatibility)
       local retval, chunk = GetSetMediaTrackInfo_String(parent_track, 'P_EXT:MPLRS5KMAN', '', false )
       if retval and chunk ~= '' then
@@ -2127,11 +2135,25 @@ end
       local ret, MIDIFLAGS = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MIDIFLAGS', 0, false)                if ret then DATA.parent_track.ext.PARENT_MIDIFLAGS = tonumber(MIDIFLAGS) end
       local ret, MACRO_GUID = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false)              if ret then DATA.parent_track.ext.PARENT_MACRO_GUID = MACRO_GUID end
       local ret, MACROEXT_B64 = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACROEXT_B64', 0, false)
-       if ret then 
+      if ret then 
         DATA.parent_track.ext.PARENT_MACROEXT_B64 = MACROEXT_B64      
         DATA.parent_track.ext.PARENT_MACROEXT = table.loadstring(VF_decBase64(MACROEXT_B64)) or {}
       end  
+      local ret, PARENT_PADNAMES_OVERRIDES_b64 = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_PARENT_PADNAMES_OVERRIDES_b64', 0, false) 
+      DATA.parent_track.padcustomnames_overrides = {}
+      if PARENT_PADNAMES_OVERRIDES_b64~='' then
+        local str = VF_decBase64(PARENT_PADNAMES_OVERRIDES_b64)
+        for pair in str:gmatch('[%d]+%=".-"') do
+          local id, val = pair:match('([%d]+)="(.-)%"')
+          if id and val then 
+            id = tonumber(id)
+            if id then  DATA.parent_track.padcustomnames_overrides[id] = val end
+          end
+        end
+      end
       
+                  
+                  
       
     DATA.parent_track.valid = true
     DATA.parent_track.ptr = parent_track
@@ -2804,9 +2826,15 @@ end
       if DATA.parent_track.ext.PARENT_MACROEXT    then
         local outstr = table.savestring(DATA.parent_track.ext.PARENT_MACROEXT)
         GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_MACROEXT_B64', VF_encBase64(outstr), true)
+      end 
+      if DATA.parent_track.padcustomnames_overrides then 
+        --DATA.parent_track.padcustomnames_overrides[selected_pad] = buf
+        local outstr = ''
+        for i = 0, 127 do outstr=outstr..i..'='..'"'..(DATA.parent_track.padcustomnames_overrides[i] or '')..'" ' end
+        local PARENT_PADNAMES_OVERRIDES_b64 = VF_encBase64(outstr)
+        GetSetMediaTrackInfo_String ( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN_PARENT_PADNAMES_OVERRIDES_b64', PARENT_PADNAMES_OVERRIDES_b64, true) 
       end
-      
-    end
+    end 
     
     -- clear string
     GetSetMediaTrackInfo_String( DATA.parent_track.ptr, 'P_EXT:MPLRS5KMAN', '', true) 
@@ -3943,8 +3971,19 @@ end
     DATA.installed_plugins = plugs_data
   end
   -------------------------------------------------------------------------------- 
+  function UI.draw_3rdpartyimport_context_add(buf, note, drop_data) 
+    local track = GetMasterTrack(-1) 
+    local fxidx = TrackFX_AddByName( track, buf, false, -1 )
+    if fxidx ~= -1 then
+      local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
+      local fx_name = VF_ReduceFXname(fx_namesrc)
+      DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
+      ImGui.CloseCurrentPopup(ctx)
+    end
+  end
+    -------------------------------------------------------------------------------- 
   function UI.draw_3rdpartyimport_context(note,drop_data) 
-    local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
+    --[[local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
     local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
     local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
     local is_instrument = (fx_namesrc:match('[%a]+i%:.*') or fx_namesrc:lower():match('synth')) and not (fx_namesrc: match('ReaSampl')or fx_namesrc:match('Macro'))
@@ -3956,7 +3995,7 @@ end
       end   
      else
       ImGui.BeginDisabled(ctx,true) ImGui.Button(ctx, 'Import last touched FX as instrument',-1)ImGui.EndDisabled(ctx)
-    end
+    end]]
     
     ImGui.SetNextItemWidth( ctx,-100)
     
@@ -3975,6 +4014,7 @@ end
               local name = DATA.installed_plugins[i].name or 'untitled'
               if name:match('%:(.*)') then name = name:match('%:(.*)') end
               local retval, p_selected = reaper.ImGui_MenuItem( ctx, name..'##plug'..i..typestr )
+              if retval then UI.draw_3rdpartyimport_context_add(DATA.installed_plugins[i].name, note, drop_data)  end
             end
           end
           ImGui.EndMenu( ctx)
@@ -3990,6 +4030,7 @@ end
             if DATA.installed_plugins[i].vendor == vendorstr then 
               local name = DATA.installed_plugins[i].name or 'untitled'
               local retval, p_selected = reaper.ImGui_MenuItem( ctx, name..'##plug'..i..vendorstr )
+              if retval then UI.draw_3rdpartyimport_context_add(DATA.installed_plugins[i].name, note, drop_data)  end
             end
           end
           ImGui.EndMenu( ctx)
@@ -4000,14 +4041,9 @@ end
       reaper.ImGui_SeparatorText(ctx, 'By entered name')
       local retval, buf = reaper.ImGui_InputText( ctx, '##fxinput', '', ImGui.InputTextFlags_EnterReturnsTrue )
       if retval then
-        local track = GetMasterTrack(-1) 
-        local fxidx = TrackFX_AddByName( track, buf, false, -1 )
-        if fxidx ~= -1 then
-          local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
-          local fx_name = VF_ReduceFXname(fx_namesrc)
-          DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
-          ImGui.CloseCurrentPopup(ctx)
-        end
+      
+        UI.draw_3rdpartyimport_context_add(buf, note, drop_data) 
+        
       end
       
       
@@ -4836,7 +4872,7 @@ end
     for note in pairs(DATA.children) do 
       local step_cnt = -1
       if DATA.seq.ext.children[note] and DATA.seq.ext.children[note].step_cnt then step_cnt = DATA.seq.ext.children[note].step_cnt end
-      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
+      if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen or EXT.CONF_seq_defaultstepcnt end
       local steplength = DATA.seq.ext.children[note].steplength
       local available_steps_per_pattern = pat_beats_com / steplength
       local activestep = math.floor(available_steps_per_pattern * pat_progress)+1
