@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="07702401cc01fb17e6d626570fa77332b4951e07" name="MPL Scripts">
+<index version="1" commit="6151d07a7fe5d8ce1d7e9b55e998d9df633de44e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14148,6 +14148,12 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07702401cc01fb17e6d626570fa77332b4951e07/Various/mpl_Mapping%20Panel%20(background).lua</source>
         <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07702401cc01fb17e6d626570fa77332b4951e07/Various/mpl_MappingPanel_master.jsfx</source>
         <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07702401cc01fb17e6d626570fa77332b4951e07/Various/mpl_MappingPanel_slave.jsfx</source>
+      </version>
+      <version name="4.19" author="MPL" time="2025-06-15T16:28:49Z">
+        <changelog><![CDATA[+ Add action to link last touched parameter to macro context menu]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6151d07a7fe5d8ce1d7e9b55e998d9df633de44e/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6151d07a7fe5d8ce1d7e9b55e998d9df633de44e/Various/mpl_MappingPanel_master.jsfx</source>
+        <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6151d07a7fe5d8ce1d7e9b55e998d9df633de44e/Various/mpl_MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
