@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.18
+-- @version 4.19
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    + Add container support
+--    + Add action to link last touched parameter to macro context menu
 
 
 
 
-  local vrs = 4.18
+  local vrs = 4.19
 
   --[[ gmem map: 
   Master
@@ -34,7 +34,7 @@
      if app_vrs < 7.06 then return reaper.MB('This script require REAPER 7.06+','',0) end
      local ImGui
      
-     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaimGui extension','',0) end
+     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
      package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
      ImGui = require 'imgui' '0.9.3.2'
      
@@ -1372,6 +1372,7 @@
         end
         ImGui.PopStyleColor(ctx,5)
         
+          
       -- slider: handle mouse state
         if DATA.masterJSFX_isvalid == true then
           if not temp then temp = {} end
@@ -1407,7 +1408,6 @@
             end
           end
         end
-        
         
       ::drawknob::
           
@@ -2152,6 +2152,11 @@
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 1)
     ImGui.SeparatorText(ctx,'Macro '.. sliderID) 
     
+    if ImGui.Selectable(ctx, 'Link last touched parameter') then  
+      DATA:Link_add()
+    end
+    
+    ImGui.SeparatorText(ctx, 'Macro parameters')
     
     if ImGui.Selectable(ctx, 'Set macro name') then  
       UI.popups['Set macro name'] = {
