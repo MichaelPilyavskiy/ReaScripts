@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.17
+-- @version 4.18
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # JSFX: move code to @block
+--    + Add container support
 
 
 
 
-  local vrs = 4.17
+  local vrs = 4.18
 
   --[[ gmem map: 
   Master
@@ -31,10 +31,10 @@
    --------------------------------------------------------------------------------  init globals
      for key in pairs(reaper) do _G[key]=reaper[key] end
      app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
-     if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
+     if app_vrs < 7.06 then return reaper.MB('This script require REAPER 7.06+','',0) end
      local ImGui
      
-     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaimGui extension','',0) end
      package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
      ImGui = require 'imgui' '0.9.3.2'
      
@@ -251,7 +251,21 @@
       end
     end
   end 
-  
+  ----------------------------------------------------------------------------------
+  function DATA:Link_add_getexposedcontainernumber(tr, fxnumber,paramnumber)
+    local last_fxnumber_container = fxnumber
+    local last_paramnumber_container, ret, fxnumber_container,paramnumber_container 
+    for i = 1, 10 do -- maximum container levels
+      ret, fxnumber_container = reaper.TrackFX_GetNamedConfigParm( tr, last_fxnumber_container, 'parent_container' )
+      if fxnumber_container ~= '' then 
+        ret, paramnumber_container = reaper.TrackFX_GetNamedConfigParm( tr, fxnumber_container, 'container_map.add.'..fxnumber..'.'..paramnumber )
+        last_fxnumber_container = fxnumber_container
+        last_paramnumber_container = paramnumber_container
+       elseif last_fxnumber_container and last_paramnumber_container then
+        return true, last_fxnumber_container, last_paramnumber_container
+      end
+    end
+  end
   ----------------------------------------------------------------------------------
   function DATA:Link_add(ignorelasttouched, tr_pass, fxnumber_pass, paramnumber_pass) local tr
     if DATA.masterJSFX_isvalid ~= true  then 
@@ -276,25 +290,15 @@
       local trid = tracknumber
       tr = GetTrack(DATA.ReaProj,trid) 
       if trid==-1 then tr = GetMasterTrack(DATA.ReaProj) end
-       
-       
-       
-       
-      if EXT.CONF_mode == 1 and tr ~= GetSelectedTrack(DATA.ReaProj,0)then  
-      
+      if EXT.CONF_mode == 1 and tr ~= GetSelectedTrack(DATA.ReaProj,0)then   
         UI.popups['Error_link'] = {
           mode = 0,
           trig = true,
           captions_csv = 'It`s not possible to link from different track in slave-per-track mode',
-          func_setval = function(retval, retvals_csv)  
-            
-          end
+          func_setval = function(retval, retvals_csv)end
           }
         return 
       end
-      
-      
-      
       local itid = itemidx
       if itid ~= -1 then return end
     end
@@ -303,6 +307,9 @@
     if ignorelasttouched == true then
       tr, fxnumber, paramnumber = tr_pass, fxnumber_pass, paramnumber_pass
     end
+    
+    
+    
     
     --
       if paramnumber == -1 then return end
@@ -389,12 +396,25 @@
     -- link to that slider
       local prelinkedparamvalue = TrackFX_GetParamNormalized( tr, fxnumber, paramnumber)
       local retval, minval, maxval = TrackFX_GetParam( tr, fxnumber, paramnumber)
-      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.active', 1 )
-      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.effect', slavefx_id )
-      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.param', freeslider )
+      if fxnumber&0x2000000 == 0x2000000 then -- containter 
+        
+        local ret, fxnumber_container, paramnumber_container = DATA:Link_add_getexposedcontainernumber(tr, fxnumber,paramnumber)
+        if ret then 
+          TrackFX_SetNamedConfigParm( tr, fxnumber_container, 'param.'..paramnumber_container..'.plink.active', 1 )
+          TrackFX_SetNamedConfigParm( tr, fxnumber_container, 'param.'..paramnumber_container..'.plink.effect', slavefx_id )
+          TrackFX_SetNamedConfigParm( tr, fxnumber_container, 'param.'..paramnumber_container..'.plink.param', freeslider ) 
+          TrackFX_SetNamedConfigParm( tr, fxnumber_container, 'param.'..paramnumber_container..'.mod.baseline', minval )
+        end
+       else
+        
+        TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.active', 1 )
+        TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.effect', slavefx_id )
+        TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.plink.param', freeslider )
+        TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.mod.baseline', minval )
+      end
       
       -- set base
-      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.mod.baseline', minval )
+      
      
     -- link slider to selected knob
       
@@ -1049,9 +1069,9 @@
       return 
     end
     
-    if fxID&0x2000000 == 0x2000000 then
-      DATA.LTP.str_plug = '[Container FX is not supported]'
-      return 
+    if fxID&0x2000000 == 0x2000000 then -- containter
+      --DATA.LTP.str_plug = '[Container FX is not supported]'
+      --return 
     end
     
     local retval, paramname = TrackFX_GetParamName( track, fxID, paramID )
