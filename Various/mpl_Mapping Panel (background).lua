@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.19
+-- @version 4.20
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    + Add action to link last touched parameter to macro context menu
+--    + Support for assigning last touched parameter with macro externally
 
 
 
 
-  local vrs = 4.19
+  local vrs = 4.20
 
   --[[ gmem map: 
   Master
@@ -26,7 +26,13 @@
   [slider] 49-64 [int] 16 bytes lim min, then 16bytes lim max, then 16 bytes scale min   
   ]]
  
-  
+  --[[
+    -- script for assign last touched parameter to macro
+    macro_id = 3
+    reaper.gmem_attach('MappingPanel')
+    reaper.gmem_write(1024, 1)
+    reaper.gmem_write(1025, macro_id)
+  ]]
   
    --------------------------------------------------------------------------------  init globals
      for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -1112,7 +1118,7 @@
     DATA.sel_knob = DATA:GetSelectedKnob()
   end 
   -------------------------------------------------------------------------------- 
-  function DATA:CollectData_eachloop()
+  function DATA:CollectData_Always() 
     if not DATA.masterJSFX_FXid then return end
     local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
     if retval1 ~= 0 and rawmsg and rawmsg:byte(1)&0xB0==0xB0 then 
@@ -1161,8 +1167,14 @@
           gmem_write(100,1 )
           if DATA.masterJSFX_FXid then TrackFX_SetParamNormalized( extstate_tr, DATA.masterJSFX_FXid, sliderID-1, val ) end
         end
-          
-          
+      end
+      
+    -- ext actions
+      if gmem_read(1024) > 0 then
+        DATA.sel_knob = gmem_read(1025)
+        DATA:Link_add()
+        gmem_write(1024,0 )
+        DATA.upd = true
       end
   end
   -------------------------------------------------------------------------------- 
@@ -1172,7 +1184,7 @@
     DATA.flicker = math.abs(-1+(math.cos(math.pi*(DATA.clock%2)) + 1))
     
     if DATA.upd == true then DATA:CollectData() end 
-    DATA:CollectData_eachloop()
+    DATA:CollectData_Always()
     DATA.upd = false
     
     -- refresh at losing context
@@ -2549,6 +2561,7 @@
   end
   ----------------------------------------------------------------------------------------- 
   function main()  
+    reaper.gmem_attach('MappingPanel' )
     EXT_defaults = VF_CopyTable(EXT)
     UI.MAIN_definecontext() 
   end  
