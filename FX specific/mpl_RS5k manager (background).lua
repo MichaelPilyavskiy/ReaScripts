@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.64
+-- @version 4.65
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,17 +18,12 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # fix error on initial seq
---    + StepSequencer: Add button to call RS5k manager
---    + StepSequencer: allow to disable clamp envelope values toactive steps only
---    + Rack: Allow to locally override rack pad names
---    # 3rd party: fix 3rd party context menu
---    # 3rd party: remove import last touched
---    # StepSequencer/Inline/Velocity: mimimum velocity = 1
---    # Startup: disable Load to selected pads if no pad selected
+--    # StepSequencer: restrict pads moving
+--    # StepSequencer: fix some errors
+--    # Database: fix error on empty database
 
 
-rs5kman_vrs = '4.64'
+rs5kman_vrs = '4.65'
 
 
 -- TODO
@@ -215,6 +210,7 @@ rs5kman_vrs = '4.64'
           CONF_seq_stuffMIDItoLP = 0, 
           CONF_seq_defaultstepcnt = 16, -- -1 follow pattern length
           CONF_seq_env_clamp = 1, -- 0 == allow env points on empty steps
+          CONF_seq_steplength = 0.25,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -2084,56 +2080,6 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     if peaksRMS_R >0.9 then ImGui.DrawList_AddLine( UI.draw_list, peakRx, y+UI.calc_itemH , peakRx+peak_w, y+UI.calc_itemH, 0xFF0000FF, 1) end
   end
   
-  --------------------------------------------------------------------------------  
-  function UI.draw_Rack_Pads_controls_handlemouse(note_t,note,popup_content0)
-    if note == -1 then return end
-    local popup_content
-    if not popup_content0 then popup_content = 'pad' else popup_content = popup_content0 end
-    if not (note_t and note_t.TYPE_DEVICE==true) and  ImGui.BeginDragDropTarget( ctx ) then  
-      UI.Drop_UI_interaction_pad(note) 
-      ImGui_EndDragDropTarget( ctx )
-    end 
-    
-    if ImGui.IsItemActivated(ctx) then 
-      if EXT.UI_clickonpadplaysample ==1 then DATA:Sampler_StuffNoteOn(note) end
-    end
-    
-    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
-      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
-      DATA:WriteData_Parent() 
-      DATA.upd = true
-      if popup_content0 ~= 'seq_pad' then 
-        if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = popup_content end
-      end
-    end
-    
-    if ImGui.IsItemClicked(ctx,ImGui.MouseButton_Left) then -- click select track
-      if EXT.UI_clickonpadselecttrack == 1 and note_t then SetOnlyTrackSelected( note_t.tr_ptr )  end
-      if EXT.UI_clickonpadscrolltomixer == 1 and note_t then  SetMixerScroll( note_t.tr_ptr )  end
-      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note 
-      DATA.padcustomnames_selected_id = note
-      DATA.padautocolors_selected_id = note
-      DATA.settings_cur_note_database=note
-      DATA:WriteData_Parent() 
-      DATA.upd = true 
-      if popup_content0 == 'seq_pad' then DATA:Sampler_StuffNoteOn(note) end
-    end
-     
-    if ImGui.IsItemDeactivated( ctx ) then 
-      if EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
-    end
-    
-    if note_t and note_t.noteID and ImGui.BeginDragDropSource( ctx, ImGui.DragDropFlags_None ) then  
-      ImGui.SetDragDropPayload( ctx, 'moving_pad', note_t.noteID, ImGui.Cond_Once )
-      ImGui.Text(ctx, 'Move pad ['..note_t.noteID..'] '..note_t.P_NAME)
-      DATA.paddrop_ID = note_t.noteID
-      if reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Mod_Ctrl()) then 
-        DATA.paddrop_mode = 1
-      end
-      ImGui.EndDragDropSource(ctx)
-    end
-    
-  end
   -------------------------------------------------------------------------------- 
   function UI.draw_popups_macro()
     if DATA.trig_context == 'macro' and DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVEMACRO  then 

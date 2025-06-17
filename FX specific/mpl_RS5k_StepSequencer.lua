@@ -136,7 +136,7 @@ reaper.set_action_options(1 )
           CONF_seq_stuffMIDItoLP = 0,  
           CONF_seq_defaultstepcnt = 16,
           CONF_seq_env_clamp = 1, -- 0 == allow env points on empty steps
-          
+          CONF_seq_steplength = 0.25,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -765,49 +765,6 @@ reaper.set_action_options(1 )
   end
   
   --------------------------------------------------------------------------------  
-  function UI.draw_Rack_Pads_controls_handlemouse(note_t,note,popup_content0)
-    local popup_content
-    if not popup_content0 then popup_content = 'pad' else popup_content = popup_content0 end
-    if not (note_t and note_t.TYPE_DEVICE==true) and  ImGui.BeginDragDropTarget( ctx ) then  
-      UI.Drop_UI_interaction_pad(note) 
-      ImGui_EndDragDropTarget( ctx )
-    end 
-    
-    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
-      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
-      DATA:WriteData_Parent() 
-      DATA.upd = true
-      if popup_content0 ~= 'seq_pad' then 
-        if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = popup_content end
-      end
-    end
-    
-    if ImGui.IsItemClicked(ctx,ImGui.MouseButton_Left) then -- click select track
-      if EXT.UI_clickonpadselecttrack == 1 and note_t then SetOnlyTrackSelected( note_t.tr_ptr )  end
-      if EXT.UI_clickonpadscrolltomixer == 1 and note_t then  SetMixerScroll( note_t.tr_ptr )  end
-      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note 
-      DATA.padcustomnames_selected_id = note
-      DATA.padautocolors_selected_id = note
-      DATA.settings_cur_note_database=note
-      DATA:WriteData_Parent()  
-      gmem_write(1025,10 ) -- push a trigger to refresh Rack
-      DATA.upd = true 
-      if popup_content0 == 'seq_pad' then DATA:Sampler_StuffNoteOn(note) end
-    end
-     
-    if ImGui.IsItemDeactivated( ctx ) then 
-      if popup_content0 == 'seq_pad' and EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
-    end
-    
-    if note_t and note_t.noteID and ImGui.BeginDragDropSource( ctx, ImGui.DragDropFlags_None ) then 
-      ImGui.SetDragDropPayload( ctx, 'moving_pad', note_t.noteID, ImGui.Cond_Once )
-      ImGui.Text(ctx, 'Move pad ['..note_t.noteID..'] '..note_t.P_NAME)
-      DATA.paddrop_ID = note_t.noteID
-      ImGui.EndDragDropSource(ctx)
-    end
-    
-  end
-  --------------------------------------------------------------------------------  
   function UI.draw_Seq_ctrls_inline_handlemouse(note_t)
     local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
     local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
@@ -1248,7 +1205,15 @@ It also used for advanced sequencing parameters.
         if (step-1)%8> 3 then stepcol = stepcol_2 end
         local activestep = step 
         
-        local allow_env_on_empty_steps = DATA.seq.ext.children[note].steps[activestep].val == 1
+        local allow_env_on_empty_steps = 
+          DATA.seq.ext.children
+          and note
+          and DATA.seq.ext.children[note]
+          and DATA.seq.ext.children[note].steps
+          and activestep
+          and DATA.seq.ext.children[note].steps[activestep]
+          and DATA.seq.ext.children[note].steps[activestep].val 
+          and DATA.seq.ext.children[note].steps[activestep].val == 1
         if EXT.CONF_seq_env_clamp == 0 then  
           if parameter_parent:match('env') then allow_env_on_empty_steps = true end
         end

@@ -489,7 +489,7 @@ if not UI then UI = {} end
       proj = DATA.proj,
       ext = {
               patternlen = 16,
-              patternsteplen = 0.25,
+              patternsteplen = EXT.CONF_seq_steplength, 
               children={}, 
               step_defaults={},
               swing = 0,
@@ -1247,7 +1247,7 @@ end
   function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
   ------------------------------------------------------------------------------------------------------
   function WDL_VAL2DB(x)   --https://github.com/majek/wdl/blob/master/WDL/db2val.h
-    if not x or x < 0.0000000298023223876953125 then return -150.0 end
+    if not x or (x and x < 0.0000000298023223876953125) then return -150.0 end
     local v=math.log(x)*8.6858896380650365530225783783321
     if v<-150.0 then return -150.0 else return v end
   end
@@ -3791,9 +3791,11 @@ end
         local dbname = DATA.database_maps[mapID].map[note].dbname
         if DATA.reaperDB[dbname] and DATA.reaperDB[dbname].files then
           local sz = #DATA.reaperDB[dbname].files
-          local rand_fid = 1 + math.floor(math.random(sz-1))
-          local fp = DATA.reaperDB[dbname].files[rand_fid].fp
-          DATA:DropSample(fp, note, {set_DB = dbname})
+          if sz>0 then
+            local rand_fid = 1 + math.floor(math.random(sz-1))
+            local fp = DATA.reaperDB[dbname].files[rand_fid].fp
+            DATA:DropSample(fp, note, {set_DB = dbname})
+          end
         end
       
       end
@@ -4873,7 +4875,8 @@ end
       local step_cnt = -1
       if DATA.seq.ext.children[note] and DATA.seq.ext.children[note].step_cnt then step_cnt = DATA.seq.ext.children[note].step_cnt end
       if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen or EXT.CONF_seq_defaultstepcnt end
-      local steplength = DATA.seq.ext.children[note].steplength
+      local steplength = EXT.CONF_seq_steplength
+      if DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steplength then steplength = DATA.seq.ext.children[note].steplength end
       local available_steps_per_pattern = pat_beats_com / steplength
       local activestep = math.floor(available_steps_per_pattern * pat_progress)+1
       if step_cnt < patternlen then 
@@ -5418,3 +5421,52 @@ end
     
   end ]]
   
+  --------------------------------------------------------------------------------  
+  function UI.draw_Rack_Pads_controls_handlemouse(note_t,note,popup_content0)
+    if note == -1 then return end
+    local popup_content
+    if not popup_content0 then popup_content = 'pad' else popup_content = popup_content0 end
+    if not (note_t and note_t.TYPE_DEVICE==true) and  ImGui.BeginDragDropTarget( ctx ) then  
+      UI.Drop_UI_interaction_pad(note) 
+      ImGui_EndDragDropTarget( ctx )
+    end 
+    
+    if ImGui.IsItemActivated(ctx) then 
+      if EXT.UI_clickonpadplaysample ==1 then DATA:Sampler_StuffNoteOn(note) end
+    end
+    
+    if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
+      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note
+      DATA:WriteData_Parent() 
+      DATA.upd = true
+      if popup_content0 ~= 'seq_pad' then 
+        if UI.anypopupopen==true then DATA.trig_closepopup = true else DATA.trig_openpopup = popup_content end
+      end
+    end
+    
+    if ImGui.IsItemClicked(ctx,ImGui.MouseButton_Left) then -- click select track
+      if EXT.UI_clickonpadselecttrack == 1 and note_t then SetOnlyTrackSelected( note_t.tr_ptr )  end
+      if EXT.UI_clickonpadscrolltomixer == 1 and note_t then  SetMixerScroll( note_t.tr_ptr )  end
+      DATA.parent_track.ext.PARENT_LASTACTIVENOTE=note 
+      DATA.padcustomnames_selected_id = note
+      DATA.padautocolors_selected_id = note
+      DATA.settings_cur_note_database=note
+      DATA:WriteData_Parent() 
+      DATA.upd = true 
+      if popup_content0 == 'seq_pad' then DATA:Sampler_StuffNoteOn(note) end
+    end
+     
+    if ImGui.IsItemDeactivated( ctx ) then 
+      if EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
+    end
+    
+    if popup_content0 ~= 'seq_pad' then 
+      if note_t and note_t.noteID and ImGui.BeginDragDropSource( ctx, ImGui.DragDropFlags_None ) then  
+        ImGui.SetDragDropPayload( ctx, 'moving_pad', note_t.noteID, ImGui.Cond_Once )
+        ImGui.Text(ctx, 'Move pad ['..note_t.noteID..'] '..note_t.P_NAME)
+        DATA.paddrop_ID = note_t.noteID
+        if reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Mod_Ctrl()) then DATA.paddrop_mode = 1 end
+        ImGui.EndDragDropSource(ctx)
+      end
+    end
+  end
