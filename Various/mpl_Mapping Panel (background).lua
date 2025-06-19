@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.20
+-- @version 4.21
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,13 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    + Support for assigning last touched parameter with macro externally
+--    + Add description for slave JSFX per track mode
+--    # Variation: fix error on empty data
 
 
 
 
-  local vrs = 4.20
+  local vrs = 4.21
 
   --[[ gmem map: 
   Master
@@ -949,7 +950,7 @@
         ImGui.PushStyle('StyleVar_FrameBorderSize',0) 
       -- spacing
         ImGui.PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
-        ImGui.PushStyle('StyleVar_FramePadding',10,UI.spacingY) 
+        ImGui.PushStyle('StyleVar_FramePadding',5,UI.spacingY) 
         ImGui.PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
         ImGui.PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
         ImGui.PushStyle('StyleVar_ItemInnerSpacing',4,0)
@@ -958,7 +959,7 @@
       -- size
         ImGui.PushStyle('StyleVar_GrabMinSize',20)
         --ImGui.PushStyle('StyleVar_WindowMinSize',UI.main_butw*9,(UI.main_buth*2 + UI.spacingY)*2 + UI.font1sz*2)
-        ImGui.PushStyle('StyleVar_WindowMinSize',200,200)
+        ImGui.PushStyle('StyleVar_WindowMinSize',600,200)
       -- align
         ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
         ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
@@ -1537,11 +1538,25 @@
     end
     
     -- childs
-    if DATA.activetab ~= 1 then UI.MAIN_drawstuff_knobs(local_pos_x, local_pos_y) end
+    if DATA.activetab ~= 1 and DATA.masterJSFX_isvalid == true then UI.MAIN_drawstuff_knobs(local_pos_x, local_pos_y) end
     if DATA.activetab == 1 then UI.MAIN_drawstuff_menu(local_pos_x, local_pos_y) end
-    if DATA.activetab == 2 then UI.MAIN_drawstuff_varlist(local_pos_x, local_pos_y) end
-    if DATA.activetab == 3 then UI.MAIN_drawstuff_links(local_pos_x, local_pos_y) end
-    if DATA.activetab == 4 then UI.MAIN_drawstuff_actions(local_pos_x, local_pos_y) end
+    if DATA.activetab == 2 and DATA.masterJSFX_isvalid == true then UI.MAIN_drawstuff_varlist(local_pos_x, local_pos_y) end
+    if DATA.activetab == 3 and DATA.masterJSFX_isvalid == true then UI.MAIN_drawstuff_links(local_pos_x, local_pos_y) end
+    if DATA.activetab == 4 and DATA.masterJSFX_isvalid == true then UI.MAIN_drawstuff_actions(local_pos_x, local_pos_y) end
+    
+    if DATA.masterJSFX_isvalid ~= true and DATA.activetab ~= 1 then
+      ImGui.SetCursorPos( ctx,local_pos_x + UI.calc_knobW+ UI.spacingX, local_pos_y+ UI.spacingY) 
+      ImGui.TextDisabled(ctx, 'You are in [Slave JSFX per track] mode. Select track and click:')
+      ImGui.SetCursorPosX( ctx,local_pos_x + UI.calc_knobW+ UI.spacingX)
+      if ImGui.Button(ctx, 'Instantiate') then DATA:MasterJSFX_Validate_Add()  end
+      ImGui.SetCursorPosX( ctx,local_pos_x + UI.calc_knobW+ UI.spacingX)
+      
+      ImGui.BeginDisabled(ctx, true)
+      ImGui.TextWrapped( ctx, 'Otherwise if you want master JSXF control all instances. go to Menu/General and select [Master JSFX] mode')
+      ImGui.EndDisabled(ctx)
+      
+      return 
+    end
     
     -- popups
     for key in pairs(UI.popups) do
@@ -2084,6 +2099,7 @@
   end
   ---------------------------------------------------------------------  
   function DATA:Vari_Play(varID)  
+    if not DATA.masterJSFX_variations_list then return end
     -- set selected
       for i = 1, 8 do DATA.masterJSFX_variations_list[i].issel = 0 end 
       DATA.masterJSFX_variations_list[varID].issel = 1
@@ -2326,11 +2342,6 @@
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff_knobs(local_pos_x, local_pos_y)  
     
-    if DATA.masterJSFX_isvalid ~= true then
-      ImGui.SetCursorPos( ctx,local_pos_x + UI.calc_knobW+ UI.spacingX, local_pos_y+ UI.spacingY) 
-      if ImGui.Button(ctx, 'Instantiate') then DATA:MasterJSFX_Validate_Add()  end
-      return 
-    end
     
     local app_func_onmouseclick = function(sliderID) 
                                     DATA:Macro_Select(sliderID) 
@@ -2530,8 +2541,6 @@
         }) 
       
       ImGui.SameLine(ctx)
-      if ImGui.Button(ctx, 'Instantiate') then DATA:MasterJSFX_Validate_Add()  end
-      
       ImGui.SeparatorText(ctx,'Random')
       UI.draw_flow_CHECK({['key']='Do not random 0 and 1 values',                     ['extstr'] = 'CONF_randpreventrandfromlimits',  })
       
