@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c787636d91c3109bb56018a79c9f4e2262af6525" name="MPL Scripts">
+<index version="1" commit="f91b6e2c04985eb7f50981abfdf64d5b4c90f382" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14203,6 +14203,13 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f95500f212d129cd83e1bb092a4d6888151ff32e/Various/mpl_Mapping%20Panel%20(background).lua</source>
         <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f95500f212d129cd83e1bb092a4d6888151ff32e/Various/mpl_MappingPanel_master.jsfx</source>
         <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f95500f212d129cd83e1bb092a4d6888151ff32e/Various/mpl_MappingPanel_slave.jsfx</source>
+      </version>
+      <version name="4.21" author="MPL" time="2025-06-19T20:41:17Z">
+        <changelog><![CDATA[+ Add description for slave JSFX per track mode
+# Variation: fix error on empty data]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f91b6e2c04985eb7f50981abfdf64d5b4c90f382/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f91b6e2c04985eb7f50981abfdf64d5b4c90f382/Various/mpl_MappingPanel_master.jsfx</source>
+        <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f91b6e2c04985eb7f50981abfdf64d5b4c90f382/Various/mpl_MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
