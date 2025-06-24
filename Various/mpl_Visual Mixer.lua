@@ -1,15 +1,13 @@
 -- @description VisualMixer
--- @version 3.06
+-- @version 3.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Snapshot: show current
---    + Width: add option to always show width/force pan mode
---    # UI: overhaul selection logic
+--    + Use predefined shortcuts
 
 
-vrs = 3.06
+vrs = 3.07
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -48,6 +46,7 @@ vrs = 3.06
           CONF_normlufswait = 5,--sec
           CONF_spreadflags = 0,
           CONF_lufswaitMAP = 5,
+          CONF_allowshortcuts = 1, 
           
           -- global
           --CONF_csurf = 0,
@@ -281,8 +280,17 @@ vrs = 3.06
         ImGui.PopStyleColor(ctx, 23) 
         ImGui.PopFont( ctx ) 
       if  ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false )  then reaper.Main_OnCommand( 40044, 0 ) end
+      
+      
       if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
-    
+      
+      if EXT.CONF_allowshortcuts == 1 then 
+        if  ImGui.IsKeyPressed( ctx, ImGui.Key_G,false )  then DATA:WriteData_ResetGain() end
+        if  ImGui.IsKeyPressed( ctx, ImGui.Key_P,false )  then DATA:WriteData_ResetPan() end
+        if  ImGui.IsKeyPressed( ctx, ImGui.Key_M,false )  then DATA:WriteData_Actions_SoloMute(0) end
+        if  ImGui.IsKeyPressed( ctx, ImGui.Key_S,false )  then DATA:WriteData_Actions_SoloMute(1) end
+      end
+      
       return open
   end
   
@@ -534,6 +542,8 @@ vrs = 3.06
     
     -- handle xy
     DATA:handleViewportXYWH()
+    
+    
     -- data
     if UI.open then defer(UI.MAIN_UIloop) end
   end
@@ -1261,7 +1271,20 @@ end
       end
     end
   end
-  
+  -------------------------------------------------------------------------------- 
+  function UI.HelpMarker(desc, tooltip_code)
+    ImGui.TextDisabled(ctx, '(?)')
+    if ImGui.BeginItemTooltip(ctx) then
+      if tooltip_code then 
+        tooltip_code()
+       else
+        ImGui.PushTextWrapPos(ctx, ImGui.GetFontSize(ctx) * 35.0)
+        ImGui.Text(ctx, desc)
+        ImGui.PopTextWrapPos(ctx)
+      end
+      ImGui.EndTooltip(ctx)
+    end
+  end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_settings() 
     
@@ -1286,6 +1309,7 @@ end
         UI.draw_flow_CHECK({['key']='Show scale numbers',                                 ['extstr'] = 'UI_showscalenumbers'}) 
         UI.draw_flow_CHECK({['key']='Hide group tracks',                                  ['extstr'] = 'UI_ignoregrouptracks'}) 
         UI.draw_flow_CHECK({['key']='Always show/set width',                                  ['extstr'] = 'UI_forcewidthmode'}) 
+        UI.draw_flow_CHECK({['key']='Allow shortcuts',                                  ['extstr'] = 'CONF_allowshortcuts', tooltip='S=solo\nM=mute\nG=reset gain\nP=reset pan' }) 
         
         
         
