@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.65
+-- @version 4.66
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,12 +18,10 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: restrict pads moving
---    # StepSequencer: fix some errors
---    # Database: fix error on empty database
+--    # StepSequencer: fix swing
 
 
-rs5kman_vrs = '4.65'
+rs5kman_vrs = '4.66'
 
 
 -- TODO
