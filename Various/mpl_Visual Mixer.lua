@@ -1,14 +1,15 @@
 -- @description VisualMixer
--- @version 3.04
+-- @version 3.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Support docking
---    + Settings: allow to change background color
+--    + Snapshot: show current
+--    + Width: add option to always show width/force pan mode
+--    # UI: overhaul selection logic
 
 
-vrs = 3.04
+vrs = 3.06
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -17,7 +18,7 @@ vrs = 3.04
   if app_vrs < check_vrs then return reaper.MB('This script require REAPER '..check_vrs..'+','',0) end
   local ImGui
   
-  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaimGui extension','',0) end
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.9.3.2'
     
@@ -67,6 +68,7 @@ vrs = 3.04
           UI_expandpeaks =1,
           UI_showscalenumbers =1,
           UI_ignoregrouptracks =0,
+          UI_forcewidthmode = 1,
           
           CONF_quantizevolume = 1,
           CONF_quantizepan = 5,
@@ -159,7 +161,15 @@ vrs = 3.04
       --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
       window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
       window_flags = window_flags | ImGui.WindowFlags_MenuBar
-      --window_flags = window_flags | ImGui.WindowFlags_NoMove
+      
+      -- restrict moving window except header drag
+      local click_x, click_y = reaper.ImGui_GetMouseClickedPos( ctx, ImGui.MouseButton_Left )
+      if DATA.display_x and DATA.display_y and DATA.display_w and  DATA.display_h and  UI.calc_itemH and 
+        click_x >=DATA.display_x and click_x <=DATA.display_x + DATA.display_w and 
+        click_y >=DATA.display_y+UI.calc_itemH and click_y <=DATA.display_y + DATA.display_h then
+        window_flags = window_flags | ImGui.WindowFlags_NoMove
+      end
+      
       --window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
       --window_flags = window_flags | ImGui.WindowFlags_NoNav
@@ -250,7 +260,7 @@ vrs = 3.04
         
       -- get drawlist
         UI.draw_list = ImGui.GetWindowDrawList( ctx )
-        --UI.calc_CTRL = ImGui.IsKeyPressed( ctx, ImGui.Key_LeftCtrl ) or ImGui.IsKeyPressed( ctx, ImGui.Key_RightCtrl )
+        
         UI.calc_workarea_xabs = DATA.display_x + UI.calc_xoffset
         UI.calc_workarea_yabs = DATA.display_y + UI.calc_yoffset + UI.calc_itemH*3
         UI.calc_workarea_w = DATA.display_w - 2*UI.calc_xoffset
@@ -258,7 +268,7 @@ vrs = 3.04
         UI.calc_extendcenter = EXT.UI_extendcenter*UI.calc_workarea_w 
         
       -- marque selection
-        UI.draw_marqsel()
+        UI.MOUSE_marqsel()
         
       -- draw stuff
         UI.draw()
@@ -477,7 +487,10 @@ vrs = 3.04
          pan = math.max(math.min((R+L)/2, 1), -1)
       end 
       
-      if not (GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 5 or GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 6) then width = nil end
+      if not (GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 5 or GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 6) and EXT.UI_forcewidthmode ~=1 then  
+        width = nil 
+        
+      end
       
       -- vol 
       local vol = GetMediaTrackInfo_Value( tr, 'D_VOL')
@@ -619,9 +632,8 @@ vrs = 3.04
     return pan_txt
   end
   -----------------------------------------------
-  function UI.draw_area_trackctrls(xabs, yabs)
-    if not DATA.activeGUID then return end
-    
+  function UI.draw_area_SoloMuteFX_ctrls(xabs, yabs) 
+    if not DATA.activeGUID then return end 
     local GUID = DATA.activeGUID
     if not DATA.tracks[GUID] then return end
     ImGui.SetCursorScreenPos(ctx, xabs, yabs)
@@ -630,10 +642,7 @@ vrs = 3.04
       local solo = DATA.tracks[GUID].solo
       if solo == true then UI.draw_setbuttonbackgtransparent(0x00A505) end  
       if ImGui.Button( ctx, 'S##'..GUID ) then 
-        local solo = 2
-        if DATA.tracks[GUID].solo == true then solo = 0 end
-        DATA:WriteData_TrParam(GUID, 'I_SOLO', solo)
-        DATA.upd = true
+        DATA:WriteData_Actions_SoloMute(1)
       end
       if solo == true then UI.draw_unsetbuttonstyle() end
 
@@ -642,10 +651,7 @@ vrs = 3.04
       local mute = DATA.tracks[GUID].mute
       if mute == true then UI.draw_setbuttonbackgtransparent(0xA50005) end 
       if ImGui.Button( ctx, 'M##'..GUID) then 
-        local mute = 1
-        if DATA.tracks[GUID].mute == true then mute = 0 end
-        DATA:WriteData_TrParam(GUID, 'B_MUTE', mute)
-        DATA.upd = true
+        DATA:WriteData_Actions_SoloMute(0)
       end
       if mute == true then UI.draw_unsetbuttonstyle() end
       
@@ -659,21 +665,62 @@ vrs = 3.04
     -- res vol
       ImGui.SameLine(ctx)
       if ImGui.Button( ctx, 'Gain##Gain'..GUID, ctrlbutW  , ctrlbutH ) then 
-        DATA:WriteData_TrParam(GUID, 'D_VOL', 1)  
-        for GUID in pairs(DATA.tracks) do
-          if DATA.tracks[GUID].selected == true then DATA:WriteData_TrParam(GUID, 'D_VOL', 1)   end
-        end  
+        DATA:WriteData_ResetGain()
       end
       ImGui.SameLine(ctx)
       if ImGui.Button( ctx, 'Pan##Pan'..GUID, ctrlbutW  , ctrlbutH ) then 
-        DATA:WriteData_Pan(GUID, 0, 0)  
-        GetSetMediaTrackInfo_String( DATA.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_centerarea', 0.5, true )
-        DATA.upd = true 
-        for GUID in pairs(DATA.tracks) do
-          if DATA.tracks[GUID].selected == true then DATA:WriteData_Pan(GUID, 0, 0)  GetSetMediaTrackInfo_String( DATA.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_centerarea', 0.5, true )   end
-        end 
-        
+        DATA:WriteData_ResetPan()
       end       
+  end
+  -----------------------------------------------
+  function DATA:WriteData_Actions_SoloMute(mode)
+    local activeGUID = DATA.activeGUID
+    -- mute
+    if mode == 0 then
+      local mute = 1
+      if DATA.tracks[activeGUID] and DATA.tracks[activeGUID].mute == true then mute = 0 end 
+      for GUID in pairs(DATA.tracks) do
+        if (activeGUID and GUID == activeGUID) or DATA.tracks[GUID].selected == true then 
+          DATA:WriteData_TrParam(GUID, 'B_MUTE', mute)
+        end
+      end  
+    end
+    
+    -- solo
+    if mode == 1 then 
+      local solo = 2
+      if DATA.tracks[activeGUID] and DATA.tracks[activeGUID].solo == true then solo = 0 end
+      for GUID in pairs(DATA.tracks) do
+        if (activeGUID and GUID == activeGUID) or DATA.tracks[GUID].selected == true then 
+          DATA:WriteData_TrParam(GUID, 'I_SOLO', solo)
+        end
+      end
+    end
+    
+    DATA.upd = true
+  end
+  -----------------------------------------------
+  function DATA:WriteData_ResetGain()
+    local activeGUID = DATA.activeGUID
+    for GUID in pairs(DATA.tracks) do
+      if DATA.tracks[GUID].selected == true or (activeGUID and GUID == activeGUID) then 
+        DATA:WriteData_TrParam(GUID, 'D_VOL', 1)   
+      end
+    end 
+    
+    DATA.upd = true 
+  end
+  -----------------------------------------------
+  function DATA:WriteData_ResetPan() 
+    local activeGUID = DATA.activeGUID
+    for GUID in pairs(DATA.tracks) do
+      if DATA.tracks[GUID].selected == true or (activeGUID and GUID == activeGUID) then 
+        DATA:WriteData_Pan(GUID, 0, 0)  
+        GetSetMediaTrackInfo_String( DATA.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_centerarea', 0.5, true )   
+        DATA.tracks[GUID].center_area = 0.5
+      end
+    end 
+    DATA.upd = true 
   end
   -----------------------------------------------
   function UI.draw_area_scale() 
@@ -735,7 +782,7 @@ vrs = 3.04
     local info_x = DATA.display_x
     local info_y = DATA.display_y + UI.calc_yoffset + UI.calc_itemH*2
     UI.draw_area_scale() 
-    UI.draw_area_trackctrls(info_x + UI.spacingX, info_y)
+    UI.draw_area_SoloMuteFX_ctrls(info_x + UI.spacingX, info_y)
     
     -- info
     local winfo = 0.3*UI.calc_workarea_w 
@@ -866,8 +913,8 @@ function UI.draw_tracks_mainbody_handleselection(GUID0, x,y)
     end
   end
 end
---------------------------------------------------------------------------------  
-  function UI.draw_tracks_mainbody(GUID)   
+  -------------------------------------------------------------------------------  
+    function UI.draw_tracks_mainbody(GUID)   
     if not DATA.tracks[GUID].valid then return end
     
     local color = DATA.tracks[GUID].col
@@ -882,41 +929,33 @@ end
     
     if color then UI.draw_setbuttonbackgtransparent(color, 0.5) end
     ImGui.Button(ctx, '##trackrect'..GUID,DATA.tracks[GUID].wsz,DATA.tracks[GUID].hsz ) 
-    if color then UI.draw_unsetbuttonstyle()end
+    if color then UI.draw_unsetbuttonstyle()end 
     
+    UI.MOUSE_trackbody(GUID) 
     
-    if ImGui.IsItemActive( ctx ) then 
-      DATA.activeGUID = GUID
-      DATA.touch_state = true
-      local x, y = ImGui.GetMouseDelta( ctx )
-      
-      local outx = DATA.tracks[GUID].xpos + x
-      local outy = DATA.tracks[GUID].ypos + y
-      DATA:WriteData_Volume(GUID, outy) 
-      DATA:WriteData_Pan(GUID,outx) 
-      
-      UI.draw_tracks_mainbody_handleselection(GUID, x,y) 
-    end
-    
-    if ImGui.IsItemDeactivated( ctx ) then  
-      Undo_BeginBlock2( 0 )
-      DATA:Snapshot_WriteTracksInfo() 
-      DATA:Snapshot_Write() 
-      DATA.touch_state = false
-      Undo_EndBlock2( -1, 'Visual Mixer - change track vol/pan',0xFFFFFFF )
-    end
-    
-    if ImGui.IsItemHovered( ctx ) then  
-      DATA.info_txt = (math.floor(10*DATA.tracks[GUID].vol_dB)/10)..'dB '..UI.format_pan(DATA.tracks[GUID].pan)
-    end
-    
-    if DATA.activeGUID and DATA.activeGUID == GUID then
+    UI.draw_tracks_mainbody_selection(GUID) 
+    UI.draw_tracks_mainbody_LED(GUID) 
+    UI.draw_tracks_mainbody_icon(GUID) 
+    UI.draw_tracks_mainbody_peaks(GUID,color) 
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_tracks_mainbody_selection(GUID) 
+    --if DATA.activeGUID and DATA.activeGUID == GUID then
+    if DATA.tracks[GUID].selected == true then
       local sideline=  4
-      ImGui.DrawList_AddRect( UI.draw_list, DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos,  DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz, 0xFFFFFF9F, 5 ) 
+      ImGui.DrawList_AddRect(UI.draw_list, DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos,  DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz, 0xFFFFFF9F, 5 ) 
       ImGui.DrawList_AddLine(UI.draw_list, DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz/2, DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz + sideline,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz/2, 0xFFFFFFFF, 1)
       ImGui.DrawList_AddLine(UI.draw_list, DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz/2, DATA.tracks[GUID].xpos- sideline,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz/2, 0xFFFFFFFF, 1)
     end
-    
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_tracks_mainbody_icon(GUID) 
+    local icon_image = DATA.tracks[GUID].icon_image
+    if icon_image then ImGui_DrawList_AddImage( UI.draw_list , icon_image,  DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos,  DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz, 0, 0, 1, 1, 0xFFFFFFFF ) end
+  end 
+  --------------------------------------------------------------------------------  
+  function UI.draw_tracks_mainbody_LED(GUID) 
+    -- LED
     local offsX = 3
     local offsY = 3
     local sz = 8
@@ -927,16 +966,9 @@ end
     if DATA.tracks[GUID].mute == true then
       ImGui.DrawList_AddRectFilled( UI.draw_list, DATA.tracks[GUID].xpos+offsX,DATA.tracks[GUID].ypos+offsY,  DATA.tracks[GUID].xpos+offsX+sz,DATA.tracks[GUID].ypos+offsY+sz, 0xFF00008F, 2 )
     end
-    if DATA.tracks[GUID].selected == true then
+    --[[if DATA.tracks[GUID].selected == true then
       ImGui.DrawList_AddRectFilled( UI.draw_list, DATA.tracks[GUID].xpos+offsX,DATA.tracks[GUID].ypos+offsY,  DATA.tracks[GUID].xpos+offsX+sz,DATA.tracks[GUID].ypos+offsY+sz, 0xF0FF0F8F, 2 )
-    end
-      
-    
-    local icon_image = DATA.tracks[GUID].icon_image
-    if icon_image then ImGui_DrawList_AddImage( UI.draw_list , icon_image,  DATA.tracks[GUID].xpos,DATA.tracks[GUID].ypos,  DATA.tracks[GUID].xpos+DATA.tracks[GUID].wsz,DATA.tracks[GUID].ypos+DATA.tracks[GUID].hsz, 0, 0, 1, 1, 0xFFFFFFFF ) end
-    
-    
-    UI.draw_tracks_mainbody_peaks(GUID,color) 
+    end]]
   end
   ----------------------------------------------------------------------  
   function DATA:WriteData_Width(GUID, width)
@@ -949,9 +981,12 @@ end
      elseif GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 5 then
       SetTrackUIWidth( tr, width, false, false,1|2)
       DATA.tracks[GUID].width = width
-     --[[else
-      SetMediaTrackInfo_Value( tr, 'D_WIDTH',width)
-      DATA.tracks[GUID].width = width]]
+     else
+      if EXT.UI_forcewidthmode ==1 then
+        SetTrackUIWidth( tr, width, false, false,1|2)
+        SetMediaTrackInfo_Value( tr, 'I_PANMODE',5 )
+        DATA.tracks[GUID].width = width
+      end
     end
     return width
   end
@@ -1250,6 +1285,7 @@ end
         end]]
         UI.draw_flow_CHECK({['key']='Show scale numbers',                                 ['extstr'] = 'UI_showscalenumbers'}) 
         UI.draw_flow_CHECK({['key']='Hide group tracks',                                  ['extstr'] = 'UI_ignoregrouptracks'}) 
+        UI.draw_flow_CHECK({['key']='Always show/set width',                                  ['extstr'] = 'UI_forcewidthmode'}) 
         
         
         
@@ -1930,7 +1966,12 @@ end
         end
       end
       
+      if i == DATA.currentsnapshotID then
+        if color then color = color|0xFF else color = 0x808080FF end
+      end
+      
       if color then ImGui.PushStyleColor(ctx, ImGui.Col_Button, color) end 
+      
       
       local write ,recall
       ImGui.Button(ctx, i..'##sshot'..i,16) 
@@ -2066,29 +2107,6 @@ end
     
     return pan
   end
-  ------------------------------------------------------------------------------------------------------
-  function UI.draw_marqsel() 
-    if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Right ) then
-      DATA.marqsel_x1, DATA.marqsel_y1 = ImGui.GetMousePos( ctx ) 
-    end
-    
-    if ImGui.IsMouseDown( ctx, ImGui.MouseButton_Right ) then
-      DATA.marqsel_x2, DATA.marqsel_y2 = ImGui.GetMousePos( ctx ) 
-    end
-    
-    if ImGui.IsMouseReleased( ctx, ImGui.MouseButton_Right ) then
-      for GUID in pairs(DATA.tracks) do
-        DATA.tracks[GUID].selected = UI.iscross(
-          DATA.tracks[GUID].xpos,
-          DATA.tracks[GUID].ypos,
-          DATA.tracks[GUID].xpos + DATA.tracks[GUID].wsz,
-          DATA.tracks[GUID].ypos + DATA.tracks[GUID].hsz,
-          DATA.marqsel_x1, DATA.marqsel_y1, DATA.marqsel_x2, DATA.marqsel_y2)
-      end
-      DATA.marqsel_x1, DATA.marqsel_y1, DATA.marqsel_x2, DATA.marqsel_y2 = nil,nil,nil,nil 
-    end
-    
-  end
   --------------------------------------------------------------------- 
   function UI.iscross(L1x,L1y,R1x,R1y,L2x,L2y,R2x,R2y)
     return 
@@ -2103,6 +2121,86 @@ end
         or (R1y > L2y and R1y < R2y)
         or (L1y < L2y and R1y > R2y)
       )      
+  end
+  --------------------------------------------------------------------------------  
+    function UI.MOUSE_trackbody(GUID)  
+      -- UI.calc_CTRL = ImGui.IsKeyPressed( ctx, ImGui.Key_LeftCtrl ) or ImGui.IsKeyPressed( ctx, ImGui.Key_RightCtrl )
+      -- local kbALT = ImGui.IsKeyPressed( ctx,ImGui.Mod_Alt)
+      
+      
+      if ImGui.IsItemActivated( ctx ) then 
+        -- reset selection
+        if DATA.tracks[GUID].selected ~= true then 
+          for GUID in pairs(DATA.tracks) do DATA.tracks[GUID].selected = false end 
+          DATA.tracks[GUID].selected = true
+        end
+        DATA.marqsel_x1 = nil
+        DATA.activeGUID = GUID
+      end
+      
+      if ImGui.IsItemActive( ctx ) then 
+        
+        DATA.touch_state = true
+        local x, y = ImGui.GetMouseDelta( ctx )
+        
+        local outx = DATA.tracks[GUID].xpos + x
+        local outy = DATA.tracks[GUID].ypos + y
+        DATA:WriteData_Volume(GUID, outy) 
+        DATA:WriteData_Pan(GUID,outx)  
+        UI.draw_tracks_mainbody_handleselection(GUID, x,y) 
+      end 
+      if ImGui.IsItemDeactivated( ctx ) then  
+        Undo_BeginBlock2( 0 )
+        DATA:Snapshot_WriteTracksInfo() 
+        DATA:Snapshot_Write() 
+        DATA.touch_state = false
+        Undo_EndBlock2( -1, 'Visual Mixer - change track vol/pan',0xFFFFFFF )
+      end
+      
+      if ImGui.IsItemHovered( ctx ) then  
+        DATA.info_txt = (math.floor(10*DATA.tracks[GUID].vol_dB)/10)..'dB '..UI.format_pan(DATA.tracks[GUID].pan)
+      end
+    end
+  ------------------------------------------------------------------------------------------------------
+  function UI.MOUSE_marqsel() 
+    local mousex, mousey = ImGui.GetMousePos( ctx ) 
+    
+    
+    -- click to set init
+    if ImGui.IsMouseClicked( ctx, ImGui.MouseButton_Left ) then
+      DATA.marqsel_x1, DATA.marqsel_y1 = mousex, mousey
+    end
+    
+    -- tracking current position
+    if DATA.marqsel_x1 and ImGui.IsMouseDown( ctx, ImGui.MouseButton_Left ) then
+      DATA.marqsel_x2, DATA.marqsel_y2 = mousex, mousey
+    end
+    
+    -- set selection at release
+    if DATA.marqsel_x1 and  ImGui.IsMouseReleased( ctx, ImGui.MouseButton_Left ) and not ImGui.IsAnyItemHovered( ctx ) then --and mousey > UI.calc_workarea_yabs then
+      local mindist = math.huge
+      local setactiveGUID
+      DATA.activeGUID = nil
+      for GUID in pairs(DATA.tracks) do
+        DATA.tracks[GUID].selected = UI.iscross(
+          DATA.tracks[GUID].xpos,
+          DATA.tracks[GUID].ypos,
+          DATA.tracks[GUID].xpos + DATA.tracks[GUID].wsz,
+          DATA.tracks[GUID].ypos + DATA.tracks[GUID].hsz,
+          DATA.marqsel_x1, DATA.marqsel_y1, DATA.marqsel_x2, DATA.marqsel_y2)
+        
+        if DATA.tracks[GUID].selected == true then
+          local dist = math.abs(mousex - DATA.tracks[GUID].xpos) +  math.abs(mousey - DATA.tracks[GUID].ypos)
+          if dist < mindist then setactiveGUID = GUID end
+          mindist = math.min(mindist, dist)
+        end
+      end
+      
+      if setactiveGUID then DATA.activeGUID = setactiveGUID end
+      
+      DATA.marqsel_x1, DATA.marqsel_y1, DATA.marqsel_x2, DATA.marqsel_y2 = nil,nil,nil,nil 
+    end
+    
   end
   ----------------------------------------------------------------------------------------- 
   function main() 
