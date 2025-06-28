@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.66
+-- @version 4.67
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,10 +18,10 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: fix swing
+--    # StepSequencer: refresh at pad/FX drop and pad move
 
 
-rs5kman_vrs = '4.66'
+rs5kman_vrs = '4.67'
 
 
 -- TODO
@@ -80,12 +80,13 @@ rs5kman_vrs = '4.66'
     
     --[[
       gmem 1025: actions 
-        / 10=refresh rack
-        / 11=refresh steseq
-      gmem 1026: rs5k manager state
-      gmem 1027: rs5k stepseq state
+        / 10=DATA.upd refresh rack
+        / 11=DATA.upd refresh steseq // use 1030 instead
+      gmem 1026: read-only - rs5k manager opened state 
+      gmem 1027: read-only - rs5k stepseq opened state
       gmem 1028: force stepseq read extstate
-      gmem 1029: incoming note for launchpad step seq   
+      gmem 1029: incoming note for launchpad step seq
+      gmem 1030: DATA.upd refresh steseq
     ]]
     
     

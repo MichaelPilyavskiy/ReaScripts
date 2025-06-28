@@ -482,7 +482,6 @@ if not UI then UI = {} end
     
     
     
-    
     -- init pattern defaults
     DATA.seq = {
       valid = false,
@@ -1308,7 +1307,15 @@ end
     EXT:load()
     
     if not DATA.seq_functionscall then 
-      gmem_write(1025, 11) -- refresh step seq
+      gmem_write(1025, 11) -- DATA.upd - step seq
+    end
+    
+    DATA:_Seq_RefreshStepSeq()
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:_Seq_RefreshStepSeq() 
+    if not DATA.seq_functionscall then 
+      gmem_write(1030,1 ) -- DATA.upd refresh steseq 
       gmem_write(1028, 1) -- force step seq to refresh EXT
     end
   end
@@ -1666,31 +1673,30 @@ end
   end
   ----------------------------------------------------------------------
   function DATA:CollectData_Always_ExtActions()
+    local refreshSEQ = gmem_read(1030)
+    if DATA.seq_functionscall == true and refreshSEQ == 1 then 
+      DATA.upd = true
+      DATA.seq.valid = false
+      gmem_write(1030,0 )
+    end
+    
     local actions = gmem_read(1025)
     if actions == 0 then return end
-    
-    
-    if DATA.seq_functionscall == true then 
-      
-      -- sequncer
+    if DATA.seq_functionscall == true then  
+      -- sequencer
       if actions == 11 then 
         DATA.upd = true 
         gmem_write(1025,0 )
-      end
-      
-      return -- restrict ext actions for sequencer 
-      
+      end 
+      return -- restrict ext actions for sequencer  
      else
      
       -- rack
       if actions == 10 then 
         DATA.upd = true 
-        gmem_write(1025,0 ) 
-      end
-      
-      
+        gmem_write(1025,0 )  
+      end 
     end 
-    
     ---------------------------------------------------------- rack 
     -- Device / New kit
     if actions == 1 then    DATA:Sampler_NewRandomKit() end 
@@ -2953,7 +2959,7 @@ end
       DATA:DropSample(filename, dest_pad0, drop_data)
       DATA.paddrop_mode = nil
     end
-    
+    DATA:_Seq_RefreshStepSeq()
   end
   ---------------------------------------------------------------------  
   function DATA:Validate_MIDIbus_AND_ParentFolder() -- set parent as folder if need, since it is a first validation check in DATA:DropSample
@@ -3292,11 +3298,13 @@ end
     DATA:DropFX_Export(track, instrument_pos, note, fxname) 
     
     
-    DATA.autoreposition = true    
+    DATA.autoreposition = true   
+    DATA:_Seq_RefreshStepSeq()
   end
   ---------------------------------------------------------------------  
   function DATA:DropSample(filename, note, drop_data)
     if not (filename and note) then return end
+    
     local layer = 1
     if drop_data and drop_data.layer then layer = drop_data.layer end
     if not (drop_data.SOFFS and drop_data.EOFFS) then drop_data.SOFFS = 0 drop_data.EOFFS = 1 end --4.37
@@ -3331,6 +3339,8 @@ end
     
     DATA:DropSample_ExportToRS5k(track, instrument_pos, filename, note, drop_data) 
     DATA.autoreposition = true
+    
+    DATA:_Seq_RefreshStepSeq()
   end   
   -----------------------------------------------------------------------  
   function DATA:DropSample_ExportToRS5k(track, instrument_pos, filename, note, drop_data) 
