@@ -1,10 +1,10 @@
 -- @description Send control
--- @version 1.28
+-- @version 1.29
 -- @author MPL
 -- @about Controlling selected track sends
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    + UI_showpan in extsstate.ini allow to see pan as well
+--    + FX button acts as toogle
 
 
 
@@ -695,7 +695,13 @@ function UI.draw_send_FX(send_t, id)
   if ret then 
     local destGUID = send_t.destGUID
     local tr = VF_GetTrackByGUID(destGUID)
-    if ValidatePtr(tr, 'MediaTrack*') then  TrackFX_Show( tr, 0, 1 ) end 
+    if ValidatePtr(tr, 'MediaTrack*') then 
+      if TrackFX_GetOpen( tr, 0 ) ~= true then 
+        TrackFX_Show( tr, 0, 1 )
+       else
+        TrackFX_Show( tr, 0, 0 )
+      end
+    end 
   end
 end
 --------------------------------------------------------------------------------  
