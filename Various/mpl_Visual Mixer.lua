@@ -1,13 +1,13 @@
 -- @description VisualMixer
--- @version 3.07
+-- @version 3.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Use predefined shortcuts
+--    + Settings: allow to follow envelopes
 
 
-vrs = 3.07
+vrs = 3.08
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -38,6 +38,7 @@ vrs = 3.07
           CONF_scalecent = 0.7, -- center scale
           CONF_tr_rect_px = 50, -- size of track, px
           CONF_invertYscale = 0, 
+          CONF_follow_env = 0,
           
           -- actions
           CONF_action = 0, 
@@ -483,6 +484,7 @@ vrs = 3.07
   -------------------------------------------------------------------------------- 
   function DATA:CollectData_Always_UpdatePositions()  
     if DATA.touch_state == true then return end
+    local playpos = reaper.GetPlayPositionEx( -1 )
     for GUID in pairs( DATA.tracks) do 
       local tr =  DATA.tracks[GUID].ptr
       
@@ -493,15 +495,39 @@ vrs = 3.07
          local L= GetMediaTrackInfo_Value( tr, 'D_DUALPANL')
          local R= GetMediaTrackInfo_Value( tr, 'D_DUALPANR')
          pan = math.max(math.min((R+L)/2, 1), -1)
-      end 
-      
-      if not (GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 5 or GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 6) and EXT.UI_forcewidthmode ~=1 then  
-        width = nil 
-        
+      end  
+      if not (GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 5 or GetMediaTrackInfo_Value( tr, 'I_PANMODE' ) == 6) and EXT.UI_forcewidthmode ~=1 then width = nil end
+      if EXT.CONF_follow_env == 1 then
+        local panenv = GetTrackEnvelopeByChunkName( tr, '<PANENV2' )
+        if panenv then
+          local retval, bool_val = GetSetEnvelopeInfo_String( panenv, 'ACTIVE', '', 0 ) 
+          if bool_val == '1' then  
+            local pointpos = playpos
+            if GetPlayStateEx( -1 )&1~=1 then 
+              pointpos = GetCursorPositionEx( -1 )
+            end
+            local retval, value, dVdS, ddVdS, dddVdS = reaper.Envelope_Evaluate( panenv, pointpos, 1, 1 )
+            pan = ScaleFromEnvelopeMode( GetEnvelopeScalingMode( panenv ) , value ) 
+          end
+        end
       end
       
+      
       -- vol 
-      local vol = GetMediaTrackInfo_Value( tr, 'D_VOL')
+      local vol = GetMediaTrackInfo_Value( tr, 'D_VOL') 
+      if EXT.CONF_follow_env == 1 then
+        local volenv = GetTrackEnvelopeByChunkName( tr, '<VOLENV2' )
+        if volenv then
+          local retval, bool_val = GetSetEnvelopeInfo_String( volenv, 'ACTIVE', '', 0 ) 
+          if bool_val == '1' then  
+            local pointpos = playpos
+            if GetPlayStateEx( -1 )&1~=1 then pointpos = GetCursorPositionEx( -1 ) end
+            local retval, value, dVdS, ddVdS, dddVdS = reaper.Envelope_Evaluate( volenv, pointpos, 1, 1 )
+            vol = ScaleFromEnvelopeMode( GetEnvelopeScalingMode( volenv ) , value ) 
+          end
+        end
+      end
+      
       local vol_dB = WDL_VAL2DB(vol) 
       
       -- pos XYWH
@@ -1318,6 +1344,7 @@ end
         UI.draw_flow_COMBO({['key']='Quantize pan',                                    ['extstr'] = 'CONF_quantizepan',               ['values'] = {[0]='Off',[1]='1%',[5]='5%',[10]='10%'  } })  
         UI.draw_flow_COMBO({['key']='Extend center',                                    ['extstr'] = 'UI_extendcenter',               ['values'] = {[0]='Disabled', [0.3] = '30% area',[0.5] = '50% area'} })   
         UI.draw_flow_CHECK({['key']='Invert Y',                                           ['extstr'] = 'CONF_invertYscale'}) 
+        UI.draw_flow_CHECK({['key']='Follow envelopes',                                           ['extstr'] = 'CONF_follow_env'}) 
         
         local retval, col_rgb = ImGui.ColorEdit3( ctx, 'Background color', EXT.UI_windowBgRGB, ImGui.ColorEditFlags_NoAlpha )
         if retval then EXT.UI_windowBgRGB = col_rgb  EXT:save() end
@@ -2063,8 +2090,8 @@ end
     DATA.Snapshots[DATA.currentsnapshotID][GUID].vol = volout]]
     --if Yval then 
     
-      DATA.tracks[GUID].vol = volout 
-      DATA.tracks[GUID].vol_dB = WDL_VAL2DB(volout )
+    DATA.tracks[GUID].vol = volout 
+    DATA.tracks[GUID].vol_dB = WDL_VAL2DB(volout )
       
     --end
     return db_val
