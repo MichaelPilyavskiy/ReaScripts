@@ -1,13 +1,13 @@
 -- @description VisualMixer
--- @version 3.08
+-- @version 3.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Settings: allow to follow envelopes
+--    # fix pan envelope follow
 
 
-vrs = 3.08
+vrs = 3.09
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -507,7 +507,7 @@ vrs = 3.08
               pointpos = GetCursorPositionEx( -1 )
             end
             local retval, value, dVdS, ddVdS, dddVdS = reaper.Envelope_Evaluate( panenv, pointpos, 1, 1 )
-            pan = ScaleFromEnvelopeMode( GetEnvelopeScalingMode( panenv ) , value ) 
+            pan = -ScaleFromEnvelopeMode( GetEnvelopeScalingMode( panenv ) , value ) 
           end
         end
       end
