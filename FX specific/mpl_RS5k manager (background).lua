@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.67
+-- @version 4.68
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,17 +18,18 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # StepSequencer: refresh at pad/FX drop and pad move
+--    # External actions: fix reset state
+--    # External actions: fix error on missing selected note
 
 
-rs5kman_vrs = '4.67'
+rs5kman_vrs = '4.68'
 
 
 -- TODO
 --[[  
       
       seq
-        if pattern has same GUId than other BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
+        if pattern has same GUId than oth er BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
         groups
         launchpad interaction
         

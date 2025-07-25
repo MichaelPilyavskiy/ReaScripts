@@ -1684,12 +1684,13 @@ It also used for advanced sequencing parameters.
     UI.draw_Seq_horizscroll(true) 
     
     
-    -- draw seq button
+    -- draw Rack button
       local manageravailable
       if DATA.manager_ID then manageravailable = true end
       local xoffs = 200
+      local yoffs = 4
       local wbut = 100
-      ImGui.SetCursorPos(ctx,xoffs,2)
+      ImGui.SetCursorPos(ctx,xoffs,yoffs)
       if ImGui.InvisibleButton(ctx, 'mode', wbut, 20) then 
         if manageravailable == true then Main_OnCommand(DATA.manager_ID,0) end 
       end
@@ -1703,7 +1704,7 @@ It also used for advanced sequencing parameters.
       if manageravailable == true and ImGui_IsItemHovered(ctx) then colfill = 0xF0F0F09F end
       ImGui.DrawList_AddCircle( UI.draw_list, center_x, center_y, checkbox_r, 0xF0F0F07F, 0, 2 )
       ImGui.DrawList_AddCircleFilled( UI.draw_list, center_x, center_y, checkbox_r-3, colfill, 0 ) 
-      ImGui.SetCursorPos(ctx,xoffs+checkbox_r+ UI.spacingX,4)
+      ImGui.SetCursorPos(ctx,xoffs+checkbox_r+ UI.spacingX,yoffs+1)
       if manageravailable == true then ImGui.Text(ctx, 'Rack') else ImGui.TextDisabled(ctx, 'Rack') end
       
   end  

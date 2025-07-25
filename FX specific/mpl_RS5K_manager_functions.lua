@@ -1757,7 +1757,7 @@ end
       end
     end
     
-    
+    gmem_write(1025,0 ) -- clear to prevent infinite update
     
     
   end
@@ -1831,7 +1831,7 @@ end
   function DATA:Sampler_NextPrevSample(note_layer_t, mode) 
      
     if not mode then mode = 0 end
-    if not note_layer_t.ISRS5K then return end
+    if not (note_layer_t and note_layer_t.ISRS5K) then return end
     
    
     local files_table,cur_file = DATA:Sampler_NextPrevSample_getfilestable(note_layer_t) 
