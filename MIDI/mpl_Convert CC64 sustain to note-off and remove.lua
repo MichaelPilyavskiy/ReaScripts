@@ -1,11 +1,11 @@
 -- @description Convert CC64 sustain to note-off and remove
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    [main=main,midi_editor] .
 -- @changelog
---    + init
+--    # fix remove
      
      
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -160,6 +160,13 @@
       end 
     end
     
+    -- remove CC64
+    local sz = #evts
+    for i = 1, sz do
+      if evts[i].msgtype&0xF0 == 0xB0 and evts[i].byte2 == 64 then
+        evts[i].ignore = true
+      end
+    end
     
   end
 ------------------------------------------------------------------------------------------------------    
