@@ -1,11 +1,10 @@
--- @version 1.14
+-- @version 1.16
 -- @author MPL
 -- @description Quantize selected MIDI notes positions
 -- @website http://forum.cockos.com/member.php?u=70694
--- @provides
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # VF independent
+--    # fix header
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
