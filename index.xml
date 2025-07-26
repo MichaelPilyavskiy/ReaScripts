@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e76b4de67c107200b8f949e25369b431072b2ed8" name="MPL Scripts">
+<index version="1" commit="f2ede46d655bfc9eb61c2ffc266bc8e56e217f25" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7918,6 +7918,15 @@
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20notes.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Convert CC64 sustain to note-off and remove.lua" type="script" desc="Convert CC64 sustain to note-off and remove">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-07-26T15:02:31Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f2ede46d655bfc9eb61c2ffc266bc8e56e217f25/MIDI/mpl_Convert%20CC64%20sustain%20to%20note-off%20and%20remove.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Export selected items as MIDI files into project path.lua" type="script" desc="Export selected items as MIDI files into project path">
       <version name="1.0" author="MPL" time="2023-01-03T12:50:19Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -7990,6 +7999,10 @@
       <version name="1.14" author="MPL" time="2024-08-31T21:39:47Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20positions.lua</source>
+      </version>
+      <version name="1.16" author="MPL" time="2025-07-26T15:02:31Z">
+        <changelog><![CDATA[# fix header]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f2ede46d655bfc9eb61c2ffc266bc8e56e217f25/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove selected takes MIDI data.lua" type="script" desc="Remove selected takes MIDI data">
