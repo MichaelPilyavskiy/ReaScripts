@@ -1,11 +1,11 @@
 -- @description Convert CC64 sustain to note-off and remove
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    [main=main,midi_editor] .
 -- @changelog
---    # fix remove
+--    # fix missing note off
      
      
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -109,8 +109,18 @@
   end  
 ------------------------------------------------------------------------------------------------------    
   function mpl_SustainToNoteOff(evts)
-    -- 1bit quantize CC64
+    
     local sz = #evts
+    
+    -- fix missing note off
+    local lastppqpos = evts[#evts].ppq_pos -1
+    for i = 1, sz do
+      if evts[i].isnote == true and not evts[i].ppq_len then
+        evts[i].ppq_len = lastppqpos - evts[i].ppq_pos
+      end
+    end
+    
+    -- 1bit quantize CC64
     for i = 1, sz do
       if evts[i].msgtype&0xF0 == 0xB0 and evts[i].byte2 == 64 then
         if evts[i].byte3 > 0 then 
