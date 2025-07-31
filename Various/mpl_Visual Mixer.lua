@@ -1,13 +1,13 @@
 -- @description VisualMixer
--- @version 3.09
+-- @version 3.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Very basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # fix pan envelope follow
+--    # restrict marque selection when draggin width
 
 
-vrs = 3.09
+vrs = 3.10
 
   --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -1048,6 +1048,7 @@ end
           DATA.touch_x, DATA.touch_y = reaper.ImGui_GetMousePos( ctx )
         end
         if ImGui.IsItemActive( ctx ) then
+          DATA.marqsel_x1 = nil
           DATA.info_txt = 'Width: '..(math.floor(100*DATA.tracks[GUID].width))..'%'
           DATA.touch_state = true
           local x, y = reaper.ImGui_GetMouseDragDelta( ctx, DATA.touch_x, DATA.touch_y, reaper.ImGui_MouseButton_Left(), 0 )
