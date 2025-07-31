@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="88a8699dcff592efb5c14d02cc8c06b5b01f8492" name="MPL Scripts">
+<index version="1" commit="46cf8466c4e10e5ce3f6e6fe81216044f2e4c7b8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -15209,6 +15209,10 @@ various fixes]]></changelog>
       <version name="3.09" author="MPL" time="2025-07-03T14:36:11Z">
         <changelog><![CDATA[# fix pan envelope follow]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0cf6973f988c2347b10a85fb0ceac9b3c5260f7/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="3.10" author="MPL" time="2025-07-31T21:07:46Z">
+        <changelog><![CDATA[# restrict marque selection when draggin width]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/46cf8466c4e10e5ce3f6e6fe81216044f2e4c7b8/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
