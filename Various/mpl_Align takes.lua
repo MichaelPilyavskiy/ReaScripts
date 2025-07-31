@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 3.09
+-- @version 3.10
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add Vocals2 preset
+--    # reduce PushStyleColor calls
 
 
 
@@ -28,10 +28,10 @@ local vrs = 3.09
   if app_vrs < 7 then return reaper.MB('This script require REAPER 7.0+','',0) end
   local ImGui
   
-  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
+  if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaimGui extension','',0) end
   package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
   ImGui = require 'imgui' '0.9.3'
-  
+  local ctx
   
   
 -------------------------------------------------------------------------------- init external defaults 
@@ -202,20 +202,7 @@ for key in pairs(reaper) do _G[key]=reaper[key] end
 function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
 
 -------------------------------------------------------------------------------- 
-function UI.MAIN_PushStyle(key, value, value2)  
-  if not ctx then return end
-  local iscol = key:match('Col_')~=nil
-  local keyid = ImGui[key]
-  if not iscol then 
-    ImGui.PushStyleVar(ctx, keyid, value, value2)
-    UI.pushcnt = UI.pushcnt + 1
-  else 
-    ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
-    UI.pushcnt2 = UI.pushcnt2 + 1
-  end 
-end
--------------------------------------------------------------------------------- 
-function UI.MAIN_draw(open) 
+function UI.MAIN_styledefinition(open)  
   local w_min = UI.main_butw + UI.spacingX*2
   local h_min = UI.flowchildH 
   if EXT.flowvisible == 1 then 
@@ -239,107 +226,68 @@ function UI.MAIN_draw(open)
     --open = false -- disable the close button
   
   
-    -- set style
-      UI.pushcnt = 0
-      UI.pushcnt2 = 0
     -- rounding
-      UI.MAIN_PushStyle('StyleVar_FrameRounding',5)  
-      UI.MAIN_PushStyle('StyleVar_GrabRounding',3)  
-      UI.MAIN_PushStyle('StyleVar_WindowRounding',10)  
-      UI.MAIN_PushStyle('StyleVar_ChildRounding',5)  
-      UI.MAIN_PushStyle('StyleVar_PopupRounding',0)  
-      UI.MAIN_PushStyle('StyleVar_ScrollbarRounding',9)  
-      UI.MAIN_PushStyle('StyleVar_TabRounding',4)   
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,5)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabRounding,3)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding,10)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding,5)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,0)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarRounding,9)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_TabRounding,4)   
     -- Borders
-      UI.MAIN_PushStyle('StyleVar_WindowBorderSize',0)  
-      UI.MAIN_PushStyle('StyleVar_FrameBorderSize',0) 
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize,0)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize,0) 
     -- spacing
-      UI.MAIN_PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
-      UI.MAIN_PushStyle('StyleVar_FramePadding',10,UI.spacingY) 
-      UI.MAIN_PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
-      UI.MAIN_PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
-      UI.MAIN_PushStyle('StyleVar_ItemInnerSpacing',4,0)
-      UI.MAIN_PushStyle('StyleVar_IndentSpacing',20)
-      UI.MAIN_PushStyle('StyleVar_ScrollbarSize',10)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,UI.spacingX,UI.spacingY)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,10,UI.spacingY) 
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,UI.spacingX, UI.spacingY) 
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX, UI.spacingY)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemInnerSpacing,4,0)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_IndentSpacing,20)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize,10)
     -- size
-      UI.MAIN_PushStyle('StyleVar_GrabMinSize',20)
-      UI.MAIN_PushStyle('StyleVar_WindowMinSize',w_min,h_min)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,20)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowMinSize,w_min,h_min)
     -- align
-      UI.MAIN_PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
-      UI.MAIN_PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
-      --UI.MAIN_PushStyle('StyleVar_SelectableTextAlign,0,0 )
-      --UI.MAIN_PushStyle('StyleVar_SeparatorTextAlign,0,0.5 )
-      --UI.MAIN_PushStyle('StyleVar_SeparatorTextPadding,20,3 )
-      --UI.MAIN_PushStyle('StyleVar_SeparatorTextBorderSize,3 )
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowTitleAlign,0.5,0.5)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5) 
     -- alpha
-      UI.MAIN_PushStyle('StyleVar_Alpha',0.98)
-      --UI.MAIN_PushStyle('StyleVar_DisabledAlpha,0.6 ) 
-      UI.MAIN_PushStyle('Col_Border',UI.main_col, 0.3)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,0.98)
+      
+      
+      
     -- colors
-      --UI.MAIN_PushStyle('Col_BorderShadow(),0xFFFFFF, 1)
-      UI.MAIN_PushStyle('Col_Button',UI.main_col, 0.2) --0.3
-      UI.MAIN_PushStyle('Col_ButtonActive',UI.main_col, 1) 
-      UI.MAIN_PushStyle('Col_ButtonHovered',UI.but_hovered, 0.8)
-      --UI.MAIN_PushStyle('Col_CheckMark(),UI.main_col, 0, true)
-      --UI.MAIN_PushStyle('Col_ChildBg(),UI.main_col, 0, true)
-      --UI.MAIN_PushStyle('Col_ChildBg(),UI.main_col, 0, true) 
+       ImGui.PushStyleColor(ctx, ImGui.Col_Border, UI.main_col<<8|0x0F)
+       ImGui.PushStyleColor(ctx, ImGui.Col_Button, UI.main_col<<8|0x3F)
+       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, UI.main_col<<8|0x9F)
+       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, UI.main_col<<8|0x5F)
+       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x1F1F1F5F)
+       
+       
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,UI.main_col<<8|0xFF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,UI.main_col<<8|0xFF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,UI.butBg_green<<8|0x7F)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,UI.main_col<<8|0x7F)
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,UI.main_col<<8|0xBF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text,UI.textcol<<8|0xFF)
+      
+      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,UI.main_col<<8|0xAF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,UI.main_col<<8|0xDF)
+      
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,UI.main_col<<8|0x9F)
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive,UI.main_col<<8|0xFF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,UI.main_col<<8|0xDF)
+      
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,UI.main_col<<8|0xAF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,UI.main_col<<8|0xBF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,UI.main_col<<8|0xCF)
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,UI.windowBg<<8|0xFF)
       
       
-      --Constant: Col_DockingEmptyBg
-      --Constant: Col_DockingPreview
-      --Constant: Col_DragDropTarget 
-      UI.MAIN_PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
-      UI.MAIN_PushStyle('Col_FrameBg',0x1F1F1F, 0.7)
-      UI.MAIN_PushStyle('Col_FrameBgActive',UI.main_col, .6)
-      UI.MAIN_PushStyle('Col_FrameBgHovered',UI.main_col, 0.7)
-      UI.MAIN_PushStyle('Col_Header',UI.main_col, 0.5) 
-      UI.MAIN_PushStyle('Col_HeaderActive',UI.main_col, 1) 
-      UI.MAIN_PushStyle('Col_HeaderHovered',UI.main_col, 0.98) 
-      --Constant: Col_MenuBarBg
-      --Constant: Col_ModalWindowDimBg
-      --Constant: Col_NavHighlight
-      --Constant: Col_NavWindowingDimBg
-      --Constant: Col_NavWindowingHighlight
-      --Constant: Col_PlotHistogram
-      --Constant: Col_PlotHistogramHovered
-      --Constant: Col_PlotLines
-      --Constant: Col_PlotLinesHovered 
-      UI.MAIN_PushStyle('Col_PopupBg',0x303030, 0.9) 
-      UI.MAIN_PushStyle('Col_ResizeGrip',UI.main_col, 1) 
-      --Constant: Col_ResizeGripActive 
-      UI.MAIN_PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
-      --Constant: Col_ScrollbarBg
-      --Constant: Col_ScrollbarGrab
-      --Constant: Col_ScrollbarGrabActive
-      --Constant: Col_ScrollbarGrabHovered
-      --Constant: Col_Separator
-      --Constant: Col_SeparatorActive
-      --Constant: Col_SeparatorHovered
-      --Constant: Col_SliderGrabActive
-      UI.MAIN_PushStyle('Col_SliderGrab',UI.butBg_green, 0.4) 
-      UI.MAIN_PushStyle('Col_Tab',UI.main_col, 0.37) 
-      --UI.MAIN_PushStyle('Col_TabActive',UI.main_col, 1) 
-      UI.MAIN_PushStyle('Col_TabHovered',UI.main_col, 0.8) 
-      --Constant: Col_TabUnfocused
-      --'Col_TabUnfocusedActive
-      --UI.MAIN_PushStyle('Col_TabUnfocusedActive(),UI.main_col, 0.8, true)
-      --Constant: Col_TableBorderLight
-      --Constant: Col_TableBorderStrong
-      --Constant: Col_TableHeaderBg
-      --Constant: Col_TableRowBg
-      --Constant: Col_TableRowBgAlt
-      UI.MAIN_PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
-      --Constant: Col_TextDisabled
-      --Constant: Col_TextSelectedBg
-      UI.MAIN_PushStyle('Col_TitleBg',UI.main_col, 0.7) 
-      UI.MAIN_PushStyle('Col_TitleBgActive',UI.main_col, 0.95) 
-      --Constant: Col_TitleBgCollapsed 
-      UI.MAIN_PushStyle('Col_WindowBg',UI.windowBg, 1)
-    
   -- We specify a default position/size in case there's no data in the .ini file.
     local main_viewport = ImGui.GetMainViewport(ctx)
     local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-    ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+    --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
     --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
     ImGui.SetNextWindowSize(ctx, w_min, h_min, ImGui.Cond_Always)
     
@@ -364,31 +312,17 @@ function UI.MAIN_draw(open)
     -- draw stuff
       UI.draw()
       ImGui.Dummy(ctx,0,0) 
-      ImGui.PopStyleVar(ctx, UI.pushcnt)
-      ImGui.PopStyleColor(ctx, UI.pushcnt2) 
-      ImGui.End(ctx)
-     else
-      ImGui.PopStyleVar(ctx, UI.pushcnt)
-      ImGui.PopStyleColor(ctx, UI.pushcnt2) 
-      ImGui.End(ctx)
+      ImGui.End(ctx) 
     end 
     
+    
+    ImGui.PopStyleVar(ctx, 21)
+    ImGui.PopStyleColor(ctx, 20) 
     ImGui.PopFont( ctx ) 
     if  ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false )  then return end
   
     return open
 end
-  --------------------------------------------------------------------------------  
-  function UI.MAIN_PopStyle(ctx, cnt, cnt2)
-    if cnt then 
-      ImGui.PopStyleVar(ctx,cnt)
-      UI.pushcnt = UI.pushcnt -cnt
-    end
-    if cnt2 then
-      ImGui.PopStyleColor(ctx,cnt2)
-      UI.pushcnt2 = UI.pushcnt2 -cnt2
-    end
-  end
 -------------------------------------------------------------------------------- 
 function UI.MAINloop() 
   DATA.clock = os.clock() 
@@ -398,11 +332,12 @@ function UI.MAINloop()
   --if DATA.upd == true then  DATA:CollectData()  end 
   DATA.upd = false
   
-  -- draw UI
-  UI.open = UI.MAIN_draw(true) 
+  -- refresh at losing context
+  if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end
   
-  -- handle xy
-  DATA:handleViewportXYWH()
+  -- draw UI
+  UI.open = UI.MAIN_styledefinition(true) 
+  
   
   if DATA.sched then
     if EXT.CONF_initflags&1==1 then DATA.f01_GetReferenceTake() end 
@@ -461,34 +396,6 @@ function EXT:load()
     end  
   end 
   DATA.upd = true
-end
--------------------------------------------------------------------------------- 
-function DATA:handleViewportXYWH()
-  if not (DATA.display_x and DATA.display_y) then return end 
-  if not DATA.display_x_last then DATA.display_x_last = DATA.display_x end
-  if not DATA.display_y_last then DATA.display_y_last = DATA.display_y end
-  if not DATA.display_w_last then DATA.display_w_last = DATA.display_w end
-  if not DATA.display_h_last then DATA.display_h_last = DATA.display_h end
-  
-  if  DATA.display_x_last~= DATA.display_x 
-    or DATA.display_y_last~= DATA.display_y 
-    or DATA.display_w_last~= DATA.display_w 
-    or DATA.display_h_last~= DATA.display_h 
-    then 
-    DATA.display_schedule_save = os.clock() 
-  end
-  if DATA.display_schedule_save and os.clock() - DATA.display_schedule_save > 0.3 then 
-    EXT.viewport_posX = DATA.display_x
-    EXT.viewport_posY = DATA.display_y
-    EXT.viewport_posW = DATA.display_w
-    EXT.viewport_posH = DATA.display_h
-    EXT:save() 
-    DATA.display_schedule_save = nil 
-  end
-  DATA.display_x_last = DATA.display_x
-  DATA.display_y_last = DATA.display_y
-  DATA.display_w_last = DATA.display_w
-  DATA.display_h_last = DATA.display_h
 end
 -------------------------------------------------------------------------------- 
 function DATA:handleProjUpdates()
@@ -660,23 +567,20 @@ end
   --------------------------------------------------------------------------------  
   function UI.draw_setbuttoncolor(col, release) 
     if not release then
-      UI.MAIN_PushStyle('Col_Button',col, 0.5, true) 
-      UI.MAIN_PushStyle('Col_ButtonActive',col, 1, true) 
-      UI.MAIN_PushStyle('Col_ButtonHovered',col, 0.8, true)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Button, (col<<8)|         math.floor(0.5  *255)) 
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, (col<<8)|   math.floor(1    *255)) 
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, (col<<8)|  math.floor(0.8  *255)) 
      else
       ImGui.PopStyleColor(ctx, 3)
-      UI.pushcnt2 = UI.pushcnt2 - 3
     end
   end
   --------------------------------------------------------------------------------  
     function UI.draw_flow_tempcolor(release) 
       if not release then
-        UI.MAIN_PushStyle('Col_Tab',UI.butBg_green, 0.37, true) 
-        --UI.MAIN_PushStyle('Col_TabActive',UI.butBg_green, 1, true) 
-        UI.MAIN_PushStyle('Col_TabHovered',UI.butBg_green, 0.8, true) 
+        ImGui.PushStyleColor(ctx, ImGui.Col_Tab,UI.butBg_green<<8|          math.floor(0.37  *255)) 
+        ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,UI.butBg_green<<8|   math.floor(0.8  *255)) 
        else
         ImGui.PopStyleColor(ctx, 2)
-        UI.pushcnt2 = UI.pushcnt2 - 2
       end
     end
     
