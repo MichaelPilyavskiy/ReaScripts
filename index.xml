@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0db2793797adf55d65798c4bb9ff0347d45cb908" name="MPL Scripts">
+<index version="1" commit="5fd18b92a42efa6c30d9248a3d4edf7fab09c3e1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2904,6 +2904,22 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0db2793797adf55d65798c4bb9ff0347d45cb908/FX/mpl_Set%20mono%20processing%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Set mono processing for track under mouse cursor.lua" type="script" desc="Set mono processing for track under mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Set plugins bus size to 1 channel if available, duplicate left to right channel for last FX\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-08-16T22:01:18Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5fd18b92a42efa6c30d9248a3d4edf7fab09c3e1/FX/mpl_Set%20mono%20processing%20for%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Set selected track FX outputs to incremental stereo pairs.lua" type="script" desc="Set selected track FX outputs to incremental stereo pairs">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -3178,6 +3194,22 @@
         <source main="main" file="mpl_Toggle set to 4x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
         <source main="main" file="mpl_Toggle set to 8x oversampling for all project FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
         <source main="main" file="mpl_Toggle set to 8x oversampling for selected track FX.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82bd289bb859259bd77f16aa313acf6b95947ae1/FX/mpl_Toggle%20FX%20oversampling.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle mono processing for track under mouse cursor.lua" type="script" desc="Toggle mono processing for track under mouse cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Set plugins bus size to 1 channel if available, duplicate left to right channel for last FX\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-08-16T22:01:18Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5fd18b92a42efa6c30d9248a3d4edf7fab09c3e1/FX/mpl_Toggle%20mono%20processing%20for%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle mute all tracks contain FX with latency (PDC) higher than X samples">
