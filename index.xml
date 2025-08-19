@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5fd18b92a42efa6c30d9248a3d4edf7fab09c3e1" name="MPL Scripts">
+<index version="1" commit="f857999ec26ba2e67073bf637a40e3ca00190d2d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10854,6 +10854,11 @@ various fixes]]></changelog>
         <changelog><![CDATA[# fix hidden slider steal cursor focus]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8d76f956aa2edab886e4998da94037224a4a375/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
+      <version name="1.13" author="MPL" time="2025-08-19T19:00:30Z">
+        <changelog><![CDATA[# update reaimgui
+# fix gain readout doesn`t react to +1 buttons]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f857999ec26ba2e67073bf637a40e3ca00190d2d/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
       <metadata>
@@ -11063,6 +11068,11 @@ various fixes]]></changelog>
       <version name="1.29" author="MPL" time="2025-07-02T18:46:29Z">
         <changelog><![CDATA[+ FX button acts as toogle]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5e1e044526800de6997dffb5b1374706bb28e0b6/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
+      <version name="1.30" author="MPL" time="2025-08-19T19:00:30Z">
+        <changelog><![CDATA[# update reaimgui
+# fix gain readout doesn`t react to +1 buttons]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f857999ec26ba2e67073bf637a40e3ca00190d2d/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
