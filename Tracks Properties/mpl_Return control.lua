@@ -1,10 +1,11 @@
 -- @description Return control
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @about Controlling send folder
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @changelog
---    # fix hidden slider steal cursor focus
+--    # update reaimgui
+--    # fix gain readout doesn`t react to +1 buttons
 
 
     
@@ -17,7 +18,7 @@
 
   if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension 0.9+','',0) end
   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-  local ImGui = require 'imgui' '0.9.3'
+  local ImGui = require 'imgui' '0.10'
   
 -------------------------------------------------------------------------------- init external defaults 
 EXT = {
@@ -234,21 +235,21 @@ function UI.MAIN_draw(open)
     
     
   -- init UI 
-    ImGui.PushFont(ctx, DATA.font1) 
+    ImGui.PushFont(ctx, DATA.font1, UI.font1sz) 
     
     
     local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) 
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
       --DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport)
-      DATA.display_w, DATA.display_h = ImGui.GetWindowContentRegionMax(ctx)
+      DATA.display_w, DATA.display_h = ImGui.GetContentRegionAvail(ctx)
       
     -- calc stuff for childs
       UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
       local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
       local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test', nil, nil, false, -1.0)
       UI.calc_itemH = calcitemh + frameh * 2
-      UI.calc_itemH_small = math.floor(UI.calc_itemH*0.8)
+      UI.calc_ctrlh = calcitemh + UI.spacingY*2
       
     -- draw stuff
       UI.draw() 
@@ -338,9 +339,9 @@ function UI.MAIN()
   -- imgUI init
   ctx = ImGui.CreateContext(DATA.UI_name) 
   -- fonts
-  DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
-  DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
-  DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
+  DATA.font1 = ImGui.CreateFont(UI.font) ImGui.Attach(ctx, DATA.font1)
+  DATA.font2 = ImGui.CreateFont(UI.font) ImGui.Attach(ctx, DATA.font2)
+  DATA.font3 = ImGui.CreateFont(UI.font) ImGui.Attach(ctx, DATA.font3)  
   -- config
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
   ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
@@ -533,12 +534,12 @@ function UI.draw_send(send_t)
   --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),UI.windowBg_plugin, 0.2, true)
   --UI.MAIN_PushStyle(ImGui.Col_ChildBg(),plugdata.tr_col, 0.2, true)
   UI.MAIN_PushStyle(ImGui.Col_FrameBgHovered,UI.main_col, 0.2, true)
-  local but_h = 20
+  local but_h = UI.calc_ctrlh
   local ctrlw = math.floor((DATA.display_w-UI.calc_xoffset*10)/8)
   local slider_w = DATA.display_w-UI.calc_xoffset*4
-  if ImGui.BeginChild( ctx, send_t.name..'##'..send_t.GUID, 0, 0,  ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, 0 ) then
+  if ImGui.BeginChild( ctx, send_t.name..'##'..send_t.GUID, 0, 0,  ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Borders, 0 ) then
     
-    ImGui.PushFont(ctx, DATA.font3) 
+    ImGui.PushFont(ctx, DATA.font3, UI.font3sz) 
     
     -- mute
     if send_t.B_MUTE==0 then UI.draw_setbuttoncolor(UI.main_col) else UI.draw_setbuttoncolor(UI.butBg_red) end 
@@ -577,8 +578,8 @@ function UI.draw_send(send_t)
     --if send_t.D_VOLdb > -6 and send_t.D_VOLdb < 6 then step, step2 = 0.5, 0.2 end
     ImGui.SetNextItemWidth( ctx, ctrlw*3+UI.calc_xoffset*3 )
     local step, step2 = 0.5, 0.2
-    local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui.InputTextFlags_CharsDecimal|ImGui.InputTextFlags_EnterReturnsTrue ) 
-    if retval then 
+    local retval, v = ImGui.InputDouble( ctx, '##slidervol2'..send_t.sendidx, send_t.D_VOLdb, step, step2, "%.01f dB", ImGui.InputTextFlags_CharsDecimal ) 
+    if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) or reaper.ImGui_IsItemClicked(ctx) then 
       v = VF_lim(v, -150,12)
       DATA.Send_params_set(send_t, {vol_dB=v}) 
     end 
@@ -596,7 +597,7 @@ function UI.draw_send(send_t)
       local retval, v = ImGui.SliderDouble(ctx, '##slidervol'..send_t.GUID, send_t.D_VOL_scaled, 0, 1, '', ImGui.SliderFlags_None| ImGui.SliderFlags_NoInput)
       sliderX, sliderY = ImGui.GetItemRectMin(ctx)
       sliderW, sliderH = ImGui.GetItemRectSize(ctx)
-      if retval then DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx) 
+      if retval then  DATA.Send_params_set(send_t, {vol_lin=v}) end UI.SameLine(ctx) 
       --if send_t.rename_input_mode == true then ImGui.EndDisabled( ctx) end
       if ImGui.IsItemHovered( ctx ) then DATA.slidernavigated = true end
       if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right) then send_t.rename_input_mode = true end
@@ -608,6 +609,7 @@ function UI.draw_send(send_t)
       ImGui.SetKeyboardFocusHere( ctx, 0 )
       local retval, buf = ImGui.InputText( ctx, '##renametrdest'..send_t.GUID, send_t.name, ImGui.InputTextFlags_EnterReturnsTrue|ImGui.InputTextFlags_AutoSelectAll )
       if retval then
+        
         local tr = VF_GetTrackByGUID(send_t.GUID)
         if tr then 
           if buf:lower():match('#fx') then
