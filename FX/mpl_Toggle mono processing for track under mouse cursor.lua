@@ -1,10 +1,11 @@
 -- @description Toggle mono processing for track under mouse cursor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @about Set plugins bus size to 1 channel if available, duplicate left to right channel for last FX
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # do not process bypassed and offlines FX
+--    # process last active FX to stereo instead of just last FX in chain
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   
@@ -45,33 +46,45 @@
   --------------------------------------------------------------------  
   function MonoProc_Setmono(tr)
     local fx_cnt = reaper.TrackFX_GetCount(tr)
+    
+    local last_activeFX
+    local cnt_activeFX = 0
     for fxnumber = 1, fx_cnt do 
-      local retval, inputPins, outputPins = reaper.TrackFX_GetIOSize( tr, fxnumber-1 )
-      local pins = math.max(inputPins, outputPins)
-      for pin = 0, pins do
-        local val = 0
-        if pin ==0 then val = 1 end
-        reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 0, pin, val, 0 )
-        reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 1, pin, val, 0 )
+      if TrackFX_GetOffline( tr, fxnumber-1 ) == false and TrackFX_GetEnabled( tr, fxnumber-1 ) == true then
+        cnt_activeFX = cnt_activeFX + 1
+        last_activeFX = fxnumber -1
+        local retval, inputPins, outputPins = reaper.TrackFX_GetIOSize( tr, fxnumber-1 )
+        local pins = math.max(inputPins, outputPins)
+        for pin = 0, pins do
+          local val = 0
+          if pin ==0 then val = 1 end
+          reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 0, pin, val, 0 )
+          reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 1, pin, val, 0 )
+        end
+        TrackFX_SetNamedConfigParm( tr, fxnumber-1, 'channel_config', 1) 
       end
-      TrackFX_SetNamedConfigParm( tr, fxnumber-1, 'channel_config', 1) 
-      if fxnumber == fx_cnt then 
-        -- share left to right for last fx
-        reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 1, 0, 3, 0 )
-      end
-    end  
+    end 
+     
+    -- set stereo for last active FX
+    if last_activeFX then 
+      reaper.TrackFX_SetPinMappings( tr, last_activeFX, 1, 0, 3, 0 )
+    end 
   end
   --------------------------------------------------------------------  
   function MonoProc_Setstereo(tr)
     local fx_cnt = reaper.TrackFX_GetCount(tr)
     for fxnumber = 1, fx_cnt do 
-      TrackFX_SetNamedConfigParm( tr, fxnumber-1, 'channel_config', 2) 
-      local retval, inputPins, outputPins = reaper.TrackFX_GetIOSize( tr, fxnumber-1 )
-      local pins = math.max(inputPins, outputPins)
-      for pin = 0, pins-1 do
-        reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 0, pin, 1<<pin, 0 )
-        reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 1, pin, 1<<pin, 0 )
+    
+      if TrackFX_GetOffline( tr, fxnumber-1 ) == false and TrackFX_GetEnabled( tr, fxnumber-1 ) == true then
+        TrackFX_SetNamedConfigParm( tr, fxnumber-1, 'channel_config', 2) 
+        local retval, inputPins, outputPins = reaper.TrackFX_GetIOSize( tr, fxnumber-1 )
+        local pins = math.max(inputPins, outputPins)
+        for pin = 0, pins-1 do
+          reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 0, pin, 1<<pin, 0 )
+          reaper.TrackFX_SetPinMappings( tr, fxnumber-1, 1, pin, 1<<pin, 0 )
+        end
       end
+      
     end  
   end
     function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
