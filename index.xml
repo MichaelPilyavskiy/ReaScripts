@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f857999ec26ba2e67073bf637a40e3ca00190d2d" name="MPL Scripts">
+<index version="1" commit="6719a18b8296a8bb04471d36673735fc08da8b4b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2903,6 +2903,11 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0db2793797adf55d65798c4bb9ff0347d45cb908/FX/mpl_Set%20mono%20processing%20for%20selected%20tracks.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2025-08-26T18:05:49Z">
+        <changelog><![CDATA[# do not process bypassed and offlines FX
+# process last active FX to stereo instead of just last FX in chain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6719a18b8296a8bb04471d36673735fc08da8b4b/FX/mpl_Set%20mono%20processing%20for%20selected%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set mono processing for track under mouse cursor.lua" type="script" desc="Set mono processing for track under mouse cursor">
       <metadata>
@@ -2918,6 +2923,11 @@
       <version name="1.0" author="MPL" time="2025-08-16T22:01:18Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5fd18b92a42efa6c30d9248a3d4edf7fab09c3e1/FX/mpl_Set%20mono%20processing%20for%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2025-08-26T18:05:49Z">
+        <changelog><![CDATA[# do not process bypassed and offlines FX
+# process last active FX to stereo instead of just last FX in chain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6719a18b8296a8bb04471d36673735fc08da8b4b/FX/mpl_Set%20mono%20processing%20for%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected track FX outputs to incremental stereo pairs.lua" type="script" desc="Set selected track FX outputs to incremental stereo pairs">
@@ -3210,6 +3220,11 @@
       <version name="1.0" author="MPL" time="2025-08-16T22:01:18Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5fd18b92a42efa6c30d9248a3d4edf7fab09c3e1/FX/mpl_Toggle%20mono%20processing%20for%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2025-08-26T18:05:49Z">
+        <changelog><![CDATA[# do not process bypassed and offlines FX
+# process last active FX to stereo instead of just last FX in chain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6719a18b8296a8bb04471d36673735fc08da8b4b/FX/mpl_Toggle%20mono%20processing%20for%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle mute all tracks contain FX with latency (PDC) higher than X samples">
