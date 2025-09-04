@@ -1,11 +1,24 @@
 -- @description Check if multichannel item has mono source, convert to mono item if need 
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve math
-
+--    + Use reaper-extstate.ini / MPL_CheckMonoSource / threshold_dB
+  
+  
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  
+  threshold_dB = -60 
+  -- replace with ext state
+  local threshold_dBext = GetExtState( 'MPL_CheckMonoSource', 'threshold_dB' )
+  if threshold_dBext == '' then 
+    SetExtState( 'MPL_CheckMonoSource', 'threshold_dB',threshold_dB, true )
+   else
+    threshold_dB = tonumber(threshold_dBext)
+  end
+  
+  
+  
   ---------------------------------------------------
   function VF_CheckReaperVrs(rvrs, showmsg) 
     local vrs_num =  GetAppVersion()
@@ -45,7 +58,7 @@
     local test_chan = reaper.GetMediaSourceNumChannels( src ) 
     local it_len = reaper.GetMediaItemInfo_Value( item, 'D_LENGTH' )
     local test_dist = it_len / (divisions or 10)
-    local threshold_lin = WDL_DB2VAL(-60)--0.0001 -- -80db 
+    local threshold_lin = WDL_DB2VAL(threshold_dB)--0.0001 -- -80db 
     local test_points = {}
     for pos = 0.01, it_len-test_dist, test_dist do 
       local samplebuffer = new_array(test_chan);
