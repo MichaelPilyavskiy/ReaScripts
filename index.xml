@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="50b7b9ec56d469baabbc9167d4dbe7c905470553" name="MPL Scripts">
+<index version="1" commit="d12141c2978e9775a97c4be6785630a1b23777de" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9782,6 +9782,29 @@
 [main] . > mpl_Load spectral edits from slot 9.lua
 [main] . > mpl_Load spectral edits from slot 10.lua]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/50b7b9ec56d469baabbc9167d4dbe7c905470553/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2025-09-26T06:20:25Z">
+        <changelog><![CDATA[+ init, fix header]]></changelog>
+        <source main="main" file="mpl_Save selected spectral edits to slot 1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 2.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 7.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 8.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 9.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Save selected spectral edits to slot 10.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 2.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 7.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 8.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 9.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
+        <source main="main" file="mpl_Load spectral edits from slot 10.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d12141c2978e9775a97c4be6785630a1b23777de/Spectral%20edits/mpl_Spectral%20edits%20save%20load%20presets.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle bypass for selected items all takes spectral edits.lua" type="script" desc="Toggle bypass for selected items all takes spectral edits">
