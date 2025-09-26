@@ -1,9 +1,9 @@
--- @description Propagate active take spectral edits to other takes
--- @version 1.01
+-- @description Propagate item spectral edits to items with same name
+-- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix free-draw edit (thanks to Justin)
+--    + init
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -20,11 +20,9 @@
 --------------------------------------------------------------------
   function MPL_SpectralEdits_Manipulate(take, data)
     if TakeIsMIDI(take) then return end
-    if data and data.clear then -- clear
+    if data and data.clear == true then -- clear
       local CNT = GetMediaItemTakeInfo_Value( take, 'IP_SPECEDIT:CNT' )
-      for x =CNT-1,0,-1 do
-        GetMediaItemTakeInfo_Value( take, 'IP_SPECEDIT:DELETE:'..x ) 
-      end
+      for x =CNT-1,0,-1 do GetMediaItemTakeInfo_Value( take, 'IP_SPECEDIT:DELETE:'..x ) end
     end
         
     -- read
@@ -47,6 +45,7 @@
       local COMP_RATIO = GetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..x..':COMP_RATIO' )
       local SELECTED = GetMediaItemTakeInfo_Value( take, 'B_SPECEDIT:'..x..':SELECTED' )
       local TOPFREQ_CNT = GetMediaItemTakeInfo_Value( take, 'I_SPECEDIT:'..x..':TOPFREQ_CNT' )
+      local BOTFREQ_CNT = GetMediaItemTakeInfo_Value( take, 'I_SPECEDIT:'..x..':BOTFREQ_CNT' )
       local TOPFREQ = {}
       for y = 0, TOPFREQ_CNT-1 do
         local TOPFREQ_POS = GetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..x..':TOPFREQ_POS:'..y )
@@ -56,7 +55,7 @@
           TOPFREQ_FREQ = TOPFREQ_FREQ,
         }
       end
-      local BOTFREQ_CNT = GetMediaItemTakeInfo_Value( take, 'I_SPECEDIT:'..x..':BOTFREQ_CNT' )
+      
       local BOTFREQ = {}
       for y = 0, BOTFREQ_CNT-1 do
         local BOTFREQ_POS = GetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..x..':BOTFREQ_POS:'..y )
@@ -84,12 +83,15 @@
         COMP_RATIO=COMP_RATIO, 
         TOPFREQ = TOPFREQ,
         BOTFREQ = BOTFREQ,
+        TOPFREQ_CNT = TOPFREQ_CNT,
+        BOTFREQ_CNT = BOTFREQ_CNT,
+        
         
       }
     end
     
     
-    -- add
+    
     -- add
     local function addpt(take, newidx, y, pos, val, w) -- a bit of tweaking by Justin: "The biggest issue is that there is never allowed to be an empty top/bottom list, so the script will have to do a little bit of tweaking to remove the first point after adding the new point:"
       local idx = GetMediaItemTakeInfo_Value( take, 'I_SPECEDIT:'..newidx..':'..w..'FREQ_ADD:'..pos..':'..math.floor(val) )
@@ -98,6 +100,8 @@
         GetMediaItemTakeInfo_Value( take, 'I_SPECEDIT:'..newidx..':'..w..'FREQ_DEL:'..idx)
       end
     end
+    
+    
     local FFT_SIZE_SET
     if data and data.add_table then -- add table if specified
       local in_t = data.add_table
@@ -109,8 +113,7 @@
         SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', in_t[x].POSITION)
         SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':LENGTH', in_t[x].LENGTH )
         SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':GAIN', in_t[x].GAIN )
-        SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':FADE_IN', in_t[x].FADE_IN )
-        SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':FADE_OUT', in_t[x].FADE_OUT )
+        SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':FADE_IN', in_t[x].FADE_IN ) 
         SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':FADE_LOW', in_t[x].FADE_LOW)
         SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':FADE_HI', in_t[x].FADE_HI )
         SetMediaItemTakeInfo_Value( take, 'I_SPECEDIT:'..newidx..':CHAN', in_t[x].CHAN )
@@ -121,19 +124,21 @@
         SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':COMP_RATIO', in_t[x].COMP_RATIO )
         SetMediaItemTakeInfo_Value( take, 'B_SPECEDIT:'..newidx..':SELECTED', in_t[x].SELECTED )
         
-        local botsz = #in_t[x].BOTFREQ
+                     
+        local botsz = in_t[x].BOTFREQ_CNT
         for y = 1,botsz do
           local pos = in_t[x].BOTFREQ[y].BOTFREQ_POS
           local val = in_t[x].BOTFREQ[y].BOTFREQ_FREQ
           addpt(take, newidx, y, pos, val, "BOT")
         end
         
-        local topsz = #in_t[x].TOPFREQ
+        local topsz = in_t[x].TOPFREQ_CNT
         for y = 1,topsz  do
           local pos = in_t[x].TOPFREQ[y].TOPFREQ_POS
           local val = in_t[x].TOPFREQ[y].TOPFREQ_FREQ
           addpt(take, newidx, y, pos, val, "TOP")
         end 
+        
         GetMediaItemTakeInfo_Value( take, 'IP_SPECEDIT:SORT' )
       end
     end
@@ -147,12 +152,21 @@
     if not item then return end
     local activetake = GetActiveTake(item)
     if not (activetake and not TakeIsMIDI(activetake)) then return end
-    local in_t = MPL_SpectralEdits_Manipulate(activetake)
     
-    for tkid =1, CountTakes (item) do 
-      local take = GetTake(item, tkid-1)
-      if take ~= activetake then
-        MPL_SpectralEdits_Manipulate(take, {clear = true, add_table = in_t})
+    local retval, tkname0 = reaper.GetSetMediaItemTakeInfo_String( activetake, "P_NAME", '', false )
+    if tkname0 == '' then return end
+    
+    
+    in_t = MPL_SpectralEdits_Manipulate(activetake) 
+    
+    for itemidx =1, CountMediaItems( -1) do 
+      local item_child = GetMediaItem( -1, itemidx-1 )
+      if item_child ~= item then
+        local take = GetActiveTake(item_child) 
+        local retval, tkname = reaper.GetSetMediaItemTakeInfo_String( take, "P_NAME", '', false )
+        if tkname == tkname0 then
+          MPL_SpectralEdits_Manipulate(take, {clear = true, add_table = in_t})
+        end
       end
     end
     UpdateItemInProject(item)
@@ -161,5 +175,6 @@
   if VF_CheckReaperVrs(7.31,true) then 
     reaper.Undo_BeginBlock() 
     main()
-    reaper.Undo_EndBlock("Propagate active take spectral edits to other takes", 0xFFFFFFFF)
+    reaper.Undo_EndBlock("Propagate item spectral edits to items with same name", 0xFFFFFFFF)
+    reaper.UpdateArrange()
   end   
