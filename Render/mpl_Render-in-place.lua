@@ -1,18 +1,17 @@
 -- @description Render-in-place
--- @version 1.23
+-- @version 1.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Add option to set new take active
---    + Allow save to flac format
+--    + Prepare/Reset master gain
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.23
+local vrs = 1.24
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -52,6 +51,7 @@ EXT = {
         CONF_enablemasterfx = 0,
         CONF_trackfxenabled = 1|2|4|8|16,--2 instrument -- 4 before instrument -- 8 after instrument -- 16 treat XXi as instrument
         CONF_enablechildrens = 1,
+        CONF_resetmastergain = 0,
         
         -- render props / format 
         CONF_tail = 0, -- 0 off 1 bars 2 seconds
@@ -754,7 +754,10 @@ function UI.draw_tab_prepare()
         ImGui.Unindent(ctx, UI.indent)
       end
       --if ImGui.Checkbox(ctx, 'Enable childrens for parent track',EXT.CONF_enablechildrens&1==1) then EXT.CONF_enablechildrens = EXT.CONF_enablechildrens~1 EXT:save() end
-  
+      
+      if ImGui.Checkbox(ctx, 'Reset master gain',EXT.CONF_resetmastergain&1==1) then EXT.CONF_resetmastergain = EXT.CONF_resetmastergain~1 EXT:save() end
+      
+      
       ImGui.EndChild( ctx )
     end
     
@@ -1476,6 +1479,16 @@ function DATA:Render_Piece_State_StoreAndSet(t)
       DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
       SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
     end
+   
+  -- reset master gain
+    if EXT.CONF_resetmastergain&1==1 then
+      local mastertr = GetMasterTrack(project) 
+      local D_VOL = GetMediaTrackInfo_Value( mastertr, "D_VOL" )
+      DATA.rend_temp.mastergain = D_VOL
+      SetMediaTrackInfo_Value( mastertr, "D_VOL" ,1)
+    end     
+     
+     
      
   -- store FX bypass states
     local instrID = TrackFX_GetInstrument( cur_tr )
@@ -1612,7 +1625,13 @@ function DATA:Render_Piece_State_Restore(t)
       local mastertr = reaper.GetMasterTrack(project) 
       SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled )  
     end  
-    
+
+  -- reset master gain
+    if EXT.CONF_resetmastergain&1==1 then
+      local mastertr = GetMasterTrack(project) 
+      SetMediaTrackInfo_Value( mastertr, "D_VOL" ,DATA.rend_temp.mastergain)
+    end 
+      
   -- restore FX bypass states
     for fxidx = 1, TrackFX_GetCount( cur_tr ) do
       if DATA.rend_temp.fx[fxidx].bypass_id and TrackFX_GetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id) ~= DATA.rend_temp.fx[fxidx].bypass  then TrackFX_SetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id, DATA.rend_temp.fx[fxidx].bypass ) end
