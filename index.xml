@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d12141c2978e9775a97c4be6785630a1b23777de" name="MPL Scripts">
+<index version="1" commit="4a38b3018da15aebe7d3daf6202aab15e6aeadcb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9243,6 +9243,10 @@
         <changelog><![CDATA[+ Add option to set new take active
 + Allow save to flac format]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a7f77fcda91a998a421340a67d0abb40a37d790/Render/mpl_Render-in-place.lua</source>
+      </version>
+      <version name="1.24" author="MPL" time="2025-09-28T20:25:31Z">
+        <changelog><![CDATA[+ Prepare/Reset master gain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4a38b3018da15aebe7d3daf6202aab15e6aeadcb/Render/mpl_Render-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
