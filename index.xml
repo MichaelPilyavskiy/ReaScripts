@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4a38b3018da15aebe7d3daf6202aab15e6aeadcb" name="MPL Scripts">
+<index version="1" commit="b7dc28047fd939e6a838b186174d6cd194cba391" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10748,9 +10748,14 @@
         <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0fbd691164bbcbfa7e44a2425d515c8c890f818e/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Delete x characters from selected track names.eel" type="script" desc="Delete x characters from selected track names">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Delete%20x%20characters%20from%20selected%20track%20names.eel</source>
+    <reapack name="mpl_Delete x characters from selected track names.lua" type="script" desc="Delete x characters from selected track names">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2025-10-01T19:22:05Z">
+        <changelog><![CDATA[# rebuild in lua, this will fix non-unicode issues
++ store last enterd values]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b7dc28047fd939e6a838b186174d6cd194cba391/Tracks%20Properties/mpl_Delete%20x%20characters%20from%20selected%20track%20names.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Disable master or parent send for track under mouse cursor.lua" type="script" desc="Disable master or parent send for track under mouse cursor">
