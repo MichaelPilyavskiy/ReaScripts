@@ -1,17 +1,18 @@
 -- @description Render-in-place
--- @version 1.25
+-- @version 1.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # fix Prepare/Enable master FX
+--    # fix Postprocessing/Disable source FX
+--    # fix Postprocessing/Offline source FX
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.25
+local vrs = 1.26
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -463,7 +464,7 @@ function DATA:Render_Finish()
       end
     end
     
-  -- disable fx
+  --[[ disable fx
     if EXT.CONF_disabletrfx&1==1 then
       local firsttr = VF_GetMediaTrackByGUID(project, DATA.rend.firsttrGUID)
       SetMediaTrackInfo_Value( firsttr, 'I_FXEN', 0 ) 
@@ -475,7 +476,31 @@ function DATA:Render_Finish()
       for fx = 1, TrackFX_GetCount( firsttr ) do
         TrackFX_SetOffline( firsttr, fx-1, true )
       end
+    end]]
+    
+  --
+  -- disable fx
+    if EXT.CONF_disabletrfx&1==1 then
+      
+      for pieceID = 1, #DATA.rend.pieces do
+        local tr = VF_GetMediaTrackByGUID(project, DATA.rend.pieces[pieceID].trGUID)
+        SetMediaTrackInfo_Value( tr, 'I_FXEN', 0 ) 
+      end
+      
     end
+    
+  -- offline fx
+    if EXT.CONF_offlinetrfx&1==1 then
+      
+      for pieceID = 1, #DATA.rend.pieces do
+        local tr = VF_GetMediaTrackByGUID(project, DATA.rend.pieces[pieceID].trGUID)
+        for fx = 1, TrackFX_GetCount( tr ) do
+          TrackFX_SetOffline( tr, fx-1, true )
+        end
+      end
+      
+    end
+     
      
   -- refresh arrange
     Undo_OnStateChange2( project, 'MPL Render-in-place' ) 
