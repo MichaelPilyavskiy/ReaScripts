@@ -1,17 +1,17 @@
 -- @description Render-in-place
--- @version 1.24
+-- @version 1.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    + Prepare/Reset master gain
+--    # fix Prepare/Enable master FX
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.24
+local vrs = 1.25
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -410,10 +410,10 @@ function  DATA:Render_Glue()
         -- disable solo for dest track 
         SetMediaTrackInfo_Value( destinationtrptr, 'I_SOLO',0) 
         -- restore master fx 
-        if EXT.CONF_enablemasterfx&1==1 then
+        --if EXT.CONF_enablemasterfx&1==1 then
           local mastertr = reaper.GetMasterTrack(project) 
           SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled ) 
-        end
+        --end
         -- insert glue render
         local t = {
           outputfp = DATA.rend_temp.glue_outputfp,
@@ -1474,9 +1474,9 @@ function DATA:Render_Piece_State_StoreAndSet(t)
     
     
   -- disable master fx
-    if EXT.CONF_enablemasterfx&1==1 then
-      local mastertr = GetMasterTrack(project) 
-      DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
+    local mastertr = GetMasterTrack(project) 
+    DATA.rend_temp.masterfxenabled = GetMediaTrackInfo_Value( mastertr, 'I_FXEN' )
+    if EXT.CONF_enablemasterfx&0==0 then 
       SetMediaTrackInfo_Value( mastertr, 'I_FXEN',0 )
     end
    
