@@ -1,18 +1,18 @@
 -- @description Render-in-place
--- @version 1.26
+-- @version 1.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # fix Postprocessing/Disable source FX
---    # fix Postprocessing/Offline source FX
+--    # improve "Mute source item" for track selection render
+--    + Add Prepare/Reset track gain
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.26
+local vrs = 1.27
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -53,6 +53,7 @@ EXT = {
         CONF_trackfxenabled = 1|2|4|8|16,--2 instrument -- 4 before instrument -- 8 after instrument -- 16 treat XXi as instrument
         CONF_enablechildrens = 1,
         CONF_resetmastergain = 0,
+        CONF_resettrackgain = 0,
         
         -- render props / format 
         CONF_tail = 0, -- 0 off 1 bars 2 seconds
@@ -456,11 +457,16 @@ function DATA:Render_Finish()
   
     
   -- mute src item
-    if EXT.CONF_destination==1 and EXT.CONF_mutesrcitem&1==1 then
+    if EXT.CONF_mutesrcitem&1==1 then
       for i = 1, #DATA.rend.pieces do  
-        local itemGUID = DATA.rend.pieces[i].srcitemGUID
-        local item = VF_GetMediaItemByGUID(project, itemGUID)
-        if item and reaper.ValidatePtr2(project, item, 'MediaItem*') then SetMediaItemInfo_Value( item, 'B_MUTE',1 ) end
+        local itemGUIDs = DATA.rend.pieces[i].itemGUIDs 
+        if itemGUIDs then 
+          for itGUIDid = 1, #itemGUIDs do
+            local itemGUID = itemGUIDs[itGUIDid]
+            local item = VF_GetMediaItemByGUID(project, itemGUID)
+            if item and reaper.ValidatePtr2(project, item, 'MediaItem*') then SetMediaItemInfo_Value( item, 'B_MUTE',1 ) end
+          end
+        end
       end
     end
     
@@ -781,6 +787,7 @@ function UI.draw_tab_prepare()
       --if ImGui.Checkbox(ctx, 'Enable childrens for parent track',EXT.CONF_enablechildrens&1==1) then EXT.CONF_enablechildrens = EXT.CONF_enablechildrens~1 EXT:save() end
       
       if ImGui.Checkbox(ctx, 'Reset master gain',EXT.CONF_resetmastergain&1==1) then EXT.CONF_resetmastergain = EXT.CONF_resetmastergain~1 EXT:save() end
+      if ImGui.Checkbox(ctx, 'Reset track gain',EXT.CONF_resettrackgain&1==1) then EXT.CONF_resettrackgain = EXT.CONF_resettrackgain~1 EXT:save() end
       
       
       ImGui.EndChild( ctx )
@@ -955,9 +962,7 @@ function UI.draw_tab_postprocessing()
     end
     
     -- item properties
-    if not (EXT.CONF_destination==1 and EXT.CONF_destination_sametr==1) then
-      if ImGui.Checkbox(ctx, 'Mute source item',EXT.CONF_mutesrcitem&1==1) then EXT.CONF_mutesrcitem = EXT.CONF_mutesrcitem~1 EXT:save() end 
-    end    
+    if ImGui.Checkbox(ctx, 'Mute source item',EXT.CONF_mutesrcitem&1==1) then EXT.CONF_mutesrcitem = EXT.CONF_mutesrcitem~1 EXT:save() end 
     
     -- FX
     if ImGui.Checkbox(ctx, 'Disable source track FX',EXT.CONF_disabletrfx&1==1) then EXT.CONF_disabletrfx = EXT.CONF_disabletrfx~1 EXT:save() end 
@@ -1350,13 +1355,32 @@ function DATA:CollectData_GetTrackSelection()
     local tr = reaper.GetSelectedTrack(project, i-1)
     local retval, trGUID = GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
     DATA.rend_temp.cnt_tracks = DATA.rend_temp.cnt_tracks + 1
-    DATA.rend.pieces[#DATA.rend.pieces + 1] = 
+    local pieceID = #DATA.rend.pieces + 1
+    DATA.rend.pieces[pieceID] = 
       { trGUID = trGUID,
         boundary_st = boundary_st,
         boundary_end = boundary_end,
         mode = 4,
         state = 0,
         } 
+        
+    -- collect items track contains
+    local itemGUIDs = {}
+    for it_idx = 1, reaper.CountTrackMediaItems(tr) do
+      local item = reaper.GetTrackMediaItem(tr, it_idx-1)
+      local D_POSITION = reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+      local D_LENGTH = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
+      local D_ENDPOS = D_POSITION + D_LENGTH
+      if (D_POSITION <= boundary_st and D_ENDPOS >= boundary_end) or
+        (D_POSITION >= boundary_st and D_POSITION <= boundary_end  ) or 
+        (D_ENDPOS >= boundary_st and D_ENDPOS <= boundary_end  ) then
+        local retval, stringNeedBig = reaper.GetSetMediaItemInfo_String( item, "GUID", '', false )
+        itemGUIDs[#itemGUIDs + 1] = stringNeedBig
+      end 
+    end
+    DATA.rend.pieces[pieceID].itemGUIDs = itemGUIDs
+    
+    
   end
    
   
@@ -1512,6 +1536,14 @@ function DATA:Render_Piece_State_StoreAndSet(t)
       DATA.rend_temp.mastergain = D_VOL
       SetMediaTrackInfo_Value( mastertr, "D_VOL" ,1)
     end     
+
+  -- reset cur_tr gain
+    if EXT.CONF_resettrackgain&1==1 then
+      local D_VOL = GetMediaTrackInfo_Value( cur_tr, "D_VOL" )
+      DATA.rend_temp.cur_trgain = D_VOL
+      SetMediaTrackInfo_Value( cur_tr, "D_VOL" ,1)
+    end      
+     
      
      
      
@@ -1657,6 +1689,11 @@ function DATA:Render_Piece_State_Restore(t)
       SetMediaTrackInfo_Value( mastertr, "D_VOL" ,DATA.rend_temp.mastergain)
     end 
       
+  -- reset tr gain
+    if EXT.CONF_resettrackgain&1==1 then
+      SetMediaTrackInfo_Value( cur_tr, "D_VOL" ,DATA.rend_temp.cur_trgain)
+    end       
+        
   -- restore FX bypass states
     for fxidx = 1, TrackFX_GetCount( cur_tr ) do
       if DATA.rend_temp.fx[fxidx].bypass_id and TrackFX_GetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id) ~= DATA.rend_temp.fx[fxidx].bypass  then TrackFX_SetParam( cur_tr, fxidx-1, DATA.rend_temp.fx[fxidx].bypass_id, DATA.rend_temp.fx[fxidx].bypass ) end
