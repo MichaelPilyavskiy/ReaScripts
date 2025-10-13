@@ -1,18 +1,17 @@
 -- @description Render-in-place
--- @version 1.27
+-- @version 1.28
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # improve "Mute source item" for track selection render
---    + Add Prepare/Reset track gain
+--    # fix restore plugins after Enable master FX turned off
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.27
+local vrs = 1.28
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1678,10 +1677,10 @@ function DATA:Render_Piece_State_Restore(t)
     end
     
   -- restore master fx 
-    if EXT.CONF_enablemasterfx&1==1 then
+    --if EXT.CONF_enablemasterfx&1==1 then
       local mastertr = reaper.GetMasterTrack(project) 
       SetMediaTrackInfo_Value( mastertr, 'I_FXEN', DATA.rend_temp.masterfxenabled )  
-    end  
+    --end  
 
   -- reset master gain
     if EXT.CONF_resetmastergain&1==1 then
