@@ -1,13 +1,11 @@
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @provides
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # improve logic around non 4 denominator
---    # improve logic around swing
---    # handle negative output length as a trigger to force quantize to next grid instead
+--    # extend note if it end up with zero length
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -23,6 +21,9 @@
   end
   ----------------------------------------------------------------------
   function Quantize_selected_MIDI_notes_ends_sub(take,i,itpos,muted,startppqpos, endppqpos,ME_grid,swing)
+    local proj = -1
+    local proj_time_st = reaper.MIDI_GetProjTimeFromPPQPos( take, startppqpos )
+    beats_st, _, _, tpos_beats_st,denom_st = reaper.TimeMap2_timeToBeats( proj, proj_time_st )
     
     local proj_time = reaper.MIDI_GetProjTimeFromPPQPos( take, endppqpos )
     beats, _, _, tpos_beats,denom = reaper.TimeMap2_timeToBeats( proj, proj_time )
@@ -57,7 +58,7 @@
       
      else
       
-      -- strangth
+      -- strength
       if tpos_beats-prevbeat< nextbeat-tpos_beats then
         out_beatpos = prevbeat
         out_beatpos2 = nextbeat
@@ -67,6 +68,7 @@
       
     end
     
+    if out_beatpos - tpos_beats_st < 0.01 then out_beatpos = nextbeat end
     
     
     out_pos = TimeMap2_beatsToTime( 0, out_beatpos)
