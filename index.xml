@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6440cd14415cb16e12f7572e850bac9538417758" name="MPL Scripts">
+<index version="1" commit="8368c475c38795d166893bf632cbade39e57126c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7228,13 +7228,22 @@
     </reapack>
   </category>
   <category name="Items Editing">
-    <reapack name="mpl_Change gain of item audio segment under mouse cursor.lua" type="script" desc="Change gain of item audio segment under mouse cursor">
+    <reapack name="mpl_Build 4 points segment of take envelope under mouse cursor based on audio source.lua" type="script" desc="Build 4 points segment of take envelope under mouse cursor based on audio source">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2025-03-23T17:48:59Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc24bae3f13940be30c00e397d002df2000c2777/Items%20Editing/mpl_Change%20gain%20of%20item%20audio%20segment%20under%20mouse%20cursor.lua</source>
+      <version name="1.0" author="MPL" time="2025-10-14T05:33:18Z">
+        <changelog><![CDATA[+ init from "Change gain of item audio segment under mouse cursor"]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f21cb3899d148942dc2baf87df3495a8d8df6bf0/Items%20Editing/mpl_Build%204%20points%20segment%20of%20take%20envelope%20under%20mouse%20cursor%20based%20on%20audio%20source.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Build time selection based on audio of take under mouse cursor.lua" type="script" desc="Build time selection based on audio of take under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-10-14T05:37:15Z">
+        <changelog><![CDATA[+ init from "Change gain of item audio segment under mouse cursor"]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8368c475c38795d166893bf632cbade39e57126c/Items%20Editing/mpl_Build%20time%20selection%20based%20on%20audio%20of%20take%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Convert selected looped items to multiple splits.lua" type="script" desc="Convert selected looped items to multiple splits">
