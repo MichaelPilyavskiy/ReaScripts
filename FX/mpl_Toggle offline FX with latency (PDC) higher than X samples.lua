@@ -1,5 +1,5 @@
 -- @description Toggle offline FX with latency (PDC) higher than X samples
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -13,7 +13,8 @@
 --    [main] . > mpl_Toggle offline selected track FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle offline selected track FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    # VF independent
+--    # fixed selected track error [https://github.com/MichaelPilyavskiy/ReaScripts/issues/60]
+
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -29,18 +30,19 @@
   end
   --------------------------------------------------------------------
   function main(spl_thrshld,selectedtrackmode, offlinemode)
+    local project = -1
     local state =  GetExtState( 'MPLPDCTOGGLEOFF', 'STATE' ) 
     if not state or state == '' or tonumber(state)==0 then 
       
       -- bypass 
-      local cnttr = CountTracks(0) if selectedtrackmode then cnttr = CountSelectedTracks(0) end
+      local cnttr = CountTracks(project) if selectedtrackmode then cnttr = CountSelectedTracks(project)-1 end
       local str = ''
       for tr_id = 0, cnttr do
         local track
         if not selectedtrackmode then 
-          if tr_id ==0 then track = GetMasterTrack( 0 ) else track = GetTrack(0,tr_id-1) end
+          if tr_id ==0 then track = GetMasterTrack( project ) else track = GetTrack(project,tr_id-1) end
          else
-          track = GetSelectedTrack( 0,tr_id-1 )
+          track = GetSelectedTrack( project,tr_id )
         end
         
         for fx_id = 1,  TrackFX_GetCount( track ) do
@@ -72,20 +74,21 @@
       
       SetButtonON()
       SetExtState( 'MPLPDCTOGGLEOFF', 'STATE', 1, true )
-      SetProjExtState( 0, 'MPLPDCTOGGLEOFF', 'FXGUIDS', str )
+      SetProjExtState( project, 'MPLPDCTOGGLEOFF', 'FXGUIDS', str )
      else
       
-      local ret, str = GetProjExtState( 0, 'MPLPDCTOGGLEOFF', 'FXGUIDS' )
+      local ret, str = GetProjExtState( project, 'MPLPDCTOGGLEOFF', 'FXGUIDS' )
        t = {}
       for line in str:gmatch('[^\r\n]+') do local GUID, bypass = line:match('({.*}) (%d)') t[GUID] = tonumber(bypass) end      
       
-      local cnttr = CountTracks(0) if selectedtrackmode then cnttr = CountSelectedTracks(0) end
+      local cnttr = CountTracks(project) if selectedtrackmode then cnttr = CountSelectedTracks(project)-1 end
       for tr_id = 0, cnttr do
         local track
         if not selectedtrackmode then 
-          if tr_id ==0 then track = GetMasterTrack( 0 ) else track = GetTrack(0,tr_id-1) end
+          if tr_id ==0 then track = GetMasterTrack( project ) else track = GetTrack(project,tr_id-1) end
          else
-          track = GetSelectedTrack( 0,tr_id-1 )
+          test =tr_id
+          track = GetSelectedTrack( project,tr_id )
         end
         
         for fx_id = 1,  TrackFX_GetCount( track ) do

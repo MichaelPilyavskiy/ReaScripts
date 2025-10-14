@@ -1,9 +1,9 @@
 -- @description Chord - reverse positions
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # VF independent
+--    # fix spairs error
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -27,6 +27,17 @@
     
     modifychords(chords) 
     setevtsback(take,evts,chords)
+  end
+  ---------------------------------------------------
+  function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+    if order then table.sort(keys, function(a,b) return order(t, a, b) end)  else  table.sort(keys) end
+    local i = 0
+    return function()
+              i = i + 1
+              if keys[i] then return keys[i], t[keys[i]] end
+           end
   end
     ----------------------------------------------------------------------  
   function CopyTable(orig)--http://lua-users.org/wiki/CopyTable

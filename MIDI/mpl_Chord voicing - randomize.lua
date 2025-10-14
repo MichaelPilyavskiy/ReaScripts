@@ -1,9 +1,9 @@
 -- @description Chord voicing - randomize
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # VF independent
+--    # fix spairs error
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -16,10 +16,17 @@
      else
       return true
     end
+  end---------------------------------------------------
+  function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+    if order then table.sort(keys, function(a,b) return order(t, a, b) end)  else  table.sort(keys) end
+    local i = 0
+    return function()
+              i = i + 1
+              if keys[i] then return keys[i], t[keys[i]] end
+           end
   end
-  --------------------------------------------------------------------  
-
-  -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   ----------------------------------------------------------------------  
   function main(take)
     if not take or not TakeIsMIDI(take) then return end  
