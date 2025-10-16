@@ -1,9 +1,9 @@
 -- @description Decrease trim volume envelope of selected tracks by 1dB
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
--- + init
+--    # change header
   
   increment_dB = -1
 
