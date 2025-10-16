@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="179ff269666bf90c7917fc59dafbf44a8080673f" name="MPL Scripts">
+<index version="1" commit="e2849b0b9a889f5dfe99ff4d8f561531fd88f444" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10831,6 +10831,15 @@
         <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0fbd691164bbcbfa7e44a2425d515c8c890f818e/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
         <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0fbd691164bbcbfa7e44a2425d515c8c890f818e/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
         <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0fbd691164bbcbfa7e44a2425d515c8c890f818e/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Decrease trim volume envelope of selected tracks by 1dB.lua" type="script" desc="Decrease trim volume envelope of selected tracks by 1dB">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2025-10-16T07:49:11Z">
+        <changelog><![CDATA[# change header]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e2849b0b9a889f5dfe99ff4d8f561531fd88f444/Tracks%20Properties/mpl_Decrease%20trim%20volume%20envelope%20of%20selected%20tracks%20by%201dB.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete x characters from selected track names.lua" type="script" desc="Delete x characters from selected track names">
