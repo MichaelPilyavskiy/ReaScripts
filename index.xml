@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="89abd5516fff89d4f02268a75cc63e2482731771" name="MPL Scripts">
+<index version="1" commit="951cb6b8d13d4d204f6db2b565d89d0f1ba5d721" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11406,6 +11406,15 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Store selected track as fixed-arm track.lua" type="script" desc="Store selected track as fixed-arm track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-10-16T07:14:58Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/951cb6b8d13d4d204f6db2b565d89d0f1ba5d721/Tracks%20Properties/mpl_Store%20selected%20track%20as%20fixed-arm%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Swap master channels (cycle width 100...-100).lua" type="script" desc="Swap master channels (cycle width 100...-100)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -11417,6 +11426,15 @@ various fixes]]></changelog>
       <version name="1.01" author="MPL" time="2024-09-01T07:50:42Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Swap%20master%20channels%20(cycle%20width%20100...-100).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle arm for fixed-arm track.lua" type="script" desc="Toggle arm for fixed-arm track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-10-16T07:14:58Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/951cb6b8d13d4d204f6db2b565d89d0f1ba5d721/Tracks%20Properties/mpl_Toggle%20arm%20for%20fixed-arm%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle between normal and supercollapsed selected folders state.lua" type="script" desc="Toggle between normal and supercollapsed selected folders state">
