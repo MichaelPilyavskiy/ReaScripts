@@ -1,9 +1,9 @@
 -- @description Toggle arm for fixed-arm track
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    + refresh toolbar
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -36,9 +36,15 @@
       if tr then 
         I_RECARM = GetMediaTrackInfo_Value( tr, 'I_RECARM' )
         SetMediaTrackInfo_Value( tr, 'I_RECARM', I_RECARM~1 )
+        return I_RECARM~1
       end
     end
   end
-  
+    ----------------------------------------------------------------------
+  function SetButtonState( set )
+    local is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    reaper.SetToggleCommandState( sec, cmd, set or 0 )
+    reaper.RefreshToolbar2( sec, cmd )
+  end
   ----------------------------------------------------------------------
-  if VF_CheckReaperVrs(6.68,true) then main() end 
+  if VF_CheckReaperVrs(6.68,true) then set = main() if set then SetButtonState( set ) end  end
