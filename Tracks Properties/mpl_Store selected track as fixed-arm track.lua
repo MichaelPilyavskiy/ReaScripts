@@ -1,9 +1,9 @@
 -- @description Store selected track as fixed-arm track
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # use per track setting
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -22,7 +22,7 @@
   function main()  
     local tr = GetSelectedTrack(-1,0)
     if not tr then return end
-    SetProjExtState( -1, 'MPL_FIXARM', 'TRGUID', reaper.GetTrackGUID(tr) )
+    GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_FIXEDARM', '1', 1 )
   end
   
   ----------------------------------------------------------------------

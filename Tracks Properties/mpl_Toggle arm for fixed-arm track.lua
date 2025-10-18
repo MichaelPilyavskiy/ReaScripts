@@ -1,9 +1,9 @@
 -- @description Toggle arm for fixed-arm track
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix exit if selecled track not exiusts
+--    # use per track setting
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -17,23 +17,13 @@
       return true
     end
   end
-    ---------------------------------------------------------------------
-  function VF_GetTrackByGUID(giv_guid, reaproj)
-    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
-    for i = 1, CountTracks(reaproj or -1) do
-      local tr = GetTrack(reaproj or -1,i-1)
-      --local GUID = reaper.GetTrackGUID( tr )
-      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
-      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
-    end
-  end
   ---------------------------------------------------------------------  
   function main()  
-    local ret, giv_guid = GetProjExtState( -1, 'MPL_FIXARM', 'TRGUID')
-    if ret and giv_guid ~= '' then 
-      tr = VF_GetTrackByGUID(giv_guid)
-      if tr then 
-        I_RECARM = GetMediaTrackInfo_Value( tr, 'I_RECARM' )
+    for i = 1, CountTracks(-1) do
+      local tr = GetTrack(-1,i-1)
+      ret, str = GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_FIXEDARM', '',0 )
+      if str == '1' then 
+        I_RECARM = GetMediaTrackInfo_Value( tr, 'I_RECARM')
         SetMediaTrackInfo_Value( tr, 'I_RECARM', I_RECARM~1 )
         return I_RECARM~1
       end
