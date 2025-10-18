@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e2849b0b9a889f5dfe99ff4d8f561531fd88f444" name="MPL Scripts">
+<index version="1" commit="d8103daa0f3e6c23c79ee50620418970cc338387" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11448,6 +11448,10 @@ various fixes]]></changelog>
       <version name="1.01" author="MPL" time="2025-10-16T07:47:11Z">
         <changelog><![CDATA[+ refresh toolbar]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/179ff269666bf90c7917fc59dafbf44a8080673f/Tracks%20Properties/mpl_Toggle%20arm%20for%20fixed-arm%20track.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2025-10-18T06:42:41Z">
+        <changelog><![CDATA[# fix exit if selecled track not exiusts]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8103daa0f3e6c23c79ee50620418970cc338387/Tracks%20Properties/mpl_Toggle%20arm%20for%20fixed-arm%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle between normal and supercollapsed selected folders state.lua" type="script" desc="Toggle between normal and supercollapsed selected folders state">
