@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d8103daa0f3e6c23c79ee50620418970cc338387" name="MPL Scripts">
+<index version="1" commit="b880777465905ce3e8f90a8609b0c7f215449dd5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11423,6 +11423,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/951cb6b8d13d4d204f6db2b565d89d0f1ba5d721/Tracks%20Properties/mpl_Store%20selected%20track%20as%20fixed-arm%20track.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2025-10-18T19:28:23Z">
+        <changelog><![CDATA[# use per track setting]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b880777465905ce3e8f90a8609b0c7f215449dd5/Tracks%20Properties/mpl_Store%20selected%20track%20as%20fixed-arm%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Swap master channels (cycle width 100...-100).lua" type="script" desc="Swap master channels (cycle width 100...-100)">
       <metadata>
@@ -11452,6 +11456,10 @@ various fixes]]></changelog>
       <version name="1.02" author="MPL" time="2025-10-18T06:42:41Z">
         <changelog><![CDATA[# fix exit if selecled track not exiusts]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8103daa0f3e6c23c79ee50620418970cc338387/Tracks%20Properties/mpl_Toggle%20arm%20for%20fixed-arm%20track.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2025-10-18T19:28:23Z">
+        <changelog><![CDATA[# use per track setting]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b880777465905ce3e8f90a8609b0c7f215449dd5/Tracks%20Properties/mpl_Toggle%20arm%20for%20fixed-arm%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle between normal and supercollapsed selected folders state.lua" type="script" desc="Toggle between normal and supercollapsed selected folders state">
