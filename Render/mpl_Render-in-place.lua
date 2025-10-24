@@ -1,5 +1,5 @@
 -- @description Render-in-place
--- @version 1.28
+-- @version 1.29
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
@@ -11,7 +11,7 @@
     
 --NOT reaper NOT gfx
 
-local vrs = 1.28
+local vrs = 1.29
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -1864,6 +1864,8 @@ function DATA:Render_CurrentConfig_SetGlobalParams_format()
   
   
 end
+  -----------------------------------------------------
+  function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
 -------------------------------------------------------------------------------
 function DATA:Render_CurrentConfig_SetGlobalParams()
   local project = DATA.rend_temp.project
@@ -1873,6 +1875,7 @@ function DATA:Render_CurrentConfig_SetGlobalParams()
   
   local _,sampleRate = reaper.GetAudioDeviceInfo( "SRATE" )
   sampleRate=tonumber(sampleRate)
+  if not sampleRate then sampleRate = VF_GetProjectSampleRate() end
   GetSetProjectInfo( project, 'RENDER_SRATE', sampleRate, true ) -- project sample rate  
   
   if EXT.CONF_tail == 0 then 
