@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.27
+-- @version 2.28
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # free matched track at set source destination to none
+--    + Add option to rename track only if destination track name is empty
 
 
 
@@ -16,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.27
+    DATA.extstate.version = 2.28
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -1685,7 +1685,14 @@
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData(src_tr, dest_tr, obeystructure) -- AND remove track
     if not src_tr and dest_tr then return end
-    if DATA.extstate.CONF_tr_name == 1 then         DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_NAME') end
+    if DATA.extstate.CONF_tr_name&1==1 then   
+      local retval, P_NAMEdest = reaper.GetSetMediaTrackInfo_String( dest_tr, 'P_NAME', '', false ) 
+      if DATA.extstate.CONF_tr_name&2~=2 or (DATA.extstate.CONF_tr_name&2==2 and P_NAMEdest=='' ) then 
+        DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_NAME') 
+      end
+    end
+    
+    
     if DATA.extstate.CONF_tr_VOL == 1 then          DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'D_VOL') end
     if DATA.extstate.CONF_tr_PAN == 1 then 
                                                     DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'D_PAN') 
@@ -1738,7 +1745,8 @@
     local  t = 
     { 
       {str = 'Track properties' ,                         group = 1, itype = 'sep'}, 
-        {str = 'Name' ,                                   group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_name'},
+        {str = 'Name' ,                                   group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_name',confkeybyte = 0},
+          {str = 'If dest track name is empty' ,          group = 1, itype = 'check', level = 2, confkey = 'CONF_tr_name',confkeybyte = 1, hide= DATA.extstate.CONF_tr_name&1~=1},
         {str = 'Volume' ,                                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_VOL'},
         {str = 'Pan / Width / Pan Law / Pan mode' ,       group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_PAN'},
         {str = 'Phase' ,                                  group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_PHASE'},
