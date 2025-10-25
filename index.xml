@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="20f2f688e82ed0afbf05e74cfd18bfdeb188b90c" name="MPL Scripts">
+<index version="1" commit="ed79b6630821a6052dd83bb04a86a060c64ec867" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12088,6 +12088,10 @@ various fixes]]></changelog>
       <version name="3.10" author="MPL" time="2025-07-31T20:36:08Z">
         <changelog><![CDATA[# reduce PushStyleColor calls]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/88a8699dcff592efb5c14d02cc8c06b5b01f8492/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="3.11" author="MPL" time="2025-10-25T19:23:36Z">
+        <changelog><![CDATA[# skip muted takes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ed79b6630821a6052dd83bb04a86a060c64ec867/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete non-existing scripts from ActionList.lua" type="script" desc="Delete non-existing scripts from Action List">
