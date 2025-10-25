@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 3.10
+-- @version 3.11
 -- @author MPL
 -- @about Script for matching takes audio and stretch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # reduce PushStyleColor calls
+--    # skip muted takes
 
 
 
@@ -20,7 +20,7 @@
   
     
 --NOT reaper NOT gfx
-local vrs = 3.09
+local vrs = 3.11
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end
@@ -295,7 +295,7 @@ function UI.MAIN_styledefinition(open)
   -- init UI 
     ImGui.PushFont(ctx, DATA.font1) 
     
-    local rv,open = ImGui.Begin(ctx, DATA.UI_name..' '..vrs..'##'..DATA.UI_name, open, window_flags) 
+    local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) --..' '..vrs..'##'..DATA.UI_name
     if rv then
       local Viewport = ImGui.GetWindowViewport(ctx)
       DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -993,6 +993,10 @@ end
     local edge_start,edge_end = math.huge, 0
     for i = 1, CountSelectedMediaItems(0) do
       local item = GetSelectedMediaItem(0,i-1)
+      
+      local B_MUTE  =GetMediaItemInfo_Value( item, 'B_MUTE' )
+      if B_MUTE == 1 then goto skipnextref end 
+      
       local take = GetActiveTake(item)
       if not take or TakeIsMIDI(take) then goto skipnextref end 
       local track = GetMediaItem_Track( item ) 
@@ -1309,6 +1313,9 @@ function DATA.f02_GetDubTake(takefromsecondtake)
     if takefromsecondtake == true then st = 2 end
     for i = st, CountSelectedMediaItems( 0 ) do
       local item = GetSelectedMediaItem(0,i-1)
+      
+      local B_MUTE  =GetMediaItemInfo_Value( item, 'B_MUTE' )
+      if B_MUTE == 1 then goto skipnextdub end  
       local parent_track = GetMediaItem_Track( item ) 
       local take = GetActiveTake(item) 
       if not take or (take and TakeIsMIDI(take)) then  goto skipnextdub end  
