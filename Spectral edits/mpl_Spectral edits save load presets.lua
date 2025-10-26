@@ -1,9 +1,7 @@
 -- @description Spectral edits save load presets
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @changelog
---    + init, fix header
 -- @metapackage
 -- @provides
 --    [main] . > mpl_Save selected spectral edits to slot 1.lua
@@ -26,7 +24,8 @@
 --    [main] . > mpl_Load spectral edits from slot 8.lua
 --    [main] . > mpl_Load spectral edits from slot 9.lua
 --    [main] . > mpl_Load spectral edits from slot 10.lua
-
+-- @changelog
+--    + When pasting multiple SE, preserve relative positions
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -131,6 +130,11 @@
     if data and data.add_table then -- add table if specified
       local in_t = data.add_table
       local in_sz = #in_t
+      local min_pos = math.huge
+      for x = 1,in_sz do
+        min_pos = math.min(min_pos, in_t[x].POSITION)
+      end
+      
       for x = 1,in_sz do
         local newidx = GetMediaItemTakeInfo_Value( take, 'IP_SPECEDIT:ADD' )
         if in_t[x].FFT_SIZE~=FFT_SIZE then FFT_SIZE_SET = in_t[x].FFT_SIZE end
@@ -144,7 +148,7 @@
           local item_len = GetMediaItemInfo_Value( item, "D_LENGTH" )
           if curpos >= item_pos and curpos <= item_pos + item_len then
             se_pos = curpos - item_pos
-            SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', se_pos) 
+            SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', se_pos + in_t[x].POSITION - min_pos) 
           end
         end
         SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':LENGTH', in_t[x].LENGTH )

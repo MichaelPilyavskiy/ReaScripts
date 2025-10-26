@@ -1,9 +1,9 @@
 -- @description Paste spectral edits to selected items active take
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # obey multiple splits relative positions
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -96,11 +96,29 @@
     if data and data.add_table then -- add table if specified
       local in_t = data.add_table
       local in_sz = #in_t
+      
+      local min_pos = math.huge
+      for x = 1,in_sz do
+        min_pos = math.min(min_pos, in_t[x].POSITION)
+      end
+      
+      local curpos = GetCursorPositionEx( -1 )
+      local item = reaper.GetMediaItemTake_Item( take )
+      local item_pos = GetMediaItemInfo_Value( item, "D_POSITION" )
+      local item_len = GetMediaItemInfo_Value( item, "D_LENGTH" )
+      
       for x = 1,in_sz do
         local newidx = GetMediaItemTakeInfo_Value( take, 'IP_SPECEDIT:ADD' )
         if in_t[x].FFT_SIZE~=FFT_SIZE then FFT_SIZE_SET = in_t[x].FFT_SIZE end
         
-        SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', in_t[x].POSITION)
+        if curpos >= item_pos and curpos <= item_pos + item_len then
+          se_pos = curpos - item_pos
+          SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', se_pos + in_t[x].POSITION - min_pos) 
+         else
+          SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', in_t[x].POSITION)
+        end
+        
+        --SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':POSITION', in_t[x].POSITION)
         SetMediaItemTakeInfo_Value( take, 'D_SPECEDIT:'..newidx..':LENGTH', in_t[x].LENGTH )
         SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':GAIN', in_t[x].GAIN )
         SetMediaItemTakeInfo_Value( take, 'F_SPECEDIT:'..newidx..':FADE_IN', in_t[x].FADE_IN )
