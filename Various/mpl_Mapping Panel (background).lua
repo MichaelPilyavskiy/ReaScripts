@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.21
+-- @version 4.22
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,13 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    + Add description for slave JSFX per track mode
---    # Variation: fix error on empty data
+--    # fix error at formatted parameter
 
 
 
 
-  local vrs = 4.21
+  local vrs = 4.22
 
   --[[ gmem map: 
   Master
@@ -1469,8 +1468,10 @@
           ImGui.PushStyleColor(ctx, ImGui.Col_Button,0)
           ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,0)
           ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,0)
-          ImGui.SetCursorScreenPos( ctx,posx_abs,  posy_abs+sliderH-UI.calc_itemH )
-          ImGui.Button(ctx, DATA.masterJSFX_sliders[sliderID].destfx_paramformatted,-1)
+          local txt_form = DATA.masterJSFX_sliders[sliderID].destfx_paramformatted
+          local txtw, h = reaper.ImGui_CalcTextSize( ctx, txt_form )
+          ImGui.SetCursorScreenPos( ctx,posx_abs - txtw/2 + sliderW/2,  posy_abs+sliderH-UI.calc_itemH  )
+          ImGui.Text(ctx,txt_form )
           ImGui.PopStyleColor(ctx,3)
         end
       
