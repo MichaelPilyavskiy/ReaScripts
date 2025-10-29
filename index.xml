@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d6c9246fe78813657d12ec2ddf483eaa2bdd58d1" name="MPL Scripts">
+<index version="1" commit="5e87534fa07151032e459ea1dab3075ddbc8d8a1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1799,6 +1799,10 @@
 + strength 100->20%
 + direction positiove->centered]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e3984a96414288be34e991f4a06aac5913652ab6/FX/mpl_Enable%20LFO%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2025-10-29T20:47:00Z">
+        <changelog><![CDATA[# use TrackFX_GetParam instead TrackFX_GetParamNormalized]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5e87534fa07151032e459ea1dab3075ddbc8d8a1/FX/mpl_Enable%20LFO%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Enable parameter modulation for selected tracks.lua" type="script" desc="Enable parameter modulation for selected tracks">
