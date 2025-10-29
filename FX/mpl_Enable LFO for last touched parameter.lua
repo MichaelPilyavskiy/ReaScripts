@@ -1,11 +1,9 @@
 -- @description Enable LFO for last touched parameter
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Take baseline from current value
---    + strength 100->20%
---    + direction positiove->centered
+--    # use TrackFX_GetParam instead TrackFX_GetParamNormalized
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -31,7 +29,7 @@
      if trid==0 then tr = GetMasterTrack(0) else tr = GetTrack(0,trid-1) end
      if not tr then return end
      
-     baseline = TrackFX_GetParamNormalized( tr, fxnumber, paramnumber )
+     baseline = TrackFX_GetParam( tr, fxnumber, paramnumber )
      
      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.mod.baseline', baseline)
      TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.lfo.active', 1)
