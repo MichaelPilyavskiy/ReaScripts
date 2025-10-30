@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.68
+-- @version 4.69
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,11 +18,10 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # External actions: fix reset state
---    # External actions: fix error on missing selected note
+--    + Settings/UI interaction/ Allow drop layers to pads, OFF by default
 
 
-rs5kman_vrs = '4.68'
+rs5kman_vrs = '4.69'
 
 
 -- TODO
@@ -167,6 +166,7 @@ rs5kman_vrs = '4.68'
           UI_colRGBA_padctrl = 0x4F4F4FFF,
           UI_colRGBA_smplrbackgr = 0xFFFFFF2F,
           UI_allowshortcuts = 1, -- allow space to play
+          UI_allowdoplayeronpad = 0,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -1382,6 +1382,7 @@ rs5kman_vrs = '4.68'
         
         
         if ImGui.Checkbox( ctx, 'Allow space to play',                              EXT.UI_allowshortcuts == 1 ) then EXT.UI_allowshortcuts =EXT.UI_allowshortcuts~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Allow drop layers on pads',                              EXT.UI_allowdoplayeronpad == 1 ) then EXT.UI_allowdoplayeronpad =EXT.UI_allowdoplayeronpad~1 EXT:save() end
         ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
@@ -1922,6 +1923,61 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       
     end
   --------------------------------------------------------------------------------  
+  function UI.draw_Rack_Pads_controls_MSP(local_pos_x,local_pos_y,note_t,note)  
+  
+    if EXT.UI_allowdoplayeronpad == 1 then 
+      local retval, filename = reaper.ImGui_GetDragDropPayloadFile( ctx, 0 )
+      if retval == true then 
+        -- drop layers here
+        ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y +UI.calc_rack_padnameH)
+        ImGui.Button(ctx,'+ layer##rackpad_droplayer'..note,-1,UI.calc_rack_padctrlH )
+        if ImGui.BeginDragDropTarget( ctx ) then  
+          local cntlayers = 0
+          if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
+          UI.Drop_UI_interaction_device(note, cntlayers + 1)   
+          ImGui_EndDragDropTarget( ctx )
+        end
+        return 
+      end
+    end
+    
+    -- mute
+      ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y +UI.calc_rack_padnameH)
+      local ismute = note_t and note_t.B_MUTE and note_t.B_MUTE == 1
+      if ismute==true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFF0F0FF0 ) end
+      if note_t and ImGui.Button(ctx,'M##rackpad_mute'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH ) then SetMediaTrackInfo_Value( note_t.tr_ptr, 'B_MUTE', note_t.B_MUTE~1 ) DATA.upd = true end  
+      if ismute==true then ImGui.PopStyleColor(ctx) end
+      ImGui.SameLine(ctx)
+      
+    -- play
+      ImGui.InvisibleButton(ctx,'P##rackpad_playinv'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH )
+      if ImGui.IsItemActivated( ctx ) then  DATA:Sampler_StuffNoteOn(note)  end
+      if ImGui.IsItemDeactivated( ctx ) and EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
+      
+      local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+      local x2, y2 = reaper.ImGui_GetItemRectMax( ctx ) 
+      --UI.textcol col_green
+      local col = UI.textcol 
+      if DATA.lastMIDIinputnote and DATA.lastMIDIinputnote == note then 
+        col = UI.padplaycol
+      end
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text, col<<8|0xFF)
+      ImGui.SetCursorScreenPos( ctx, x1+(x2-x1)/2-UI.calc_itemH/2, y1+(y2-y1)/2-UI.calc_itemH/2 )
+      if note_t then ImGui.ArrowButton(ctx,'P##rackpad_play'..note ,ImGui.Dir_Right )end
+      ImGui.PopStyleColor(ctx)
+      
+    -- solo
+      ImGui.SetCursorScreenPos( ctx, x1+UI.calc_rack_padctrlW, y1 )
+      local issolo = note_t and note_t.I_SOLO and note_t.I_SOLO > 0 
+      if issolo == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x00FF0FF0 ) end
+      if note_t and ImGui.Button(ctx,'S##rackpad_solo'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH ) then
+        if note_t and note_t.tr_ptr then 
+          local outval = 2 if note_t.I_SOLO>0 then outval = 0 end SetMediaTrackInfo_Value( note_t.tr_ptr, 'I_SOLO', outval ) DATA.upd = true
+        end 
+      end   
+      if issolo == true then ImGui.PopStyleColor(ctx) end
+    end
+  --------------------------------------------------------------------------------  
   function UI.draw_Rack_Pads_controls(note_t,note, x,y,w,h) 
     local min_h = UI.controls_minH
     -- name background 
@@ -2015,44 +2071,9 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
         
         ImGui.PopStyleVar(ctx)
         ImGui.PopFont(ctx) 
-        
-      if h > min_h and UI.calc_rack_padctrlH > 0 then 
-      -- mute
-        ImGui.SetCursorPos( ctx, local_pos_x, local_pos_y +UI.calc_rack_padnameH)
-        local ismute = note_t and note_t.B_MUTE and note_t.B_MUTE == 1
-        if ismute==true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFF0F0FF0 ) end
-        if note_t and ImGui.Button(ctx,'M##rackpad_mute'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH ) then SetMediaTrackInfo_Value( note_t.tr_ptr, 'B_MUTE', note_t.B_MUTE~1 ) DATA.upd = true end  
-        if ismute==true then ImGui.PopStyleColor(ctx) end
-        ImGui.SameLine(ctx)
-        
-      -- play
-        ImGui.InvisibleButton(ctx,'P##rackpad_playinv'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH )
-        if ImGui.IsItemActivated( ctx ) then  DATA:Sampler_StuffNoteOn(note)  end
-        if ImGui.IsItemDeactivated( ctx ) and EXT.UI_pads_sendnoteoff == 1 then DATA:Sampler_StuffNoteOn(note, 0, true) end
-        
-        local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
-        local x2, y2 = reaper.ImGui_GetItemRectMax( ctx ) 
-        --UI.textcol col_green
-        local col = UI.textcol 
-        if DATA.lastMIDIinputnote and DATA.lastMIDIinputnote == note then 
-          col = UI.padplaycol
-        end
-        ImGui.PushStyleColor(ctx, ImGui.Col_Text, col<<8|0xFF)
-        ImGui.SetCursorScreenPos( ctx, x1+(x2-x1)/2-UI.calc_itemH/2, y1+(y2-y1)/2-UI.calc_itemH/2 )
-        if note_t then ImGui.ArrowButton(ctx,'P##rackpad_play'..note ,ImGui.Dir_Right )end
-        ImGui.PopStyleColor(ctx)
-        
-      -- solo
-        ImGui.SetCursorScreenPos( ctx, x1+UI.calc_rack_padctrlW, y1 )
-        local issolo = note_t and note_t.I_SOLO and note_t.I_SOLO > 0 
-        if issolo == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x00FF0FF0 ) end
-        if note_t and ImGui.Button(ctx,'S##rackpad_solo'..note,UI.calc_rack_padctrlW,UI.calc_rack_padctrlH ) then
-          if note_t and note_t.tr_ptr then 
-            local outval = 2 if note_t.I_SOLO>0 then outval = 0 end SetMediaTrackInfo_Value( note_t.tr_ptr, 'I_SOLO', outval ) DATA.upd = true
-          end 
-        end   
-        if issolo == true then ImGui.PopStyleColor(ctx) end
-      end
+      
+      if h > min_h and UI.calc_rack_padctrlH > 0 then UI.draw_Rack_Pads_controls_MSP(local_pos_x,local_pos_y,note_t,note)    end
+      
       UI.Tools_unsetbuttonstyle()
       ImGui.EndChild( ctx)
     end
@@ -4324,7 +4345,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     
     ImGui.SameLine(ctx)
     -- device drop
-    ImGui.Button(ctx, '[Drop layers here]', -1)
+    ImGui.Button(ctx, '[Drop layers]', -1)
     if ImGui.BeginDragDropTarget( ctx ) then  
       local cntlayers = 0
       if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
