@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.69
+-- @version 4.70
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,10 +18,10 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + Settings/UI interaction/ Allow drop layers to pads, OFF by default
+--    + Sequencer: Import from existing MIDI take, right click on "New"
 
 
-rs5kman_vrs = '4.69'
+rs5kman_vrs = '4.70'
 
 
 -- TODO

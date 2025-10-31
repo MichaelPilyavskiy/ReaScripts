@@ -1526,6 +1526,24 @@ It also used for advanced sequencing parameters.
         DATA.upd = true
       end
       
+      --[[if ImGui_IsItemClicked( ctx, reaper.ImGui_MouseButton_Right() ) then
+        DATA:CollectData_Seq_ConvertMIDI2Steps() 
+        DATA:_Seq_Print() 
+      end]]
+      
+      if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right) then ImGui.OpenPopup( ctx, 'seq_new', ImGui.PopupFlags_None )  end
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,2)   
+      if reaper.ImGui_BeginPopup(ctx,'seq_new') then
+        local posx,posy = ImGui.GetCursorPos(ctx)
+        if ImGui.Selectable(ctx, 'Import from existing MIDI take') then 
+          DATA:CollectData_Seq_ConvertMIDI2Steps() 
+          DATA:_Seq_Print() 
+        end  
+        reaper.ImGui_EndPopup(ctx)
+      end
+      ImGui.PopStyleVar(ctx)
+      
+      
       
     -- pattern rename
       ImGui.SameLine(ctx)
@@ -2483,6 +2501,34 @@ It also used for advanced sequencing parameters.
     DATA:CollectDataInit_LoadCustomPadStuff()
     DATA:CollectDataInit_EnumeratePlugins()
   end   
+  -------------------------------------------------------------------------------  
+  function DATA:CollectData_Seq_ConvertMIDI2Steps() 
+    local take = DATA.seq.tk_ptr
+    if not reaper.TakeIsMIDI(take) then return end
+    
+    local it_pos = DATA.seq.it_pos
+    local retval, measures, cml, it_pos_fullbeats, cdenom = reaper.TimeMap2_timeToBeats( -1, it_pos )
+    local retval, notecnt, ccevtcnt, textsyxevtcnt = reaper.MIDI_CountEvts( take )
+    for noteidx = 1, notecnt do 
+      local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, noteidx-1 )
+      local proj_time = MIDI_GetProjTimeFromPPQPos( take, startppqpos )
+      local retval, measures, cml, proj_time_fullbeats, cdenom = reaper.TimeMap2_timeToBeats( -1, proj_time )
+      
+      local beat_pos =  1+ math.max(0,math.min(15,math.floor((proj_time_fullbeats - it_pos_fullbeats)*4)))
+      if not DATA.seq.ext.children[pitch] then DATA.seq.ext.children[pitch] = {} end
+      if not DATA.seq.ext.children[pitch].steps then DATA.seq.ext.children[pitch].steps = {} end
+      if not DATA.seq.ext.children[pitch].steps[beat_pos] then  DATA.seq.ext.children[pitch].steps[beat_pos] = {} end
+      DATA.seq.ext.children[pitch].steps[beat_pos].val = 1
+      DATA.seq.ext.children[pitch].steps[beat_pos].velocity = vel/127
+    end
+    
+    local outstr = table.savestring(DATA.seq.ext) --outstr = VF_encBase64(outstr) -- 4.43 off 
+    GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA', outstr, true)
+    GetSetMediaItemTakeInfo_String( take, 'P_EXT:MPLRS5KMAN_PATDATA_IGNOREB64', 1, true) -- 4.43 patch DO NOT REMOVE
+    --msg(os.date()..' '..time_precise()-test)
+    DATA:_Seq_PrintMIDI_ShareGUID(DATA.seq ,outstr) -- store pattern data to the same GUID takes 
+    
+  end  
     ---------------------------------------------------------------------  
   _main()
   
