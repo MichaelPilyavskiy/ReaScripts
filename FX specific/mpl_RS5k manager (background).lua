@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.70
+-- @version 4.71
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -18,10 +18,11 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + Sequencer: Import from existing MIDI take, right click on "New"
+--    # 3rd party: fix broken GUID storing
+--    # 3rd party: fix support for tune
 
 
-rs5kman_vrs = '4.70'
+rs5kman_vrs = '4.71'
 
 
 -- TODO

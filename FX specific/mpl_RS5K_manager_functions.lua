@@ -2565,6 +2565,7 @@ end
     
     local supported_params = {
         'instrument_volID',
+        'instrument_tuneID',
         'instrument_attackID',
         'instrument_decayID',
         'instrument_sustainID',
@@ -3258,7 +3259,7 @@ end
       if EXT.CONF_onadd_float == 0 then TrackFX_SetOpen( track, instrument_pos, false ) end
     
     -- store external data
-      local instrumentGUID = TrackFX_GetFXGUID( track, instrument_pos)
+      local instrumentGUID = TrackFX_GetFXGUID( track, instrument_pos+1)
       DATA:WriteData_Child(track, {
         SET_instrFXGUID = instrumentGUID,
         SET_noteID=note,
