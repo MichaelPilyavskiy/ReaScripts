@@ -1722,12 +1722,15 @@ end
   
     if actions == 6 then   -- lock active note database changes 
       if DATA.parent_track and DATA.parent_track.ext then
+        
         local note_layer_t = DATA:Sampler_GetActiveNoteLayer() 
-        note_layer_t.SET_useDB = note_layer_t.SET_useDB~2
-        DATA.upd = true
-        Undo_BeginBlock2(DATA.proj )
-        DATA:WriteData_Child(tr, {SET_useDB=note_layer_t.SET_useDB})
-        Undo_EndBlock2( DATA.proj , 'RS5k manager - lock sample from randomization', 0xFFFFFFFF )  
+        if note_layer_t and note_layer_t.TYPE_DEVICE~= true then 
+          Undo_BeginBlock2(DATA.proj )
+          DATA:WriteData_Child(note_layer_t.tr_ptr, {SET_useDB = note_layer_t.SET_useDB~2})  
+          Undo_EndBlock2( DATA.proj , 'RS5k manager - lock sample from randomization', 0xFFFFFFFF )
+          DATA.upd = true
+        end
+        
       end 
     end
     
@@ -1756,6 +1759,36 @@ end
         DATA:Sampler_RemovePad(DATA.parent_track.ext.PARENT_LASTACTIVENOTE)
       end
     end
+    
+    
+    -- 10 = sequencer
+    -- 11 = rack
+    
+    if actions == 12 then   --RS5k_manager_Database_LoadAllPads
+      DATA:Validate_MIDIbus_AND_ParentFolder() 
+      Undo_BeginBlock2(DATA.proj )
+      DATA:Database_Load() 
+      Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
+    end
+    
+    if actions == 13 then   --RS5k_manager_Database_LoadSelectedPads
+      DATA:Validate_MIDIbus_AND_ParentFolder() 
+      Undo_BeginBlock2(DATA.proj )
+      DATA:Database_Load(true)
+      Undo_EndBlock2( DATA.proj , 'Load database to selected pad only', 0xFFFFFFFF )
+    end    
+    
+    if actions == 14 then   --RS5k_manager_Database_PrevMap
+      EXT.UIdatabase_maps_current = EXT.UIdatabase_maps_current - 1
+      if EXT.UIdatabase_maps_current == 0 then EXT.UIdatabase_maps_current = DATA.allowed_db_maps_cnt end
+      EXT:save()
+    end 
+    
+    if actions == 15 then   --RS5k_manager_Database_NextMap
+      EXT.UIdatabase_maps_current = EXT.UIdatabase_maps_current + 1
+      if EXT.UIdatabase_maps_current > DATA.allowed_db_maps_cnt then EXT.UIdatabase_maps_current = 1 end
+      EXT:save()
+    end 
     
     gmem_write(1025,0 ) -- clear to prevent infinite update
     

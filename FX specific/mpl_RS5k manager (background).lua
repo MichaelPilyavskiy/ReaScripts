@@ -1,12 +1,17 @@
 -- @description RS5k manager
--- @version 4.71
+-- @version 4.72
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    [main] mpl_RS5k_StepSequencer.lua
 --    [main] mpl_RS5k_manager_Database_NewKit.lua
+--    [main] mpl_RS5k_manager_Database_LoadAllPads.lua
+--    [main] mpl_RS5k_manager_Database_LoadSelectedPads.lua
+--    [main] mpl_RS5k_manager_Database_NextMap.lua
+--    [main] mpl_RS5k_manager_Database_PrevMap.lua
 --    [main] mpl_RS5k_manager_Database_Lock.lua
+--    [main] mpl_RS5k_manager_Database_NextMap.lua
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
@@ -18,11 +23,15 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    # 3rd party: fix broken GUID storing
---    # 3rd party: fix support for tune
+--    + External actions: add mpl_RS5k_manager_Database_LoadAllPads
+--    + External actions: add mpl_RS5k_manager_Database_LoadSelectedPads
+--    + External actions: add mpl_RS5k_manager_Database_NextMap
+--    + External actions: add mpl_RS5k_manager_Database_PrevMap
+--    # External actions: fix mpl_RS5k_manager_Database_Lock
 
 
-rs5kman_vrs = '4.71'
+rs5kman_vrs = '4.72'
+
 
 
 -- TODO
@@ -168,6 +177,7 @@ rs5kman_vrs = '4.71'
           UI_colRGBA_smplrbackgr = 0xFFFFFF2F,
           UI_allowshortcuts = 1, -- allow space to play
           UI_allowdoplayeronpad = 0,
+          UI_showcurrentdbmap = 0,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -283,6 +293,9 @@ rs5kman_vrs = '4.71'
           allow_space_to_play = true,
           allow_container_usage = app_vrs >=7.06,
           MIDIhandler = 'RS5k_manager MIDI_handler',
+          
+          allowed_db_maps_cnt = 8,
+          
           }
   DATA.UI_name_vrs = DATA.UI_name..' '..rs5kman_vrs
   
@@ -586,6 +599,14 @@ rs5kman_vrs = '4.71'
           ImGui.Dummy(ctx,5,0)
           ImGui.SameLine(ctx)
           ImGui.Text(ctx, DATA.titlename_reduced)
+          if EXT.UI_showcurrentdbmap == 1 then 
+            local map_name = EXT.UIdatabase_maps_current
+            if DATA.database_maps and DATA.database_maps[map_name] and DATA.database_maps[map_name].dbname then 
+              map_name = DATA.database_maps[map_name].dbname
+            end
+            ImGui.SameLine(ctx)
+            ImGui.Text(ctx, '/ db map: '..map_name)
+          end
         end
         
         ImGui.End(ctx)
@@ -1031,7 +1052,7 @@ rs5kman_vrs = '4.71'
          else
          
           if ImGui.BeginCombo( ctx, '##Loaddatabasemap', DATA.database_maps[EXT.UIdatabase_maps_current].dbname, ImGui.ComboFlags_None ) then--|ImGui.ComboFlags_NoArrowButton
-            for i = 1, 8 do
+            for i = 1, DATA.allowed_db_maps_cnt do
               if ImGui.Selectable( ctx, DATA.database_maps[i].dbname..'##dbmapsel'..i, i == EXT.UIdatabase_maps_current, ImGui.SelectableFlags_None) then EXT.UIdatabase_maps_current = i EXT:save() end
             end
             ImGui.EndCombo( ctx)
@@ -1083,7 +1104,7 @@ rs5kman_vrs = '4.71'
           Undo_EndBlock2( DATA.proj , 'Load database to all rack', 0xFFFFFFFF )
         end
         
-        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pad only') then 
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load selected pad') then 
           DATA:Validate_MIDIbus_AND_ParentFolder() 
           Undo_BeginBlock2(DATA.proj )
           DATA:Database_Load(true)
@@ -1383,7 +1404,8 @@ rs5kman_vrs = '4.71'
         
         
         if ImGui.Checkbox( ctx, 'Allow space to play',                              EXT.UI_allowshortcuts == 1 ) then EXT.UI_allowshortcuts =EXT.UI_allowshortcuts~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Allow drop layers on pads',                              EXT.UI_allowdoplayeronpad == 1 ) then EXT.UI_allowdoplayeronpad =EXT.UI_allowdoplayeronpad~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Allow drop layers on pads',                        EXT.UI_allowdoplayeronpad == 1 ) then EXT.UI_allowdoplayeronpad =EXT.UI_allowdoplayeronpad~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Show database map at the top of tabs',             EXT.UI_showcurrentdbmap == 1 ) then EXT.UI_showcurrentdbmap =EXT.UI_showcurrentdbmap~1 EXT:save() end
         ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
@@ -3123,7 +3145,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
         
         
         if DATA.parent_track.ext.PARENT_LASTACTIVENOTE == -1 then reaper.ImGui_BeginDisabled(ctx, true) end
-        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load to selected pads') then 
+        ImGui.SameLine(ctx) if ImGui.Button(ctx, 'Load selected pad') then 
           DATA:Validate_MIDIbus_AND_ParentFolder() 
           Undo_BeginBlock2(DATA.proj )
           DATA:Database_Load(true)
@@ -3703,7 +3725,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     end
   end
   --------------------------------------------------------------------------------
-  function UI.draw_tabs_Sampler_tabs_sample()
+  function UI.draw_tabs_Sampler_tabs_sample() 
     local note_layer_t = DATA:Sampler_GetActiveNoteLayer() if not note_layer_t then return end
     if note_layer_t.TYPE_DEVICE== true then return end
     
