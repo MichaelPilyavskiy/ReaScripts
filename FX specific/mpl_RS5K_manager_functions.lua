@@ -1376,8 +1376,8 @@ end
   function DATA:CollectData()  
     DATA.proj, DATA.proj_fn = EnumProjects( -1 )
     DATA.projstr = tostring(DATA.proj)
-    DATA.SR = VF_GetProjectSampleRate()
-    
+    DATA.SR = VF_GetProjectSampleRate() 
+    DATA.wrong_parent_track_metadata = false
     
     
     
@@ -2102,8 +2102,7 @@ end
        else
         -- get selected track
         parent_track = GetSelectedTrack(DATA.proj,0)
-      end
-    
+      end 
     
     -- catch parent by childen
       if parent_track then 
@@ -2166,6 +2165,11 @@ end
     -- v4
       
       local ret, GUIDINTERNAL = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', '', false)         if ret then DATA.parent_track.ext.PARENT_GUID_INTERNAL = GUIDINTERNAL end
+      local parent_track_GUID = reaper.GetTrackGUID(  parent_track )
+      if GUIDINTERNAL ~= '' and GUIDINTERNAL ~= parent_track_GUID then
+        DATA.wrong_parent_track_metadata = true
+      end
+      
       local ret, DRRACKSHIFT = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_DRRACKSHIFT', 0, false)            if ret then DATA.parent_track.ext.PARENT_DRRACKSHIFT = tonumber(DRRACKSHIFT) end
       local ret, MACROCNT = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_MACROCNT', 0, false)                  if ret then DATA.parent_track.ext.PARENT_MACROCNT = tonumber(MACROCNT) end
       local ret, LASTACTIVENOTE = GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_LASTACTIVENOTE', 0, false)      if ret then DATA.parent_track.ext.PARENT_LASTACTIVENOTE = tonumber(LASTACTIVENOTE) end

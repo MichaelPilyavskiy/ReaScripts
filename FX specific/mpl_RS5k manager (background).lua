@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.72
+-- @version 4.73
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,14 +23,10 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + External actions: add mpl_RS5k_manager_Database_LoadAllPads
---    + External actions: add mpl_RS5k_manager_Database_LoadSelectedPads
---    + External actions: add mpl_RS5k_manager_Database_NextMap
---    + External actions: add mpl_RS5k_manager_Database_PrevMap
---    # External actions: fix mpl_RS5k_manager_Database_Lock
+--    + Allow to "fix" metadata for racks imported from template
 
 
-rs5kman_vrs = '4.72'
+rs5kman_vrs = '4.73'
 
 
 
@@ -3014,6 +3010,48 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     end
   end
   
+-------------------------------------------------------------------------------- 
+  function DATA:Action_FixMetadata()
+    local parent_track = GetSelectedTrack(-1,0)
+    
+    -- force current GUID to metadta
+      local curGUID = reaper.GetTrackGUID( parent_track )
+      GetSetMediaTrackInfo_String ( parent_track, 'P_EXT:MPLRS5KMAN_GUIDINTERNAL', curGUID, true) 
+      DATA:CollectData_Parent()
+      
+    -- loop through children and 
+      for i = DATA.parent_track.IP_TRACKNUMBER_0based+1, DATA.parent_track.IP_TRACKNUMBER_0basedlast do 
+        local track = GetTrack(DATA.proj, i) 
+        GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', curGUID, true)  -- change their parent GUID 
+        local fx_instr = TrackFX_GetInstrument( track )
+        local fx_instrGUID = reaper.TrackFX_GetFXGUID( track, fx_instr )
+        if fx_instrGUID then GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_FXGUID', fx_instrGUID, true) end
+      end
+      
+  end
+-------------------------------------------------------------------------------- 
+  function UI.draw_FixingMetadata() 
+    function __b_draw_FixingMetadata() end 
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,0,0)  
+    ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0)
+    ImGui.SetCursorScreenPos(ctx,UI.calc_rackX,UI.calc_rackY)
+    if ImGui.BeginChild( ctx, 'FixingMetadata_modal', UI.calc_rackW, 0, ImGui.ChildFlags_Border, ImGui.WindowFlags_None |ImGui.WindowFlags_NoScrollbar ) then--|ImGui.ChildFlags_Border --|ImGui.WindowFlags_MenuBar
+      ImGui.TextWrapped(ctx,
+          [[
+          
+          
+    This rack was probably imported from template. Select parent track and        
+          ]]) --ImGui.SameLine(ctx) 
+          ImGui.Dummy(ctx,30,0) ImGui.SameLine(ctx)
+          if ImGui.Button(ctx, '...try to fix##fix') then 
+            Undo_BeginBlock2( -1 )
+            DATA:Action_FixMetadata()
+            Undo_EndBlock2( -1, 'RS5k manager - fix metadata', 0xFFFFFFFF )
+          end
+      ImGui.EndChild( ctx)
+    end
+    ImGui.PopStyleVar(ctx,2)
+  end
 --------------------------------------------------------------------------------  
   function UI.draw()  
     
@@ -3031,9 +3069,16 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     if ImGui.Button(ctx, 'X',closew) then DATA.trig_stopdefer = true end 
     
     UI.draw_startup()
-    UI.draw_Rack() 
-    UI.draw_tabs()
+    if DATA.wrong_parent_track_metadata == true then
+      
+     else
+      UI.draw_Rack() 
+    end
     
+    UI.draw_tabs()
+    if DATA.wrong_parent_track_metadata == true then
+      UI.draw_FixingMetadata() 
+    end
     if DATA.temp_loopslice_askforadd then -- autoslice_confirmation
       if not DATA.temp_loopslice_askforadd.triggerpopup then
         ImGui.OpenPopup( ctx, 'autoslice_confirmation', ImGui.PopupFlags_None )
