@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.73
+-- @version 4.74
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -11,7 +11,6 @@
 --    [main] mpl_RS5k_manager_Database_NextMap.lua
 --    [main] mpl_RS5k_manager_Database_PrevMap.lua
 --    [main] mpl_RS5k_manager_Database_Lock.lua
---    [main] mpl_RS5k_manager_Database_NextMap.lua
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
@@ -26,7 +25,7 @@
 --    + Allow to "fix" metadata for racks imported from template
 
 
-rs5kman_vrs = '4.73'
+rs5kman_vrs = '4.74'
 
 
 
