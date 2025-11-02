@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.74
+-- @version 4.75
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -22,10 +22,10 @@
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
 -- @changelog
---    + Allow to "fix" metadata for racks imported from template
+--    + Add action to rebuild peaks
 
 
-rs5kman_vrs = '4.74'
+rs5kman_vrs = '4.75'
 
 
 
@@ -996,6 +996,17 @@ rs5kman_vrs = '4.74'
       if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then DATA:Action_ExplodeTake() end
     ImGui.Unindent(ctx, 10)
 
+    -------------- Various
+    ImGui.SeparatorText(ctx, 'Various')
+    ImGui.Indent(ctx, 10) 
+    --
+      if ImGui.Selectable( ctx, 'Rebuild peaks') then 
+        DATA.peakscache = {}
+        DATA:CollectData2_GetPeaks()
+        DATA.upd = true
+      end
+    ImGui.Unindent(ctx, 10)
+    
 
     --[[------------ LP
     ImGui.SeparatorText(ctx, 'LaunchPad')
