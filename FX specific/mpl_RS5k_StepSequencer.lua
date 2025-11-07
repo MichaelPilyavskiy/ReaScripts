@@ -1690,7 +1690,6 @@ It also used for advanced sequencing parameters.
     
     if ImGui.BeginDragDropTarget( ctx ) then  
       UI.Drop_UI_interaction_pad(-1) 
-      DATA.upd = true
       ImGui_EndDragDropTarget( ctx )
     end
     

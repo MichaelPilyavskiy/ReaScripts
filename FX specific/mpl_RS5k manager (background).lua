@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.75
+-- @version 4.76
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -21,11 +21,17 @@
 --    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 --    [jsfx] mpl_RS5K_manager_sysex_handler.jsfx
 --    mpl_RS5K_manager_functions.lua
+--    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    + Add action to rebuild peaks
+--    # Auto_MIDIrouting: fix missing MIDI bus
+--    + Layout: add Akai MPC layout
+--    + Custom note names: add Akai MPC names legacy map
+--    # Sampler: move pre/next/rand/ME buttons above peaks
+--    + Settings/TCPMCP: add support for setting height lock for new tracks
+--    + External actions: add action to toggle show children in TCP/MCP
 
 
-rs5kman_vrs = '4.75'
+rs5kman_vrs = '4.76'
 
 
 
@@ -115,6 +121,7 @@ rs5kman_vrs = '4.75'
           CONF_onadd_copysubfoldname = 'RS5kmanager_samples' ,
           CONF_onadd_newchild_trackheightflags = 0, -- &1 folder collapsed &2 folder supercollapsed &4 hide tcp &8 hide mcp
           CONF_onadd_newchild_trackheight = 0,
+          CONF_onadd_newchild_trackheight_lock = 0,
           CONF_onadd_whitekeyspriority = 0,
           CONF_onadd_ordering = 0, -- 0 sorted by note 1 at the top 2 at the bottom
           CONF_onadd_takeparentcolor = 0,
@@ -329,7 +336,7 @@ rs5kman_vrs = '4.75'
     UI.settings_itemW = 180 
     UI.settings_indent  = 10
     UI.knob_resY = 150
-    UI.sampler_peaksH = 60
+    UI.sampler_peaksH = 50
     UI.sampler_peaksfullH = 30
     UI.controls_minH = 40
     UI.adsr_rectsz = 10
@@ -1233,7 +1240,7 @@ rs5kman_vrs = '4.75'
   end
 --------------------------------------------------------------------------------  
   function UI.draw_tabs_settings_tcpmcp()
-    if ImGui.CollapsingHeader(ctx, 'TCP / MCP auto collapsing') then 
+    if ImGui.CollapsingHeader(ctx, 'TCP / MCP') then 
       ImGui.Indent(ctx,UI.settings_indent)
     
         if ImGui.Checkbox( ctx, 'Collapse parent folder',                                 EXT.CONF_onadd_newchild_trackheightflags&1==1 ) then 
@@ -1249,13 +1256,18 @@ rs5kman_vrs = '4.75'
           DATA.upd = true 
         end
         if ImGui.Checkbox( ctx, 'Hide children TCP',                                      EXT.CONF_onadd_newchild_trackheightflags&4==4 ) then EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~4 EXT:save() DATA:Auto_TCPMCP(true) DATA.upd = true end
+        ImGui.SameLine(ctx) UI.HelpMarker('Performs at every state change')
         if ImGui.Checkbox( ctx, 'Hide children MCP',                                      EXT.CONF_onadd_newchild_trackheightflags&8==8 ) then EXT.CONF_onadd_newchild_trackheightflags =EXT.CONF_onadd_newchild_trackheightflags~8 EXT:save() DATA:Auto_TCPMCP(true) DATA.upd = true end
-        
+        ImGui.SameLine(ctx) UI.HelpMarker('Performs at every state change')
         ImGui_SetNextItemWidth(ctx, UI.settings_itemW)  
         local formatin = '%dpx' if EXT.CONF_onadd_newchild_trackheight == 0 then formatin = 'default' end
         local ret, v = ImGui.SliderInt( ctx, 'New child track height',                    EXT.CONF_onadd_newchild_trackheight, 0, 300, formatin, ImGui.SliderFlags_None ) if ret then EXT.CONF_onadd_newchild_trackheight = v end
-        if ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
-      
+        if ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end 
+        if EXT.CONF_onadd_newchild_trackheight > 0 then 
+          ImGui.SameLine(ctx) if ImGui.Checkbox( ctx, 'Lock',                                      EXT.CONF_onadd_newchild_trackheight_lock&1==1 ) then EXT.CONF_onadd_newchild_trackheight_lock =EXT.CONF_onadd_newchild_trackheight_lock~1 EXT:save() DATA.upd = true end
+        end
+        
+        
       ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
@@ -1282,31 +1294,13 @@ rs5kman_vrs = '4.75'
     end  
   end
 --------------------------------------------------------------------------------  
-  function UI.draw_tabs_settings_UI()
-    if ImGui.CollapsingHeader(ctx, 'UI interaction') then 
-      ImGui.Indent(ctx,UI.settings_indent)
-        
-        if ImGui.Checkbox( ctx, 'Click on pad select track',                              EXT.UI_clickonpadselecttrack == 1 ) then EXT.UI_clickonpadselecttrack =EXT.UI_clickonpadselecttrack~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Click on pad scroll mixer',                              EXT.UI_clickonpadscrolltomixer == 1 ) then EXT.UI_clickonpadscrolltomixer =EXT.UI_clickonpadscrolltomixer~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Click on pad play sample',                              EXT.UI_clickonpadplaysample == 1 ) then EXT.UI_clickonpadplaysample =EXT.UI_clickonpadplaysample~1 EXT:save() end
-        ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
-        local ret, v = ImGui.SliderInt( ctx, 'Default playing velocity',                  EXT.CONF_default_velocity, 1, 127, '%d', ImGui.SliderFlags_None ) if ret then EXT.CONF_default_velocity = v EXT:save() end
-        if ImGui.Checkbox( ctx, 'Releasing mouse on pad send NoteOff',                             EXT.UI_pads_sendnoteoff == 1 ) then EXT.UI_pads_sendnoteoff =EXT.UI_pads_sendnoteoff~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Active note follow incoming note',                       EXT.UI_incomingnoteselectpad == 1 ) then EXT.UI_incomingnoteselectpad =EXT.UI_incomingnoteselectpad~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('May be CPU hungry')
-        if ImGui.Checkbox( ctx, 'Show meters on pads',            EXT.CONF_showplayingmeters == 1 ) then EXT.CONF_showplayingmeters =EXT.CONF_showplayingmeters~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('May be CPU hungry')
-        if ImGui.Checkbox( ctx, 'Show peaks on pads',            EXT.CONF_showpadpeaks == 1 ) then EXT.CONF_showpadpeaks =EXT.CONF_showpadpeaks~1 EXT:save() end
-        ImGui.SameLine(ctx)
-        UI.HelpMarker('May be CPU hungry')
-        
-        -- custom note names
-        local curname = string.format('%02d', DATA.padcustomnames_selected_id)
-        if DATA.padcustomnames[i] then name = DATA.padcustomnames[i] end
+  function UI.draw_tabs_settings_UI_custompadnames()
         --ImGui.Text(ctx, 'Custom pad names')
         if ImGui.CollapsingHeader(ctx, 'Custom pad names') then 
+          
+          -- custom note names
+          local curname = string.format('%02d', DATA.padcustomnames_selected_id)
+          if DATA.padcustomnames[i] then name = DATA.padcustomnames[i] end
           
           ImGui.Indent(ctx, UI.settings_indent)
           reaper.ImGui_SetNextItemWidth( ctx, 50 )
@@ -1399,6 +1393,34 @@ rs5kman_vrs = '4.75'
             EXT:save()
             DATA:CollectDataInit_LoadCustomPadStuff()
           end        
+          
+          ImGui.SameLine(ctx)
+          if ImGui.Button(ctx, 'Akai MPC') then --
+            EXT.UI_padcustomnamesB64 = VF_encBase64([[
+          37="Side stick"
+          36="Kick"
+          42="Closed hat"
+          82="Shaker"
+          40="Snare 2"
+          38="Snare 1"
+          46="Open hat"
+          44="Pedal hat"
+          48="High tom"
+          47="Mid tom 1"
+          45="Mid tom 2"
+          43="Low tom"
+          49="Crash"
+          55="Splash"
+          51="Ride"
+          53="Ride bell"
+          
+          
+  ]]          )
+            EXT:save()
+            DATA:CollectDataInit_LoadCustomPadStuff()
+          end        
+          
+          
           if ImGui.Button(ctx, 'Clear custom pad names') then 
             EXT.UI_padcustomnamesB64 = ''
             EXT:save()
@@ -1407,11 +1429,32 @@ rs5kman_vrs = '4.75'
           
           ImGui.Unindent(ctx, UI.settings_indent)
         end
+  end
+--------------------------------------------------------------------------------  
+  function UI.draw_tabs_settings_UI()
+    if ImGui.CollapsingHeader(ctx, 'UI interaction') then 
+      ImGui.Indent(ctx,UI.settings_indent)
+        
+        if ImGui.Checkbox( ctx, 'Click on pad select track',                              EXT.UI_clickonpadselecttrack == 1 ) then EXT.UI_clickonpadselecttrack =EXT.UI_clickonpadselecttrack~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Click on pad scroll mixer',                              EXT.UI_clickonpadscrolltomixer == 1 ) then EXT.UI_clickonpadscrolltomixer =EXT.UI_clickonpadscrolltomixer~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Click on pad play sample',                              EXT.UI_clickonpadplaysample == 1 ) then EXT.UI_clickonpadplaysample =EXT.UI_clickonpadplaysample~1 EXT:save() end
+        ImGui_SetNextItemWidth(ctx, UI.settings_itemW) 
+        local ret, v = ImGui.SliderInt( ctx, 'Default playing velocity',                  EXT.CONF_default_velocity, 1, 127, '%d', ImGui.SliderFlags_None ) if ret then EXT.CONF_default_velocity = v EXT:save() end
+        if ImGui.Checkbox( ctx, 'Releasing mouse on pad send NoteOff',                             EXT.UI_pads_sendnoteoff == 1 ) then EXT.UI_pads_sendnoteoff =EXT.UI_pads_sendnoteoff~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Active note follow incoming note',                       EXT.UI_incomingnoteselectpad == 1 ) then EXT.UI_incomingnoteselectpad =EXT.UI_incomingnoteselectpad~1 EXT:save() end
+        ImGui.SameLine(ctx)
+        UI.HelpMarker('May be CPU hungry')
+        if ImGui.Checkbox( ctx, 'Show meters on pads',            EXT.CONF_showplayingmeters == 1 ) then EXT.CONF_showplayingmeters =EXT.CONF_showplayingmeters~1 EXT:save() end
+        ImGui.SameLine(ctx)
+        UI.HelpMarker('May be CPU hungry')
+        if ImGui.Checkbox( ctx, 'Show peaks on pads',            EXT.CONF_showpadpeaks == 1 ) then EXT.CONF_showpadpeaks =EXT.CONF_showpadpeaks~1 EXT:save() end
+        ImGui.SameLine(ctx)
+        UI.HelpMarker('May be CPU hungry')
         
         
         if ImGui.Checkbox( ctx, 'Allow space to play',                              EXT.UI_allowshortcuts == 1 ) then EXT.UI_allowshortcuts =EXT.UI_allowshortcuts~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Allow drop layers on pads',                        EXT.UI_allowdoplayeronpad == 1 ) then EXT.UI_allowdoplayeronpad =EXT.UI_allowdoplayeronpad~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Show database map at the top of tabs',             EXT.UI_showcurrentdbmap == 1 ) then EXT.UI_showcurrentdbmap =EXT.UI_showcurrentdbmap~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Show current database map at the top of tabs',             EXT.UI_showcurrentdbmap == 1 ) then EXT.UI_showcurrentdbmap =EXT.UI_showcurrentdbmap~1 EXT:save() end
         ImGui.Unindent(ctx,UI.settings_indent)
     end  
   end
@@ -1609,7 +1652,7 @@ rs5kman_vrs = '4.75'
       ImGui.Indent(ctx,UI.settings_indent)
       
       DATA.temp_ignore_incomingevent = true
-      UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='[factory] Default / 8x4 pads',[1]='[factory] 2 octaves keys',[2]='Custom'},'##settings_drracklayout', 'DrumRack layout', 200) 
+      UI.draw_tabs_settings_combo('UI_drracklayout',{[0]='[factory] Default / 8x4 pads',[1]='[factory] 2 octaves keys',[3]='[factory] Akai MPC', [2]='Custom'},'##settings_drracklayout', 'DrumRack layout', 220) 
       
         if EXT.UI_drracklayout == 2 then 
         
@@ -1751,6 +1794,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       UI.draw_tabs_settings_tcpmcp()
       UI.draw_tabs_settings_MIDI()
       UI.draw_tabs_settings_UI()
+      UI.draw_tabs_settings_UI_custompadnames()
       UI.draw_tabs_settings_RackLayout()
       UI.draw_tabs_settings_Theming()
       UI.draw_tabs_settings_AutoColor()
@@ -1948,9 +1992,54 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       UI.Layout_Pads() 
       UI.Layout_Keys() 
       UI.Layout_Custom() 
-      
+      UI.Layout_PadsAkai() 
       
     end
+  --------------------------------------------------------------------------------  
+  function UI.Layout_PadsAkai() 
+    if EXT.UI_drracklayout ~= 3 then return end
+    local cell_cnt_max = 16
+    local yoffs = UI.calc_rackY  + UI.calc_rack_padh*3 + UI.spacingY*3--+ UI.calc_rackH
+    local xoffs= UI.calc_rackX
+    local padID0 = 0
+    
+    local layout_mpc = {
+    37,
+    36,
+    42,
+    82,
+    
+    40,
+    38,
+    46,
+    44,
+    
+    48,
+    47,
+    45,
+    43,
+    
+    
+    49,
+    55,
+    51,
+    53,
+      
+      
+      
+    }
+    
+    for note = 0, cell_cnt_max-1 do
+      local active_note = layout_mpc[note+1]
+      UI.draw_Rack_Pads_controls(DATA.children[active_note], active_note, xoffs, yoffs, UI.calc_rack_padw, UI.calc_rack_padh) 
+      xoffs = xoffs + UI.calc_rack_padw + UI.spacingX
+      if padID0%4==3 then 
+        xoffs = UI.calc_rackX 
+        yoffs = yoffs - UI.calc_rack_padh - UI.spacingY
+      end
+      padID0 = padID0 + 1
+    end
+  end    
   --------------------------------------------------------------------------------  
   function UI.draw_Rack_Pads_controls_MSP(local_pos_x,local_pos_y,note_t,note)  
   
@@ -3305,6 +3394,18 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       ImGui.Dummy(ctx,0,0)
     end
     
+
+      
+    if ImGui.Button(ctx, '< Previous spl',UI.calc_sampler4ctrl_W) then DATA:Sampler_NextPrevSample(note_layer_t, 1) end 
+    ImGui.SameLine(ctx)
+    if ImGui.Button(ctx, 'Next spl >',UI.calc_sampler4ctrl_W) then DATA:Sampler_NextPrevSample(note_layer_t, 0) end
+    ImGui.SameLine(ctx)
+    if ImGui.Button(ctx, 'Random spl',UI.calc_sampler4ctrl_W) then DATA:Sampler_NextPrevSample(note_layer_t, 2) end
+    ImGui.SameLine(ctx)
+    if ImGui.Button(ctx, 'MediaExplorer',UI.calc_sampler4ctrl_W) then  DATA:Sampler_ShowME() ImGui.CloseCurrentPopup(ctx) end
+      
+      
+      
     -- peaks
    --UI.Tools_setbuttonbackg()
     local plotx, ploty = ImGui.GetCursorPos( ctx)
@@ -4409,7 +4510,9 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     
     
     if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.BeginDisabled(ctx, true) end
-      local retval, v = ImGui.Checkbox( ctx, 'Auto-set velocity ranges on add layer', DATA.children[note].TYPE_DEVICE_AUTORANGE )
+      local retval, v = ImGui.Checkbox( ctx, 'Autovelocity', DATA.children[note].TYPE_DEVICE_AUTORANGE )
+      ImGui.SameLine(ctx)
+      UI.HelpMarker('Auto-set velocity range option enabled for new devices')
       if retval then 
         local tr = DATA.children[note].tr_ptr
         local out = 0
@@ -4421,15 +4524,23 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       if ImGui.Button(ctx, 'Refresh##autosetvelrange', 80) then DATA:Auto_Device_RefreshVelocityRange(note) end
     if not (DATA.children[note] and DATA.children[note].TYPE_DEVICE== true) then ImGui.EndDisabled(ctx) end
     
+    -- device drop 
     ImGui.SameLine(ctx)
-    -- device drop
-    ImGui.Button(ctx, '[Drop layers]', -1)
+    ImGui.Button(ctx, '[Drop layers]', 110)
     if ImGui.BeginDragDropTarget( ctx ) then  
       local cntlayers = 0
       if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
       UI.Drop_UI_interaction_device(note, cntlayers + 1)   
       ImGui_EndDragDropTarget( ctx )
     end
+    
+    -- device drop FX
+    ImGui.SameLine(ctx)
+    local cntlayers = 0
+    if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
+    local drop_data = {layer = cntlayers + 1}
+    UI.draw_3rdpartyimport_context(note,drop_data) 
+    
     
     if ImGui.BeginChild( ctx, 'device' ,0,-UI.spacingY) then--,ImGui.ChildFlags_None, ImGui.WindowFlags_NoScrollWithMouse
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY) 
@@ -4499,11 +4610,6 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       end
       
       
-      -- device drop FX
-      local cntlayers = 0
-      if DATA.children[note] and DATA.children[note].layers then cntlayers = #DATA.children[note].layers end
-      local drop_data = {layer = cntlayers + 1}
-      UI.draw_3rdpartyimport_context(note,drop_data) 
       
       
       ImGui.PopStyleVar(ctx,2)  

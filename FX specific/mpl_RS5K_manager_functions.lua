@@ -1317,6 +1317,8 @@ end
     if not DATA.seq_functionscall then 
       gmem_write(1030,1 ) -- DATA.upd refresh steseq 
       gmem_write(1028, 1) -- force step seq to refresh EXT
+     else
+      gmem_write(1030,1 ) -- DATA.upd refresh steseq 
     end
   end
   -------------------------------------------------------------------------------- 
@@ -1427,7 +1429,6 @@ end
   function DATA:Auto_TCPMCP(force_show)
     if not (DATA.parent_track and DATA.parent_track.valid == true) then return end 
     local upd
-    --CONF_onadd_newchild_trackheightflags = 0, -- &1 folder collapsed &2 folder supercollapsed &4 hide tcp &8 hide mcp
     
     -- reset after settings change
       if force_show == true then 
@@ -2025,13 +2026,15 @@ end
   function DATA:Auto_MIDIrouting() 
     if not (DATA.parent_track and DATA.parent_track.valid == true) then return end 
     if not (DATA.MIDIbus.valid == true) then return end
-    local note_layer_tr = DATA.MIDIbus.tr_ptr
-    local cntsends = GetTrackNumSends( note_layer_tr, 0 )
+    local MIDItr = DATA.MIDIbus.tr_ptr
+    if not reaper.ValidatePtr2(DATA.proj, MIDItr, 'MediaTrack*') then return end
+    
+    local cntsends = GetTrackNumSends( MIDItr, 0 )
     local sends = {}
     for sendidx = 1, cntsends do
-      local I_SRCCHAN = GetTrackSendInfo_Value( note_layer_tr, 0, sendidx-1, 'I_SRCCHAN' )
-      local P_DESTTRACK = GetTrackSendInfo_Value( note_layer_tr, 0, sendidx-1, 'P_DESTTRACK' )
-      local I_MIDIFLAGS = GetTrackSendInfo_Value( note_layer_tr, 0, sendidx-1, 'I_MIDIFLAGS' )
+      local I_SRCCHAN = GetTrackSendInfo_Value( MIDItr, 0, sendidx-1, 'I_SRCCHAN' )
+      local P_DESTTRACK = GetTrackSendInfo_Value( MIDItr, 0, sendidx-1, 'P_DESTTRACK' )
+      local I_MIDIFLAGS = GetTrackSendInfo_Value( MIDItr, 0, sendidx-1, 'I_MIDIFLAGS' )
       local retval, P_DESTTRACK_GUID = reaper.GetSetMediaTrackInfo_String( P_DESTTRACK, 'GUID', '', false )
       if I_SRCCHAN == -1 then
         sends[P_DESTTRACK_GUID] = {
@@ -2044,19 +2047,19 @@ end
     -- validate links
       for note in pairs(DATA.children) do
         -- make sure there is no midi send to device  
-        if DATA.children[note].TYPE_DEVICE == true and DATA.children[note].TR_GUID and sends[DATA.children[note].TR_GUID] then RemoveTrackSend( note_layer_tr, 0, sends[DATA.children[note].TR_GUID].sendidx ) end
+        if DATA.children[note].TYPE_DEVICE == true and DATA.children[note].TR_GUID and sends[DATA.children[note].TR_GUID] then RemoveTrackSend( MIDItr, 0, sends[DATA.children[note].TR_GUID].sendidx ) end
         
-        -- check devicechilds/regular childs
+        -- check devicechilds/regular childs has receive from MIDI track
         if DATA.children[note].layers then
           for layer in pairs(DATA.children[note].layers) do
             if DATA.children[note].layers[layer] and DATA.children[note].layers[layer].TR_GUID then
               local destGUID = DATA.children[note].layers[layer].TR_GUID
               
               if not sends[destGUID] or (sends[destGUID] and sends[destGUID].I_MIDIFLAGS ~= DATA.parent_track.ext.PARENT_MIDIFLAGS) then   
-                local sendidx = CreateTrackSend( DATA.MIDIbus.tr_ptr, DATA.children[note].layers[layer].tr_ptr )
+                local sendidx = CreateTrackSend( MIDItr, DATA.children[note].layers[layer].tr_ptr )
                 if sendidx >=0 then
-                  SetTrackSendInfo_Value( DATA.MIDIbus.tr_ptr, 0, sendidx, 'I_SRCCHAN',-1 )
-                  SetTrackSendInfo_Value( DATA.MIDIbus.tr_ptr, 0, sendidx, 'I_MIDIFLAGS',DATA.parent_track.ext.PARENT_MIDIFLAGS )
+                  SetTrackSendInfo_Value( MIDItr, 0, sendidx, 'I_SRCCHAN',-1 )
+                  SetTrackSendInfo_Value( MIDItr, 0, sendidx, 'I_MIDIFLAGS',DATA.parent_track.ext.PARENT_MIDIFLAGS )
                 end
               end
               
@@ -3126,7 +3129,12 @@ end
     end  
     
     -- set height
-    if EXT.CONF_onadd_newchild_trackheight > 0 then SetMediaTrackInfo_Value( new_tr, 'I_HEIGHTOVERRIDE', EXT.CONF_onadd_newchild_trackheight ) end 
+    if EXT.CONF_onadd_newchild_trackheight > 0 then 
+      SetMediaTrackInfo_Value( new_tr, 'I_HEIGHTOVERRIDE', EXT.CONF_onadd_newchild_trackheight ) 
+      if EXT.CONF_onadd_newchild_trackheight_lock == 1 then   
+        SetMediaTrackInfo_Value( new_tr, 'B_HEIGHTLOCK', 1)   
+      end
+    end 
     
     -- print timestamp
     GetSetMediaTrackInfo_String(  new_tr, 'P_EXT:MPLRS5KMAN_TSADD', os.time(), true) 
@@ -4032,27 +4040,10 @@ end
     end
   end
     -------------------------------------------------------------------------------- 
-  function UI.draw_3rdpartyimport_context(note,drop_data) 
-    --[[local retval, trackidx, itemidx, takeidx, fxidx, parm = GetTouchedOrFocusedFX( 0 )
-    local track = GetTrack(-1,trackidx) if  trackidx == -1 then track = GetMasterTrack(-1) end
-    local retval, fx_namesrc = reaper.TrackFX_GetNamedConfigParm( track, fxidx, 'fx_name' )
-    local is_instrument = (fx_namesrc:match('[%a]+i%:.*') or fx_namesrc:lower():match('synth')) and not (fx_namesrc: match('ReaSampl')or fx_namesrc:match('Macro'))
-    local fx_name = VF_ReduceFXname(fx_namesrc)
-    if retval and fx_name and is_instrument then
-      if ImGui.Button(ctx, fx_name,-1)then-- then--'Import ['..fx_name..'] as instrument'
-        DATA:DropFX(fx_namesrc, fx_name, fxidx, track, note, drop_data)
-        ImGui.CloseCurrentPopup(ctx) 
-      end   
-     else
-      ImGui.BeginDisabled(ctx,true) ImGui.Button(ctx, 'Import last touched FX as instrument',-1)ImGui.EndDisabled(ctx)
-    end]]
-    
+  function UI.draw_3rdpartyimport_context(note,drop_data)  
     ImGui.SetNextItemWidth( ctx,-100)
-    
-    
-    if ImGui.BeginMenu( ctx, 'Import 3rd party plugin', true ) then
-      
-      local cnt_com = #DATA.installed_plugins
+    if ImGui.BeginMenu( ctx, 'Import FXi', true ) then 
+      local cnt_com = #DATA.installed_plugins 
       
       -- by type
       reaper.ImGui_SeparatorText(ctx, 'By type')
