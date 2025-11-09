@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="91e2fa24d84041d831a93edc40b84f31d886e549" name="MPL Scripts">
+<index version="1" commit="4b22b0c05892a78d0d7094e428d332901fd611f0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7359,6 +7359,15 @@
     </reapack>
   </category>
   <category name="Items Editing">
+    <reapack name="mpl_Auto crop item at -40dB.lua" type="script" desc="Auto crop item at -40dB">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2025-11-09T11:21:31Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4b22b0c05892a78d0d7094e428d332901fd611f0/Items%20Editing/mpl_Auto%20crop%20item%20at%20-40dB.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Build 4 points segment of take envelope under mouse cursor based on audio source.lua" type="script" desc="Build 4 points segment of take envelope under mouse cursor based on audio source">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
