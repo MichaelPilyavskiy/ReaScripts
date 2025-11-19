@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8bf4bd842994198fc8eae394f4d4f8a71b27d0a5" name="MPL Scripts">
+<index version="1" commit="aeab0d2f4d1571787dcb83d027a859d88742c2c0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12871,6 +12871,26 @@ various fixes]]></changelog>
       <version name="2.28" author="MPL" time="2025-10-24T20:12:34Z">
         <changelog><![CDATA[+ Add option to rename track only if destination track name is empty]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/20f2f688e82ed0afbf05e74cfd18bfdeb188b90c/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2025-11-19T21:19:58Z">
+        <changelog><![CDATA[+ UI rebuild using ReaImGui, remove VariousFunctions dependency
++ UI: split tracks and header parts
++ Dest track menu: add filter for track name
++ Dest track menu: add match by number
++ Dest track menu: add match by color
++ Dest track menu/Direct import: import FX
++ Dest track menu/Direct import: import items
++ Source track list: left click anywhere reset selection
++ Header: split view
++ Header/Master FX: show FX list, import separately, manually
++ Header/Markers and regions: show map, import separately, manually
++ Header/Tempo envelope: show map, import separately, manually
++ Header/Group names: show group names, import separately, manually
++ Settings: add option to prevent automatch children in sends/aux folders, enabled by default
++ Settings: add option to auto match children as destionation mark, enabled by default
++ Track send import logic: split to separate view, add couple options
+# fix matching selector]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aeab0d2f4d1571787dcb83d027a859d88742c2c0/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
