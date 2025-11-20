@@ -1,26 +1,11 @@
 -- @description ImportSessionData
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + UI rebuild using ReaImGui, remove VariousFunctions dependency
---    + UI: split tracks and header parts
---    + Dest track menu: add filter for track name
---    + Dest track menu: add match by number
---    + Dest track menu: add match by color
---    + Dest track menu/Direct import: import FX
---    + Dest track menu/Direct import: import items
---    + Source track list: left click anywhere reset selection
---    + Header: split view
---    + Header/Master FX: show FX list, import separately, manually
---    + Header/Markers and regions: show map, import separately, manually
---    + Header/Tempo envelope: show map, import separately, manually
---    + Header/Group names: show group names, import separately, manually
---    + Settings: add option to prevent automatch children in sends/aux folders, enabled by default
---    + Settings: add option to auto match children as destionation mark, enabled by default
---    + Track send import logic: split to separate view, add couple options
---    # fix matching selector
+--    # fix error on missing project
+--    # various fixes
 
 
 
@@ -393,6 +378,7 @@
   
   --------------------------------------------------------------------- 
   function UI.draw_tabs_tracks_list() 
+    if not (DATA.srcproj and DATA.srcproj.TRACK)then return end
     local indent = 10
     local trackX2 = 240
     if ImGui.BeginChild(ctx, 'tracklist', UI.tracklist_W) then
@@ -457,6 +443,7 @@
   end
   ----------------------------------------------------------------------
   function DATA:Import2_Header_MasterFX()
+    if not (DATA.srcproj and DATA.srcproj.MASTERFXLIST) then return end
     if #DATA.srcproj.MASTERFXLIST == 0  then return end  
     local master_tr = GetMasterTrack( 0 )
     local retval, cur_chunk = reaper.GetTrackStateChunk( master_tr, '', false )
@@ -472,14 +459,14 @@
     reaper.SetTrackStateChunk(tr, chunk_ch, false)
   end 
     --------------------------------------------------------------------- 
-  function DATA:Import2_HeaderrefreshProject()
+  function DATA:Import2_Header_RefreshProject() 
     DATA:Get_DestProject()
     UpdateArrange()
     TrackList_AdjustWindows( false )
   end
   ----------------------------------------------------------------------
   function DATA:Import2_Header_Markers()   
-    if not DATA.srcproj.MARKERS then return end
+    if not (DATA.srcproj and DATA.srcproj.MARKERS) then return end
     
     --[[  &1 markers
           &2 markersreplace
@@ -519,6 +506,7 @@
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_header_master()
+    if not (DATA.srcproj and DATA.srcproj.MASTERFXLIST_exploded) then return end
     -- master
     if ImGui.CollapsingHeader(ctx, 'Master FX', nil) then 
       ImGui.Indent(ctx, UI.indent_menu) 
@@ -530,7 +518,7 @@
             Undo_BeginBlock2( 0 )
             reaper.PreventUIRefresh( -1 )
             DATA:Import2_Header_MasterFX()
-            DATA:Import2_HeaderrefreshProject()
+            DATA:Import2_Header_RefreshProject()
             reaper.PreventUIRefresh( 1 )
             Undo_EndBlock2( 0, 'Import session data: Master FX', 0xFFFFFFFF )
           end
@@ -555,6 +543,7 @@
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_header_regions()
+    if not (DATA.srcproj and DATA.srcproj.MARKERS) then return end
     -- markers/regions
     if ImGui.CollapsingHeader(ctx, 'Markers/regions') then 
       ImGui.Indent(ctx, UI.indent_menu) 
@@ -567,7 +556,7 @@
             Undo_BeginBlock2( 0 )
             reaper.PreventUIRefresh( -1 )
             DATA:Import2_Header_Markers()
-            DATA:Import2_HeaderrefreshProject()
+            DATA:Import2_Header_RefreshProject()
             reaper.PreventUIRefresh( 1 )
             Undo_EndBlock2( 0, 'Import session data: markers/regions', 0xFFFFFFFF )
           end
@@ -642,8 +631,7 @@
   
   ----------------------------------------------------------------------
   function DATA:Import2_Header_Tempo()
-    if not DATA.srcproj.TEMPOMAP then return end
-    
+    if not (DATA.srcproj and DATA.srcproj.TEMPOMAP) then return end
     if EXT.CONF_head_tempo&4 == 4 then -- clear
       for markerindex = CountTempoTimeSigMarkers( 0 ), 1, -1 do DeleteTempoTimeSigMarker( 0, markerindex-1 ) end
     end
@@ -667,6 +655,8 @@
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_header_tempomap()
+    
+    if not (DATA.srcproj and DATA.srcproj.TEMPOMAP) then return end
     if ImGui.CollapsingHeader(ctx, 'Tempo map') then 
       ImGui.Indent(ctx, UI.indent_menu) 
       
@@ -679,7 +669,7 @@
           Undo_BeginBlock2( 0 )
           reaper.PreventUIRefresh( -1 )
           DATA:Import2_Header_Tempo()
-          DATA:Import2_HeaderrefreshProject()
+          DATA:Import2_Header_RefreshProject()
           reaper.PreventUIRefresh( 1 )
           Undo_EndBlock2( 0, 'Import session data: tempo map', 0xFFFFFFFF )
         end
@@ -722,13 +712,14 @@
   end
   ----------------------------------------------------------------------
   function DATA:Import2_Header_Groupnames()
-    if not DATA.srcproj.GROUPNAMES then return end  
+    if not (DATA.srcproj and DATA.srcproj.GROUPNAMES) then return end
     for groupID in pairs(DATA.srcproj.GROUPNAMES) do
       GetSetProjectInfo_String( 0, 'TRACK_GROUP_NAME:'..(groupID+1), DATA.srcproj.GROUPNAMES[groupID], true )
     end
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_header_groupnames()
+    if not (DATA.srcproj and DATA.srcproj.GROUPNAMES) then return end
     if ImGui.CollapsingHeader(ctx, 'Group names') then 
       ImGui.Indent(ctx, UI.indent_menu) 
       
@@ -741,7 +732,7 @@
           Undo_BeginBlock2( 0 )
           reaper.PreventUIRefresh( -1 )
           DATA:Import2_Header_Groupnames()
-          DATA:Import2_HeaderrefreshProject()
+          DATA:Import2_Header_RefreshProject()
           reaper.PreventUIRefresh( 1 )
           Undo_EndBlock2( 0, 'Import session data: group names', 0xFFFFFFFF )
         end
@@ -770,6 +761,7 @@
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_header_Various()
+    if not (DATA.srcproj.HEADER_renderconf) then return end
     if ImGui.CollapsingHeader(ctx, 'Various') then --, nil, reaper.ImGui_TreeNodeFlags_DefaultOpen()
       ImGui.Indent(ctx, UI.indent_menu) 
       
@@ -784,7 +776,7 @@
           Undo_BeginBlock2( 0 )
           reaper.PreventUIRefresh( -1 )
           if DATA.srcproj.HEADER_renderconf then GetSetProjectInfo_String( 0, 'RENDER_FORMAT', DATA.srcproj.HEADER_renderconf, 1 )  end 
-          DATA:Import2_HeaderrefreshProject()
+          DATA:Import2_Header_RefreshProject()
           reaper.PreventUIRefresh( 1 )
           Undo_EndBlock2( 0, 'Import session data: render config', 0xFFFFFFFF )
         end
@@ -957,6 +949,7 @@
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_tracks() 
+    if not (DATA.srcproj and DATA.srcproj.TRACK) then return end
     if ImGui.BeginTabItem(ctx, 'Tracks') then 
       
       -- buttons
@@ -1009,7 +1002,7 @@
         Undo_BeginBlock2( 0 )
         reaper.PreventUIRefresh( -1 )
         DATA:Import2_Tracks() 
-        DATA:Import2_HeaderrefreshProject() 
+        DATA:Import2_Header_RefreshProject() 
         reaper.PreventUIRefresh( 1 )
         Undo_EndBlock2( 0, 'Import session data: tracks', 0xFFFFFFFF )
       end
@@ -1287,6 +1280,7 @@
   end
   ---------------------------------------------------------------------  
   function DATA:Actions_Selection_Reset()
+    if not (DATA.srcproj and DATA.srcproj.TRACK) then return end
     for trid0 = 1, #DATA.srcproj.TRACK do DATA.srcproj.TRACK[trid0].UI_selected = false end
   end
   ---------------------------------------------------------------------  
@@ -1486,6 +1480,7 @@
     local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '' )
     if retval then  
       EXT.UI_lastsrcproj=filenameNeed4096
+      EXT:save()
       DATA:ParseSourceProject(filenameNeed4096)
       if EXT.UI_matchatsettingsrc==1 then
         DATA:Tracks_SetDestination(-1, 0, nil) 
@@ -1502,7 +1497,7 @@
       ImGui.SameLine(ctx)
       reaper.ImGui_SetCursorPosX(ctx, 100)
       ImGui.PushFont(ctx, DATA.font, 13)
-      if ImGui.Button(ctx, destprojname,300) then DATA:Get_DestProject() end
+      if ImGui.Button(ctx, destprojname..'##getdestrpp',300) then DATA:Get_DestProject() end
       ImGui.PopFont(ctx)
     -- preset
       ImGui.SameLine(ctx)
@@ -1514,7 +1509,7 @@
       ImGui.SameLine(ctx)
       ImGui.PushFont(ctx, DATA.font, 13)
             reaper.ImGui_SetCursorPosX(ctx, 100)
-      if ImGui.Button(ctx, srcprojfp,-1) then DATA:Actions_SetSourceRPP() end
+      if ImGui.Button(ctx, srcprojfp..'##getsrcrpp',-1) then DATA:Actions_SetSourceRPP() end
       ImGui.PopFont(ctx)
   end
   ---------------------------------------------------
@@ -2698,17 +2693,15 @@
          else
           
           if EXT.CONF_sendlogic_desthasnotrec==1 then
-            local new_tr_rec = DATA2:Import_CreateNewTrack(false,srcproj_senddest_tr_t) 
-            local dest_tr = DATA2:Import_CreateNewTrack(true)
-            DATA2:Import_TransferTrackData(new_tr_rec, dest_tr)
+            local new_tr_rec = DATA:Import_CreateNewTrack(false,srcproj_senddest_tr_t) 
+            local dest_tr = DATA:Import_CreateNewTrack(true)
+            DATA:Import_TransferTrackData(new_tr_rec, dest_tr)
             srcproj_senddest_tr_t.dest_track_GUID = GetTrackGUID( dest_tr ) 
             local sendidx = CreateTrackSend( destproj_sendsrc_tr,dest_tr)
-            DATA2:Import2_Tracks_ImportReceives_params(destproj_sendsrc_tr, sendidx, srct.SENDS[sendid]) 
+            DATA:Import2_Tracks_Receives_params(destproj_sendsrc_tr, sendidx, srct.SENDS[sendid]) 
           end
         end 
-        
-        
-        
+         
       end
       
       
@@ -2717,57 +2710,6 @@
     
     if not tr then return end
   end
-  
-  --[[--------------------------------------------------------------------
-  function DATA:Import2_Tracks_Receives_sub(srct)  
-    local tr = VF_GetMediaTrackByGUID(0,srct.dest_track_GUID)
-    if not tr then return end 
-    
-    
-    test1 = srct
-    
-    for sendid = 1, #srct.SENDS do 
-    
-      local receivetrackGUID = srct.SENDS[sendid].AUXRECV_DEST_GUID
-      
-      
-      local ret, destt = DATA:Tracks_HasDestinationAim(receivetrackGUID)
-      if ret ==true then -- receive tracks was imported 
-        
-        ----------------------------------
-        -- recreate send links
-        
-        -- add receive even if alread matched
-        if EXT.CONF_sendlogic_desthasrec==2 then
-          local receiveID = DATA:Tracks_GetSourcebyGUID(receivetrackGUID) 
-          local new_tr_rec = DATA:Import_CreateNewTrack(false, DATA.srcproj.TRACK[receiveID]) 
-          local dest_tr = DATA:Import_CreateNewTrack(true)
-          DATA:Import_TransferTrackData(new_tr_rec, dest_tr)
-          DATA.srcproj.TRACK[receiveID].dest_track_GUID = GetTrackGUID( dest_tr ) 
-          local sendidx = CreateTrackSend( tr,dest_tr)
-          DATA:Import2_Tracks_Receives_params(tr, sendidx, srct.SENDS[sendid]) 
-        end
-        ----------------------------------
-        
-       else --  receive tracks was NOT imported   
-       
-        ---------------------------------- 
-        -- add receive / transfer parameters
-        if CONF_sendlogic_desthasnotrec==1 then
-          local receiveID = DATA:Tracks_GetSourcebyGUID(receivetrackGUID) 
-          local new_tr_rec = DATA:Import_CreateNewTrack(false, DATA.srcproj.TRACK[receiveID]) 
-          local dest_tr = DATA:Import_CreateNewTrack(true)
-          DATA:Import_TransferTrackData(new_tr_rec, dest_tr)
-          DATA.srcproj.TRACK[receiveID].dest_track_GUID = GetTrackGUID( dest_tr ) 
-          local sendidx = CreateTrackSend( tr,dest_tr)
-          DATA:Import2_Tracks_Receives_params(tr, sendidx, srct.SENDS[sendid])  
-        end
-        
-        ----------------------------------        
-        
-      end
-    end
-  end ]]
   --------------------------------------------------------------------- 
   function UI.draw_tabs_sendimportlogic_DefineT()
     function _b__REC_draw_tabs_sendimportlogic_DefineT() end
@@ -2869,81 +2811,3 @@
   end   
        
   _main()
-  
-  
-  
-  
-  
-  
-  --[[
-  
-  --[[local tr 
-  if srct.dest_track_GUID then tr = VF_GetMediaTrackByGUID(0,srct.dest_track_GUID) end
-  if not tr then return end
-  
-  
-  if srct.destmode == 2 and srct.sendlogic_flags&2==2 then -- matched track / clear detination track receives
-    for sendidx = GetTrackNumSends( tr, -1 ),1,-1 do RemoveTrackSend( tr, -1, sendidx-1 ) end
-  end 
-  
-  if srct.destmode == 2 and srct.sendlogic_flags&4==4 then -- matched track / clear detination track sends
-    for sendidx = GetTrackNumSends( tr, 0 ),1,-1 do RemoveTrackSend( tr, 0, sendidx-1 ) end
-  end 
-  
-  for sendID = 1, #srct.SENDS do
-    if srct.sendlogic_flags&8==8 then
-      local dest_GUID = srct.SENDS[sendID].AUXRECV_DEST_GUID
-      if not dest_GUID then goto nextsend end
-      for trsrcid = 1, #DATA.srcproj.TRACK do
-        if DATA.srcproj.TRACK[trsrcid].GUID and DATA.srcproj.TRACK[trsrcid].GUID == dest_GUID and DATA.srcproj.TRACK[trsrcid].destmode == 2 and DATA.srcproj.TRACK[trsrcid].dest_track_GUID then -- send destination exist and imported
-          local dest = VF_GetMediaTrackByGUID(0,DATA.srcproj.TRACK[trsrcid].dest_track_GUID) 
-          DATA:Import2_Tracks_AddSend(tr, dest)
-        end
-      end
-    end
-    ::nextsend::
-  end]]
-  
-  
-  
-  
-  --[[
-  for sendID = 1, #srct.SENDS do
-  end
-    
-    if srct.destmode == 1 then end-- new track
-    if srct.destmode == 2 and srct.dest_track_GUID then end -- matched track
-    -- new tracks
-      -- if there is no send imported, auto add it as new track
-      -- if there is no receive imported, auto add it as new track
-      -- clean/replace existing routing
-      
-    -- matched tracks
-      -- if there is no send imported, auto add it as new track
-      -- if there is no receive imported, auto add it as new track
-      -- clean/replace existing routing
-      
-    --[[local destination_GUID = srct.SENDS[sendID].AUXRECV_DEST_GUID
-    if destination_GUID then
-      local dest_id = DATA:Tracks_GetSourcebyGUID(destination_GUID)
-      local has_imported_destination = false 
-      if DATA.srcproj.TRACK[dest_id] and DATA.srcproj.TRACK[dest_id].dest_track_GUID then has_imported_destination = true end -- receive is already imported 
-      if has_imported_destination ==true then
-        local src_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
-        local dest_tr = VF_GetTrackByGUID(DATA.srcproj.TRACK[dest_id].dest_track_GUID)
-        if src_tr and dest_tr then 
-          local sendidx = CreateTrackSend( src_tr, dest_tr )
-          DATA:Import2_Tracks_Receives_params(src_tr,sendidx,srct.SENDS[sendID])  
-        end
-      end 
-    end
-  ----------------------------------------------------------------------
-  function DATA:Import2_Tracks_AddSend(tr,dest)
-    local exist
-    for sendidx = 1, GetTrackNumSends( tr, 0 )do 
-      local desttr = reaper.GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
-      if desttr == dest then exist = true break end
-    end 
-    if not exist then CreateTrackSend( tr,dest) end
-  end
-]]  
