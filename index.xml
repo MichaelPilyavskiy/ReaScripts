@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aeab0d2f4d1571787dcb83d027a859d88742c2c0" name="MPL Scripts">
+<index version="1" commit="591bc90b43ae507b7411b0159f998a8dde5adffe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12891,6 +12891,11 @@ various fixes]]></changelog>
 + Track send import logic: split to separate view, add couple options
 # fix matching selector]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aeab0d2f4d1571787dcb83d027a859d88742c2c0/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.01" author="MPL" time="2025-11-20T17:40:47Z">
+        <changelog><![CDATA[# fix error on missing project
+# various fixes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/591bc90b43ae507b7411b0159f998a8dde5adffe/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
