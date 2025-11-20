@@ -1,11 +1,10 @@
 -- @description ImportSessionData
--- @version 3.01
+-- @version 3.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
 --    # fix error on missing project
---    # various fixes
 
 
 
@@ -761,7 +760,7 @@
   end
   --------------------------------------------------------------------- 
   function UI.draw_tabs_header_Various()
-    if not (DATA.srcproj.HEADER_renderconf) then return end
+    if not (DATA.srcproj and DATA.srcproj.HEADER_renderconf) then return end
     if ImGui.CollapsingHeader(ctx, 'Various') then --, nil, reaper.ImGui_TreeNodeFlags_DefaultOpen()
       ImGui.Indent(ctx, UI.indent_menu) 
       
