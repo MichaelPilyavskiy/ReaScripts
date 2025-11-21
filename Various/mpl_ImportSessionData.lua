@@ -1,10 +1,11 @@
 -- @description ImportSessionData
--- @version 3.02
+-- @version 3.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix error on missing project
+--    # fix error on porting send parameters
+--    # fix naming for track send logic
 
 
 
@@ -1181,7 +1182,7 @@
       local state = DATA.srcproj.TRACK[trid].destmode==2 and DATA.srcproj.TRACK[trid].destmode_submode == 2
       if ImGui.Selectable(ctx, 'Match by name: place under matched track as child'..'##destcombo'..trid, state) then  DATA:Actions_DestMenu_Setmode(trid,2,2) DATA.destproject_cached = false end  
       local state = DATA.srcproj.TRACK[trid].destmode==2 and DATA.srcproj.TRACK[trid].destmode_submode == 4
-      if ImGui.Selectable(ctx, 'Match by name: mark only for receive'..'##destcombo'..trid, state) then  DATA:Actions_DestMenu_Setmode(trid,2,4) DATA.destproject_cached = false end  
+      if ImGui.Selectable(ctx, 'Match by name: mark only for porting send parameters'..'##destcombo'..trid, state) then  DATA:Actions_DestMenu_Setmode(trid,2,4) DATA.destproject_cached = false end  
       local state = DATA.srcproj.TRACK[trid].destmode==2 and DATA.srcproj.TRACK[trid].destmode_submode == 5
       if ImGui.Selectable(ctx, 'Match by ID'..'##destcombo'..trid, state) then  DATA:Actions_DestMenu_Setmode(trid,2,5) DATA.destproject_cached = false end
       local state = DATA.srcproj.TRACK[trid].destmode==2 and DATA.srcproj.TRACK[trid].destmode_submode == 6
@@ -2685,8 +2686,8 @@
             local sendidx = CreateTrackSend( destproj_sendsrc_tr,dest_tr)
             DATA:Import2_Tracks_Receives_params(destproj_sendsrc_tr, sendidx, srct.SENDS[sendid]) 
           end 
-          if ret== true and EXT.CONF_sendlogic_desthasrec_no==1 then
-            DATA:Import2_Tracks_Receives_params(destproj_sendsrc_tr, sendidx, srct.SENDS[sendid]) 
+          if ret== true and sendID and EXT.CONF_sendlogic_desthasrec_no==1 then
+            DATA:Import2_Tracks_Receives_params(destproj_sendsrc_tr, sendID, srct.SENDS[sendid]) 
           end 
           
          else
@@ -2730,7 +2731,7 @@
     DATA.SIL_nodes['receiveexistinproject'] = {
       x = 1,
       y = 0,
-      txt = 'Marked receives exist in destination project or imported during importing other source track?',
+      txt = 'Receives associated with imported tracks already exist in destination project or are imported?',
       ext_key = nil,
       valid = EXT.CONF_sendlogic_flags2&1==1,
       dest_node_t = 
