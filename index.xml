@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="40e688f44f757355f54ee3f18ac51babe86ed4d8" name="MPL Scripts">
+<index version="1" commit="e5577e894a54f216a891657ba43f48a77a51065a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12900,6 +12900,11 @@ various fixes]]></changelog>
       <version name="3.02" author="MPL" time="2025-11-20T17:55:41Z">
         <changelog><![CDATA[# fix error on missing project]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40e688f44f757355f54ee3f18ac51babe86ed4d8/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.03" author="MPL" time="2025-11-21T07:23:42Z">
+        <changelog><![CDATA[# fix error on porting send parameters
+# fix naming for track send logic]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5577e894a54f216a891657ba43f48a77a51065a/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
