@@ -1,18 +1,13 @@
 ﻿-- @description SendFader
--- @version 3.18
+-- @version 3.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve sizing policy, add compact mode
---    # fix logic around left side sends combo list
---    - VCA: remove all obsolete VCA stuff
---    + VCA: add support for VCA-style separate fader, press V to open
---    + VCA: support to control both receives and sends depending on mode
---    + VCA: support to lock track from VCA control, use menu on track controls
+--    # Support ReaImGui 0.10 (this fix non-Unicode fonts display)
+--    # change slider background coloring a bit
 
 
 
-    vrs = 3.18
   --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -21,7 +16,7 @@
     
     if not reaper.ImGui_GetBuiltinPath then return reaper.MB('This script require ReaImGui extension','',0) end
     package.path =   reaper.ImGui_GetBuiltinPath() .. '/?.lua'
-    ImGui = require 'imgui' '0.9.3.2'
+    ImGui = require 'imgui' '0.10'
     
     
     
@@ -43,6 +38,7 @@
           --CONF_autoadjustwidth = 0,
           CONF_allowreceivefader_mode = 1,  -- &2 = allow show send list in receive mode
           CONF_allowsametrackmultsends = 0,
+          CONF_showparentsend = 0,
         }
   -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -75,9 +71,8 @@
     UI = {    popups = {},
             -- font
               font='Arial',
-              font1sz=15,
               font2sz=13,
-              font3sz=12,
+              font3sz=11,
             -- mouse
               hoverdelay = 0.8,
               hoverdelayshort = 0.8,
@@ -92,6 +87,10 @@
               but_hovered = 0x878787,
               windowBg = 0x303030,
               col_green = 0x00B300,
+              
+              sliderBG = 0x101010,
+              active_colbutheader = 0x50F050,
+              
           }
       UI.fader_scale_limratio = 0.8 
       UI.fader_scale_coeff = 30      
@@ -123,25 +122,6 @@
   ----------------------------------------------------------------------------------------- 
   function main() UI.MAIN_definecontext() end  
   -------------------------------------------------------------------------------- 
-  function ImGui.PushStyle(key, value, value2)  
-    if not (ctx and key and value) then return end
-    local iscol = key:match('Col_')~=nil
-    local keyid = ImGui[key]
-    if not iscol then 
-      ImGui.PushStyleVar(ctx, keyid, value, value2)
-      if not UI.pushcnt_var then UI.pushcnt_var = 0 end
-      UI.pushcnt_var = UI.pushcnt_var + 1
-    else 
-      if not value2 then
-        ReaScriptError( key ) 
-       else
-        ImGui.PushStyleColor(ctx, keyid, math.floor(value2*255)|(value<<8) )
-        if not UI.pushcnt_col then UI.pushcnt_col = 0 end
-        UI.pushcnt_col = UI.pushcnt_col + 1
-      end
-    end 
-  end
-  -------------------------------------------------------------------------------- 
   function UI.GetUserInputMB_replica(mode, key, title, num_inputs, captions_csv, retvals_csv_returnfunc, retvals_csv_setfunc) 
     local round = 4
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, round)
@@ -153,7 +133,7 @@
       -- (from reaimgui demo) Always center this window when appearing
       local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
       ImGui.SetNextWindowPos(ctx, center_x, center_y, ImGui.Cond_Appearing, 0.5, 0.5)
-      if ImGui.BeginPopupModal(ctx, key, nil, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border) then
+      if ImGui.BeginPopupModal(ctx, key, nil, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Borders) then
       
         -- MB replika
         if mode == 0 then
@@ -192,17 +172,7 @@
   end
   function UI.draw_unsetbuttonstyle() ImGui.PopStyleColor(ctx,3) end
   -------------------------------------------------------------------------------- 
-  function ImGui.PopStyle_var()  
-    if not (ctx) then return end
-    ImGui.PopStyleVar(ctx, UI.pushcnt_var)
-    UI.pushcnt_var = 0
-  end
-  -------------------------------------------------------------------------------- 
-  function ImGui.PopStyle_col()  
-    if not (ctx) then return end
-    ImGui.PopStyleColor(ctx, UI.pushcnt_col)
-    UI.pushcnt_col = 0
-  end 
+  function UI.Tools_RGBA(col, a_dec) return col<<8|math.floor(a_dec*255) end  
   -------------------------------------------------------------------------------- 
   function UI.MAIN_styledefinition(open)   
     
@@ -227,69 +197,75 @@
     
     
       -- rounding
-        ImGui.PushStyle('StyleVar_FrameRounding',5)   
-        ImGui.PushStyle('StyleVar_GrabRounding',3)  
-        ImGui.PushStyle('StyleVar_WindowRounding',10)  
-        ImGui.PushStyle('StyleVar_ChildRounding',5)  
-        ImGui.PushStyle('StyleVar_PopupRounding',0)  
-        ImGui.PushStyle('StyleVar_ScrollbarRounding',9)  
-        ImGui.PushStyle('StyleVar_TabRounding',4)   
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,5)   
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabRounding,3)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding,10)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding,5)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,0)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarRounding,9)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_TabRounding,4)   
       -- Borders
-        ImGui.PushStyle('StyleVar_WindowBorderSize',0)  
-        ImGui.PushStyle('StyleVar_FrameBorderSize',0) 
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize,0)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize,0) 
       -- spacing
-        ImGui.PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
-        ImGui.PushStyle('StyleVar_FramePadding',1,UI.spacingY) 
-        ImGui.PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
-        ImGui.PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
-        ImGui.PushStyle('StyleVar_ItemInnerSpacing',2,0)
-        ImGui.PushStyle('StyleVar_IndentSpacing',20)
-        ImGui.PushStyle('StyleVar_ScrollbarSize',20)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,UI.spacingX,UI.spacingY)  
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,UI.spacingY) 
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_CellPadding,UI.spacingX, UI.spacingY) 
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX, UI.spacingY)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemInnerSpacing,2,0)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_IndentSpacing,20)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize,20)
       -- size
-        ImGui.PushStyle('StyleVar_GrabMinSize',UI.GrabMinSize)
-        ImGui.PushStyle('StyleVar_WindowMinSize',w_min,h_min)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,UI.GrabMinSize)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowMinSize,w_min,h_min)
       -- align
-        ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
-        ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
-        ImGui.PushStyle('StyleVar_SelectableTextAlign',0.5,0.5)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowTitleAlign,0.5,0.5)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5,0.5)
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,0.5,0.5)
       -- alpha
-        ImGui.PushStyle('StyleVar_Alpha',0.98)
-        ImGui.PushStyle('Col_Border',UI.main_col, 0.3)
-      -- colors
-        ImGui.PushStyle('Col_Button',UI.main_col, 0.2) --0.3
-        ImGui.PushStyle('Col_ButtonActive',UI.main_col, 0.6) 
-        ImGui.PushStyle('Col_ButtonHovered',UI.but_hovered, 0.4)
-        ImGui.PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
-        ImGui.PushStyle('Col_FrameBg',0x1F1F1F, 0.7)
-        ImGui.PushStyle('Col_FrameBgActive',UI.main_col, .6)
-        ImGui.PushStyle('Col_FrameBgHovered',UI.main_col, 0.7)
-        ImGui.PushStyle('Col_Header',UI.main_col, 0.5) 
-        ImGui.PushStyle('Col_HeaderActive',UI.main_col, 1) 
-        ImGui.PushStyle('Col_HeaderHovered',UI.main_col, 0.98) 
-        ImGui.PushStyle('Col_PopupBg',0x303030, 0.9) 
-        ImGui.PushStyle('Col_ResizeGrip',UI.main_col, 1) 
-        ImGui.PushStyle('Col_ResizeGripHovered',UI.main_col, 1) 
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,0.99)
         
-        ImGui.PushStyle('Col_SliderGrab',0x3D85E0 , 0.6)  
-        ImGui.PushStyle('Col_SliderGrabActive',0x3D85E0 , 1)  
+        
+        
+        
+      -- colors
+        ImGui.PushStyleColor(ctx, ImGui.Col_Border,       UI.Tools_RGBA(UI.main_col, 0.3))
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button,       UI.Tools_RGBA(UI.main_col, 0.2))
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, UI.Tools_RGBA(UI.main_col, 0.6) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,UI.Tools_RGBA(UI.but_hovered, 0.4))
+        ImGui.PushStyleColor(ctx, ImGui.Col_DragDropTarget,UI.Tools_RGBA(0xFF1F5F, 0.6))
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,      UI.Tools_RGBA(0x1F1F1F, 0.7))
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,UI.Tools_RGBA(UI.main_col, .6))
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,UI.Tools_RGBA(UI.main_col, 0.7))
+        ImGui.PushStyleColor(ctx, ImGui.Col_Header,       UI.Tools_RGBA(UI.main_col, 0.5) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive, UI.Tools_RGBA(UI.main_col, 1) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,UI.Tools_RGBA(UI.main_col, 0.98)) 
+        ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,      UI.Tools_RGBA(0x303030, 0.9) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,   UI.Tools_RGBA(UI.main_col, 1) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,UI.Tools_RGBA(UI.main_col, 1) )
+        
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,   UI.Tools_RGBA(0x3D85E0 , 0.6)  )
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,UI.Tools_RGBA(0x3D85E0 , 1) ) 
+        local rec_cnt = 0
         if DATA.selected_track_is_receive == true then  
-          ImGui.PushStyle('Col_SliderGrab',0x00B300 , 0.6)
-          ImGui.PushStyle('Col_SliderGrabActive',0x00B300 , 1)
+          ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, UI.Tools_RGBA(0x00B300 , 0.6))
+          ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,UI.Tools_RGBA(0x00B300 , 1))
+          rec_cnt = 2
         end
         
         
-        ImGui.PushStyle('Col_Tab',UI.main_col, 0.37) 
-        ImGui.PushStyle('Col_TabHovered',UI.main_col, 0.8) 
-        ImGui.PushStyle('Col_Text',UI.textcol, UI.textcol_a_enabled) 
-        ImGui.PushStyle('Col_TitleBg',UI.main_col, 0.7) 
-        ImGui.PushStyle('Col_TitleBgActive',UI.main_col, 0.95) 
-        ImGui.PushStyle('Col_WindowBg',UI.windowBg, 1)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Tab,          UI.Tools_RGBA(UI.main_col, 0.37) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,   UI.Tools_RGBA(UI.main_col, 0.8) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_Text,         UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,      UI.Tools_RGBA(UI.main_col, 0.7) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,UI.Tools_RGBA(UI.main_col, 0.95) )
+        ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,     UI.Tools_RGBA(UI.windowBg, 1))
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
+      --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
+      --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
       
@@ -304,9 +280,11 @@
       end]]
       
     -- init UI 
-      ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name..' v'..vrs..'##'..DATA.UI_name, open, window_flags) 
+      ImGui.PushFont(ctx, DATA.font, UI.font2sz) 
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags)  -- DATA.UI_name..' v'..vrs..'##'..DATA.UI_name
       if rv then
+        
+        UI.draw_list = ImGui.GetWindowDrawList( ctx )
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
         DATA.display_w, DATA.display_h = ImGui.Viewport_GetSize(Viewport) 
@@ -316,27 +294,31 @@
       -- calc stuff for childs
         UI.calc_xoffset,UI.calc_yoffset = ImGui.GetStyleVar(ctx, ImGui.StyleVar_WindowPadding)
         local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
-        local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
+        local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'Test') 
         UI.calc_itemH = calcitemh + frameh * 2
-        UI.calc_trnamew = DATA.display_w - UI.menubutw*2
-        UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*8-UI.spacingY*8-UI.spacingY*5
-        UI.calc_comboW = math.floor(UI.faderW - UI.spacingY*2)/2
+        -- measure controls font
+        ImGui.PushFont(ctx, DATA.font, UI.font3sz) 
+        local calcitemw2, calcitemh2 = ImGui.CalcTextSize(ctx, 'Test')
+        UI.calc_itemH2 = calcitemh2 + frameh * 2
+        ImGui.PopFont(ctx)
         
-        if DATA.display_h < UI.compactmodeH then 
-          UI.calc_faderH = DATA.display_h_regavail - UI.calc_itemH*1-UI.spacingY*3
-        end
+        
+        UI.calc_trnamew = DATA.display_w - UI.menubutw*2
+        UI.calc_comboW = math.floor(UI.faderW - UI.spacingY*2)/2 
+        
+        UI.calc_controlsarea = UI.calc_itemH + UI.calc_itemH*8+UI.spacingY*6
+        if DATA.display_h < UI.compactmodeH then  UI.calc_controlsarea =  UI.calc_itemH*1+UI.spacingY*3 end  
+        UI.calc_faderH = DATA.display_h_regavail - UI.calc_controlsarea 
+        
         
       -- draw stuff
         UI.draw()
         ImGui.Dummy(ctx,0,0) 
-        ImGui.PopStyle_var() 
-        ImGui.PopStyle_col() 
         ImGui.End(ctx)
-       else
-        ImGui.PopStyle_var() 
-        ImGui.PopStyle_col() 
       end 
       ImGui.PopFont( ctx ) 
+      ImGui.PopStyleVar(ctx,22)
+      ImGui.PopStyleColor(ctx,22+rec_cnt)
       
       -- cnt popups 
       local ppupcnt = 0 
@@ -604,6 +586,7 @@
     local ret, name =  GetTrackName(tr)
     local solo  = GetMediaTrackInfo_Value( tr, 'I_SOLO' ) 
     local I_NCHAN  = GetMediaTrackInfo_Value( tr, 'I_NCHAN' ) 
+    local B_MAINSEND  = GetMediaTrackInfo_Value( tr, 'B_MAINSEND' ) 
     local UIsolotxt = 'Solo'
     if GetMediaTrackInfo_Value( tr, 'B_SOLO_DEFEAT') ==1 then UIsolotxt = UIsolotxt..' [Defeat]' end 
     
@@ -614,6 +597,7 @@
       solo = solo,
       UIsolotxt = UIsolotxt,
       I_NCHAN = I_NCHAN,
+      B_MAINSEND = B_MAINSEND,
       peaks = {},
       }    
     
@@ -698,9 +682,7 @@
     -- imgUI init
     ctx = ImGui.CreateContext(DATA.UI_name) 
     -- fonts
-    DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
-    DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
-    DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
+    DATA.font = ImGui.CreateFont(UI.font) ImGui.Attach(ctx, DATA.font)
     -- config
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
@@ -912,6 +894,7 @@
         if ImGui.MenuItem( ctx, 'Allow show sends in ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&2==2, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~2 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show track levels', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show available sends in left combo', '', EXT.CONF_alwaysshowreceives==2, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~2 EXT:save() DATA.upd = true end
+        if ImGui.MenuItem( ctx, 'Show parent send', '', EXT.CONF_showparentsend==1, true ) then EXT.CONF_showparentsend=EXT.CONF_showparentsend~1 EXT:save() DATA.upd = true end
         --local t = { [1] = 'Hide', [0] = 'List', [2] = 'Combo', } local preview_value = 'Tracks marked for send: '..t[EXT.CONF_alwaysshowreceives]
         --if ImGui.BeginCombo( ctx, '##Marked receives', preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then  for val in pairs(t ) do if ImGui.Selectable( ctx, t[val]..'##markreccombo'..val, val == EXT.CONF_alwaysshowreceives, ImGui.SelectableFlags_None) then EXT.CONF_alwaysshowreceives=val EXT:save() DATA.upd = true end end ImGui.EndCombo( ctx) end
       
@@ -922,6 +905,19 @@
   function UI.draw_menu_solo() 
     if not(DATA.srctr and DATA.srctr.UIsolotxt ) then return end
     if DATA.display_w <= UI.minsizeW2 then return end 
+    
+    if DATA.srctr.solo==0 then 
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,       UI.Tools_RGBA(UI.main_col, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive, UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,UI.Tools_RGBA(UI.main_col, 0.98)) 
+     else
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,       UI.Tools_RGBA(UI.active_colbutheader, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive, UI.Tools_RGBA(UI.active_colbutheader, 0.9) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,UI.Tools_RGBA(UI.active_colbutheader, 0.7)) 
+    end
+    
+    
+    
     if ImGui.MenuItem( ctx, DATA.srctr.UIsolotxt, '', DATA.srctr and DATA.srctr.solo > 0, true ) then 
       local tr = DATA.srctr.ptr
       if DATA.srctr.solo==0 then 
@@ -941,12 +937,46 @@
       TrackList_AdjustWindows( false )
       DATA.upd = true 
     end
+    
+    ImGui.PopStyleColor(ctx,3)
+    
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_menu_parsend() 
+    if DATA.display_w <= UI.minsizeW2 then return end 
+    
+    if DATA.srctr.B_MAINSEND==0 then 
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,       UI.Tools_RGBA(UI.main_col, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive, UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,UI.Tools_RGBA(UI.main_col, 0.98)) 
+     else
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,       UI.Tools_RGBA(UI.active_colbutheader, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive, UI.Tools_RGBA(UI.active_colbutheader, 0.9) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,UI.Tools_RGBA(UI.active_colbutheader, 0.7)) 
+    end
+    
+    if ImGui.MenuItem( ctx, 'Parent send', '', DATA.srctr and DATA.srctr.B_MAINSEND ~= 0, true ) then 
+      local tr = DATA.srctr.ptr
+      SetMediaTrackInfo_Value( tr, 'B_MAINSEND', DATA.srctr.B_MAINSEND~1 ) 
+      TrackList_AdjustWindows( false )
+      DATA.upd = true 
+    end
+    
+    ImGui.PopStyleColor(ctx,3)
+    
   end
   --------------------------------------------------------------------------------  
   function UI.draw_menu()   
     if ImGui.BeginMenuBar( ctx ) then 
       UI.draw_menu_add() 
+      ImGui.Dummy(ctx, 0,0)
       UI.draw_menu_solo()
+      ImGui.Dummy(ctx, 0,0)
+      if EXT.CONF_showparentsend == 1 then
+        UI.draw_menu_parsend()
+        ImGui.Dummy(ctx, 0,0)
+      end
+      
       UI.draw_menu_options()
       ImGui.EndMenuBar( ctx )
     end 
@@ -954,12 +984,7 @@
   --------------------------------------------------------------------------------  
   function UI.draw()  
     UI.draw_menu() 
-    
-    ImGui.PushFont(ctx, DATA.font2) 
-    --ImGui.SameLine(ctx)
-    UI.draw_sends()  
-    ImGui.PopFont(ctx)
-    
+    UI.draw_sends()   
     if ImGui_IsKeyPressed(  ctx, ImGui.Key_V,false )        then ImGui.OpenPopup(ctx, 'vcapopup', ImGui.PopupFlags_None) end
     UI.draw_VCAfader() 
     UI.draw_popups() 
@@ -1011,25 +1036,18 @@
   end
   --------------------------------------------------------------------------------  
   function UI.draw_VCAfader() 
-    vca_w = UI.faderW+UI.spacingX*2
-    vca_h = 205
+    local vca_w = UI.faderW+UI.spacingX*2
+    local vca_h = 205
     ImGui_SetNextWindowPos(ctx, DATA.display_x+(DATA.display_w-vca_w)/2,DATA.display_y+(DATA.display_h-vca_h)/2, ImGui.Cond_Appearing)
     ImGui_SetNextWindowSize(ctx, vca_w,vca_h, ImGui.Cond_Always)
     if ImGui.BeginPopup(ctx, 'vcapopup', ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then
-      if reaper.ImGui_BeginChild(ctx, 'vcachild',vca_w,vca_h,ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY, ImGui.WindowFlags_NoScrollbar) then
-        ImGui.SeparatorText(ctx,'VCA')
-        
-        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,0x7D0F0FBF)  
-        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,0xBD0F0FBF)  
-        -- slider
-        local retval, v = ImGui.VSliderDouble( ctx, '##mainVCA', UI.faderW, UI.calc_faderH, DATA.VCA_faderval, 0, 2, '', ImGui.SliderFlags_None)
-        UI.draw_VCAfader_handlemouse(v) 
-          
-        ImGui.Dummy(ctx,10,30)
-        ImGui.PopStyleColor(ctx,2)
-        
-        reaper.ImGui_EndChild(ctx)
-      end
+      ImGui.SeparatorText(ctx,'VCA') 
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,0x7D0F0FBF)  
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,0xBD0F0FBF)  
+      x, y = reaper.ImGui_GetContentRegionAvail( ctx )
+      local retval, v = ImGui.VSliderDouble( ctx, '##mainVCA', UI.faderW, y, DATA.VCA_faderval, 0, 2, '', ImGui.SliderFlags_None)
+      UI.draw_VCAfader_handlemouse(v) 
+      ImGui.PopStyleColor(ctx,2)
       ImGui.EndPopup(ctx)
     end
   end
@@ -1069,7 +1087,11 @@
     local hovered 
     -- slider
     local faderval = DATA:Convert_Val2Fader(t.vol)
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,UI.Tools_RGBA(UI.sliderBG, 0.8))
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,UI.Tools_RGBA(UI.sliderBG, 0.9))
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,UI.Tools_RGBA(UI.sliderBG, 1))
     local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
+    ImGui.PopStyleColor(ctx,3)
     
     -- on left click
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then  
@@ -1158,9 +1180,8 @@
       local x2, y2 = reaper.ImGui_GetItemRectMax( ctx )
       local ledsz = 5
       local ledoffs = 5
-      draw_list = ImGui.GetWindowDrawList( ctx )
       if t.VCALOCK and t.VCALOCK == 1 then
-        ImGui.DrawList_AddRectFilled( draw_list, x1+ledoffs,y1+ledoffs, x1+ledoffs+ledsz,y1+ledoffs+ledsz, 0xF95F0FBF, 2, reaper.ImGui_DrawFlags_None() )
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x1+ledoffs,y1+ledoffs, x1+ledoffs+ledsz,y1+ledoffs+ledsz, 0xF95F0FBF, 2, reaper.ImGui_DrawFlags_None() )
       end
     
     -- show peaks
@@ -1356,7 +1377,7 @@
     }
     local preview_value= ''
     if map_t[t.I_SENDMODE] then preview_value = map_t[t.I_SENDMODE] end
-    if ImGui.BeginCombo( ctx, '##srcmode'..str_id, preview_value, ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
+    if ImGui.BeginCombo( ctx, '##srcmode'..str_id, '', ImGui.ComboFlags_None|ImGui.ComboFlags_NoArrowButton ) then
       for key in pairs(map_t) do
         if ImGui.Selectable( ctx, map_t[key]..'##srcch'..str_id..key, t.I_SENDMODE==key, ImGui.SelectableFlags_None) then
           SetTrackSendInfo_Value(  t.srcPtr, 0, t.sendidx, 'I_SENDMODE', key)
@@ -1366,6 +1387,13 @@
       ImGui.EndCombo( ctx)
     end
     
+    -- draw mode
+    local x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
+    local iw, ih = ImGui.GetItemRectSize( ctx )
+    --ImGui.PushFont(ctx, DATA.font, UI.font3sz) 
+    local txtw, txth = reaper.ImGui_CalcTextSize( ctx, preview_value)
+    --ImGui.PopFont(ctx) 
+    ImGui.DrawList_AddTextEx( UI.draw_list, DATA.font,  UI.font3sz, x1 + 0.5*(iw - txtw), y1 + 0.5*(ih - txth), 0xFFFFFFFF, preview_value )
   end
   ----------------------------------------------------------------------------------------- 
   function UI.draw_sends_sub_pan(t)
@@ -1522,9 +1550,9 @@
     
     -- show list of available sends in list
     if EXT.CONF_alwaysshowreceives == 2 and (DATA.selected_track_is_receive ~= true or (DATA.selected_track_is_receive == true and EXT.CONF_allowreceivefader_mode&2==2)) then
-      for i = 1, #DATA.receives do
+      for i = 1, #DATA.receives do 
         if (DATA.srctr.ptr~=DATA.receives[i].ptr ) then
-          if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Border) then
+          if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Borders) then
             if ImGui.Button( ctx, DATA.receives[i].trname,-1) then 
               CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
               DATA.upd = true 
@@ -1631,9 +1659,10 @@
       destCol = (destCol << 8) | math.floor(0.5*255)
       ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,destCol)
     end
-    if ImGui.BeginChild( ctx, str_id, 0, -1, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Border, ImGui.WindowFlags_None) then
+    if ImGui.BeginChild( ctx, str_id, 0, -1, ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_AutoResizeY|ImGui.ChildFlags_Borders, ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then
       UI.draw_sends_sub_slider(t) 
       UI.draw_sends_sub_destname(t) 
+      ImGui.PushFont(ctx, DATA.font, UI.font3sz) 
       if t.is_receive ~= true then
         if DATA.display_h > UI.compactmodeH then 
           UI.draw_sends_sub_chan(t)
@@ -1646,7 +1675,7 @@
           UI.draw_sends_sub_monophase(t) 
         end
       end
-      
+      ImGui.PopFont(ctx) 
       ImGui.EndChild( ctx)
     end
     ImGui.PopStyleColor(ctx)
