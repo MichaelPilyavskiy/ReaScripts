@@ -1,11 +1,12 @@
 -- @description ImportSessionData
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix error on porting send parameters
---    # fix naming for track send logic
+--    # rewrite mode/submode match section
+--    # fix match by ID and color
+--    # fix foldname parsing
 
 
 
@@ -1251,13 +1252,13 @@
     local sel_tr = GetSelectedTrack(-1,0) 
     if not sel_tr then return end
     
-    local new_tr_src = DATA:Import_CreateNewTrack(false, DATA.srcproj.TRACK[trid] ) 
+    local new_temporary_src = DATA:Import_CreateNewTrack(false, DATA.srcproj.TRACK[trid] ) 
     local dest_cnt = TrackFX_GetCount( sel_tr ) 
-    for src_fx = 1, TrackFX_GetCount( new_tr_src ) do 
-      TrackFX_CopyToTrack( new_tr_src, src_fx-1, sel_tr, dest_cnt + src_fx-1, false )  
-      --DATA:Import_TransferTrackData_FXchain_Envelopes(new_tr_src, sel_tr,dest_cnt,src_fx)
+    for src_fx = 1, TrackFX_GetCount( new_temporary_src ) do 
+      TrackFX_CopyToTrack( new_temporary_src, src_fx-1, sel_tr, dest_cnt + src_fx-1, false )  
+      --DATA:Import_TransferTrackData_FXchain_Envelopes(new_temporary_src, sel_tr,dest_cnt,src_fx)
     end
-    DeleteTrack( new_tr_src ) -- remove temporary 
+    DeleteTrack( new_temporary_src ) -- remove temporary 
   end
   ---------------------------------------------------------------------  
   function DATA:Action_ImportItemsToSelTrack(trid) 
@@ -2000,7 +2001,9 @@
   end
   ----------------------------------------------------------------------
   function DATA:ParseSourceProject(fp)
+    
     if not fp then return end
+    
     -- init
     DATA.srcproj = {}
     DATA.srcproj.fp = fp
@@ -2021,8 +2024,9 @@
     
     -- postprocess / send-aux children
       for trid in pairs(DATA.srcproj.TRACK) do
-        if DATA.srcproj.TRACK[trid].foldname:lower():match('send') or DATA.srcproj.TRACK[trid].foldname:lower():match('aux') then
-          DATA.srcproj.TRACK[trid].prevent_from_auto_match = true
+        if DATA.srcproj.TRACK[trid] and DATA.srcproj.TRACK[trid].foldname then 
+          local foldname = tostring(DATA.srcproj.TRACK[trid].foldname)
+          DATA.srcproj.TRACK[trid].prevent_from_auto_match = foldname:lower():match('send') or foldname:lower():match('aux')
         end
       end
     
@@ -2321,45 +2325,60 @@
       
       local mode = srct.destmode or 0 
       
+      --[[ 
+        destmode 1 // at the end 
+        destmode 3 // at the end, obey structure
+        destmode 2 // replace specific track
+      ]]
       
-      if mode == 1 then -- at the end 
-        local new_tr_src = DATA:Import_CreateNewTrack(false, srct) 
-        local dest_tr = DATA:Import_CreateNewTrack(true)
-        DATA:Import_TransferTrackData(new_tr_src, dest_tr)
-        srct.dest_track_GUID = GetTrackGUID( dest_tr )
-      end
       
-      if mode == 3 then -- at the end, obey structure
-        local new_tr_src = DATA:Import_CreateNewTrack(false, srct) 
-        local dest_tr = DATA:Import_CreateNewTrack(true)
-        DATA:Import_TransferTrackData(new_tr_src, dest_tr, true)
-        srct.dest_track_GUID = GetTrackGUID( dest_tr )
-      end 
-      
-      if mode == 2 and srct.dest_track_GUID then -- replace specific track
-        if not (srct.destmode_submode and (srct.destmode_submode == 3 or srct.destmode_submode == 4 )) then
-          
-          local new_tr_src = DATA:Import_CreateNewTrack(false, srct)
-          local dest_tr 
-          local srcpos_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
-          
-          if not srct.destmode_submode then
-            dest_tr = srcpos_tr
-           elseif srct.destmode_submode == 1 or srct.destmode_submode ==2 then
-            dest_tr = DATA:Import_CreateNewTrack(true)
-          end 
-          DATA:Import_TransferTrackData(new_tr_src, dest_tr) 
-          --srct.dest_track_GUID = GetTrackGUID( dest_tr )
-          
-          if srct.destmode_submode == 1 or srct.destmode_submode ==2 then
-            SetOnlyTrackSelected( dest_tr )
-            makePrevFolder = 0
-            if srct.destmode_submode ==2 then makePrevFolder = 1 end
-            ReorderSelectedTracks(  CSurf_TrackToID( srcpos_tr, false ), makePrevFolder )
-          end
-          
+      -- new at the end 
+        if mode == 1 then 
+          local new_temporary_src = DATA:Import_CreateNewTrack(false, srct) 
+          local dest_tr = DATA:Import_CreateNewTrack(true)
+          DATA:Import_TransferTrackData(new_temporary_src, dest_tr)
+          srct.dest_track_GUID = GetTrackGUID( dest_tr )
         end
-      end
+      
+      -- new at the end, obey structure
+        if mode == 3 then 
+          local new_temporary_src = DATA:Import_CreateNewTrack(false, srct) 
+          local dest_tr = DATA:Import_CreateNewTrack(true)
+          DATA:Import_TransferTrackData(new_temporary_src, dest_tr, true)
+          srct.dest_track_GUID = GetTrackGUID( dest_tr )
+        end 
+      
+      -- replace specific track
+        if mode == 2 then 
+        
+        --[[  
+          destmode 2:
+          destmode_submode 1 // Match by name: place under matched track
+          destmode_submode 2 // Match by name: place under matched track as child'
+          destmode_submode 4 // Match by name: mark only for porting send parameters
+          destmode_submode 5 // Match by ID
+          destmode_submode 6 // Match by color
+          ]]
+          
+          if not srct.dest_track_GUID then goto importnexttrack end
+          local destmode_submode = srct.destmode_submode or 0
+          
+          local new_temporary_src = DATA:Import_CreateNewTrack(false, srct)
+          local dest_track_existing = VF_GetTrackByGUID(srct.dest_track_GUID)  
+          local dest_track = dest_track_existing
+          if destmode_submode == 1 or destmode_submode ==2 then dest_track = DATA:Import_CreateNewTrack(true) end -- additional track under matched one
+            
+          DATA:Import_TransferTrackData(new_temporary_src, dest_track) 
+          --srct.dest_track_GUID = GetTrackGUID( dest_tr ) -- enabling triggers mess with receives
+          
+          if destmode_submode == 1 or destmode_submode ==2 then
+            SetOnlyTrackSelected( dest_track )
+            local makePrevFolder = 0
+            if destmode_submode ==2 then makePrevFolder = 1 end
+            ReorderSelectedTracks(  CSurf_TrackToID( dest_track_existing, false ), makePrevFolder )
+          end
+            
+        end
       
       
       ::importnexttrack::
