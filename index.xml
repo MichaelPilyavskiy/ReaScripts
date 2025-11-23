@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2ac0f8666123751aa77abbf2cb7197279c955bf2" name="MPL Scripts">
+<index version="1" commit="f21fbea1dc58468d95b096971c4d004b3eccc6c2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -15479,6 +15479,11 @@ various fixes]]></changelog>
 + VCA: support to control both receives and sends depending on mode
 + VCA: support to lock track from VCA control, use menu on track controls]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7115e5dff59652906a383094cdc3bb08aee1f298/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.19" author="MPL" time="2025-11-23T13:35:27Z">
+        <changelog><![CDATA[# Support ReaImGui 0.10 (this fix non-Unicode fonts display)
+# change slider background coloring a bit]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f21fbea1dc58468d95b096971c4d004b3eccc6c2/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
