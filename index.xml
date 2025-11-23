@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="34b9f0d54b50bc4be54d9577f23578108c316acb" name="MPL Scripts">
+<index version="1" commit="2ac0f8666123751aa77abbf2cb7197279c955bf2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12911,6 +12911,12 @@ various fixes]]></changelog>
 # fix match by ID and color
 # fix foldname parsing]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/34b9f0d54b50bc4be54d9577f23578108c316acb/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.05" author="MPL" time="2025-11-23T11:32:53Z">
+        <changelog><![CDATA[# improve logic/naming around [mark only for receives] option
++ Color not matched tracks red
++ Color send children tracks green]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2ac0f8666123751aa77abbf2cb7197279c955bf2/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
