@@ -1,15 +1,20 @@
 -- @description ImportSessionData
--- @version 3.05
+-- @version 3.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # improve logic/naming around [mark only for receives] option
---    + Color not matched tracks red
---    + Color send children tracks green
+--    # Source track list: fix empty indent on missing track color
+--    # Settings: remove "hide in list hidden source track" option
+--    + Source track list: dim hidden tracks
+--    + Settings: add option to auto select children
+--    + Make window resizable, tweak a bit sizing policy
+--    + Make window dockable
+--    + Shortcuts: ctra+A to select all tracks
+--    + Tracks: add import logic shortcut
 
 
-
+    
 --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
     vrsmin = 7.0
@@ -52,11 +57,11 @@
           UI_appatchange = 1, 
           UI_appatinit = 1,
           UI_matchatsettingsrc = 1,
-          UI_hidesrchiddentracks = 1,
           
           UI_trfilter = '',
           UI_lastsrcproj = '',
           UI_ignoretracklistselection = 1,
+          UI_autoselectchildren = 0,
           
           -- track params
           CONF_tr_name = 1,
@@ -142,8 +147,7 @@
         wind_H = 480, 
         default_none_dest = '[none]' ,
         default_newtrackatend_dest = 'New track at the end of tracklist' ,
-        default_newtrackatend1_dest = 'New track at the end of tracklist, obey structure' ,
-        tracklist_W = 500,
+        default_newtrackatend1_dest = 'New track at the end of tracklist, obey structure' , 
         indent_menu = 10,
         }
     
@@ -162,7 +166,7 @@
       window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
       --window_flags = window_flags | ImGui.WindowFlags_MenuBar
       --window_flags = window_flags | ImGui.WindowFlags_NoMove()
-      window_flags = window_flags | ImGui.WindowFlags_NoResize
+      --window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
       window_flags = window_flags | ImGui.WindowFlags_NoNav
       --window_flags = window_flags | ImGui.WindowFlags_NoBackground
@@ -195,7 +199,7 @@
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarSize,20)
     -- size
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabMinSize,20)
-      --ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowMinSize,640,480)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowMinSize,UI.wind_W, UI.wind_H)
       
     -- align
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowTitleAlign,0.5,0.5)
@@ -236,7 +240,7 @@
     -- init UI 
       ImGui.PushFont(ctx, DATA.font,14) 
       
-      reaper.ImGui_SetNextWindowSize(ctx, UI.wind_W, UI.wind_H)
+      --reaper.ImGui_SetNextWindowSize(ctx, UI.wind_W, UI.wind_H)
       local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) --
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
@@ -251,6 +255,7 @@
         local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
         local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'Test')
         UI.calc_itemH = calcitemh + frameh * 2
+        UI.calc_tracklist_W = DATA.display_w - 400
          
         -- get drawlist
         UI.draw_list = ImGui.GetWindowDrawList( ctx )
@@ -259,6 +264,9 @@
         UI.Mod_Shift = ImGui.IsKeyDown(ctx, ImGui.Mod_Shift)
         UI.Mod_Ctrl = ImGui.IsKeyDown(ctx, ImGui.Mod_Ctrl)
         UI.Mod_Alt = ImGui.IsKeyDown(ctx, ImGui.Mod_Alt)
+        
+        -- shortcut
+        if ImGui.Shortcut( ctx, ImGui.Mod_Ctrl | ImGui.Key_A, ImGui.InputFlags_None ) then DATA:Action_SelectAllTracks() end
         
         -- draw stuff
         UI.draw() 
@@ -274,7 +282,7 @@
      
      
     -- pop
-      ImGui.PopStyleVar(ctx, 21) 
+      ImGui.PopStyleVar(ctx, 22) 
       ImGui.PopStyleColor(ctx, 23) 
       ImGui.PopFont( ctx ) 
     
@@ -286,6 +294,15 @@
       end
   
     return open
+  end
+  -------------------------------------------------------------------------------- 
+  function DATA:Action_SelectAllTracks()
+    if not (DATA.srcproj and DATA.srcproj.TRACK) then return end 
+    for trid  =1 , #DATA.srcproj.TRACK do
+      DATA.srcproj.TRACK[trid].UI_selected = true
+      ::skip_track::
+    end 
+    
   end
   -------------------------------------------------------------------------------- 
   function UI.MAIN_loop() 
@@ -381,13 +398,13 @@
   function UI.draw_tabs_tracks_list() 
     if not (DATA.srcproj and DATA.srcproj.TRACK)then return end
     local indent = 10
-    local trackX2 = 240
-    if ImGui.BeginChild(ctx, 'tracklist', UI.tracklist_W) then
+    local trackX2 = UI.calc_tracklist_W/2
+    if ImGui.BeginChild(ctx, 'tracklist', UI.calc_tracklist_W ,nil, reaper.ImGui_ChildFlags_Borders() ) then
+      
       
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign, 0,0.5)
       for trid = 1, #DATA.srcproj.TRACK do
         if not DATA.srcproj.TRACK[trid].NAME then goto skip_track end
-        if EXT.UI_hidesrchiddentracks==1 and not (DATA.srcproj.TRACK[trid].SHOWINMIX[1] == 1 and DATA.srcproj.TRACK[trid].SHOWINMIX[4] == 1 ) then goto skip_track end
         
         -- naming
           local txt = DATA.srcproj.TRACK[trid].NAME_UI
@@ -401,8 +418,8 @@
           if level ~= 0 then ImGui.Indent(ctx, indent*level) end
         
         -- col
-          local UI_col_rgba = DATA.srcproj.TRACK[trid].UI_col_rgba or 0
-          if UI_col_rgba then 
+          local UI_col_rgba = DATA.srcproj.TRACK[trid].CUST_UI_col_rgba
+          if UI_col_rgba and UI_col_rgba ~= 0 then 
             local rectsz = 20
             ImGui.InvisibleButton(ctx, '##color_src'..trid,rectsz,rectsz)
             local p_min_x, p_min_y = reaper.ImGui_GetItemRectMin( ctx )
@@ -414,10 +431,14 @@
         -- main selectable
           local selected = DATA.srcproj.TRACK[trid].UI_selected
           local curposX = reaper.ImGui_GetCursorPosX(ctx)
-          if DATA.srcproj.TRACK[trid].trackisreceive == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x50F050FF) end
+          local coltxtalpha =0xFF
+          local coltxt = 0xFFFFFF00
+          if DATA.srcproj.TRACK[trid].CUST_hidden == true then coltxtalpha = 0x70 end
+          if DATA.srcproj.TRACK[trid].CUST_trackisreceive == true then coltxt = 0x50F05000  end
+          ImGui.PushStyleColor(ctx, ImGui.Col_Text, coltxt |coltxtalpha)
           ImGui.Custom_Selectable(ctx, txt, trackX2-curposX, 0, selected)--, , reaper.ImGui_SelectableFlags_None(), trackW - indent*level)
           if reaper.ImGui_IsItemClicked(ctx) then DATA:Actions_Selection_ontrackclick(trid) end
-          if DATA.srcproj.TRACK[trid].trackisreceive == true then ImGui.PopStyleColor(ctx) end
+          ImGui.PopStyleColor(ctx)
           
           if txt:len()>28 then 
             --ImGui.PushStyleColor(ctx, ImGui.Col_Border,           UI.Tools_RGBA(0x909090, 0.3))
@@ -801,10 +822,17 @@
     end
   end
   --------------------------------------------------------------------- 
+  function DATA:Action_GotoSendLogic()
+    DATA.temp_jump_to_node = true
+  end
+  --------------------------------------------------------------------- 
+  
   function UI.draw_tabs_sendimportlogic()
     local indent = UI.indent_menu
     function __b_draw_tabs_sendimportlogic() end
-    if ImGui.BeginTabItem(ctx, 'Track send import logic') then -- ,false, reaper.ImGui_TabItemFlags_SetSelected()
+    local flags 
+    if DATA.temp_jump_to_node == true then flags = ImGui_TabItemFlags_SetSelected() DATA.temp_jump_to_node = nil end
+    if ImGui.BeginTabItem(ctx, 'Track send import logic',false,flags) then 
       
       local x1,y1 = reaper.ImGui_GetCursorScreenPos(ctx)
       local xav, yav = reaper.ImGui_GetContentRegionAvail( ctx )
@@ -942,7 +970,9 @@
         if ImGui.Checkbox( ctx, 'Ignore tracklist selection at import##UI_ignoretracklistselection', EXT.UI_ignoretracklistselection&1 == 1 ) then EXT.UI_ignoretracklistselection =EXT.UI_ignoretracklistselection~1 EXT:save() end
         ImGui.SameLine(ctx) UI.HelpMarker('Always import all tracks marked for import')
         if ImGui.Checkbox( ctx, 'Parse source project at initialization##UI_appatinit', EXT.UI_appatinit&1 == 1 ) then EXT.UI_appatinit =EXT.UI_appatinit~1 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Hide src proj hidden tracks in list##UI_hidesrchiddentracks', EXT.UI_hidesrchiddentracks&2 == 2 ) then EXT.UI_hidesrchiddentracks =EXT.UI_hidesrchiddentracks~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Autoselect children on selecting source folder track##UI_autoselectchildren', EXT.UI_autoselectchildren&1 == 1 ) then EXT.UI_autoselectchildren =EXT.UI_autoselectchildren~1 EXT:save() end
+        
+        
       ImGui.Unindent(ctx, indent)
       
       
@@ -957,7 +987,7 @@
     if ImGui.BeginTabItem(ctx, 'Tracks') then 
       
       -- buttons
-      if ImGui.BeginChild(ctx, 'tracklist_actions', UI.tracklist_W,25) then --reaper.ImGui_ChildFlags_Borders()
+      if ImGui.BeginChild(ctx, 'tracklist_actions', UI.calc_tracklist_W,25) then --reaper.ImGui_ChildFlags_Borders()
         -- filter
         reaper.ImGui_SetNextItemWidth(ctx, 150)
         local retval, buf = reaper.ImGui_InputText( ctx, '##tracks_inputbuf', DATA.temp_inputtrackfiltbuf, reaper.ImGui_InputTextFlags_None() )
@@ -1082,6 +1112,17 @@
         ImGui.Unindent(ctx, indent)
       end
       
+      if ImGui.CollapsingHeader(ctx, 'Routing', nil) then
+        ImGui.Indent(ctx, indent)
+          if ImGui.Checkbox( ctx, 'Import sends##CONF_sendlogic_flags2',                    EXT.CONF_sendlogic_flags2&1 == 1 ) then EXT.CONF_sendlogic_flags2 =EXT.CONF_sendlogic_flags2~1 EXT:save() end
+          if EXT.CONF_sendlogic_flags2&1 == 1 then 
+            ImGui.SameLine(ctx)
+            if ImGui.Button(ctx, 'Send import logic') then DATA:Action_GotoSendLogic() end
+          end
+        ImGui.Unindent(ctx, indent)
+      end
+      
+      
       
       ImGui.EndChild(ctx)
     end
@@ -1146,7 +1187,7 @@
       
       
       
-      if EXT.CONF_tr_match_preventsends == 1 and DATA.srcproj.TRACK[trid].trackisreceive==true then 
+      if EXT.CONF_tr_match_preventsends == 1 and DATA.srcproj.TRACK[trid].CUST_trackisreceive==true then 
         if not ((mode == 2 and submode == 4) or mode == 0) then goto skipnexttr end
       end
       
@@ -1323,15 +1364,15 @@
         local cnt_selection, min_id, max_id = DATA:Actions_Selection_Get()  
         if cnt_selection == 1 then 
           if trid > min_id then 
-            for i = min_id, trid do DATA.srcproj.TRACK[i].UI_selected = true end
+            for i = min_id, trid do DATA:Actions_Selection_ontrackclick_sub(i)  end
            elseif trid < min_id then 
-            for i = trid, min_id do DATA.srcproj.TRACK[i].UI_selected = true end
+            for i = trid, min_id do DATA:Actions_Selection_ontrackclick_sub(i)  end
           end
          elseif cnt_selection > 1 then 
           if min_id < trid then
-            for i = min_id, trid do DATA.srcproj.TRACK[i].UI_selected = true end
+            for i = min_id, trid do DATA:Actions_Selection_ontrackclick_sub(i)  end
            elseif min_id >= trid and max_id > trid then
-            for i = trid, max_id do DATA.srcproj.TRACK[i].UI_selected = true end
+            for i = trid, max_id do DATA:Actions_Selection_ontrackclick_sub(i)  end
           end
         end
         return
@@ -1339,13 +1380,29 @@
       
     -- toggle current track state
       if UI.Mod_Ctrl == true then
-        DATA.srcproj.TRACK[trid].UI_selected = not DATA.srcproj.TRACK[trid].UI_selected  
+        DATA:Actions_Selection_ontrackclick_sub(trid, true) 
        else -- click to reset selection and set current track to ON
         DATA:Actions_Selection_Reset()   
-        DATA.srcproj.TRACK[trid].UI_selected = true
+        DATA:Actions_Selection_ontrackclick_sub(trid) 
+      end   
+  end
+  ---------------------------------------------------------------------  
+  function DATA:Actions_Selection_ontrackclick_sub(i, is_toggle) 
+    local state = true
+    if is_toggle then state = not DATA.srcproj.TRACK[i].UI_selected end
+    DATA.srcproj.TRACK[i].UI_selected = state
+    
+    -- auto select children
+    if EXT.UI_autoselectchildren==1 then
+      local initCUST_foldlev = DATA.srcproj.TRACK[i].CUST_foldlev
+      if DATA.srcproj.TRACK[i+1] and DATA.srcproj.TRACK[i+1].CUST_foldlev ~= initCUST_foldlev then 
+        for trid0 = i+1, #DATA.srcproj.TRACK do
+          CUST_foldlev  = DATA.srcproj.TRACK[trid0].CUST_foldlev
+          if CUST_foldlev == initCUST_foldlev then break end  
+          DATA.srcproj.TRACK[trid0].UI_selected = state  
+        end
       end 
-      
-      
+    end
   end
   --------------------------------------------------------------------- 
   function DATA.PRESET_RestoreDefaults(key, UI)
@@ -1725,7 +1782,7 @@
       'SHOWINMIX',
       --'LAYOUTS',
                   }
-    local foldname = ''
+    local CUST_foldname = ''
     for tr_idx = 1, #DATA.srcproj.TRACK do
       local chunk = DATA.srcproj.TRACK[tr_idx].chunk
       DATA.srcproj.TRACK[tr_idx].chunk_full = chunk -- used for raw data import 
@@ -1802,10 +1859,10 @@
       -- handle folder level
         local cur_fold_state = DATA.srcproj.TRACK[tr_idx].ISBUS[2] or 0
         DATA.srcproj.TRACK[tr_idx].CUST_foldlev = foldlev
-        if foldlev == 0 then foldname = name end
+        if foldlev == 0 then CUST_foldname = name end
         foldlev = foldlev + cur_fold_state
         DATA.srcproj.TRACK[tr_idx].sendlogic_flags = EXT.CONF_sendlogic_flags
-        DATA.srcproj.TRACK[tr_idx].foldname = foldname
+        DATA.srcproj.TRACK[tr_idx].CUST_foldname = CUST_foldname
     end
     
     -- handle sends
@@ -2000,8 +2057,8 @@
   function DATA:ParseSourceProject_PostProcess_AutomatchReceives()
     if not (DATA.srcproj and DATA.srcproj.TRACK) then return end
     for trid in pairs(DATA.srcproj.TRACK) do
-      trackisreceive = DATA.srcproj.TRACK[trid].trackisreceive
-      if EXT.CONF_tr_match_automatchsendsasdest == 1 and trackisreceive==true then 
+      CUST_trackisreceive = DATA.srcproj.TRACK[trid].CUST_trackisreceive
+      if EXT.CONF_tr_match_automatchsendsasdest == 1 and CUST_trackisreceive==true then 
         DATA.srcproj.TRACK[trid].destmode_submode = 4
         DATA.srcproj.TRACK[trid].destmode = 2
       end 
@@ -2009,17 +2066,19 @@
   end
   ----------------------------------------------------------------------
   function DATA:ParseSourceProject_PostProcess()
-    -- postprocess / send-aux children
+    -- postprocess
       for trid in pairs(DATA.srcproj.TRACK) do
-        if DATA.srcproj.TRACK[trid] and DATA.srcproj.TRACK[trid].foldname then 
-          local foldname = tostring(DATA.srcproj.TRACK[trid].foldname)
-          local trackisreceive = (foldname:lower():match('send')~= nil or foldname:lower():match('aux')~= nil ) 
-          DATA.srcproj.TRACK[trid].trackisreceive = trackisreceive  
+        -- hidden
+        DATA.srcproj.TRACK[trid].CUST_hidden = not (DATA.srcproj.TRACK[trid].SHOWINMIX[1] == 1 and DATA.srcproj.TRACK[trid].SHOWINMIX[4] == 1 )
+        
+        -- send-aux children
+        if DATA.srcproj.TRACK[trid] and DATA.srcproj.TRACK[trid].CUST_foldname then  
+          local CUST_foldname = tostring(DATA.srcproj.TRACK[trid].CUST_foldname)
+          local CUST_trackisreceive = (CUST_foldname:lower():match('send')~= nil or CUST_foldname:lower():match('aux')~= nil ) 
+          DATA.srcproj.TRACK[trid].CUST_trackisreceive = CUST_trackisreceive  
         end
-      end 
-      
-    -- postprocess / for UI
-      for trid in pairs(DATA.srcproj.TRACK) do
+        
+        -- UI
         DATA.srcproj.TRACK[trid].dest_name_UI = UI.default_none_dest..'##dest'..trid
         DATA.srcproj.TRACK[trid].NAME_UI = '['..trid..'] '..DATA.srcproj.TRACK[trid].NAME
         local PEAKCOL = DATA.srcproj.TRACK[trid].PEAKCOL 
@@ -2033,9 +2092,11 @@
             (g <<16) |
             (b <<8) |
             0xFF
-          DATA.srcproj.TRACK[trid].UI_col_rgba = col_rgba
+          DATA.srcproj.TRACK[trid].CUST_UI_col_rgba = col_rgba 
         end
-      end
+        
+        
+      end 
       
   end
   ----------------------------------------------------------------------
