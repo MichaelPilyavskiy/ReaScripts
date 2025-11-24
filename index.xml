@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f21fbea1dc58468d95b096971c4d004b3eccc6c2" name="MPL Scripts">
+<index version="1" commit="489d6ba6722c393ecacbf478ff470fb0dc6f6839" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12917,6 +12917,17 @@ various fixes]]></changelog>
 + Color not matched tracks red
 + Color send children tracks green]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2ac0f8666123751aa77abbf2cb7197279c955bf2/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.06" author="MPL" time="2025-11-24T20:23:59Z">
+        <changelog><![CDATA[# Source track list: fix empty indent on missing track color
+# Settings: remove "hide in list hidden source track" option
++ Source track list: dim hidden tracks
++ Settings: add option to auto select children
++ Make window resizable, tweak a bit sizing policy
++ Make window dockable
++ Shortcuts: ctra+A to select all tracks
++ Tracks: add import logic shortcut]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/489d6ba6722c393ecacbf478ff470fb0dc6f6839/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
