@@ -1,17 +1,15 @@
 -- @description ImportSessionData
--- @version 3.06
+-- @version 3.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # Source track list: fix empty indent on missing track color
---    # Settings: remove "hide in list hidden source track" option
---    + Source track list: dim hidden tracks
---    + Settings: add option to auto select children
---    + Make window resizable, tweak a bit sizing policy
---    + Make window dockable
---    + Shortcuts: ctra+A to select all tracks
---    + Tracks: add import logic shortcut
+--    # filter source project opening dialog with RPP extension filter
+--    + Items/Parser: parse freezed items as normal items, add option for this
+--    - Items/Fix relative paths: remove, always modifiy to absolute paths
+--    # Items/Build any missing peaks: fix broken flag
+--    + Items/Copy samples: allow to copy to specific subdirectory, default to "Imported_samples"
+--    + Items/Copy samples: prevent overwriting
 
 
     
@@ -67,8 +65,16 @@
           CONF_tr_name = 1,
           CONF_tr_VOL = 1,
           CONF_tr_PAN = 1,
-          CONF_tr_FX = 1, -- &2 clear existed
-          CONF_tr_it = 1, -- &2 clear existed &4relink files to full paths &4 edit cur offs &8 try fix relative path
+          CONF_tr_FX = 1, 
+            -- &2 clear existed
+          CONF_tr_it = 1,  
+            -- &2 clear existed 
+            -- &4 edit cur offs 
+            -- &32 copy files 
+          CONF_tr_itfreezed = 1, 
+          CONF_it_buildpeaks = 1,
+          CONF_it_subpathname = 'Imported_samples',
+          
           CONF_tr_PHASE = 1,
           CONF_tr_RECINPUT = 1,
           CONF_tr_MAINSEND = 1,
@@ -90,7 +96,6 @@
           
           -- tr options
           CONF_resetfoldlevel = 1,
-          CONF_it_buildpeaks = 1,
           
           -- match algo
           CONF_tr_matchmode = 1, -- &1==1 full match
@@ -146,8 +151,8 @@
         wind_W = 800,
         wind_H = 480, 
         default_none_dest = '[none]' ,
-        default_newtrackatend_dest = 'New track at the end of tracklist' ,
-        default_newtrackatend1_dest = 'New track at the end of tracklist, obey structure' , 
+        default_newtrackatend_dest = 'New track at end' ,
+        default_newtrackatend1_dest = 'New track at the end, obey structure' , 
         indent_menu = 10,
         }
     
@@ -1089,8 +1094,18 @@
           if ImGui.Checkbox( ctx, 'Add items##CONF_tr_it',                           EXT.CONF_tr_it&1 == 1 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~1 EXT:save() end
           if EXT.CONF_tr_it&1 == 1 then 
             ImGui.Indent(ctx, indent)
-            if ImGui.Checkbox( ctx, 'Fix relative paths (experimental)##CONF_tr_it4',     EXT.CONF_tr_it&16 == 16 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~16 EXT:save() end
-            if ImGui.Checkbox( ctx, 'Copy files (experimental)##CONF_tr_it5',             EXT.CONF_tr_it&32 == 32 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~32 EXT:save() end 
+            if ImGui.Checkbox( ctx, 'Freezed items##CONF_tr_itfreezed',             EXT.CONF_tr_itfreezed&1 == 1 ) then EXT.CONF_tr_itfreezed =EXT.CONF_tr_itfreezed~1 EXT:save() end 
+            if ImGui.Checkbox( ctx, 'Copy files##CONF_tr_it5',             EXT.CONF_tr_it&32 == 32 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~32 EXT:save() end 
+            if EXT.CONF_tr_it&32 == 32 then 
+              ImGui.SameLine(ctx)
+              reaper.ImGui_SetNextItemWidth(ctx, 200)
+              local retval, buf = reaper.ImGui_InputText( ctx, 'path', EXT.CONF_it_subpathname, reaper.ImGui_InputTextFlags_None() )
+              if retval then EXT.CONF_it_subpathname = buf end
+              if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then
+                EXT:save()
+              end
+            end
+              
             if ImGui.Checkbox( ctx, 'Offset at edit cursor##CONF_tr_it2',                 EXT.CONF_tr_it&4 == 4 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~4 EXT:save() end
             if ImGui.Checkbox( ctx, 'Build any missing peaks##CONF_it_buildpeaks',        EXT.CONF_it_buildpeaks&1 == 1 ) then EXT.CONF_tr_it =EXT.CONF_it_buildpeaks~1 EXT:save() end
             ImGui.Unindent(ctx, indent)
@@ -1553,7 +1568,7 @@
   end
   --------------------------------------------------------------------------------  
   function DATA:Actions_SetSourceRPP()
-    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '' )
+    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
     if retval then  
       EXT.UI_lastsrcproj=filenameNeed4096
       EXT:save()
@@ -1787,6 +1802,7 @@
       local chunk = DATA.srcproj.TRACK[tr_idx].chunk
       DATA.srcproj.TRACK[tr_idx].chunk_full = chunk -- used for raw data import 
       DATA.srcproj.TRACK[tr_idx].GUID = chunk:match('(%{.-%})'):upper()
+      
       -- extract items
         DATA.srcproj.TRACK[tr_idx].ITEM = {}
         local it_id = 0
@@ -1797,6 +1813,18 @@
         end
         chunk = chunk:gsub(item_pat,'') -- clear track chunk from items 
         DATA.srcproj.TRACK[tr_idx].chunk = chunk -- update chunk
+        
+      -- extract freezed items
+        if EXT.CONF_tr_itfreezed&1==1 then
+          local item_pat = '[\n\r]+    <(FREEZE.-)[\n\r]+    >'
+          for item_block in chunk:gmatch(item_pat) do
+            it_id = it_id + 1
+            item_block = item_block:match('[\n\r]+      <(ITEM.-)[\n\r]+        >')
+            DATA.srcproj.TRACK[tr_idx].ITEM [it_id] = {chunk=item_block, freeze = true}
+          end
+          chunk = chunk:gsub(item_pat,'') -- clear track chunk from items 
+          DATA.srcproj.TRACK[tr_idx].chunk = chunk -- update chunk
+        end
         
       -- extract fx chain
         local fx_pat = '[\n\r]+    <(FXCHAIN.-)[\n\r]+    >'
@@ -2480,9 +2508,10 @@
     
     DATA:Import2_Tracks_Receives() 
     
-    if EXT.CONF_buildpeaks == 1 then Action(40047) end -- Peaks: Build any missing peaks
+    if EXT.CONF_it_buildpeaks == 1 then VF_Action(40047) end -- Peaks: Build any missing peaks
   end
-  
+    -------------------------------------------------------------------- 
+  function VF_Action(s,sectionID ) Main_OnCommand(NamedCommandLookup(s), sectionID or 0) end 
   -------------------------------------------------------------------- 
   function DATA:Import_CreateNewTrack(needblank, srct)
     InsertTrackAtIndex( CountTracks( 0 ), false )
@@ -2630,43 +2659,25 @@
       end
     end
   end
-  
   -------------------------------------------------------------------- 
   function DATA:Import_TransferTrackData_Items_handlesources(chunk)  
     if not (EXT.CONF_tr_it&16 == 16 or EXT.CONF_tr_it&32 == 32) then return chunk end
+      --[[
+      CONF_tr_it = 1, 
+        -- &2 clear existed 
+        -- &4 edit cur offs 
+        -- CONF_tr_it&16 try fix relative path
+        -- &32 copy files
+        ]]
     -- cache chunk
     local t = {}
     for line in chunk:gmatch('[^\r\n]+') do t[#t+1]=line end
-    -- search for paths 
-      for i = 1, #t do
-        local line = t[i]
-        if line:match('FILE ') then  
-          line = line:match('FILE (.*)')
-          if DATA.destproj.fp_dir then line = line:gsub(literalize(DATA.destproj.fp_dir)..'[%\\%/]', '') end
-          if line:match('%"(.-)%"') then line = line:match('%"(.-)%"') end
-          
-          if not file_exists( line ) then
-            local src_projpath = DATA.srcproj.path..'/' 
-            local test = src_projpath..line 
-            if reaper.GetOS():lower():match('win') then test = test:gsub('/','\\') end
-            
-            if file_exists( test ) then  
-              local output_file = test
-              local proj_path = GetParentFolder(DATA.destproj.fp)
-              if EXT.CONF_tr_it&32 == 32 and proj_path then
-                local srcfp = test
-                local destfp = proj_path..'/'..line
-                output_file = destfp
-                CopyFile(srcfp,destfp)
-              end  
-              if reaper.GetOS():lower():match('win') then output_file = output_file:gsub('/','\\') end
-              t[i] = 'FILE "'..output_file..'" 1'
-            end
-          end
-            
-        end
-      end
-    
+    -- fix paths
+    for i = 1, #t do
+      local ret, output_modified_str = DATA:Import_TransferTrackData_Items_handlesources_sub(t[i])  
+      if ret then t[i] = output_modified_str end
+    end 
+    -- concat chunk
     chunk = table.concat(t,'\n')
     return chunk
   end
@@ -2738,6 +2749,7 @@
         end  
       end
     end 
+    
     
   end  
   ------------------------------------------------------------------------------------------------------  
@@ -2906,6 +2918,51 @@
     
       
     for node_key in pairs(DATA.SIL_nodes) do DATA.SIL_nodes[node_key].key = node_key end 
+  end
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_GetShortSmplName(path) 
+    local fn = path
+    fn = fn:gsub('%\\','/')
+    if fn then fn = fn:reverse():match('(.-)/') end
+    if fn then fn = fn:reverse() end
+    return fn
+  end 
+  -------------------------------------------------------------------- 
+  function DATA:Import_TransferTrackData_Items_handlesources_sub(line) 
+    if not line:match('FILE ') then return end
+    local fp_src = line:match('FILE (.*)')
+    if fp_src:match('"(.*)"') then fp = fp_src:match('"(.*)"') end
+    
+    if not file_exists( fp ) then
+      local testfp = DATA.srcproj.path..'/'..fp
+      if file_exists( testfp ) then fp = testfp end
+    end
+    
+    -- copyfile
+    local proj_path = GetParentFolder(DATA.destproj.fp)
+    local fname = VF_GetShortSmplName(fp)
+    if EXT.CONF_tr_it&32 == 32 and proj_path and fname then
+      local srcfp = fp 
+      local sub_path_name = ''
+      if EXT.CONF_it_subpathname~='' then sub_path_name = EXT.CONF_it_subpathname..'/' end
+      RecursiveCreateDirectory(proj_path..'/'..sub_path_name, 0)
+      local destfp = proj_path..'/'..sub_path_name..fname 
+      if not file_exists( destfp ) then
+        if srcfp ~= destfp then
+          CopyFile(srcfp,destfp)
+          fp = destfp
+        end
+       else
+        fp = destfp
+      end
+    end 
+    
+    if fp_src ~= fp then 
+      local output_file = 'FILE "'..fp..'" 1'
+      return true,  output_file
+    end
+    
+    
   end
   -----------------------------------------------------------------------------------------  
   function _main() 
