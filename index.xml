@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="489d6ba6722c393ecacbf478ff470fb0dc6f6839" name="MPL Scripts">
+<index version="1" commit="5d4133e4bc47ddbff3c0c9bcd90033c13845ca37" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12928,6 +12928,15 @@ various fixes]]></changelog>
 + Shortcuts: ctra+A to select all tracks
 + Tracks: add import logic shortcut]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/489d6ba6722c393ecacbf478ff470fb0dc6f6839/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.07" author="MPL" time="2025-11-25T20:00:05Z">
+        <changelog><![CDATA[# filter source project opening dialog with RPP extension filter
++ Items/Parser: parse freezed items as normal items, add option for this
+- Items/Fix relative paths: remove, always modifiy to absolute paths
+# Items/Build any missing peaks: fix broken flag
++ Items/Copy samples: allow to copy to specific subdirectory, default to "Imported_samples"
++ Items/Copy samples: prevent overwriting]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5d4133e4bc47ddbff3c0c9bcd90033c13845ca37/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
