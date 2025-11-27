@@ -549,19 +549,7 @@ if not UI then UI = {} end
     if not DATA.seq.ext.swing then DATA.seq.ext.swing = 0 end-- 4.42
     
     
-    -- fill / init
-    for note in spairs(DATA.children) do
-      if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
-      if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end -- this is fixing wrong offset on misssing first step at DATA:_Seq_PrintMIDI(t) --{val=0} 
-      if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = EXT.CONF_seq_defaultstepcnt end--DATA.seq.ext.patternlen end -- init 16 steps 
-      if not DATA.seq.ext.children[note].steplength then DATA.seq.ext.children[note].steplength = 0.25 end -- init 16 steps 
-      
-      for step = 1, DATA.seq.ext.children[note].step_cnt do
-        if not DATA.seq.ext.children[note].steps[step] then DATA.seq.ext.children[note].steps[step] = {} end
-        if not DATA.seq.ext.children[note].steps[step].val then DATA.seq.ext.children[note].steps[step].val = 0 end
-      end
-    end
-    
+    DATA:CollectData_SeqFillEmptySteps() 
     DATA:_Seq_RefreshHScroll()
     DATA:_Seq_CollectTrackEnv()
     
@@ -581,6 +569,19 @@ if not UI then UI = {} end
     end
     
     
+  end
+  -------------------------------------------------------------------------------  
+  function DATA:CollectData_SeqFillEmptySteps() 
+    for note in spairs(DATA.children) do
+      if not DATA.seq.ext.children[note] then DATA.seq.ext.children[note] = {} end
+      if not DATA.seq.ext.children[note].steps then DATA.seq.ext.children[note].steps = {} end -- this is fixing wrong offset on misssing first step at DATA:_Seq_PrintMIDI(t) --{val=0} 
+      if not DATA.seq.ext.children[note].step_cnt then DATA.seq.ext.children[note].step_cnt = EXT.CONF_seq_defaultstepcnt end--DATA.seq.ext.patternlen end -- init 16 steps 
+      if not DATA.seq.ext.children[note].steplength then DATA.seq.ext.children[note].steplength = 0.25 end -- init 16 steps  
+      for step = 1, DATA.seq.ext.children[note].step_cnt do
+        if not DATA.seq.ext.children[note].steps[step] then DATA.seq.ext.children[note].steps[step] = {} end
+        if not DATA.seq.ext.children[note].steps[step].val then DATA.seq.ext.children[note].steps[step].val = 0 end
+      end
+    end
   end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_RefreshHScroll()
@@ -4906,6 +4907,8 @@ end
     local patternlen =DATA.seq.ext.patternlen or 16
     local beats, measures, cml, patstart_fullbeats, cdenom = TimeMap2_timeToBeats( DATA.proj, it_pos_compensated ) 
     local pat_progress = (((curpos_fullbeats-patstart_fullbeats)/patternsteplen)/patternlen)%1
+    
+    testpatternlen= (curpos_fullbeats-patstart_fullbeats)
     local pat_beats_com = patternlen*patternsteplen
     DATA.seq.active_pat_progress = pat_progress
     DATA.seq.active_pat_step = math.floor(pat_progress*patternlen)+1

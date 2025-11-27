@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.76
+-- @version 4.77
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,15 +23,10 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    # Auto_MIDIrouting: fix missing MIDI bus
---    + Layout: add Akai MPC layout
---    + Custom note names: add Akai MPC names legacy map
---    # Sampler: move pre/next/rand/ME buttons above peaks
---    + Settings/TCPMCP: add support for setting height lock for new tracks
---    + External actions: add action to toggle show children in TCP/MCP
+--    # Sequencer: fix visual hang on setting pattern length
 
 
-rs5kman_vrs = '4.76'
+rs5kman_vrs = '4.77'
 
 
 

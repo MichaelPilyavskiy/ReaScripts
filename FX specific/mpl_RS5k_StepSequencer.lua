@@ -1577,6 +1577,8 @@ It also used for advanced sequencing parameters.
         if mousewheel > 0 then DATA.seq.ext.patternlen = VF_lim(DATA.seq.ext.patternlen * 2,1,UI.seq_maxstepcnt) else DATA.seq.ext.patternlen = VF_lim(math.floor(DATA.seq.ext.patternlen / 2),1,UI.seq_maxstepcnt) end
         DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen) 
         DATA:_Seq_Print()
+        DATA.seq.valid=false
+        DATA:CollectData_SeqFillEmptySteps() 
       end
       ImGui.SameLine(ctx) 
       ImGui.SetItemTooltip(ctx,'Pattern length')
@@ -1595,11 +1597,14 @@ It also used for advanced sequencing parameters.
         if set then
           DATA.seq.ext.patternlen = set
           DATA:_Seq_SetItLength_Beats(DATA.seq.ext.patternlen)
-          DATA:_Seq_Print()
+          DATA:_Seq_Print() 
+          DATA.seq.valid=false
           reaper.ImGui_CloseCurrentPopup(ctx)
         end
         ImGui.SeparatorText(ctx,'Actions')
-        if ImGui.Selectable(ctx, 'Print to full pattern length', nil, reaper.ImGui_SelectableFlags_None(), 180) then DATA:_Seq_FillNoteStepsToFullLength(note) end  
+        if ImGui.Selectable(ctx, 'Print to full pattern length', nil, reaper.ImGui_SelectableFlags_None(), 180) then 
+          DATA:_Seq_FillNoteStepsToFullLength(note) 
+        end  
         
         ImGui.Dummy(ctx,0,UI.spacingY)
         reaper.ImGui_EndPopup(ctx)
