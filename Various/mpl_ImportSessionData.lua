@@ -1,15 +1,12 @@
 -- @description ImportSessionData
--- @version 3.07
+-- @version 3.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # filter source project opening dialog with RPP extension filter
---    + Items/Parser: parse freezed items as normal items, add option for this
---    - Items/Fix relative paths: remove, always modifiy to absolute paths
---    # Items/Build any missing peaks: fix broken flag
---    + Items/Copy samples: allow to copy to specific subdirectory, default to "Imported_samples"
---    + Items/Copy samples: prevent overwriting
+--    + Settings: add option to always force obey structure for folders content
+--    + Add RPP-BAK to open source file dialog
+--    + Add option to show sends in track list
 
 
     
@@ -60,6 +57,8 @@
           UI_lastsrcproj = '',
           UI_ignoretracklistselection = 1,
           UI_autoselectchildren = 0,
+          UI_forcefoldobeystruct = 0,
+          UI_showsendsintracklist = 0,
           
           -- track params
           CONF_tr_name = 1,
@@ -455,8 +454,30 @@
         -- dest
           ImGui.SameLine(ctx)
           reaper.ImGui_SetNextItemWidth(ctx,-1)
+          local curposX_dest = reaper.ImGui_GetCursorPosX(ctx)
           UI.draw_tabs_tracks_destmenu(trid) 
           
+        -- sends
+          if EXT.UI_showsendsintracklist==1 then 
+            if DATA.srcproj.TRACK[trid].SENDS then 
+              ImGui.Indent(ctx, indent*2)
+              for sendid = 1, #DATA.srcproj.TRACK[trid].SENDS do
+                local dest_tr_id = DATA.srcproj.TRACK[trid].SENDS[sendid].dest_tr_id
+                local dest_tr_name = DATA.srcproj.TRACK[dest_tr_id].NAME
+                local xav = ImGui_GetContentRegionAvail(ctx)
+                --ImGui.ArrowButton(ctx, '##trid'..trid..'sendid'..sendid, ImGui.Dir_Right)
+                --ImGui.SameLine(ctx)
+                ImGui.Custom_InvisibleButton(ctx, '[send] '..dest_tr_name..'##trid'..trid..'sendid'..sendid..'sname', -trackX2+indent*2+UI.spacingX) 
+                -- dest
+                  ImGui.SameLine(ctx)
+                  reaper.ImGui_SetNextItemWidth(ctx,-1)
+                  UI.draw_tabs_tracks_destmenu(dest_tr_id,'trid'..trid..'sendid'..sendid..'scombo')  
+              end
+              ImGui.Unindent(ctx, indent*2)
+            end
+          end
+          
+        -- level
           if level ~= 0 then ImGui.Unindent(ctx, indent*level) end 
           
           
@@ -976,6 +997,8 @@
         ImGui.SameLine(ctx) UI.HelpMarker('Always import all tracks marked for import')
         if ImGui.Checkbox( ctx, 'Parse source project at initialization##UI_appatinit', EXT.UI_appatinit&1 == 1 ) then EXT.UI_appatinit =EXT.UI_appatinit~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Autoselect children on selecting source folder track##UI_autoselectchildren', EXT.UI_autoselectchildren&1 == 1 ) then EXT.UI_autoselectchildren =EXT.UI_autoselectchildren~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Always set folders to obey structure##UI_forcefoldobeystruct', EXT.UI_forcefoldobeystruct&1 == 1 ) then EXT.UI_forcefoldobeystruct =EXT.UI_forcefoldobeystruct~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Show sends in track list##UI_showsendsintracklist', EXT.UI_showsendsintracklist&1 == 1 ) then EXT.UI_showsendsintracklist =EXT.UI_showsendsintracklist~1 EXT:save() end
         
         
       ImGui.Unindent(ctx, indent)
@@ -1229,7 +1252,7 @@
     end
   end
   --------------------------------------------------------------------- 
-  function UI.draw_tabs_tracks_destmenu(trid)  
+  function UI.draw_tabs_tracks_destmenu(trid, addsrcid)  
     function __b_draw_tabs_tracks_destmenu() end
     local dest = DATA.srcproj.TRACK[trid].dest_name_UI
     local preview = dest
@@ -1237,7 +1260,7 @@
     local missing_dest = DATA.srcproj.TRACK[trid].destmode == 2 and not DATA.srcproj.TRACK[trid].dest_track_GUID
     if missing_dest == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xF040406F) end
     
-    if ImGui.BeginCombo( ctx, dest, preview, ImGui.ComboFlags_HeightLargest|ImGui.ComboFlags_NoArrowButton ) then
+    if ImGui.BeginCombo( ctx, dest..(addsrcid or ''), preview, ImGui.ComboFlags_HeightLargest|ImGui.ComboFlags_NoArrowButton ) then
       ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFFFFFF)
       if DATA.destproject_cached ~= true then
         DATA:Get_DestProject()
@@ -1568,7 +1591,7 @@
   end
   --------------------------------------------------------------------------------  
   function DATA:Actions_SetSourceRPP()
-    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
+    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', 'RPP*' )
     if retval then  
       EXT.UI_lastsrcproj=filenameNeed4096
       EXT:save()
@@ -2191,8 +2214,10 @@
   function DATA:Tracks_SetDestination(srctrack_id, mode, desttrack_id)
     local output_error_code = 0
     if not ( DATA.srcproj and DATA.srcproj.TRACK and mode) then return end
+    
     if DATA.srcproj.TRACK[srctrack_id] then  
-      DATA.srcproj.TRACK[srctrack_id].destmode = mode 
+      if mode ==1 and EXT.UI_forcefoldobeystruct&1 == 1 and DATA.srcproj.TRACK[srctrack_id].CUST_foldlev and DATA.srcproj.TRACK[srctrack_id].CUST_foldlev > 0 then mode = 3 end
+      DATA.srcproj.TRACK[srctrack_id].destmode = mode  
       if mode == 2 then DATA.srcproj.TRACK[srctrack_id].sendlogic_flags = EXT.CONF_sendlogic_flags_matched end
       if DATA.srcproj.TRACK[srctrack_id].dest_track_GUID then
         local desttrack_id = DATA:Tracks_GetDestinationbyGUID( DATA.srcproj.TRACK[srctrack_id].dest_track_GUID)
