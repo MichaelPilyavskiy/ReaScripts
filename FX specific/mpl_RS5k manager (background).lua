@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 4.77
+-- @version 4.78
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,7 +23,8 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    # Sequencer: fix visual hang on setting pattern length
+--    # Autoslice: fix error on creating sequence
+--    # Choke: fix error at clear choke setup
 
 
 rs5kman_vrs = '4.77'
@@ -2293,16 +2294,20 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     if DATA.allow_container_usage ~= true then ImGui.BeginDisabled(ctx, true) end
     
     ImGui.SeparatorText(ctx, 'Choke setup')
+    ImGui.Indent(ctx, 10)
     local preview = 'Cut by '
     for note_src in spairs(DATA.children) do
       if DATA.MIDIbus.choke_setup[note] and DATA.MIDIbus.choke_setup[note][note_src] and DATA.MIDIbus.choke_setup[note][note_src].exist == true then
         preview = preview..note_src..' '
       end
     end
+    
     -- clear
-    if ImGui.Button(ctx, 'Clear',-1) then 
-      for note_src in pairs(DATA.MIDIbus.choke_setup[note]) do
-        if DATA.MIDIbus.choke_setup[note][note_src].exist == true then DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true end
+    if ImGui.Button(ctx, 'Clear choke setup',-1) then 
+      if DATA.MIDIbus.choke_setup[note] then 
+        for note_src in pairs(DATA.MIDIbus.choke_setup[note]) do
+          if DATA.MIDIbus.choke_setup[note][note_src].exist == true then DATA.MIDIbus.choke_setup[note][note_src].mark_for_remove = true end
+        end
       end
       DATA:Choke_Write()
     end
@@ -2327,6 +2332,8 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       end
       ImGui.EndCombo(ctx)
     end
+    ImGui.Unindent(ctx, 10)
+    
     if DATA.allow_container_usage ~= true then ImGui.EndDisabled(ctx) end
   end
   -------------------------------------------------------------------------------- 
@@ -2347,10 +2354,14 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       -- Remove
       local note = DATA.parent_track.ext.PARENT_LASTACTIVENOTE 
       ImGui.Indent(ctx, 10)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Button,0xFF50507F )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,0xFF5050FF )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,0xFF50509F )
       if ImGui.Button(ctx, 'Remove pad content',-1) then
         DATA:Sampler_RemovePad(note) 
         ImGui.CloseCurrentPopup(ctx) 
       end
+      ImGui.PopStyleColor(ctx,3)
       ImGui.Unindent(ctx, 10) 
       --Import
       ImGui.SeparatorText(ctx, 'Import media items')

@@ -422,8 +422,9 @@ if not UI then UI = {} end
     if not loop_t then return end
     local slicecnt = math.min(16,#loop_t)
     
-    DATA:_Seq_Insert()
+    DATA:_Seq_Insert(true)
     DATA:CollectData() -- to refresh note existing data
+    if not DATA.seq.ext then DATA.seq.ext = {} end 
     if not DATA.seq.ext.children then DATA.seq.ext.children = {} end 
     function __f_slice2pattern_modloopt() end
     
@@ -444,7 +445,7 @@ if not UI then UI = {} end
     DATA:_Seq_Print() 
   end  
   --------------------------------------------------------------------------------  
-  function DATA:_Seq_Insert() 
+  function DATA:_Seq_Insert(skip_seqcheck) 
     if not (DATA.MIDIbus and DATA.MIDIbus.tr_ptr and DATA.MIDIbus.valid) then return end
     local track = DATA.MIDIbus.tr_ptr
     local curpos = GetCursorPosition()
@@ -460,12 +461,14 @@ if not UI then UI = {} end
     SetMediaItemInfo_Value( item, 'B_LOOPSRC',1 )
     
     UpdateItemInProject(item)
-    DATA:CollectData_Seq() 
+    DATA:CollectData_Seq(skip_seqcheck) 
   end
   
   -------------------------------------------------------------------------------  
-  function DATA:CollectData_Seq() 
-    if DATA.seq_functionscall ~= true then return end 
+  function DATA:CollectData_Seq(skip_seqcheck) 
+    if skip_seqcheck~=true then
+      if DATA.seq_functionscall ~= true then return end 
+    end
     local retval, cur_projfn = reaper.EnumProjects( -1 ) 
     local last_valid_seq = CopyTable(DATA.seq)
     local item = GetSelectedMediaItem( -1, 0 )
