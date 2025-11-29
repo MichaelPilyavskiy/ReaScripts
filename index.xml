@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8023a21194e2e543ae9a77741b62be85733d7204" name="MPL Scripts">
+<index version="1" commit="0f7f4ba8a397e85a023f83008e20aeacb7027815" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1585,7 +1585,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for migrating over plugin versions and formats\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2024-12-18T21:11:17Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -1624,6 +1624,10 @@
       <version name="1.08" author="MPL" time="2025-03-26T19:28:28Z">
         <changelog><![CDATA[+ Add support for take FX (no envelopes)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b7d79df402e8bd6a83024b9fba6a18f7de2843b/FX/mpl_CopyPaste%20plugin%20data.lua</source>
+      </version>
+      <version name="1.09" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/FX/mpl_CopyPaste%20plugin%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create send from focused FX.lua" type="script" desc="Create send from focused FX">
@@ -1943,7 +1947,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for showing instruments in currently opened REAPER project\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2018-12-18T06:34:32Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -2112,6 +2116,10 @@
       <version name="2.08" author="MPL" time="2025-01-26T13:57:04Z">
         <changelog><![CDATA[# fix support legacy format before 2.04]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b3d9bc5324cbad7a74fc0dbf204f1ec1cd9a61fb/FX/mpl_InstrumentRack.lua</source>
+      </version>
+      <version name="2.10" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/FX/mpl_InstrumentRack.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
@@ -7804,7 +7812,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for manipulating ADSR of selected items\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2024-11-13T10:14:12Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -7813,6 +7821,10 @@
       <version name="1.01" author="MPL" time="2024-12-03T15:31:38Z">
         <changelog><![CDATA[# fix spamming ext state]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c2cad4a1eff41f8c054553fe6926eba5cd345c7e/Items%20Properties/mpl_Item%20ADSR.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Items%20Properties/mpl_Item%20ADSR.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mute item under mouse cursor.lua" type="script" desc="Mute item under mouse cursor">
@@ -8048,7 +8060,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for showing custom notification\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.01" author="MPL" time="2024-12-21T10:08:12Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -8099,6 +8111,11 @@
         <changelog><![CDATA[# use set_action_options == 2 to ignore new run (REAPER 7.31rc1+)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c98391d233e5a393fe755bde4ea2c90d8420d80f/Meta/mpl_Notification.lua</source>
         <source main="main" file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c98391d233e5a393fe755bde4ea2c90d8420d80f/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
+      </version>
+      <version name="1.11" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Meta/mpl_Notification.lua</source>
+        <source main="main" file="mpl_Notification, set track volume changed.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Meta/mpl_Notification,%20set%20track%20volume%20changed.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Repeat the most recent action for all background tabs.lua" type="script" desc="Repeat the most recent action for all background tabs">
@@ -10229,7 +10246,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for protecting area around stretch markers\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.02" author="MPL" time="2023-04-10T18:32:17Z">
         <changelog><![CDATA[# remove SWS dependency]]></changelog>
@@ -10243,6 +10260,10 @@
       <version name="1.04" author="MPL" time="2024-12-03T15:31:38Z">
         <changelog><![CDATA[# fix spamming extstate]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c2cad4a1eff41f8c054553fe6926eba5cd345c7e/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Tape start selected items.lua" type="script" desc="Tape start selected items">
@@ -10481,7 +10502,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for manipulating REAPER objects time and values\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2024-11-14T10:45:33Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -10500,6 +10521,10 @@
         <changelog><![CDATA[# fix various cases on get/set new data
 + Add copy/paste buttons]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e1b69c42ac4cf00ea9a11df67e45080e30d9b0a7/Tempo/mpl_Tempo%20versions.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tempo/mpl_Tempo%20versions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle gradually transition for tempo marker before edit cursor.lua" type="script" desc="Toggle gradually transition for tempo marker before edit cursor">
@@ -11211,7 +11236,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Controlling send folder\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.02" author="MPL" time="2024-05-17T20:22:01Z">
         <changelog><![CDATA[# 0.9 reaimgui
@@ -11270,6 +11295,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# update reaimgui
 # fix gain readout doesn`t react to +1 buttons]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f857999ec26ba2e67073bf637a40e3ca00190d2d/Tracks%20Properties/mpl_Return%20control.lua</source>
+      </version>
+      <version name="1.14" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tracks%20Properties/mpl_Return%20control.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
@@ -11347,7 +11376,7 @@ various fixes]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Controlling selected track sends\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2024-05-08T04:02:39Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -11486,6 +11515,10 @@ various fixes]]></changelog>
 # fix gain readout doesn`t react to +1 buttons]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f857999ec26ba2e67073bf637a40e3ca00190d2d/Tracks%20Properties/mpl_Send%20control.lua</source>
       </version>
+      <version name="1.31" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tracks%20Properties/mpl_Send%20control.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
       <metadata>
@@ -11516,7 +11549,7 @@ various fixes]]></changelog>
     </reapack>
     <reapack name="mpl_Set selected tracks audio input device to Guit.lua" type="script" desc="Set selected tracks audio input device to Guit">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2022-08-05T21:20:07Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70b3eca10eab2e76bdd89fae23798dad097d116e/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Guit.lua</source>
@@ -11525,10 +11558,14 @@ various fixes]]></changelog>
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Guit.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Guit.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set selected tracks audio input device to Mic.lua" type="script" desc="Set selected tracks audio input device to Mic">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2022-08-05T21:20:07Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70b3eca10eab2e76bdd89fae23798dad097d116e/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Mic.lua</source>
@@ -11537,10 +11574,14 @@ various fixes]]></changelog>
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Mic.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Mic.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set selected tracks MIDI input device to TouchOSC bridge.lua" type="script" desc="Set selected tracks MIDI input device to TouchOSC bridge">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2019-05-21T21:10:31Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d289995570fe32730851fe3560ac8f54e5a7497/Tracks%20Properties/mpl_Set%20selected%20tracks%20MIDI%20input%20device%20to%20TouchOSC%20bridge.lua</source>
@@ -11549,14 +11590,22 @@ various fixes]]></changelog>
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/002ad736f4670669a14cdf007f53e573cac57c6c/Tracks%20Properties/mpl_Set%20selected%20tracks%20MIDI%20input%20device%20to%20TouchOSC%20bridge.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tracks%20Properties/mpl_Set%20selected%20tracks%20MIDI%20input%20device%20to%20TouchOSC%20bridge.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set solo for random selected track.lua" type="script" desc="Set solo for random selected track">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="mpl" time="2016-11-20T19:31:41Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/37abb63c3392a975e07e254e404461da65761cbf/Tracks%20Properties/mpl_Set%20solo%20for%20random%20selected%20track.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2025-11-29T20:19:27Z">
+        <changelog><![CDATA[# fix link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f7f4ba8a397e85a023f83008e20aeacb7027815/Tracks%20Properties/mpl_Set%20solo%20for%20random%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set stereo as parent channels for selected tracks.lua" type="script" desc="Set stereo as parent channels for selected tracks">
