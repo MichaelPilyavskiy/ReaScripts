@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f7f4ba8a397e85a023f83008e20aeacb7027815" name="MPL Scripts">
+<index version="1" commit="3638ced55776a813870ec43c55580893472ea892" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13037,6 +13037,10 @@ various fixes]]></changelog>
 + Add RPP-BAK to open source file dialog
 + Add option to show sends in track list]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0d7ae3f1ce2bdd3c4cf6276db455702ba3b92a3/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.09" author="MPL" time="2025-11-29T22:02:32Z">
+        <changelog><![CDATA[# revert single extension for source RPP dialog]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3638ced55776a813870ec43c55580893472ea892/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
