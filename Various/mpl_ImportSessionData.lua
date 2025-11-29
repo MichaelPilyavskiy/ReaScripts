@@ -1,12 +1,10 @@
 -- @description ImportSessionData
--- @version 3.08
+-- @version 3.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Settings: add option to always force obey structure for folders content
---    + Add RPP-BAK to open source file dialog
---    + Add option to show sends in track list
+--    # revert single extension for source RPP dialog
 
 
     
@@ -1591,7 +1589,7 @@
   end
   --------------------------------------------------------------------------------  
   function DATA:Actions_SetSourceRPP()
-    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', 'RPP*' )
+    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
     if retval then  
       EXT.UI_lastsrcproj=filenameNeed4096
       EXT:save()
