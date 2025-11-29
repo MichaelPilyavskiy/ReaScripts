@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3eeb04b5fa4c0792d0a46d76a20030f4da37bd08" name="MPL Scripts">
+<index version="1" commit="8023a21194e2e543ae9a77741b62be85733d7204" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -15555,6 +15555,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[# Support ReaImGui 0.10 (this fix non-Unicode fonts display)
 # change slider background coloring a bit]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f21fbea1dc58468d95b096971c4d004b3eccc6c2/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.20" author="MPL" time="2025-11-29T19:54:45Z">
+        <changelog><![CDATA[# fix some minor cases for same named sends]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8023a21194e2e543ae9a77741b62be85733d7204/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
