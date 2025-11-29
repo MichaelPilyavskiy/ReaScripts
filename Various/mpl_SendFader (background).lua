@@ -1,10 +1,9 @@
 ﻿-- @description SendFader
--- @version 3.19
+-- @version 3.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Support ReaImGui 0.10 (this fix non-Unicode fonts display)
---    # change slider background coloring a bit
+--    # fix some minor cases for same named sends
 
 
 
@@ -498,6 +497,7 @@
         if automode_global ~= -1 and automode_global > 0 then automode = automode_global end 
       end
       
+      local chan_config_uniqueID = I_DSTCHAN <<8|(I_SRCCHAN)
       DATA.srctr.sends[id] = {
             
             srcPtr = DATA.srctr.ptr,
@@ -527,7 +527,7 @@
             automode_env = DATA:CollectData_GetEnv(tr,destPtr),
             automode=automode,
             
-            str_id = destGUID..id
+            str_id = destGUID..id..'chan'..chan_config_uniqueID
             
             }
       DATA:CollectData_ReadProject_ReadTracks_Sends_readEQ(destPtr,DATA.srctr.sends[id]) 
@@ -828,7 +828,7 @@
     
     if ImGui.BeginMenu( ctx, '+ ['..DATA.srctr.name..']', true ) then
       for i = 1, #DATA.receives do
-        if ImGui.MenuItem( ctx, DATA.receives[i].trname, '', false, true ) then 
+        if ImGui.MenuItem( ctx, DATA.receives[i].trname..'##'..DATA.receives[i].destGUID, '', false, true ) then 
           CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
           DATA.upd = true 
         end
@@ -1553,7 +1553,7 @@
       for i = 1, #DATA.receives do 
         if (DATA.srctr.ptr~=DATA.receives[i].ptr ) then
           if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Borders) then
-            if ImGui.Button( ctx, DATA.receives[i].trname,-1) then 
+            if ImGui.Button( ctx, DATA.receives[i].trname..'##'..DATA.receives[i].destGUID,-1) then 
               CreateTrackSend( DATA.srctr.ptr, DATA.receives[i].ptr )
               DATA.upd = true 
             end
