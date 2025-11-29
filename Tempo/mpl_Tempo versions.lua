@@ -1,11 +1,10 @@
 -- @description Tempo versions
--- @version 1.03
+-- @version 1.04
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # fix various cases on get/set new data
---    + Add copy/paste buttons
+--    # fix link
 
 
 

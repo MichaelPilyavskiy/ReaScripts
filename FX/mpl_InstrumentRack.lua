@@ -1,10 +1,10 @@
 -- @description InstrumentRack
--- @version 2.08
+-- @version 2.10
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672 
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for showing instruments in currently opened REAPER project
 -- @changelog
---    # fix support legacy format before 2.04
+--    # fix link
     
     
 --NOT reaper NOT gfx

@@ -1,11 +1,10 @@
 -- @description Return control
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @about Controlling send folder
--- @website http://forum.cockos.com/showthread.php?t=165672 
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # update reaimgui
---    # fix gain readout doesn`t react to +1 buttons
+--    # fix link
 
 
     

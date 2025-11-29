@@ -1,9 +1,9 @@
 -- @description Set solo for random selected track
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---    + init
--- @website http://forum.cockos.com/member.php?u=70694
+--    # fix link
+-- @website https://forum.cockos.com/showthread.php?t=188335
 
 cnt = reaper.CountSelectedTracks(0)
 set_rand = math.floor(  math.random() * cnt)

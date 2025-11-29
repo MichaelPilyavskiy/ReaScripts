@@ -1,11 +1,10 @@
 -- @description Send control
--- @version 1.30
+-- @version 1.31
 -- @author MPL
 -- @about Controlling selected track sends
--- @website http://forum.cockos.com/showthread.php?t=165672 
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # update reaimgui
---    # fix gain readout doesn`t react to +1 buttons
+--    # fix link
 
 
 

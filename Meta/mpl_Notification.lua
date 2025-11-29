@@ -1,12 +1,12 @@
 -- @description Notification
--- @version 1.10
+-- @version 1.11
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for showing custom notification
 -- @provides
 --    [main] mpl_Notification, set track volume changed.lua
 -- @changelog
---    # use set_action_options == 2 to ignore new run (REAPER 7.31rc1+)
+--    # fix link
 
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 

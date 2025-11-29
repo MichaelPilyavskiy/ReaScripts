@@ -1,6 +1,6 @@
 -- @description Notification set - track volume changed
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about set parameters for MPL notification script
 -- @noindex
 

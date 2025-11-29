@@ -1,10 +1,10 @@
 ﻿-- @description Stretch marker guard
--- @version 1.04
+-- @version 1.05
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Script for protecting area around stretch markers
 -- @changelog
---    # fix spamming extstate
+--    # fix link
 
 
 

@@ -1,10 +1,10 @@
 -- @description CopyPaste plugin data
--- @version 1.08
+-- @version 1.09
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Script for migrating over plugin versions and formats
 -- @changelog
---    + Add support for take FX (no envelopes)
+--    # fix link
 
 
 

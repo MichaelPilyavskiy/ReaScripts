@@ -1,9 +1,9 @@
 -- @description Set selected tracks audio input device to Mic
--- @version 1.01
+-- @version 1.02
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # fix link
 
 
   device_name = 'Mic'

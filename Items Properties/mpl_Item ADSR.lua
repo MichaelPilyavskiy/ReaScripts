@@ -1,10 +1,10 @@
 -- @description Item ADSR
--- @version 1.01
+-- @version 1.03
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Script for manipulating ADSR of selected items
 -- @changelog
---    # fix spamming ext state
+--    # fix link
 
 
 
