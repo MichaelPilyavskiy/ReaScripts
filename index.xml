@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3638ced55776a813870ec43c55580893472ea892" name="MPL Scripts">
+<index version="1" commit="2fafea3cba87f420ba5da1e96cca52b1c696b3d7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13049,10 +13049,10 @@ various fixes]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=203393</link>
       </metadata>
       <version name="1.0" author="MPL" time="2018-02-18T16:54:40Z">
         <changelog><![CDATA[+ MouseModifiers: Alt+Click on param reset it to default (if any)
@@ -14562,21 +14562,83 @@ various fixes]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8792f2533d3367edf4aa29bc4bc4b90830a7156e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8792f2533d3367edf4aa29bc4bc4b90830a7156e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_InteractiveToolbar_Close.lua" type="script" desc="InteractiveToolbar_Close">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-08-19T06:37:03Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5ff3e079683ee622b2a3c70f308086e5c0531850/Various/mpl_InteractiveToolbar_Close.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_InteractiveToolbar_RefreshGUI.lua" type="script" desc="InteractiveToolbar_refreshGUI">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-11-16T19:45:56Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e1be82de925f458f6b535a63355beee404aa7291/Various/mpl_InteractiveToolbar_RefreshGUI.lua</source>
+      <version name="3.0" author="MPL" time="2025-12-13T23:03:15Z">
+        <changelog><![CDATA[+ UI overhaul: ported to ReaImGui
+# remove VariousFunctions dependency
+# remove SWS dependency, use only native API functions, this hugely reduce CPU usage on big projects in most cases
++ Context: support FX context
++ Context: support Spectral Edit context
++ Context: allow to moveup/movedown in settings, refresh state after context order change
++ Context/Envelope: support TakeFX
++ Widgets: allow to add/remove/moveup/movedown in settings
++ Widgets: add description for widgets in order setup window
++ Widgets: allow to use various widgets independent of context
++ Context: trigger context change after MIDI Editor closing
++ Widgets: implement sizing policy, auto arrange widgets if height of window is large enough
++ Widgets: allow widgets to have internal configuration flags (ex. same widgets for different contexts) for future extensions
++ Performance: various improvements
++ Separator: add tweakable separator between main and persistent widgets
+# better widgets storing in ExtState, sorry - not v1-2x compatible
+# Widgets: use popup for entering mutiple values and build-in input for single
+# use project =-1 anywhere
+# Time widgets: generally allow reset sub value to only beats and sub beats in beats format, only frames in H:M:S:F format
+# Time widgets: drag logic improvements in H:M:S:F format
+- Remove "Trigger action X on context change" for now, will add later if someone need
+- Widgets/#grid: remove MIDI Editor stuff, will probably return to this if someone need ME-specific grid
+- Widgets/chordlive, it was never worked right
+- Widgets/srclen: remove, not possible to edit with native API
+- Widgets/fxcontrols: not really helpful, will probably add something if anyone will ask, better to use mapping panel
+- Widgets/numchan: not really helpful, will return back if anyone ask
+- Widgets/sendto: obsolete, will return back if anyone ask for better design, better to use SendFader or SendControl+ReturnControl
+- Widgets/chsendmixer: obsolete, will return back if anyone ask for better design, better to use SendFader or SendControl+ReturnControl
+- Widgets/chrecvmixer: obsolete, will return back if anyone ask for better design, better to use SendFader or SendControl+ReturnControl
++ Time widgets: in place input fields (the logic is kinda multilevel so there are some limitations, like, you cant edit multiple fields at once, this will probably changed in the future)
++ Time widgets: in place input fields (the logic is kinda multilevel so there are some limitations, like, you cant edit multiple fields at once, this will probably changed in the future)
++ Widgets/Grid: make lines follow grid
++ Widgets/Time selection: rightclick on name to change settings
++ Widgets/Time selection: optionally obey snap to grid
++ Widgets/Last touched FX: fix receive last touched from non-first tab
++ Widgets/Last touched FX: improve FX deductive brutforce
++ Widgets/Last touched FX: use checkbox for toggle parameters
++ Widgets/Transport: use icons instead text, 
++ Widgets/Transport: show in-loop progress
++ Widgets/Transport: show beats flicker optionally
++ Widgets/BPM: use direct input fields
++ Widgets/BPM: change 0.5 bpm
++ Widgets/clock: rightclick to change settings
++ Widgets/itemname
++ Widgets/trackname
++ Widgets/envname, improve track/take fx and parameter formatting
++ Widgets/mchanmeter: show multichannel master peaks
++ Widgets/trackrecin: combine midiin and audioin into scrollable combo, Click to toggle between MIDI:All and none
++ Widgets/envfx: float Take/Track FX if related to applicable, shift click to toggle bypass
++ Widgets/envpointval: allow to change to absolute mode
++ Widgets/envpointval: allow to use deductive brutforce for setting formatted values
++ Widgets/envpointval: implement storing relative values during edits (so the script preserve relations between value even if lowest/highest values are clamped )
++ Widgets/envpointpos: implement storing relative positions during edits
++ Widgets/envpointpos: clamp to AI boundaries if in AI mode
++ Widgets/envmarksame: mark points with same values
++ Widgets/menotepitch: Shift wheel or shift drag adjust octave of slected notes
++ Widgets/fxoversampl: drag or wheel to change chain oversampling
++ Widgets/fxautobypass: toggle auto bypass
+# Widgets/masterscope: move vertical indicators to mchancnt
+# Widgets/taptempo: various math improvements, "Apply to selected item" change item length
+# Widgets/masterswapmono: use native mono action state instead setting width to 0
+# Widgets/color: use reaimgui color picker, allow to call recent color
+# Widgets/itemlock: split from buttons
+# Widgets/itempreservepitch: split from buttons
+# Widgets/itemloop: split from buttons
+# Widgets/itemmute: split from buttons
+# Widgets/itemchanmode: split from buttons
+# Widgets/itemreverse: split from buttons
+# Widgets/itembwfsrc: split from buttons
+# Widgets/itemtimebase: split from buttons
+# Widgets/itemsourceoffset: rename offset, restrict edit if mode is not seconds and there are more than 2 time signature marekers in the project
+# Widgets/trackfxlist: rename fxlist, use per-track ext state, mouse modifiers - replicate mixer behaviour, click on empty list show FX browser
+# Widgets/trackfreeze: use native API
+# Widgets/envpointval: improve FX deductive brutforce, apply relative to selection
+# Widgets/envAIlooplen: limit minimum to 0.2sec]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2fafea3cba87f420ba5da1e96cca52b1c696b3d7/Various/mpl_InteractiveToolbar.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
