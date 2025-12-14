@@ -1,9 +1,9 @@
 -- @description Split all track envelopes at selected envelope points positions
--- @version 1.02
+-- @version 1.03
 -- @author MPL 
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # prevent splitting tempo envelope
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -37,6 +37,8 @@
     -- split
       for envidx = 1,  CountTrackEnvelopes( track ) do
         local tr_env_child = GetTrackEnvelope( track, envidx-1 )
+        local _, env_name = reaper.GetEnvelopeName(tr_env_child, "")
+        if env_name:lower():find("tempo") then goto continue end --exclude tempo envelope when used on master track
         for i = 1, #point_t do 
           -- get env point
           local pt_idx = GetEnvelopePointByTime( tr_env_child, point_t[i]+(10^-14) )
@@ -52,7 +54,8 @@
             local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], SR , b_size ) 
             InsertEnvelopePoint( tr_env_child, point_t[i], value, 0, -1, false, nosort )            
           end
-        end 
+        end
+        ::continue::
       end 
   end
   if VF_CheckReaperVrs(5.975,true) then
