@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2fafea3cba87f420ba5da1e96cca52b1c696b3d7" name="MPL Scripts">
+<index version="1" commit="29f1a7ba8a54880eefaccfa42e24185f28e7b474" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14639,6 +14639,15 @@ various fixes]]></changelog>
 # Widgets/envpointval: improve FX deductive brutforce, apply relative to selection
 # Widgets/envAIlooplen: limit minimum to 0.2sec]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2fafea3cba87f420ba5da1e96cca52b1c696b3d7/Various/mpl_InteractiveToolbar.lua</source>
+      </version>
+      <version name="3.01" author="MPL" time="2025-12-14T09:48:52Z">
+        <changelog><![CDATA[+ Theming: window background
++ Theming: widgets background
++ Theming: values/buttons text
++ Theming: font
++ Theming: font scaling
++ Theming: reset theming]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/29f1a7ba8a54880eefaccfa42e24185f28e7b474/Various/mpl_InteractiveToolbar.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
