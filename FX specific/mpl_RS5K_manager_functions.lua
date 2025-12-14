@@ -1493,7 +1493,7 @@ end
   end
   -------------------------------------------------------------------------------- 
   function DATA:CollectDataInit_ParseREAPERDB()
-    if EXT.CONF_ignoreDBload == 1 then return end
+    if EXT.CONF_ignoreDBload == 1 then return end 
     local reaperini = get_ini_file()
     local backend = VF_LIP_load(reaperini)
     local exp_section = backend.reaper_explorer
@@ -2371,16 +2371,18 @@ end
           local sD_VOL = GetTrackSendInfo_Value( track, 0, sendidx-1, 'D_VOL' )
           local sD_PAN = GetTrackSendInfo_Value( track, 0, sendidx-1, 'D_PAN' )
           local P_DESTTRACK = GetTrackSendInfo_Value( track, 0, sendidx-1, 'P_DESTTRACK' )
-          local ret, P_DESTTRACKname = GetTrackName(P_DESTTRACK)
-          local P_DESTTRACKGUID = GetTrackGUID(P_DESTTRACK)
-          sends[sendidx] ={
-            D_VOL=sD_VOL,
-            D_PAN=sD_PAN,
-            P_DESTTRACK=P_DESTTRACK,
-            P_DESTTRACKname=P_DESTTRACKname,
-            P_DESTTRACKGUID=P_DESTTRACKGUID,
-            
-            }
+          if P_DESTTRACK then 
+            local ret, P_DESTTRACKname = GetTrackName(P_DESTTRACK)
+            local P_DESTTRACKGUID = GetTrackGUID(P_DESTTRACK)
+            sends[sendidx] ={
+              D_VOL=sD_VOL,
+              D_PAN=sD_PAN,
+              P_DESTTRACK=P_DESTTRACK,
+              P_DESTTRACKname=P_DESTTRACKname,
+              P_DESTTRACKGUID=P_DESTTRACKGUID,
+              
+              }
+          end
         end
         
         
@@ -3418,22 +3420,22 @@ end
         instrument_pos = instrument_pos
       }
       
-      
+      -- various
       TrackFX_SetParamNormalized( track, instrument_pos, 2, 0) -- gain for min vel 
-      TrackFX_SetParamNormalized( track, instrument_pos, 8, 0 ) -- max voices = 0
+      TrackFX_SetParamNormalized( track, instrument_pos, 8, (EXT.CONF_onadd_maxvoices-1)/63 ) -- max voices 
+      TrackFX_SetParamNormalized( track, instrument_pos, 17, EXT.CONF_onadd_minvel/127 )
+      TrackFX_SetParamNormalized( track, instrument_pos, 18, EXT.CONF_onadd_maxvel/127 )
       
+      -- obey note off
       local obeynoteoff = EXT.CONF_onadd_obeynoteoff if drop_data and drop_data.srct and drop_data.srct.instrument_noteoff then obeynoteoff = drop_data.srct.instrument_noteoff end
       TrackFX_SetParamNormalized( track, instrument_pos, 11, obeynoteoff) -- obey note offs
       
-      -- ADSR
-      
+      -- ADSR 
       local attack =    math.min(2,EXT.CONF_onadd_ADSR_A)       if EXT.CONF_onadd_ADSR_flags&1==1 then TrackFX_SetParamNormalized( track, instrument_pos, 9, attack )  end
       local decay_sec = math.min(15,EXT.CONF_onadd_ADSR_D-0.01)/15   if EXT.CONF_onadd_ADSR_flags&2==2 then TrackFX_SetParamNormalized( track, instrument_pos, 24, decay_sec )  end
       local sustain=    math.min(2,EXT.CONF_onadd_ADSR_S)       if EXT.CONF_onadd_ADSR_flags&4==4 then TrackFX_SetParamNormalized( track, instrument_pos, 25, sustain )  end
       local release =   math.min(2,EXT.CONF_onadd_ADSR_R)       if EXT.CONF_onadd_ADSR_flags&8==8 then TrackFX_SetParamNormalized( track, instrument_pos, 10, release )  end
-      
-      
-    
+       
     -- set offsets
       if drop_data and drop_data.SOFFS and drop_data.EOFFS then
         TrackFX_SetParamNormalized( track, instrument_pos, 13, drop_data.SOFFS )
@@ -3489,28 +3491,27 @@ end
       end
       
     -- rename track
-    DATA:DropSample_RenameTrack(track,note,filename,drop_data) 
+      DATA:DropSample_RenameTrack(track,note,filename,drop_data) 
+      
     -- set DB
-    if drop_data.set_DB then 
-      DATA:WriteData_Child(track, {
-        SET_useDB = 1,
-        SET_useDB_name = drop_data.set_DB})  
-    end
-    
-    
-    if EXT.CONF_onadd_sysexmode == 1 then DATA:Action_RS5k_SYSEXMOD_ON(note, true, track, instrument_pos)end
-    
-    TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE',1 ) -- 
-    DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) 
-    
-    local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD == true
-    if SYSEXMOD == true then 
-      TrackFX_SetParamNormalized( track, instrument_pos, 3,0 ) -- note start
-      TrackFX_SetParamNormalized( track, instrument_pos, 4, 1 ) -- note end
-      TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
-      TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
-      TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE', 0 ) -- turn sample into freely configurable mode
-    end
+      if drop_data.set_DB then 
+        DATA:WriteData_Child(track, {
+          SET_useDB = 1,
+          SET_useDB_name = drop_data.set_DB})  
+      end
+      
+    -- sysex mode
+      if EXT.CONF_onadd_sysexmode == 1 then DATA:Action_RS5k_SYSEXMOD_ON(note, true, track, instrument_pos)end 
+      TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE',1 ) 
+      DATA:DropSample_ExportToRS5kSetNoteRange(temp_t, note) 
+      local SYSEXMOD = DATA.children[note] and DATA.children[note].SYSEXMOD == true
+      if SYSEXMOD == true then 
+        TrackFX_SetParamNormalized( track, instrument_pos, 3,0 ) -- note start
+        TrackFX_SetParamNormalized( track, instrument_pos, 4, 1 ) -- note end
+        TrackFX_SetParamNormalized( track, instrument_pos, 5, 0.5 ) -- pitch for start
+        TrackFX_SetParamNormalized( track, instrument_pos, 6, 0.5 ) -- pitch for end
+        TrackFX_SetNamedConfigParm( track, instrument_pos, 'MODE', 0 ) -- turn sample into freely configurable mode
+      end
   end  
   -----------------------------------------------------------------------  
   function DATA:DropSample_RenameTrack(track,note,filename,drop_data) 
@@ -3571,7 +3572,7 @@ end
     return MIDIdata
   end
 --------------------------------------------------------------------------------  
-  function DATA:Action_ExplodeTake_sub_writechildren(item, take, MIDIdata)
+  function DATA:Action_ExplodeTake_sub_writechildren(options, item, take, MIDIdata)
     -- get boundary
       local D_POSITION = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local D_LENGTH = GetMediaItemInfo_Value( item, 'D_LENGTH' )
@@ -3605,7 +3606,12 @@ end
           for i = 1, #MIDIdata[note] do 
             local ppq_pos = MIDIdata[note][i].ppq_pos
             offset = ppq_pos - ppq_pos_last
-            MIDIstring = MIDIstring..string.pack("i4Bs4",offset, MIDIdata[note][i].flags, MIDIdata[note][i].msg1)
+            local out_msg1 = MIDIdata[note][i].msg1
+            if options.modify_note then 
+              local out_pitch=  options.modify_note
+              out_msg1 = string.char(out_msg1:byte(1), out_pitch ,out_msg1:byte(3) )
+            end
+            MIDIstring = MIDIstring..string.pack("i4Bs4",offset, MIDIdata[note][i].flags, out_msg1)
             ppq_pos_last = ppq_pos 
             ::nextevent::
           end
@@ -3696,24 +3702,24 @@ end
       }]]
   end
   --------------------------------------------------------------------------------  
-  function DATA:Action_ExplodeTake_sub(item)
+  function DATA:Action_ExplodeTake_sub(options, item)
     if not item then return end
     local take = GetActiveTake(item)
     if not (take and reaper.TakeIsMIDI(take)) then return end
     MIDI_Sort(take)
     MIDIdata = DATA:Action_ExplodeTake_sub_readparent(take)
     if not MIDIdata then return end
-    DATA:Action_ExplodeTake_sub_writechildren(item, take, MIDIdata) 
+    DATA:Action_ExplodeTake_sub_writechildren(options, item, take, MIDIdata) 
     
     -- mute item
     SetMediaItemInfo_Value( item, 'B_MUTE', 1 )
   end
 --------------------------------------------------------------------------------  
-  function DATA:Action_ExplodeTake()
+  function DATA:Action_ExplodeTake(options)
     Undo_BeginBlock2(DATA.proj)
     for i = 1, reaper.CountSelectedMediaItems(DATA.proj) do
       local item = GetSelectedMediaItem(DATA.proj, i-1)
-      DATA:Action_ExplodeTake_sub(item)
+      DATA:Action_ExplodeTake_sub(options, item)
     end
     Undo_EndBlock2(DATA.proj, 'Explode MIDI bus take by note', 0xFFFFFFFF)
   end

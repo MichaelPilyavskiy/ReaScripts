@@ -1,5 +1,5 @@
--- @description RS5k manager
--- @version 4.78
+ -- @description RS5k manager
+-- @version 4.79
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,11 +23,15 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    # Autoslice: fix error on creating sequence
---    # Choke: fix error at clear choke setup
+--    # fix "Don`t load database" check, thanks to kanemiko [p=2907611]
+--    + Settings/On sample add/FX instance: max vocices [p=2907611]
+--    + Settings/On sample add/FX instance: min velocity [p=2907611]
+--    + Settings/On sample add/FX instance: max velocity [p=2907611]
+--    + Actions: Explode MIDI bus take to children (fixed note)
+--    + Theming: apply main color to all elements, allow to edit this color [p=2907611]
 
 
-rs5kman_vrs = '4.77'
+rs5kman_vrs = '4.79'
 
 
 
@@ -132,6 +136,9 @@ rs5kman_vrs = '4.77'
           CONF_onadd_ADSR_S = 0,
           CONF_onadd_ADSR_R = 0.02,
           CONF_onadd_sysexmode = 0,
+          CONF_onadd_maxvoices = 1,
+          CONF_onadd_minvel = 1,
+          CONF_onadd_maxvel = 127,
           
           -- midi bus
           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -176,6 +183,7 @@ rs5kman_vrs = '4.77'
           UI_allowshortcuts = 1, -- allow space to play
           UI_allowdoplayeronpad = 0,
           UI_showcurrentdbmap = 0,
+          UI_colRGBA_maintheme_color = 0x337233FF,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -198,6 +206,7 @@ rs5kman_vrs = '4.77'
            
           -- actions
           CONF_importselitems_removesource = 0,
+          CONF_explodeMIDItochildren_note = 36,
           
           -- auto color
           CONF_autocol = 0, -- 1 sort by note 
@@ -339,11 +348,8 @@ rs5kman_vrs = '4.77'
     UI.scrollbarsz = 10
     
     -- colors
-    UI.col_maintheme = 0x00B300 
+    
     UI.col_red = 0xB31F0F  
-    UI.colRGBA_selectionrect = 0x00B300BF  
-    UI.colRGBA_ADSRrect = 0x00AF00DF
-    UI.colRGBA_ADSRrectHov = 0x00FFFFFF 
     UI.padplaycol = 0x00FF00 
     UI.knob_handle = 0xc8edfa
     UI.knob_handle_normal = UI.knob_handle
@@ -440,6 +446,7 @@ rs5kman_vrs = '4.77'
     -- colors
       ImGui.PushStyleColor(ctx, ImGui.Col_Button,           UI.Tools_RGBA(UI.main_col, 0.2))
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_CheckMark,        (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0)
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    UI.Tools_RGBA(UI.but_hovered, 0.8))
       ImGui.PushStyleColor(ctx, ImGui.Col_DragDropTarget,   UI.Tools_RGBA(0xFF1F5F, 0.6))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          UI.Tools_RGBA(0x1F1F1F, 0.7))
@@ -449,13 +456,14 @@ rs5kman_vrs = '4.77'
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive,     UI.Tools_RGBA(UI.main_col, 1) )
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    UI.Tools_RGBA(UI.main_col, 0.98) )
       ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(0x303030, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,       UI.Tools_RGBA(UI.main_col, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,UI.Tools_RGBA(UI.main_col, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,       UI.Tools_RGBA(UI.col_maintheme, 0.6) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, UI.Tools_RGBA(UI.col_maintheme, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              UI.Tools_RGBA(UI.main_col, 0.37) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,       UI.Tools_RGBA(UI.col_maintheme, 0.5) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       UI.Tools_RGBA(UI.col_maintheme, 0.8) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,       (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,(EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripActive, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xC0 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,       (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90) 
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xC0 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x70 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,      (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xD0)
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0 )
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
@@ -613,7 +621,7 @@ rs5kman_vrs = '4.77'
      
     -- pop
       ImGui.PopStyleVar(ctx, 22) 
-      ImGui.PopStyleColor(ctx, 23) 
+      ImGui.PopStyleColor(ctx, 25) 
       ImGui.PopFont( ctx ) 
     
     -- shortcuts
@@ -664,7 +672,6 @@ rs5kman_vrs = '4.77'
   -------------------------------------------------------------------------------- 
   function UI.MAIN_definecontext()
     
-    EXT:load() 
     
     -- imgUI init
     ctx = ImGui.CreateContext(DATA.UI_name) 
@@ -781,7 +788,7 @@ rs5kman_vrs = '4.77'
       local p_min_y = y+h - w-UI.calc_padoverview_cellside*(activerow)
       local p_max_x = p_min_x+w-1
       local p_max_y = p_min_y+w
-      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 2 )
+      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0, 0, ImGui.DrawFlags_None, 2 )
     end
     
   end
@@ -830,7 +837,7 @@ rs5kman_vrs = '4.77'
       local p_min_y = y+h - w-UI.calc_padoverview_cellside*(activerow)
       local p_max_x = p_min_x+w-1
       local p_max_y = p_min_y+w
-      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 1 )
+      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xFF, 0, ImGui.DrawFlags_None, 1 )
     end
     
   end
@@ -899,7 +906,7 @@ rs5kman_vrs = '4.77'
       local p_min_y = y_offs0+(10-activerow)*activerecth-1
       local p_max_x = p_min_x+w-1
       local p_max_y = p_min_y+activerecth
-      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y,UI.colRGBA_selectionrect, 0, ImGui.DrawFlags_None, 1 )
+      ImGui.DrawList_AddRect( UI.draw_list, p_min_x, p_min_y, p_max_x, p_max_y,(EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xFF, 0, ImGui.DrawFlags_None, 1 )
     end
     
   end
@@ -996,7 +1003,14 @@ rs5kman_vrs = '4.77'
     ImGui.SeparatorText(ctx, 'MIDI')
     ImGui.Indent(ctx, 10) 
     -- explode take
-      if ImGui.Selectable( ctx, 'Explode MIDI bus take to children') then DATA:Action_ExplodeTake() end
+      if ImGui.Button( ctx, 'Explode MIDI bus take to children',-1) then DATA:Action_ExplodeTake() end
+      if ImGui.Button( ctx, 'Explode MIDI bus take to children (fixed note)',-1) then DATA:Action_ExplodeTake({modify_note = EXT.CONF_explodeMIDItochildren_note}) end ImGui.SameLine(ctx) UI.HelpMarker('Explode to children but change output notes to fixed note')
+        
+        reaper.ImGui_SetNextItemWidth(ctx, 100)
+        local retval, v = reaper.ImGui_SliderInt( ctx, 'Explode MIDI Bus: fixed note', EXT.CONF_explodeMIDItochildren_note, 0, 127, EXT.CONF_explodeMIDItochildren_note, ImGui.SliderFlags_None )
+        if retval then EXT.CONF_explodeMIDItochildren_note = v end
+        if reaper.ImGui_IsItemDeactivated(ctx) then EXT:save() end
+        
     ImGui.Unindent(ctx, 10)
 
     -------------- Various
@@ -1158,7 +1172,7 @@ rs5kman_vrs = '4.77'
                 end
         if ImGui.Checkbox( ctx, 'Float RS5k instance',                                    EXT.CONF_onadd_float == 1 ) then EXT.CONF_onadd_float =EXT.CONF_onadd_float~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Set obey notes-off',                                     EXT.CONF_onadd_obeynoteoff == 1 ) then EXT.CONF_onadd_obeynoteoff =EXT.CONF_onadd_obeynoteoff~1 EXT:save() end 
-        if ImGui.Checkbox( ctx, 'Set Gain to normalized LUFS',                                     EXT.CONF_onadd_autoLUFSnorm_toggle == 1 ) then EXT.CONF_onadd_autoLUFSnorm_toggle =EXT.CONF_onadd_autoLUFSnorm_toggle~1 EXT:save() end 
+        if ImGui.Checkbox( ctx, 'Set Gain to normalized LUFS',                            EXT.CONF_onadd_autoLUFSnorm_toggle == 1 ) then EXT.CONF_onadd_autoLUFSnorm_toggle =EXT.CONF_onadd_autoLUFSnorm_toggle~1 EXT:save() end 
         if EXT.CONF_onadd_autoLUFSnorm_toggle == 1 then 
           ImGui.SameLine(ctx)
           reaper.ImGui_SetNextItemWidth(ctx, 100)
@@ -1167,6 +1181,18 @@ rs5kman_vrs = '4.77'
           if ret then EXT.CONF_onadd_autoLUFSnorm = v end 
           if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
         end
+        
+        -- max voices
+        local ret, v = ImGui.SliderInt( ctx, 'Max voices##CONF_onadd_maxvoices',                          EXT.CONF_onadd_maxvoices, 1, 64, EXT.CONF_onadd_maxvoices, ImGui.SliderFlags_None ) 
+        if ret then EXT.CONF_onadd_maxvoices = v end 
+        if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        
+        -- velocity range
+        local ret, v = ImGui.SliderInt( ctx, 'Min velocity##CONF_onadd_minvel',                          EXT.CONF_onadd_minvel, 1, EXT.CONF_onadd_maxvel, EXT.CONF_onadd_minvel, ImGui.SliderFlags_None ) 
+        if ret then EXT.CONF_onadd_minvel = VF_lim(v,1,127) end  if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        local ret, v = ImGui.SliderInt( ctx, 'Max velocity##CONF_onadd_maxvel',                          EXT.CONF_onadd_maxvel, EXT.CONF_onadd_minvel, 127, EXT.CONF_onadd_maxvel, ImGui.SliderFlags_None ) 
+        if ret then EXT.CONF_onadd_maxvel = VF_lim(v,1,127) end  if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end
+        
         -- adsr
         if ImGui.Checkbox( ctx, '##CONF_onadd_ADSR_flags_a',                                    EXT.CONF_onadd_ADSR_flags&1 == 1 ) then EXT.CONF_onadd_ADSR_flags =EXT.CONF_onadd_ADSR_flags~1 EXT:save() end ImGui.SameLine(ctx)
         if EXT.CONF_onadd_ADSR_flags&1~=1 then ImGui.BeginDisabled(ctx, true) end
@@ -1482,7 +1508,12 @@ rs5kman_vrs = '4.77'
       --ctrls
       local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Sampler peaks backgr', EXT.UI_colRGBA_smplrbackgr, ImGui.ColorEditFlags_AlphaBar|ImGui.ColorEditFlags_NoInputs )  
       if retval then EXT.UI_colRGBA_smplrbackgr = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
-      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##res_Sampler peaks backgr') then EXT.UI_colRGBA_smplrbackgr = UI.colRGBA_smplrbackgr EXT:save() end      
+      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##res_Sampler peaks backgr') then EXT.UI_colRGBA_smplrbackgr = UI.colRGBA_smplrbackgr EXT:save() end  
+      
+      --UI_colRGBA_maintheme_color
+      local retval, col_rgba = ImGui.ColorEdit4( ctx, 'Various elements color', EXT.UI_colRGBA_maintheme_color, ImGui.ColorEditFlags_AlphaBar|ImGui.ColorEditFlags_NoInputs )  
+      if retval then EXT.UI_colRGBA_maintheme_color = col_rgba end if ImGui.IsItemDeactivatedAfterEdit(ctx) then EXT:save()  end
+      ImGui.SameLine(ctx)if ImGui.Button(ctx, 'Reset##UI_colRGBA_maintheme_color') then EXT.UI_colRGBA_maintheme_color = EXT.defaults.UI_colRGBA_maintheme_color EXT:save() end      
       
       
       
@@ -2154,7 +2185,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     
     -- frame / selection 
       if (DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  == note) then 
-        ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, UI.colRGBA_selectionrect, 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
+        ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90, 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
        else
         ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, 0x0000005F              , 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
       end
@@ -2205,13 +2236,13 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     local peakH = UI.calc_rack_padnameH-UI.calc_itemH
     local peakLx = x+w-peak_w*2
     local peakLy = y+UI.calc_itemH+peakH*(1-math.min(peaksRMS_L,1))
-    ImGui.DrawList_AddRectFilled( UI.draw_list, peakLx, peakLy , peakLx+peak_w, y+UI.calc_rack_padnameH, UI.col_maintheme<<8|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
+    ImGui.DrawList_AddRectFilled( UI.draw_list, peakLx, peakLy , peakLx+peak_w, y+UI.calc_rack_padnameH, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
     if peaksRMS_L >0.9 then ImGui.DrawList_AddLine( UI.draw_list, peakLx, y+UI.calc_itemH , peakLx+peak_w, y+UI.calc_itemH, 0xFF0000FF, 1) end
     
     local peakH = UI.calc_rack_padnameH-UI.calc_itemH
     local peakRx = x+w-peak_w-2
     local peakRy = y+UI.calc_itemH+peakH*(1-math.min(peaksRMS_R,1))
-    ImGui.DrawList_AddRectFilled( UI.draw_list, peakRx, peakRy , peakRx+peak_w, y+UI.calc_rack_padnameH, UI.col_maintheme<<8|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
+    ImGui.DrawList_AddRectFilled( UI.draw_list, peakRx, peakRy , peakRx+peak_w, y+UI.calc_rack_padnameH, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xFF, 0, ImGui.DrawFlags_RoundCornersTop)
     if peaksRMS_R >0.9 then ImGui.DrawList_AddLine( UI.draw_list, peakRx, y+UI.calc_itemH , peakRx+peak_w, y+UI.calc_itemH, 0xFF0000FF, 1) end
   end
   
@@ -2883,7 +2914,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     
     -- frame / selection  
       if knob_t.is_selected == true  then 
-        ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, UI.colRGBA_selectionrect, 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
+        ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90, 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
        else
         ImGui.DrawList_AddRect( UI.draw_list, x, y, x+w, y+h, 0x0000005F              , 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
       end  
@@ -3464,9 +3495,9 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     local rect_sz = UI.adsr_rectsz
     local x1,y1,x2,y2 = x10+rect_sz,y10+rect_sz,x20-rect_sz,y20-rect_sz -- effective area
     ImGui.PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameRounding(), 1)
-    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_Button(), UI.colRGBA_ADSRrect)
-    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), UI.colRGBA_ADSRrectHov)
-    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), UI.colRGBA_ADSRrectHov)
+    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_Button(),        (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90)
+    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(),  (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xB0)
+    ImGui.PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0)
     
     -- test
     ImGui.DrawList_AddRectFilled( UI.draw_list, x10,y10,x20,y20, EXT.UI_colRGBA_smplrbackgr, 2, ImGui.DrawFlags_None )
@@ -3501,14 +3532,14 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       pos1, y10, 
       pos1+rect_sz, y10, 
       pos1, y10+rect_sz, 
-      UI.colRGBA_ADSRrect )
+      (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90 )
       
       
     ImGui.DrawList_AddTriangleFilled(  UI.draw_list, 
       pos2-rect_sz, y20, 
       pos2, y20-rect_sz, 
       pos2, y20,  
-      UI.colRGBA_ADSRrect )
+      (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90 )
     
     
     UI.draw_setbuttonbackgtransparent()
@@ -3622,7 +3653,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     end        
     
     -- delay - attack line 
-    ImGui.DrawList_AddLine( UI.draw_list,xpos_del + UI.adsr_rectsz/2, ypos_del + UI.adsr_rectsz/2,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
+    ImGui.DrawList_AddLine( UI.draw_list,xpos_del + UI.adsr_rectsz/2, ypos_del + UI.adsr_rectsz/2,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90, 2 )
         
     -- decay
     local delmult = 1
@@ -3650,7 +3681,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     end          
     
     -- attack - decay line 
-    ImGui.DrawList_AddLine( UI.draw_list,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, xpos_dec + UI.adsr_rectsz/2, ypos_dec + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
+    ImGui.DrawList_AddLine( UI.draw_list,xpos_att + UI.adsr_rectsz/2, ypos_att + UI.adsr_rectsz/2, xpos_dec + UI.adsr_rectsz/2, ypos_dec + UI.adsr_rectsz/2, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90, 2 )
     
     
     -- release
@@ -3673,7 +3704,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     end
     
     -- delay - attack line 
-    ImGui.DrawList_AddLine( UI.draw_list,xpos_dec + UI.adsr_rectsz/2, ypos_dec + UI.adsr_rectsz/2, xpos_rel + UI.adsr_rectsz/2, ypos_rel + UI.adsr_rectsz/2, UI.colRGBA_ADSRrect, 2 )
+    ImGui.DrawList_AddLine( UI.draw_list,xpos_dec + UI.adsr_rectsz/2, ypos_dec + UI.adsr_rectsz/2, xpos_rel + UI.adsr_rectsz/2, ypos_rel + UI.adsr_rectsz/2, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90, 2 )
     
     
     
@@ -3686,7 +3717,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
         pos1-rect_sz, y1, 
         pos1, y1, 
         pos1, y1+rect_sz, 
-        UI.colRGBA_ADSRrect )
+        (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90 )
         
       UI.draw_setbuttonbackgtransparent()
       ImGui.SetCursorScreenPos( ctx, pos1-rect_sz, y1 )
@@ -4714,6 +4745,8 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     gmem_attach('RS5K_manager')
     gmem_write(1026, 1) -- rs5k manager opened
     
+    EXT.defaults = CopyTable(EXT)
+    EXT:load() 
     DATA.REAPERini = VF_LIP_load( reaper.get_ini_file()) 
     DATA:CollectDataInit_MIDIdevices()  
     DATA:CollectDataInit_ParseREAPERDB()  

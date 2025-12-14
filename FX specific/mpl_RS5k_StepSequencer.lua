@@ -48,6 +48,9 @@ reaper.set_action_options(1 )
           CONF_onadd_autoLUFSnorm = -14, 
           CONF_onadd_autoLUFSnorm_toggle = 0, 
           CONF_onadd_sysexmode = 0,
+          CONF_onadd_maxvoices = 1,
+          CONF_onadd_minvel = 1,
+          CONF_onadd_maxvel = 127,
           
           CONF_onadd_ADSR_flags = 0,--&1 A &2 D &4 S &8 R
           CONF_onadd_ADSR_A = 0,
@@ -90,6 +93,7 @@ reaper.set_action_options(1 )
           UI_colRGBA_paddefaultbackgr_inactive = 0x6060603F,
           UI_col_tinttrackcoloralpha = 0x7F,
           UI_allowshortcuts = 1,
+          UI_colRGBA_maintheme_color = 0x50F050FF,
           
           -- other 
           CONF_autorenamemidinotenames = 1|2, 
@@ -113,6 +117,7 @@ reaper.set_action_options(1 )
           
           -- actions
           CONF_importselitems_removesource = 0,
+          CONF_explodeMIDItochildren_note = 36,
           
           -- auto color
           CONF_autocol = 0, -- 1 sort by note 
@@ -331,18 +336,26 @@ reaper.set_action_options(1 )
     if x0 and y0 then ImGui.SetCursorPos(ctx, x0,y0) end
     
     -- loop steps
-    local stepcol_1 = 0xFFFFFF00
-    local stepcol_2 = 0x3FDF3F30
-    local stepcol_inactive = 0x4F4F4F1F
+    local col_activestep = 0xE0E0E000
+    local col_cell_1 = 0x5050508F
+    local col_cell_2 = (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x50
+    local col_cell_inactive = 0x5050503F
+    local col_step_1 = (col_activestep&0xFFFFFF00)|0x90
+    local col_step_2 = (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x9F
+    
+    local col_step_inactive = (col_activestep&0xFFFFFF00)|0x30
+    local col_separator = 0x808080FF
+    local col_playcursor = (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xFF
+    
     local step_cnt = DATA.seq.ext.children[note].step_cnt
     if step_cnt == -1 then step_cnt = DATA.seq.ext.patternlen end
     for activestep = DATA.seq.stepoffs+1, DATA.seq.ext.patternlen do
       -- colors/state
-        local stepcol = stepcol_1
-        if (activestep-1)%8> 3 then stepcol = stepcol_2 end
-        if activestep > step_cnt then stepcol = stepcol_inactive end
+        local col_cell = col_cell_1
+        if (activestep-1)%8> 3 then col_cell = col_cell_2 end
+        if activestep > step_cnt then col_cell = col_cell_inactive end
         
-      -- body
+      -- body cells
         ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0)
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,UI.seq_steprounding) 
         ImGui.Button(ctx, '##stepseq'..note..'step'..activestep, UI.seq_stepW,UI.seq_padH)  
@@ -350,11 +363,11 @@ reaper.set_action_options(1 )
         ImGui.PopStyleVar(ctx) 
         x1, y1 = reaper.ImGui_GetItemRectMin( ctx )
         x2, y2 = reaper.ImGui_GetItemRectMax( ctx ) 
-        ImGui.DrawList_AddRectFilled( UI.draw_list, x1, y1,x2-1, y2-1, stepcol|0x1F, UI.seq_steprounding, ImGui.DrawFlags_None )
+        ImGui.DrawList_AddRectFilled( UI.draw_list, x1, y1,x2-1, y2-1, col_cell, UI.seq_steprounding, ImGui.DrawFlags_None )
       
       -- separator
         if activestep%16==1 then
-          ImGui.DrawList_AddLine( UI.draw_list, x1, y1+1,x1, y2-2, stepcol|0x7F, 1 )
+          ImGui.DrawList_AddLine( UI.draw_list, x1, y1+1,x1, y2-2, col_separator, 1 )
         end
         
       -- fill step 
@@ -363,6 +376,9 @@ reaper.set_action_options(1 )
         if DATA.seq.ext and DATA.seq.ext.children and DATA.seq.ext.children[note] and DATA.seq.ext.children[note].steps then
           local activestep_fill = activestep
           if activestep > step_cnt then activestep_fill = 1+(activestep-1)%step_cnt end
+          local col_step = col_step_1
+          if (activestep-1)%8> 3 then col_step = col_step_2 end
+          if activestep > step_cnt then col_step = col_step_inactive end 
           
           if DATA.seq.ext.children[note].steps[activestep_fill] and DATA.seq.ext.children[note].steps[activestep_fill].val and DATA.seq.ext.children[note].steps[activestep_fill].val > 0 then
             local val = DATA.seq.ext.children[note].steps[activestep_fill].val
@@ -376,7 +392,7 @@ reaper.set_action_options(1 )
               y1+UI.seq_activestep_reducesz*2 + hstep-hstep*val,
               x1+UI.seq_activestep_reducesz*2 + wstep*width,
               y2-UI.seq_activestep_reducesz*2, 
-              stepcol|0x6F, UI.seq_steprounding, ImGui.DrawFlags_None )
+              col_step, UI.seq_steprounding, ImGui.DrawFlags_None )
           end
         end  
         
@@ -398,14 +414,14 @@ reaper.set_action_options(1 )
             y2-UI.seq_activestep_reducesz*2-1,
             xpos,
             y2-UI.seq_activestep_reducesz*2-5, 
-            stepcol|0x9F,2 )
+            0xFFFFFFDF,2 )
         end
         
       -- play cursor
         if DATA.seq.active_step and DATA.seq.active_step[note] and DATA.seq.active_step[note] == activestep then
           midx = x1 + (x2-x1)/2 
           midy = y1 + UI.seq_padH/2 
-          ImGui.DrawList_AddCircleFilled( UI.draw_list, midx, midy, 4, stepcol|0x9F, 0 )
+          ImGui.DrawList_AddCircleFilled( UI.draw_list, midx, midy, 4, col_playcursor, 0 )
         end        
         
       -- handle mouse
@@ -739,7 +755,7 @@ reaper.set_action_options(1 )
       end
     -- selection 
       if (DATA.parent_track and DATA.parent_track.ext and DATA.parent_track.ext.PARENT_LASTACTIVENOTE and DATA.parent_track.ext.PARENT_LASTACTIVENOTE  == note) then 
-        ImGui.DrawList_AddRect( UI.draw_list, x1, y1+1, x2, y2-1, UI.colRGBA_selectionrect, 5, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
+        ImGui.DrawList_AddRect( UI.draw_list, x1, y1+1, x2, y2-1, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0, 2, ImGui.DrawFlags_None|ImGui.DrawFlags_RoundCornersAll, 1 )
       end  
     -- levels
       local peak_w = UI.seq_audiolevelW
@@ -748,7 +764,7 @@ reaper.set_action_options(1 )
       local hP = y2-y1-3
       if DATA.children[note] and DATA.children[note].peaksRMS_L and (DATA.children[note].peaksRMS_L>0.001 or DATA.children[note].peaksRMS_R >0.001 )then
         local val = math.min((DATA.children[note].peaksRMS_L+DATA.children[note].peaksRMS_R)/2,1)
-        ImGui.DrawList_AddRectFilled( UI.draw_list, xP, yP+hP - hP*val+1 , xP+peak_w, yP+hP, UI.col_maintheme<<8|0xFF, 0, ImGui.DrawFlags_RoundCornersTop) 
+        ImGui.DrawList_AddRectFilled( UI.draw_list, xP, yP+hP - hP*val+1 , xP+peak_w, yP+hP, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xFF, 0, ImGui.DrawFlags_RoundCornersTop) 
         if val > 0.9 then ImGui.DrawList_AddLine( UI.draw_list, xP, yP+1 , xP+peak_w, yP+1, 0xFF0000FF, 1) end 
       end
       
@@ -1184,7 +1200,7 @@ It also used for advanced sequencing parameters.
   
     -- steps active
     local stepcol_1 = 0xBFBFBF00
-    local stepcol_2 = 0x3FDF3F00 
+    local stepcol_2 = (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x2F 
         
     for step = 1+DATA.seq.stepoffs, DATA.seq.ext.patternlen do
       local stepcol = stepcol_1
@@ -1808,27 +1824,29 @@ It also used for advanced sequencing parameters.
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,0,0.5)
       
     -- alpha
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,0.98)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,1)
       ImGui.PushStyleColor(ctx, ImGui.Col_Border,           UI.Tools_RGBA(0x000000, 0.3))
     -- colors
       ImGui.PushStyleColor(ctx, ImGui.Col_Button,           UI.Tools_RGBA(UI.main_col, 0.2))
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     UI.Tools_RGBA(UI.main_col, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_CheckMark,        (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0)
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    UI.Tools_RGBA(UI.but_hovered, 0.8))
       ImGui.PushStyleColor(ctx, ImGui.Col_DragDropTarget,   UI.Tools_RGBA(0xFF1F5F, 0.6))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          UI.Tools_RGBA(0x1F1F1F, 0.7))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,    UI.Tools_RGBA(UI.main_col, .6))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,   UI.Tools_RGBA(UI.main_col, 0.7))
-      ImGui.PushStyleColor(ctx, ImGui.Col_Header,           UI.Tools_RGBA(UI.main_col, 0.5) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Header,           UI.Tools_RGBA(UI.main_col, 0.3) )
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderActive,     UI.Tools_RGBA(UI.main_col, 1) )
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    UI.Tools_RGBA(UI.main_col, 0.98) )
       ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          UI.Tools_RGBA(0x303030, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,       UI.Tools_RGBA(UI.main_col, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,UI.Tools_RGBA(UI.main_col, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,       UI.Tools_RGBA(UI.col_maintheme, 0.6) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, UI.Tools_RGBA(UI.col_maintheme, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              UI.Tools_RGBA(UI.main_col, 0.37) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,       UI.Tools_RGBA(UI.col_maintheme, 0.5) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       UI.Tools_RGBA(UI.col_maintheme, 0.8) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,       (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,(EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripActive, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xC0 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,       (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x90) 
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xC0 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0x70 )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,      (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xD0)
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       (EXT.UI_colRGBA_maintheme_color&0xFFFFFF00)|0xF0 )
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.Tools_RGBA(UI.textcol, UI.textcol_a_enabled) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
@@ -1917,7 +1935,7 @@ It also used for advanced sequencing parameters.
      
     -- pop
       ImGui.PopStyleVar(ctx, 22) 
-      ImGui.PopStyleColor(ctx, 23) 
+      ImGui.PopStyleColor(ctx, 25) 
       ImGui.PopFont( ctx ) 
     
     -- shortcuts

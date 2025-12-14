@@ -1,15 +1,10 @@
 -- @description InteractiveToolbar
--- @version 3.01
+-- @version 3.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    + Theming: window background
---    + Theming: widgets background
---    + Theming: values/buttons text
---    + Theming: font
---    + Theming: font scaling
---    + Theming: reset theming
+--    # fix trackvol error on reading -inf
 
 
 
@@ -3014,6 +3009,7 @@
   ---------------------------------------------------
   function Utils_SplitValues(buf) 
     local t = {full_val = buf}
+    buf = tostring(buf)
     t.div = buf:reverse():match('[%p]') or ''
     t.num = {}
     for num in buf:gmatch('[%d]+') do t.num[#t.num+1] = num:format('%02d') end
