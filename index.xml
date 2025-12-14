@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="29f1a7ba8a54880eefaccfa42e24185f28e7b474" name="MPL Scripts">
+<index version="1" commit="0b35fb6276fd2bcd70cf3668e97118b7634b8d7c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -182,6 +182,10 @@
       <version name="1.02" author="MPL" time="2024-08-18T08:17:10Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/284b4e92e744e0e7073a267585098dabfc1544b3/Envelopes/mpl_Split%20all%20track%20envelopes%20at%20selected%20envelope%20points%20positions.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2025-12-09T17:21:05Z">
+        <changelog><![CDATA[# VF independent]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b44228a9ec5aadd6d87bb12e25b510a3ad801eb/Envelopes/mpl_Split%20all%20track%20envelopes%20at%20selected%20envelope%20points%20positions.lua</source>
       </version>
     </reapack>
   </category>
