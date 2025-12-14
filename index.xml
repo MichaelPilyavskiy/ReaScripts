@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0b35fb6276fd2bcd70cf3668e97118b7634b8d7c" name="MPL Scripts">
+<index version="1" commit="b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7247,6 +7247,33 @@
         <source type="effect" file="mpl_RS5K_manager_sysex_handler.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3eeb04b5fa4c0792d0a46d76a20030f4da37bd08/FX%20specific/mpl_RS5K_manager_sysex_handler.jsfx</source>
         <source file="mpl_RS5K_manager_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3eeb04b5fa4c0792d0a46d76a20030f4da37bd08/FX%20specific/mpl_RS5K_manager_functions.lua</source>
         <source main="main" file="mpl_RS5k_manager_ToggleShowChildren.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3eeb04b5fa4c0792d0a46d76a20030f4da37bd08/FX%20specific/mpl_RS5k_manager_ToggleShowChildren.lua</source>
+      </version>
+      <version name="4.79" author="MPL" time="2025-12-14T12:01:39Z">
+        <changelog><![CDATA[# fix "Don`t load database" check, thanks to kanemiko [p=2907611]
++ Settings/On sample add/FX instance: max vocices [p=2907611]
++ Settings/On sample add/FX instance: min velocity [p=2907611]
++ Settings/On sample add/FX instance: max velocity [p=2907611]
++ Actions: Explode MIDI bus take to children (fixed note)
++ Theming: apply main color to all elements, allow to edit this color [p=2907611]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_StepSequencer.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_StepSequencer.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_LoadAllPads.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Database_LoadAllPads.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_LoadSelectedPads.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Database_LoadSelectedPads.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NextMap.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Database_NextMap.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_PrevMap.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Database_PrevMap.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source type="effect" file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+        <source type="effect" file="mpl_RS5K_manager_sysex_handler.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5K_manager_sysex_handler.jsfx</source>
+        <source file="mpl_RS5K_manager_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5K_manager_functions.lua</source>
+        <source main="main" file="mpl_RS5k_manager_ToggleShowChildren.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/FX%20specific/mpl_RS5k_manager_ToggleShowChildren.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
@@ -14652,6 +14679,10 @@ various fixes]]></changelog>
 + Theming: font scaling
 + Theming: reset theming]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/29f1a7ba8a54880eefaccfa42e24185f28e7b474/Various/mpl_InteractiveToolbar.lua</source>
+      </version>
+      <version name="3.02" author="MPL" time="2025-12-14T12:01:39Z">
+        <changelog><![CDATA[# fix trackvol error on reading -inf]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/Various/mpl_InteractiveToolbar.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
