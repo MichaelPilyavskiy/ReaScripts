@@ -814,6 +814,10 @@ if not UI then UI = {} end
     if #form_data< 1 and do_not_ignore_empty ~= true then return end
     
     
+    
+    
+    
+    
     -- output to MIDI 
     local offset = 0
     local flags = 0
@@ -866,11 +870,80 @@ if not UI then UI = {} end
       str = str..str_per_msg
     
     
-    MIDI_SetAllEvts(take, str)
+    MIDI_SetAllEvts(take, str) 
     MIDI_Sort(take) 
+    
+    DATA:_Seq_PrintMIDI_AutoLegato(take)
+    
     SetMediaItemTakeInfo_Value( take,'D_STARTOFFS',DATA.seq.D_STARTOFFS )
     
     return form_data
+  end
+  --------------------------------------------------------------------------------  
+  function DATA:_Seq_PrintMIDI_AutoLegato(take)
+    if EXT.CONF_seq_autolegato ==0 then return str end
+    
+    if not take or not TakeIsMIDI(take) then return end
+    
+    -- Get take end position in PPQ
+    local item = GetMediaItemTake_Item(take)
+    local itemStart = GetMediaItemInfo_Value(item, "D_POSITION")
+    local itemLen = GetMediaItemInfo_Value(item, "D_LENGTH")
+    local itemEnd = itemStart + itemLen
+    local takeEndPPQ = MIDI_GetPPQPosFromProjTime(take, itemEnd)
+    
+    
+    local notes = {}
+    local _, noteCount, _, _ = MIDI_CountEvts(take)
+    
+    -- Collect notes by channel + pitch
+    for i = 0, noteCount - 1 do
+      local retval, sel, muted, startppq, endppq, chan, pitch, vel =
+        MIDI_GetNote(take, i)
+    
+      if retval then
+        local key = chan * 128 + pitch
+        notes[key] = notes[key] or {}
+        table.insert(notes[key], {
+          index = i,
+          startppq = startppq
+        })
+      end
+    end
+    
+    -- Process groups
+    for _, group in pairs(notes) do
+      table.sort(group, function(a, b)
+        return a.startppq < b.startppq
+      end)
+    
+      for i = 1, #group do
+        local cur = group[i]
+        local nextNote = group[i + 1]
+    
+        local newEndPPQ
+        if nextNote then
+          newEndPPQ = nextNote.startppq
+        else
+          newEndPPQ = takeEndPPQ
+        end
+    
+        if newEndPPQ > cur.startppq then
+          MIDI_SetNote(
+            take,
+            cur.index,
+            nil, nil,
+            cur.startppq,
+            newEndPPQ,
+            nil, nil, nil,
+            false
+          )
+        end
+      end
+    end
+    
+    
+    MIDI_Sort(take)
   end
   --------------------------------------------------------------------------------  
   function DATA:_Seq_SetItLength_Beats(patternlen) 

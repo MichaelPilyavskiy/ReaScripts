@@ -1,5 +1,5 @@
  -- @description RS5k manager
--- @version 4.79
+-- @version 4.80
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,15 +23,10 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    # fix "Don`t load database" check, thanks to kanemiko [p=2907611]
---    + Settings/On sample add/FX instance: max vocices [p=2907611]
---    + Settings/On sample add/FX instance: min velocity [p=2907611]
---    + Settings/On sample add/FX instance: max velocity [p=2907611]
---    + Actions: Explode MIDI bus take to children (fixed note)
---    + Theming: apply main color to all elements, allow to edit this color [p=2907611]
+--    + Settings/Step sequencer: auto legato
 
 
-rs5kman_vrs = '4.79'
+rs5kman_vrs = '4.80'
 
 
 
@@ -229,6 +224,7 @@ rs5kman_vrs = '4.79'
           CONF_seq_defaultstepcnt = 16, -- -1 follow pattern length
           CONF_seq_env_clamp = 1, -- 0 == allow env points on empty steps
           CONF_seq_steplength = 0.25,
+          CONF_seq_autolegato = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -1649,6 +1645,9 @@ rs5kman_vrs = '4.79'
       ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
       
       if ImGui.Checkbox( ctx, 'Clamp envelopes at active steps only',                             EXT.CONF_seq_env_clamp == 1 ) then EXT.CONF_seq_env_clamp =EXT.CONF_seq_env_clamp~1 EXT:save() end
+      ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
+      
+      if ImGui.Checkbox( ctx, 'Auto legato',                                                   EXT.CONF_seq_autolegato == 1 ) then EXT.CONF_seq_autolegato =EXT.CONF_seq_autolegato~1 EXT:save() end
       ImGui.SameLine(ctx) UI.HelpMarker('This setting require StepSequencer restart')
       
       local map  ={

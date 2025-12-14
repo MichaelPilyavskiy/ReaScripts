@@ -142,6 +142,7 @@ reaper.set_action_options(1 )
           CONF_seq_defaultstepcnt = 16,
           CONF_seq_env_clamp = 1, -- 0 == allow env points on empty steps
           CONF_seq_steplength = 0.25,
+          CONF_seq_autolegato = 0,
          }
         
   -------------------------------------------------------------------------------- INIT data
