@@ -1,10 +1,14 @@
 -- @description ImportSessionData
--- @version 3.09
+-- @version 3.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # revert single extension for source RPP dialog
+--    + Automatch: add receives folder definition by name, exact match
+--    + Automatch: add option to disable automatching folders
+--    + Match by name/place under matched track: inverrit folder depth and state is matched track is last in folder
+--    + Allow to change Match/AutoMatch default submode
+--    # fix auto select folders children
 
 
     
@@ -98,12 +102,15 @@
           CONF_tr_matchmode = 1, -- &1==1 full match
           CONF_tr_match_preventsends = 1,  -- do not allow to set receives other that for receive mark
           CONF_tr_match_automatchsendsasdest = 1, 
-          
+          CONF_tr_match_casesens = 0,
           
           preset_base64_user = '',
           update_presets = 1, -- grab presets ONCE from old version
           
-          
+          -- automatch
+          CONF_automatch_receive_foldername = 'Sends', 
+          CONF_automatch_allowfolders = 1,
+          CONF_automatch_defaultsubmode = 0,
          }
 -------------------------------------------------------------------------------- INIT data
   DATA = {
@@ -390,6 +397,7 @@
       UI.draw_tabs_tracks()
       UI.draw_tabs_header()
       UI.draw_tabs_settings()
+      UI.draw_tabs_AutoMatchSettings()
       UI.draw_tabs_sendimportlogic()
       ImGui.PopFont(ctx)
       ImGui.EndTabBar(ctx) 
@@ -967,10 +975,8 @@
     function __b_draw_tabs_settings() end
     if ImGui.BeginTabItem(ctx, 'Options') then  -- ,false, reaper.ImGui_TabItemFlags_SetSelected()
       
-      ImGui.SeparatorText(ctx, 'Track matching')
+      ImGui.SeparatorText(ctx, 'Track matching') 
       ImGui.Indent(ctx, indent)
-        if ImGui.Checkbox( ctx, 'Match source project tracks at initialization##UI_appatinit1', EXT.UI_appatinit&2 == 2 ) then EXT.UI_appatinit =EXT.UI_appatinit~2 EXT:save() end
-        if ImGui.Checkbox( ctx, 'Match tracks on setting source##UI_matchatsettingsrc', EXT.UI_matchatsettingsrc&2 == 2 ) then EXT.UI_matchatsettingsrc =EXT.UI_matchatsettingsrc~1 EXT:save() end
         local t = {[1] = 'Exact match', [2] = 'At least one word match'}
         local preview_value = t[EXT.CONF_tr_matchmode]
         reaper.ImGui_SetNextItemWidth(ctx, 150)
@@ -980,11 +986,23 @@
           end
           reaper.ImGui_EndCombo( ctx )
         end  
-        --ImGui.SeparatorText(ctx, '')
-        --ImGui.Indent(ctx, indent) 
-        if ImGui.Checkbox( ctx, '"Sends" or "Aux" folder children: Auto match for porting send parameters##CONF_tr_match_automatchsendsasdest', EXT.CONF_tr_match_automatchsendsasdest&1 == 1 ) then EXT.CONF_tr_match_automatchsendsasdest =EXT.CONF_tr_match_automatchsendsasdest~1 EXT:save() end
-        if ImGui.Checkbox( ctx, '"Sends" or "Aux" folder children: restrinct manual matching, except for porting send parameters##CONF_tr_match_preventsends', EXT.CONF_tr_match_preventsends&1 == 1 ) then EXT.CONF_tr_match_preventsends =EXT.CONF_tr_match_preventsends~1 EXT:save() end
-        --ImGui.Unindent(ctx, indent)
+        if ImGui.Checkbox( ctx, 'Case sensitive##CONF_tr_match_casesens', EXT.CONF_tr_match_casesens&1 == 1 ) then EXT.CONF_tr_match_casesens =EXT.CONF_tr_match_casesens~1 EXT:save() end
+        
+        local map = {
+          [0] = 'Replace',
+          [1] = 'Place under matched track',
+          [2] = 'Place under matched track as child',
+          [3] = 'Mark only for porting send parameters',
+        }
+        preview_value = map[EXT.CONF_automatch_defaultsubmode]
+        reaper.ImGui_SetNextItemWidth(ctx, 250)
+        if ImGui.BeginCombo( ctx, 'Defaul track match/automatch submode##CONF_automatch_defaultsubmode', preview_value, reaper.ImGui_ComboFlags_HeightLargest() )  then
+          for key in pairs(map) do
+            if ImGui.Selectable(ctx, map[key]..'##dest_defcombo'..key, EXT.CONF_automatch_defaultsubmode==key) then EXT.CONF_automatch_defaultsubmode = key EXT:save() end 
+          end
+          ImGui.EndCombo( ctx)
+        end 
+        
         
       ImGui.Unindent(ctx, indent)
       
@@ -997,11 +1015,39 @@
         if ImGui.Checkbox( ctx, 'Autoselect children on selecting source folder track##UI_autoselectchildren', EXT.UI_autoselectchildren&1 == 1 ) then EXT.UI_autoselectchildren =EXT.UI_autoselectchildren~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Always set folders to obey structure##UI_forcefoldobeystruct', EXT.UI_forcefoldobeystruct&1 == 1 ) then EXT.UI_forcefoldobeystruct =EXT.UI_forcefoldobeystruct~1 EXT:save() end
         if ImGui.Checkbox( ctx, 'Show sends in track list##UI_showsendsintracklist', EXT.UI_showsendsintracklist&1 == 1 ) then EXT.UI_showsendsintracklist =EXT.UI_showsendsintracklist~1 EXT:save() end
-        
-        
       ImGui.Unindent(ctx, indent)
       
       
+      
+      
+      ImGui.EndTabItem(ctx)
+    end
+  end
+  --------------------------------------------------------------------- 
+  function UI.draw_tabs_AutoMatchSettings()
+    local indent = UI.indent_menu
+    function __b_draw_tabs_settingsAutoMatch() end
+    if ImGui.BeginTabItem(ctx, 'AutoMatch settings') then  -- ,false, reaper.ImGui_TabItemFlags_SetSelected()
+      
+      ImGui.SeparatorText(ctx, 'Conditions')
+      ImGui.Indent(ctx, indent)
+        if ImGui.Checkbox( ctx, 'AutoMatch source project tracks at initialization##UI_appatinit1', EXT.UI_appatinit&2 == 2 ) then EXT.UI_appatinit =EXT.UI_appatinit~2 EXT:save() end
+        if ImGui.Checkbox( ctx, 'AutoMatch tracks on setting source##UI_matchatsettingsrc', EXT.UI_matchatsettingsrc&2 == 2 ) then EXT.UI_matchatsettingsrc =EXT.UI_matchatsettingsrc~1 EXT:save() end
+      ImGui.Unindent(ctx, indent)
+      
+      ImGui.SeparatorText(ctx, 'Receive managing')
+      ImGui.Indent(ctx, indent) 
+        reaper.ImGui_SetNextItemWidth(ctx, 200)
+        local retval, buf = reaper.ImGui_InputText( ctx, 'Receive folder definition by name', EXT.CONF_automatch_receive_foldername, ImGui.InputFlags_None ) ImGui.SameLine(ctx) UI.HelpMarker('Receives folder name in source project, exact match, case sensitive')
+        if retval then EXT.CONF_automatch_receive_foldername = buf  end if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT:save() end 
+        if ImGui.Checkbox( ctx, 'Set receives folder children to porting send parameters##CONF_tr_match_automatchsendsasdest', EXT.CONF_tr_match_automatchsendsasdest&1 == 1 ) then EXT.CONF_tr_match_automatchsendsasdest =EXT.CONF_tr_match_automatchsendsasdest~1 EXT:save() end
+        if ImGui.Checkbox( ctx, 'Restrinct manual matching, except for porting send parameters##CONF_tr_match_preventsends', EXT.CONF_tr_match_preventsends&1 == 1 ) then EXT.CONF_tr_match_preventsends =EXT.CONF_tr_match_preventsends~1 EXT:save() end
+      ImGui.Unindent(ctx, indent) 
+      
+      ImGui.SeparatorText(ctx, 'Folders/children managing')
+        ImGui.Indent(ctx, indent) 
+          if ImGui.Checkbox( ctx, 'AutoMatch folders##CONF_automatch_allowfolders', EXT.CONF_automatch_allowfolders&1 == 1 ) then EXT.CONF_automatch_allowfolders =EXT.CONF_automatch_allowfolders~1 EXT:save() end
+        ImGui.Unindent(ctx, indent)
       
       
       ImGui.EndTabItem(ctx)
@@ -1015,7 +1061,7 @@
       -- buttons
       if ImGui.BeginChild(ctx, 'tracklist_actions', UI.calc_tracklist_W,25) then --reaper.ImGui_ChildFlags_Borders()
         -- filter
-        reaper.ImGui_SetNextItemWidth(ctx, 150)
+        reaper.ImGui_SetNextItemWidth(ctx, 120)
         local retval, buf = reaper.ImGui_InputText( ctx, '##tracks_inputbuf', DATA.temp_inputtrackfiltbuf, reaper.ImGui_InputTextFlags_None() )
         DATA.temp_inputtrackfiltbuf = buf
         if retval then EXT.UI_trfilter = buf EXT:save() end
@@ -1027,10 +1073,10 @@
         
         -- match
         ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, 'Match',120) then 
+        if ImGui.Button(ctx, 'Auto match',100) then 
           DATA:Tracks_SetDestination(-1, 0, nil) 
           DATA:ParseSourceProject_PostProcess_AutomatchReceives()
-          DATA:MatchTrack() 
+          DATA:MatchTrack(nil,EXT.CONF_automatch_defaultsubmode) 
         end
         
         -- new track
@@ -1230,7 +1276,14 @@
       DATA.srcproj.TRACK[trid].destmode = mode
       if mode ==2  then DATA.srcproj.TRACK[trid].destmode_submode = submode  end
       if mode ==0 or mode ==1 or mode ==3 then DATA:Tracks_SetDestination(trid, mode) end
-      if mode ==2  then DATA:MatchTrack(trid, submode)  end
+      if mode ==2 then 
+        if not DATA.srcproj.TRACK[trid].dest_track_GUID then 
+          DATA:MatchTrack(trid, submode)
+         else
+          DATA.srcproj.TRACK[trid].destmode_submode = submode
+          DATA:Tracks_SetDestination_RefreshUI(trid) 
+        end
+      end
       if mode ==2 or mode ==3 then  DATA:Get_DestProject_ValidateSameSources()  end 
       if mode ==0 then
         DATA.srcproj.TRACK[trid].dest_track_GUID = nil
@@ -1309,10 +1362,8 @@
           if DATA:Tracks_IsDestinationUsed(i) == true then goto skipnestdest end
           local destname = DATA.destproj.TRACK[i].tr_name
           if has_filter==true and destname:lower():gsub('[%p%s]',''):match(filt)==nil then  goto skipnestdest end
-          local str='['..i..'] '..destname..'##desttrselector'..trid..'destid'..i
-          
-          local state = DATA.srcproj.TRACK[trid].dest_track_GUID and DATA.srcproj.TRACK[trid].dest_track_GUID == DATA.destproj.TRACK[i].GUID
-          
+          local str='['..i..'] '..destname..'##desttrselector'..trid..'destid'..i 
+          local state = DATA.srcproj.TRACK[trid].dest_track_GUID and DATA.srcproj.TRACK[trid].dest_track_GUID == DATA.destproj.TRACK[i].GUID 
           if ImGui.Selectable(ctx, str, state) then 
             local cnt_selection = DATA:Actions_Selection_Get()
             if cnt_selection <= 1 then
@@ -1430,6 +1481,9 @@
     
     -- auto select children
     if EXT.UI_autoselectchildren==1 then
+      local isfolder =  DATA.srcproj.TRACK[i].ISBUS and DATA.srcproj.TRACK[i].ISBUS[1]and DATA.srcproj.TRACK[i].ISBUS[2]and DATA.srcproj.TRACK[i].ISBUS[1]==1 and DATA.srcproj.TRACK[i].ISBUS[2]==1
+      if isfolder ~= true then return end
+      
       local initCUST_foldlev = DATA.srcproj.TRACK[i].CUST_foldlev
       if DATA.srcproj.TRACK[i+1] and DATA.srcproj.TRACK[i+1].CUST_foldlev ~= initCUST_foldlev then 
         for trid0 = i+1, #DATA.srcproj.TRACK do
@@ -1438,6 +1492,7 @@
           DATA.srcproj.TRACK[trid0].UI_selected = state  
         end
       end 
+      
     end
   end
   --------------------------------------------------------------------- 
@@ -2115,6 +2170,8 @@
   end
   ----------------------------------------------------------------------
   function DATA:ParseSourceProject_PostProcess()
+    
+    local receive_foldername = EXT.CONF_automatch_receive_foldername--:lower()
     -- postprocess
       for trid in pairs(DATA.srcproj.TRACK) do
         -- hidden
@@ -2123,7 +2180,8 @@
         -- send-aux children
         if DATA.srcproj.TRACK[trid] and DATA.srcproj.TRACK[trid].CUST_foldname then  
           local CUST_foldname = tostring(DATA.srcproj.TRACK[trid].CUST_foldname)
-          local CUST_trackisreceive = (CUST_foldname:lower():match('send')~= nil or CUST_foldname:lower():match('aux')~= nil ) 
+          
+          local CUST_trackisreceive = CUST_foldname:match(receive_foldername)~= nil -- :lower()
           DATA.srcproj.TRACK[trid].CUST_trackisreceive = CUST_trackisreceive  
         end
         
@@ -2189,33 +2247,35 @@
      elseif DATA.srcproj.TRACK[srctrack_id].destmode == 3 then 
       dest = '['..UI.default_newtrackatend1_dest..']' 
      elseif DATA.srcproj.TRACK[srctrack_id].destmode == 2 then 
-     
+      local destmode_submode = DATA.srcproj.TRACK[srctrack_id].destmode_submode
+      if destmode_submode == -1 then destmode_submode = nil end
       if DATA.srcproj.TRACK[srctrack_id].dest_track_GUID then  
         local desttrid = DATA:Tracks_GetDestinationbyGUID(DATA.srcproj.TRACK[srctrack_id].dest_track_GUID)
         if desttrid and DATA.destproj.TRACK[desttrid] then dest = '['..desttrid..'] ' ..DATA.destproj.TRACK[desttrid].tr_name end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == nil then dest = dest..' [replace]' end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == 1 then dest = dest..' [under]' end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == 2 then dest = dest..' [under, as child]' end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == 4 then dest = dest..' [mark only]' end
+        if destmode_submode == nil then dest = dest..' [replace]' end
+        if destmode_submode == 1 then dest = dest..' [under]' end
+        if destmode_submode == 2 then dest = dest..' [under, as child]' end
+        if destmode_submode == 4 then dest = dest..' [mark only]' end
        else
         dest = 'not found'
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == nil then dest = dest..' [replace]' end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == 1 then dest = dest..' [under]' end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == 2 then dest = dest..' [under, as child]' end
-        if DATA.srcproj.TRACK[srctrack_id].destmode_submode == 4 then dest = dest..' [mark only]' end
+        if destmode_submode == nil then dest = dest..' [replace]' end
+        if destmode_submode == 1 then dest = dest..' [under]' end
+        if destmode_submode == 2 then dest = dest..' [under, as child]' end
+        if destmode_submode == 4 then dest = dest..' [mark only]' end
       end
       
     end
     DATA.srcproj.TRACK[srctrack_id].dest_name_UI = dest..'##destselector'..srctrack_id
   end
   ----------------------------------------------------------------------
-  function DATA:Tracks_SetDestination(srctrack_id, mode, desttrack_id)
+  function DATA:Tracks_SetDestination(srctrack_id, mode, desttrack_id, submode)
     local output_error_code = 0
     if not ( DATA.srcproj and DATA.srcproj.TRACK and mode) then return end
     
     if DATA.srcproj.TRACK[srctrack_id] then  
       if mode ==1 and EXT.UI_forcefoldobeystruct&1 == 1 and DATA.srcproj.TRACK[srctrack_id].CUST_foldlev and DATA.srcproj.TRACK[srctrack_id].CUST_foldlev > 0 then mode = 3 end
-      DATA.srcproj.TRACK[srctrack_id].destmode = mode  
+      DATA.srcproj.TRACK[srctrack_id].destmode = mode 
+      DATA.srcproj.TRACK[srctrack_id].destmode_submode = submode 
       if mode == 2 then DATA.srcproj.TRACK[srctrack_id].sendlogic_flags = EXT.CONF_sendlogic_flags_matched end
       if DATA.srcproj.TRACK[srctrack_id].dest_track_GUID then
         local desttrack_id = DATA:Tracks_GetDestinationbyGUID( DATA.srcproj.TRACK[srctrack_id].dest_track_GUID)
@@ -2237,6 +2297,7 @@
           end
           DATA.srcproj.TRACK[i].dest_track_GUID = nil
           DATA.srcproj.TRACK[i].destmode = mode   
+          DATA.srcproj.TRACK[i].destmode_submode = submode
         end  
       end
       
@@ -2342,10 +2403,9 @@
   function DATA:MatchTrack_Sub(tr_name, id_src, submode) 
     if not tr_name then return end
     
-    
     if submode == 5 then -- match by ID
       if DATA.destproj.TRACK[id_src] then 
-        DATA:Tracks_SetDestination(id_src, 2, id_src)
+        DATA:Tracks_SetDestination(id_src, 2, id_src, submode)
       end
       return
     end
@@ -2356,7 +2416,7 @@
       if tr_col == 16576 then return end
       for desttrid = 1,  #DATA.destproj.TRACK do 
         if DATA.destproj.TRACK[desttrid].tr_col == tr_col then 
-          DATA:Tracks_SetDestination(id_src, 2, desttrid)
+          DATA:Tracks_SetDestination(id_src, 2, desttrid, submode)
           return
         end
       end
@@ -2372,7 +2432,7 @@
     for trid = 1,  #DATA.destproj.TRACK do 
       local tr_name_CUR =  DATA.destproj.TRACK[trid].tr_name:lower()
       if tr_name:match(literalize(tr_name_CUR)) and tr_name:match(literalize(tr_name_CUR)):len() == tr_name:len() then
-        DATA:Tracks_SetDestination(id_src, 2, trid)
+        DATA:Tracks_SetDestination(id_src, 2, trid, submode) 
         return
       end
     end
@@ -2380,48 +2440,56 @@
     local t = {}
     local cnt_match0, cnt_match, last_biggestmatch = 0, 0 
     if EXT.CONF_tr_matchmode == 1 then 
-      t = {tr_name:lower():gsub('%s+','')}
+      local tr_name_prepared = tr_name:lower():gsub('%s+','')
+      if EXT.CONF_tr_match_casesens==1 then tr_name_prepared = tr_name:gsub('%s+','') end
+      t = {tr_name_prepared}
      else
-      for word in tr_name:gmatch('[^%s]+') do t[#t+1] = literalize(word:lower():gsub('%s+','')) end  
+      local pat_prepared = word:lower():gsub('%s+','')
+      if EXT.CONF_tr_match_casesens==1 then pat_prepared = word:gsub('%s+','') end
+      for word in tr_name:gmatch('[^%s]+') do t[#t+1] = literalize(pat_prepared) end  
     end
     for trid = 1,  #DATA.destproj.TRACK do 
       local tr_name_CUR =  DATA.destproj.TRACK[trid].tr_name:lower()
       if tr_name_CUR ~= '' and not tr_name_CUR:match('track %d+') then
         cnt_match0 = 0
         for i = 1, #t do if tr_name_CUR:match(t[i]) then cnt_match0 = cnt_match0 + 1 end end
-        if cnt_match0 == #t then DATA:Tracks_SetDestination(id_src, 2, desttrack_id) return end
+        if cnt_match0 == #t then DATA:Tracks_SetDestination(id_src, 2, desttrack_id, submode) return end
         if cnt_match0 > cnt_match then last_biggestmatch = trid end 
         cnt_match = cnt_match0
       end
     end 
-    DATA:Tracks_SetDestination(id_src, 2, last_biggestmatch)--msg(last_biggestmatch)
+    DATA:Tracks_SetDestination(id_src, 2, last_biggestmatch, submode)
   end
   ----------------------------------------------------------------------
   function DATA:MatchTrack(specificid, submode)
     if not DATA.srcproj.TRACK then return end
+    if submode == 0 then submode = nil end
     DATA:Get_DestProject()
     
     -- specific track match
-    if specificid and DATA.srcproj.TRACK[specificid] then 
-      local tr_name = DATA.srcproj.TRACK[specificid].NAME 
-      DATA:MatchTrack_Sub(tr_name, specificid, submode)
-      return 
-    end
+      if specificid and DATA.srcproj.TRACK[specificid] then 
+        local tr_name = DATA.srcproj.TRACK[specificid].NAME 
+        DATA:MatchTrack_Sub(tr_name, specificid, submode)
+        return 
+      end
     
     -- no specificid
-    if not specificid then
-      local cnt_selection = 0 
-      for trid0 = 1, #DATA.srcproj.TRACK do  
-        if DATA.srcproj.TRACK[trid0].UI_selected == true then cnt_selection = cnt_selection + 1 end 
-      end
-      
-      for i = 1, #DATA.srcproj.TRACK do 
-        if cnt_selection == 0 or (cnt_selection > 0 and DATA.srcproj.TRACK[i].UI_selected == true) then
-          local tr_name = DATA.srcproj.TRACK[i].NAME
-          DATA:MatchTrack_Sub(tr_name, i, submode) 
+      if not specificid then
+        local cnt_selection = 0
+        for trid0 = 1, #DATA.srcproj.TRACK do  
+          if DATA.srcproj.TRACK[trid0].UI_selected == true then cnt_selection = cnt_selection + 1 end 
         end
-      end  
-    end
+        
+        for i = 1, #DATA.srcproj.TRACK do 
+          if cnt_selection == 0 or (cnt_selection > 0 and DATA.srcproj.TRACK[i].UI_selected == true) then
+            local tr_name = DATA.srcproj.TRACK[i].NAME
+            local isfolder =  DATA.srcproj.TRACK[i].ISBUS and DATA.srcproj.TRACK[i].ISBUS[1]and DATA.srcproj.TRACK[i].ISBUS[2]and DATA.srcproj.TRACK[i].ISBUS[1]==1 and DATA.srcproj.TRACK[i].ISBUS[2]==1
+            if EXT.CONF_automatch_allowfolders==0 and isfolder == true then goto skip end 
+            DATA:MatchTrack_Sub(tr_name, i, submode) 
+            ::skip::
+          end
+        end  
+      end
     
     
   end
@@ -2514,13 +2582,20 @@
           if destmode_submode == 1 or destmode_submode ==2 then dest_track = DATA:Import_CreateNewTrack(true) end -- additional track under matched one
           
           if destmode_submode ~= 4 then DATA:Import_TransferTrackData(new_temporary_src, dest_track) end
-          --srct.dest_track_GUID = GetTrackGUID( dest_tr ) -- enabling triggers mess with receives
           
           if destmode_submode == 1 or destmode_submode ==2 then
             SetOnlyTrackSelected( dest_track )
             local makePrevFolder = 0
             if destmode_submode ==2 then makePrevFolder = 1 end
             ReorderSelectedTracks(  CSurf_TrackToID( dest_track_existing, false ), makePrevFolder )
+            -- if previous track is last in folder, apply this to dest track, make track before it normal
+            local IP_TRACKNUMBER = GetMediaTrackInfo_Value( dest_track, 'IP_TRACKNUMBER' )-1
+            local prev_track = GetTrack(-1, IP_TRACKNUMBER-1)
+            local I_FOLDERDEPTH = GetMediaTrackInfo_Value( prev_track, 'I_FOLDERDEPTH' )
+            if I_FOLDERDEPTH < 0 then 
+              SetMediaTrackInfo_Value( prev_track, 'I_FOLDERDEPTH', 0 )
+              SetMediaTrackInfo_Value( dest_track, 'I_FOLDERDEPTH', I_FOLDERDEPTH )
+            end
           end
             
         end
@@ -2996,8 +3071,8 @@
       DATA:ParseSourceProject(EXT.UI_lastsrcproj)  
       if EXT.UI_appatinit&2==2 then
         DATA:ParseSourceProject_PostProcess_AutomatchReceives()
-        DATA:Tracks_SetDestination(-1, 0, nil) 
-        DATA:MatchTrack()  
+        DATA:Tracks_SetDestination(-1, 0, nil, EXT.CONF_automatch_defaultsubmode) 
+        DATA:MatchTrack(nil, EXT.CONF_automatch_defaultsubmode)
       end 
     end
     DATA:Get_DestProject() 
