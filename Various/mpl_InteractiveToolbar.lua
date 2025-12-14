@@ -1,84 +1,15 @@
 -- @description InteractiveToolbar
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    + UI overhaul: ported to ReaImGui
---    # remove VariousFunctions dependency
---    # remove SWS dependency, use only native API functions, this hugely reduce CPU usage on big projects in most cases
---    + Context: support FX context
---    + Context: support Spectral Edit context
---    + Context: allow to moveup/movedown in settings, refresh state after context order change
---    + Context/Envelope: support TakeFX
---    + Widgets: allow to add/remove/moveup/movedown in settings
---    + Widgets: add description for widgets in order setup window
---    + Widgets: allow to use various widgets independent of context
---    + Context: trigger context change after MIDI Editor closing
---    + Widgets: implement sizing policy, auto arrange widgets if height of window is large enough
---    + Widgets: allow widgets to have internal configuration flags (ex. same widgets for different contexts) for future extensions
---    + Performance: various improvements
---    + Separator: add tweakable separator between main and persistent widgets
---    # better widgets storing in ExtState, sorry - not v1-2x compatible
---    # Widgets: use popup for entering mutiple values and build-in input for single
---    # use project =-1 anywhere
---    # Time widgets: generally allow reset sub value to only beats and sub beats in beats format, only frames in H:M:S:F format
---    # Time widgets: drag logic improvements in H:M:S:F format
---    - Remove "Trigger action X on context change" for now, will add later if someone need
---    - Widgets/#grid: remove MIDI Editor stuff, will probably return to this if someone need ME-specific grid
---    - Widgets/chordlive, it was never worked right
---    - Widgets/srclen: remove, not possible to edit with native API
---    - Widgets/fxcontrols: not really helpful, will probably add something if anyone will ask, better to use mapping panel
---    - Widgets/numchan: not really helpful, will return back if anyone ask
---    - Widgets/sendto: obsolete, will return back if anyone ask for better design, better to use SendFader or SendControl+ReturnControl
---    - Widgets/chsendmixer: obsolete, will return back if anyone ask for better design, better to use SendFader or SendControl+ReturnControl
---    - Widgets/chrecvmixer: obsolete, will return back if anyone ask for better design, better to use SendFader or SendControl+ReturnControl
---    + Time widgets: in place input fields (the logic is kinda multilevel so there are some limitations, like, you cant edit multiple fields at once, this will probably changed in the future)
---    + Time widgets: in place input fields (the logic is kinda multilevel so there are some limitations, like, you cant edit multiple fields at once, this will probably changed in the future)
---    + Widgets/Grid: make lines follow grid
---    + Widgets/Time selection: rightclick on name to change settings
---    + Widgets/Time selection: optionally obey snap to grid
---    + Widgets/Last touched FX: fix receive last touched from non-first tab
---    + Widgets/Last touched FX: improve FX deductive brutforce
---    + Widgets/Last touched FX: use checkbox for toggle parameters
---    + Widgets/Transport: use icons instead text, 
---    + Widgets/Transport: show in-loop progress
---    + Widgets/Transport: show beats flicker optionally
---    + Widgets/BPM: use direct input fields
---    + Widgets/BPM: change 0.5 bpm
---    + Widgets/clock: rightclick to change settings
---    + Widgets/itemname
---    + Widgets/trackname
---    + Widgets/envname, improve track/take fx and parameter formatting
---    + Widgets/mchanmeter: show multichannel master peaks
---    + Widgets/trackrecin: combine midiin and audioin into scrollable combo, Click to toggle between MIDI:All and none
---    + Widgets/envfx: float Take/Track FX if related to applicable, shift click to toggle bypass
---    + Widgets/envpointval: allow to change to absolute mode
---    + Widgets/envpointval: allow to use deductive brutforce for setting formatted values
---    + Widgets/envpointval: implement storing relative values during edits (so the script preserve relations between value even if lowest/highest values are clamped )
---    + Widgets/envpointpos: implement storing relative positions during edits
---    + Widgets/envpointpos: clamp to AI boundaries if in AI mode
---    + Widgets/envmarksame: mark points with same values
---    + Widgets/menotepitch: Shift wheel or shift drag adjust octave of slected notes
---    + Widgets/fxoversampl: drag or wheel to change chain oversampling
---    + Widgets/fxautobypass: toggle auto bypass
---    # Widgets/masterscope: move vertical indicators to mchancnt
---    # Widgets/taptempo: various math improvements, "Apply to selected item" change item length
---    # Widgets/masterswapmono: use native mono action state instead setting width to 0
---    # Widgets/color: use reaimgui color picker, allow to call recent color
---    # Widgets/itemlock: split from buttons
---    # Widgets/itempreservepitch: split from buttons
---    # Widgets/itemloop: split from buttons
---    # Widgets/itemmute: split from buttons
---    # Widgets/itemchanmode: split from buttons
---    # Widgets/itemreverse: split from buttons
---    # Widgets/itembwfsrc: split from buttons
---    # Widgets/itemtimebase: split from buttons
---    # Widgets/itemsourceoffset: rename offset, restrict edit if mode is not seconds and there are more than 2 time signature marekers in the project
---    # Widgets/trackfxlist: rename fxlist, use per-track ext state, mouse modifiers - replicate mixer behaviour, click on empty list show FX browser
---    # Widgets/trackfreeze: use native API
---    # Widgets/envpointval: improve FX deductive brutforce, apply relative to selection
---    # Widgets/envAIlooplen: limit minimum to 0.2sec
+--    + Theming: window background
+--    + Theming: widgets background
+--    + Theming: values/buttons text
+--    + Theming: font
+--    + Theming: font scaling
+--    + Theming: reset theming
 
 
 
@@ -86,7 +17,6 @@
   TODO:
   -- item stretch markers size/ pitchmode
   -- color different context
-  -- background / text theming
   -- allow to switch doubleclick and right click for widgets with drag
 ]]
 
@@ -131,6 +61,12 @@
           CONF_widg_envpointval_usebrutforce = 1,
           CONF_enablepersistwidg = 1,
           
+          theming_rgba_windowBg = 0x303030FF,
+          theming_rgba_widgetBg = 0x404040FF,
+          theming_str_font = 'Arial',
+          theming_float_fontscaling = 1,
+          theming_rgba_valtxt = 0xFFFFFFDF,
+          theming_rgba_valtxt_unavailable = 0x808080FF,
          }
         
   -------------------------------------------------------------------------------- INIT data
@@ -237,7 +173,6 @@
         h_min = 70,
         
       -- font
-        font='Arial',
         font_widgname=13,
         font_widgval=13,
         font_widgclock=25,
@@ -256,8 +191,7 @@
         
       -- colors / alpha
         main_col = 0x7F7F7F, -- grey
-        but_hovered = 0x878787,
-        windowBg = 0x303030,  
+        but_hovered = 0x878787, 
         col_green = 0x50FF50,
         
       -- widget
@@ -279,12 +213,11 @@
         widget_active_col = 0x507F50FF, -- green
         widget_active_col2 = 0x30309FFF, -- blue
         widget_active_col_red = 0x7F5050FF, -- red
-        widget_col_txt_unavailable = 0x808080FF, 
-        widget_col_txt = 0xFFFFFFDF,
         widget_masterscopeW = 100,
         
         widget_col_peaksnormal = 0xFFFFFF8F,
         widget_col_peaksloud = 0xFF5050FF,
+        
         
         }
     
@@ -332,10 +265,10 @@
     
     
     -- rounding
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,2)   
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,1)   
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabRounding,3)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding,3)  
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding,2)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding,1)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,3)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarRounding,3)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_TabRounding,3)   
@@ -382,8 +315,8 @@
       ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       UI.Tools_RGBA(UI.col_green, 0.8) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          UI.Tools_RGBA(UI.main_col, 0.7) )
       ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    UI.Tools_RGBA(UI.main_col, 0.95) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         UI.Tools_RGBA(UI.windowBg, 1))
-      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.widget_col_txt)
+      ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         EXT.theming_rgba_windowBg)
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             EXT.theming_rgba_valtxt)
     
     -- font 
       ImGui.PushFont(ctx, DATA.font,13) 
@@ -445,7 +378,7 @@
   function UI.MAIN_definecontext() 
     DATA:ParseWidgetsOrder()
     ctx = ImGui.CreateContext(DATA.UI_name) 
-    DATA.font = ImGui.CreateFont(UI.font) ImGui.Attach(ctx, DATA.font)
+    DATA.font = ImGui.CreateFont(EXT.theming_str_font) ImGui.Attach(ctx, DATA.font)
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort) 
     defer(UI.MAIN_loop)
@@ -502,6 +435,52 @@
     end
     if ImGui.Checkbox(ctx, 'Enable persistent widgets', EXT.CONF_enablepersistwidg&1==1) then EXT.CONF_enablepersistwidg = EXT.CONF_enablepersistwidg~1 EXT:save() end
     
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_settings_theming()
+    -- reset all
+      if ImGui.Custom_ColoredButton(ctx, 'Reset ALL##resetall', 0,30, 0xF8505000) then 
+        for extkey in pairs(EXT) do
+          if extkey:match('theming_') then 
+            EXT[extkey] = EXT.defaults[extkey] 
+          end
+        end
+        EXT:save() 
+        DATA.font = ImGui.CreateFont(EXT.theming_str_font) 
+        ImGui.Attach(ctx, DATA.font)
+      end
+      
+    -- colors
+      local map = {
+        ['Window background'] =       {extkey = 'theming_rgba_windowBg'},
+        ['Widget background'] =       {extkey = 'theming_rgba_widgetBg'},
+        ['Value text'] =              {extkey = 'theming_rgba_valtxt'},
+        ['Value text unavailable'] =  {extkey = 'theming_rgba_valtxt_unavailable'},
+      }
+      for alias in spairs(map) do
+        local extkey= map[alias].extkey
+        if ImGui.Button(ctx, 'Reset##reset'..extkey) then EXT[extkey] = EXT.defaults[extkey] EXT:save() end  ImGui.SameLine(ctx)
+        local retval, col_rgba = ImGui.ColorEdit4( ctx, alias, EXT[extkey], reaper.ImGui_ColorEditFlags_None() )
+        if retval then EXT[extkey] = col_rgba EXT:save() end
+      end
+    
+    -- font
+      local extkey = 'theming_str_font'
+      if ImGui.Button(ctx, 'Reset##reset'..extkey) then EXT[extkey] = EXT.defaults[extkey] EXT:save() DATA.font = ImGui.CreateFont(EXT.theming_str_font) ImGui.Attach(ctx, DATA.font) end  ImGui.SameLine(ctx)
+      local retval, buf = ImGui.InputText( ctx, 'Font', EXT[extkey], ImGui.InputFlags_None )
+      if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then EXT[extkey] = buf EXT:save() DATA.font = ImGui.CreateFont(EXT.theming_str_font) ImGui.Attach(ctx, DATA.font) end
+    
+    -- scaling  
+      local lim_min, lim_max = 0.5,3
+      local extkey = 'theming_float_fontscaling'
+      if ImGui.Button(ctx, 'Reset##reset'..extkey) then EXT[extkey] = EXT.defaults[extkey] EXT:save() DATA.font = ImGui.CreateFont(EXT.theming_str_font) ImGui.Attach(ctx, DATA.font) end  ImGui.SameLine(ctx)
+      local retval, v = reaper.ImGui_SliderDouble( ctx, 'Font scaling', EXT[extkey], lim_min, lim_max, '%.2f', ImGui.SliderFlags_None )
+      if retval then 
+        EXT[extkey] = lim(v, lim_min, lim_max)
+        EXT:save() 
+        DATA:_DefineWidgets() 
+        DATA:CollectData_RefreshTimeWidgetsSizing() 
+      end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_settings_widgetsorder()   
@@ -626,6 +605,7 @@
     ImGui.SetNextWindowPos( ctx, x+UI.popupmouseoffs, y+UI.popupmouseoffs, ImGui.Cond_Appearing)
     ImGui.SetNextWindowSize( ctx, 500, 500, ImGui.Cond_Always)
     if ImGui.BeginPopup( ctx, 'Settings_page', ImGui.PopupFlags_None ) then 
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text,0xFFFFFFDF)
       if ImGui.BeginTabBar( ctx, 'Settings_pageTab', ImGui.TabBarFlags_None ) then
       
         if ImGui.BeginTabItem( ctx, 'General', false,  ImGui.TabBarFlags_None ) then
@@ -636,9 +616,13 @@
           UI.draw_settings_widgetsorder() 
           ImGui.EndTabItem( ctx)
         end
-        
+        if ImGui.BeginTabItem( ctx, 'Theming', false,  ImGui.TabBarFlags_None ) then
+          UI.draw_settings_theming() 
+          ImGui.EndTabItem( ctx)
+        end
         ImGui.EndTabBar( ctx)
       end
+      ImGui.PopStyleColor(ctx)
       ImGui.EndPopup( ctx )
     end
     ImGui.PopFont(ctx)
@@ -689,7 +673,7 @@
         if DATA.widgets[key_context] then 
           for widget = 1, #DATA.widgets[key_context] do 
             local widget_ID = DATA.widgets[key_context][widget].widget_ID
-            local widget_W =  UI.widget_default_W -- upcoming widget 
+            local widget_W =  UI.widget_default_W*EXT.theming_float_fontscaling -- upcoming widget 
             if DATA.widget_def[widget_ID] and DATA.widget_def[widget_ID].widget_W then widget_W = DATA.widget_def[widget_ID].widget_W end 
             
             if widget_Xcursor + widget_W < mainwidg_avX  then
@@ -734,7 +718,7 @@
             for widget = 1, #DATA.widgets[key_context] do 
               local widget_ID = DATA.widgets[key_context][widget].widget_ID
               if DATA.widget_def[widget_ID] then   
-                local widget_W = DATA.widget_def[widget_ID].widget_W or UI.widget_default_W
+                local widget_W = DATA.widget_def[widget_ID].widget_W or UI.widget_default_W*EXT.theming_float_fontscaling
                 local xpos = xav_used-widget_W+ UI.spacingX
                 ImGui.SetCursorPos(ctx, xpos, curposY)
                 xav_used = xav_used-widget_W-UI.spacingX
@@ -762,15 +746,15 @@
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,0) 
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,UI.spacingX, 0)  
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign,0.5, 0.5)  
-    ImGui.PushStyleColor(ctx, ImGui.Col_Button,0x404040FF)
-    ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,0x404040FF)
-    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,0x404040FF)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Button,EXT.theming_rgba_widgetBg)--0x404040FF)
+    ImGui.PushStyleColor(ctx, ImGui.Col_ChildBg,EXT.theming_rgba_widgetBg) 
+    ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,EXT.theming_rgba_widgetBg)--0x404040FF)
   end
   --------------------------------------------------------------------------------   
   function UI.widgetBuild_handleHstretch() 
     local xav, yav = ImGui.GetContentRegionAvail(ctx)
     local widgH = -1 
-    if yav > UI.widget_default_H*2 then widgH = UI.widget_default_H end
+    if yav > UI.widget_default_H*EXT.theming_float_fontscaling*2 then widgH = UI.widget_default_H*EXT.theming_float_fontscaling end
     return widgH
   end
   --------------------------------------------------------------------------------  
@@ -780,9 +764,9 @@
   end
   --------------------------------------------------------------------------------   
   function UI.widgetBuild_name(widget_ID, name)
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgname) 
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgname*EXT.theming_float_fontscaling) 
     ImGui.PushStyleColor(ctx, ImGui.Col_Text,UI.widget_name_col)
-    local ret = ImGui.Custom_InvisibleButton(ctx, name..'##but'..widget_ID,-1, UI.widget_name_H)
+    local ret = ImGui.Custom_InvisibleButton(ctx, name..'##but'..widget_ID,-1, UI.widget_name_H*EXT.theming_float_fontscaling)
     local retR
     if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then retR = true end
     ImGui.PopFont(ctx)
@@ -801,7 +785,7 @@
         local input_preview = val_format
         if params.curvalue_format  then input_preview =  params.curvalue_format end
         ImGui.SetNextItemWidth(ctx, width)
-        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,0.5*(ryav - UI.font_widgval-UI.spacingY) )
+        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,1,0.5*(ryav - UI.font_widgval*EXT.theming_float_fontscaling-UI.spacingY) )
         local retval, buf = ImGui.InputText( ctx, '##butinput'..widget_ID, input_preview, ImGui.InputFlags_None) 
         ImGui.PopStyleVar(ctx,1)
         ImGui.SetKeyboardFocusHere(ctx,-1) 
@@ -818,10 +802,10 @@
       ImGui.InvisibleButton(ctx, '##butval'..widget_ID,width, -1)
       local x,y = ImGui.GetItemRectMin(ctx)
       local w,h = ImGui.GetItemRectSize(ctx)
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgval) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling) 
       local txtw, txth = ImGui.CalcTextSize(ctx, val_format)
-      local valcol = UI.widget_col_txt 
-      if params.val_available~= true then valcol = UI.widget_col_txt_unavailable end 
+      local valcol = EXT.theming_rgba_valtxt 
+      if params.val_available~= true then valcol = EXT.theming_rgba_valtxt_unavailable end 
       ImGui.DrawList_AddText(UI.draw_list, x+0.5*(w-txtw),y+0.5*(h-txth), valcol, val_format) 
       ImGui.PopFont(ctx) 
       
@@ -1039,11 +1023,11 @@
       end
     end
     
-    local valcol = UI.widget_col_txt 
-    if params.val_available~= true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, UI.widget_col_txt_unavailable) valcol = UI.widget_col_txt_unavailable end 
+    local valcol = EXT.theming_rgba_valtxt 
+    if params.val_available~= true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, EXT.theming_rgba_valtxt_unavailable) valcol = EXT.theming_rgba_valtxt_unavailable end 
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY *2)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, X_spacing,0 )
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval) 
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling) 
     local div_w, div_h = ImGui.CalcTextSize(ctx, div_str) 
     local active_values = 0
     local ctrlval_W
@@ -1170,6 +1154,7 @@
     if rulerformat == 2  then UI.widget_defaulttiming_W_minimalblock = UI.widget_defaulttiming_W_minimalblock_ruler_seconds  end
     if rulerformat == 5  then UI.widget_defaulttiming_W_minimalblock = UI.widget_defaulttiming_W_minimalblock_ruler_HMSF  end
     
+    UI.widget_defaulttiming_W_minimalblock = UI.widget_defaulttiming_W_minimalblock*EXT.theming_float_fontscaling
     DATA:_DefineWidgets()
   end
   -------------------------------------------------------------------------------- 
@@ -3240,48 +3225,48 @@
     DATA.widget_def['pwgrid'] = {
       collectdata_func = 'CollectData_Project_Grid',
       name = 'Grid',
-      widget_W = 78,
+      widget_W = 78*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwtimesellen'] = {
       collectdata_func = 'CollectData_Project_TimeSel',
       name = 'TS Len',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwtimeselend'] = {
       collectdata_func = 'CollectData_Project_TimeSel',
       name = 'TS End',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwtimeselstart'] = {
       collectdata_func = 'CollectData_Project_TimeSel',
       name = 'TS Pos',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwtimeselLeftEdge'] = {
       collectdata_func = 'CollectData_Project_TimeSel',
       name = 'TS L edge',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwlasttouchfx'] = {
       collectdata_func = 'CollectData_Project_LTFX',
       name = 'Last touched FX',
-      widget_W = 180,
+      widget_W = 180*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwtransport'] = {
       collectdata_func = 'CollectData_Project_Transport',
-      widget_W = UI.widget_default_W,
+      widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwbpm'] = {
       collectdata_func = 'CollectData_Project_Tempo',
-      widget_W = UI.widget_default_W,
+      widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwclock'] = {
       collectdata_func = 'CollectData_Project_Transport',
-      widget_W = 200,
+      widget_W = 200*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwmastermeter'] = {
       collectdata_func = 'CollectData_Project_Master',
-      widget_W = 150,
+      widget_W = 150*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwmasterscope'] = {
       collectdata_func = 'CollectData_Project_Master',
@@ -3289,22 +3274,22 @@
       }
     DATA.widget_def['pwtaptempo'] = {
       collectdata_func = 'CollectData_Project_Tempo',
-      widget_W = UI.widget_default_W,
+      widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwmchanmeter'] = {
       collectdata_func = 'CollectData_Project_Master',
-      widget_W = UI.widget_default_W,
+      widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['pwmasterswapmono'] = {
       collectdata_func = 'CollectData_Project_Master',
-      widget_W = 60,
+      widget_W = 60*EXT.theming_float_fontscaling,
       }
     
     
     -- item
     DATA.widget_def['itemname'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultname_W,
+      widget_W = UI.widget_defaultname_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemcolor'] = {
       collectdata_func = 'CollectData_Item',
@@ -3312,94 +3297,94 @@
       }
     DATA.widget_def['itemlock'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultbut_W,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
       }
    DATA.widget_def['itempreservepitch'] = {
      collectdata_func = 'CollectData_Item',
-     widget_W = UI.widget_defaultbut_W,
+     widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
      } 
     DATA.widget_def['itemloop'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultbut_W,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
       }
      DATA.widget_def['itemmute'] = {
        collectdata_func = 'CollectData_Item',
-       widget_W = UI.widget_defaultbut_W,
+       widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
        }
     DATA.widget_def['itemchanmode'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemreverse'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultbut_W,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itembwfsrc'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultbut_W,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemtimebase'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemposition'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemsnap'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemleftedge'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemrightedge'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemlength'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemsourceoffset'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemfadein'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemfadeout'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemcomlen'] = {
       collectdata_func = 'CollectData_Item_Multiple',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemvol'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itempitch'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itemrate'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['itempan'] = {
       collectdata_func = 'CollectData_Item',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
       
       
     -- track
     DATA.widget_def['trackname'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultname_W,
+      widget_W = UI.widget_defaultname_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackcolor'] = {
       collectdata_func = 'CollectData_Track',
@@ -3407,112 +3392,112 @@
       }
     DATA.widget_def['trackvol'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackpan'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackfxlist'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = 140,
+      widget_W = 140*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackdelay'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackfreeze'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultbut_W*2,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling*2,
       }
     DATA.widget_def['trackpolarity'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultbut_W,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackparentsend'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultbut_W+5,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling+5,
       }
     DATA.widget_def['trackmediaoffs'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['trackrecin'] = {
       collectdata_func = 'CollectData_Track',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     
     -- Envelope
     DATA.widget_def['envname'] = {
       collectdata_func = 'CollectData_Envelope',
-      widget_W = UI.widget_defaultname_W,
+      widget_W = UI.widget_defaultname_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['envfx'] = {
       collectdata_func = 'CollectData_Envelope',
-      widget_W = UI.widget_defaultname_W,
+      widget_W = UI.widget_defaultname_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['envpointpos'] = {
       collectdata_func = 'CollectData_Envelope',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['envpointval'] = {
       collectdata_func = 'CollectData_Envelope',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['envAIlooplen'] = {
       collectdata_func = 'CollectData_Envelope',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['envmarksame'] = {
       collectdata_func = 'CollectData_Envelope',
-      widget_W = UI.widget_defaultbut_W,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling,
       }
     
     -- MIDIEditor 
     DATA.widget_def['metakename'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaultname_W,
+      widget_W = UI.widget_defaultname_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['meevtposition'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['menotelen'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['meCCval'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['menotepitch'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['menotevel'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['meevtchan'] = {
       collectdata_func = 'CollectData_MIDIEditor',
-      widget_W = UI.widget_defaultfloat_W,
+      widget_W = UI.widget_defaultfloat_W*EXT.theming_float_fontscaling,
       }
         
       
     -- FX
     DATA.widget_def['fxoversample'] = {
       collectdata_func = 'CollectData_FX',
-      widget_W = UI.widget_defaulttiming_W,
+      widget_W = UI.widget_defaulttiming_W*EXT.theming_float_fontscaling,
       }
     DATA.widget_def['fxautobypass'] = {
       collectdata_func = 'CollectData_FX',
-      widget_W = UI.widget_defaultbut_W+10,
+      widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling+10,
       }
     
     -- SE
       DATA.widget_def['sebypass'] = {
         collectdata_func = 'CollectData_SpecEdit',
-        widget_W = UI.widget_defaultbut_W+10,
+        widget_W = UI.widget_defaultbut_W*EXT.theming_float_fontscaling+10,
         }
     
   end
@@ -3523,12 +3508,12 @@
     if not DATA.CurState.SpecEdit then return end
     
     local widg_show_name = 'Bypass'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.SpecEdit.FLAGS&1~=1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_SpecEdit( {toggle_bypass = true}) end
@@ -3546,12 +3531,12 @@
     if not DATA.CurState.FX then return end
     
     local widg_show_name = 'Auto\nbypass'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.FX.force_auto_bypass&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_FX( {toggle_force_auto_bypass = true}) end
@@ -3568,7 +3553,7 @@
     local widget_ID = widget_t.widget_ID 
     if not DATA.CurState.FX then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
@@ -3598,7 +3583,7 @@
     if not (DATA.CurState.MIDIEditor and DATA.CurState.MIDIEditor.sel_evt and DATA.CurState.MIDIEditor.sel_evt.is3byte == true) then return end
     
     
-    local widgW = UI.widget_default_W
+    local widgW = UI.widget_default_W*EXT.theming_float_fontscaling
     if DATA.widget_def[widget_ID] and DATA.widget_def[widget_ID].widget_W then widgW = DATA.widget_def[widget_ID].widget_W end
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
@@ -3638,7 +3623,7 @@
     if not (DATA.CurState.MIDIEditor and DATA.CurState.MIDIEditor.sel_evt and DATA.CurState.MIDIEditor.sel_evt.int_type == 0x9) then return end
     
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
@@ -3676,7 +3661,7 @@
     if not (DATA.CurState.MIDIEditor and DATA.CurState.MIDIEditor.sel_evt and DATA.CurState.MIDIEditor.sel_evt.int_type == 0x9) then return end
     
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
@@ -3714,7 +3699,7 @@
     if not (DATA.CurState.MIDIEditor and DATA.CurState.MIDIEditor.sel_evt and DATA.CurState.MIDIEditor.sel_evt.int_type == 0xB) then return end
     
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
@@ -3753,7 +3738,7 @@
     if not (DATA.CurState.MIDIEditor and DATA.CurState.MIDIEditor.sel_evt and DATA.CurState.MIDIEditor.sel_evt.int_type == 0x9) then return end
     
     test = widget_t
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -3779,7 +3764,7 @@
     local widget_name = 'Position'
     if not (DATA.CurState.MIDIEditor and DATA.CurState.MIDIEditor.sel_evt )  then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -3836,12 +3821,12 @@
     if not DATA.CurState.Envelope then return end
     
     local widg_show_name = 'Mark\nSame'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Envelope( {mark_same = true}) end
       ImGui.PopFont(ctx) 
       
@@ -3857,7 +3842,7 @@
     local widget_name = 'AI pool len'
     if not (DATA.CurState.Envelope and DATA.CurState.Envelope.autoitem and DATA.CurState.Envelope.autoitem_idx~= -1 ) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -3883,7 +3868,7 @@
     if not (DATA.CurState.Envelope and DATA.CurState.Envelope.sel_point and DATA.CurState.Envelope.sel_point.D_POSITION ) then return end
     
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
@@ -3933,7 +3918,7 @@
     
     if not (DATA.CurState.Envelope and DATA.CurState.Envelope.sel_point and DATA.CurState.Envelope.sel_point.D_POSITION ) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -3958,12 +3943,12 @@
     if not (DATA.CurState.Envelope and DATA.CurState.Envelope.fxid) then return end
     
     local widg_show_name = DATA.CurState.Envelope.fxname 
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Envelope.FXbypstate == true then 
         colstate = UI.widget_active_col 
@@ -4019,12 +4004,12 @@
     local widg_show_name = '[rec input]' 
     if DATA.CurState.Track.RECINPUT_states[DATA.CurState.Track.I_RECINPUT] then widg_show_name = DATA.CurState.Track.RECINPUT_states[DATA.CurState.Track.I_RECINPUT] end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Track.I_RECINPUT~=-1 then 
         colstate = UI.widget_active_col 
@@ -4056,7 +4041,7 @@
     local widget_name = 'Offset'
     if not DATA.CurState.Track then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4093,12 +4078,12 @@
     if not DATA.CurState.Track then return end
     
     local widg_show_name = 'Parent'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Track.B_MAINSEND&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Track( {toggle_parent = DATA.CurState.Track.B_MAINSEND~1}) end
@@ -4116,12 +4101,12 @@
     if not DATA.CurState.Track then return end
     
     local widg_show_name = 'Ø'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut+3) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling+3) 
       local colstate
       if DATA.CurState.Track.B_PHASE&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Track( {toggle_phase = true}) end
@@ -4138,14 +4123,14 @@
     local widget_ID = widget_t.widget_ID 
     if not DATA.CurState.Track then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      local butH = UI.widget_name_H
+      local butH = UI.widget_name_H*EXT.theming_float_fontscaling
       local widg_show_name = ''
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       
       if ImGui.Button(ctx,'Freeze##'..widget_ID,-1,butH) then DATA:WriteData_Track( {freeze = true}) end
       
@@ -4168,7 +4153,7 @@
     local widget_name = 'Delay'
     if not DATA.CurState.Track then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4206,7 +4191,7 @@
       if not DATA.CurState.Track then return end
       if DATA.CurState.Track.FX and DATA.CurState.Track.FX.list and #DATA.CurState.Track.FX.list == 0 then return end
       
-      local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+      local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
       local widgH = UI.widgetBuild_handleHstretch() 
       UI.widgetBuild_pushstyling() 
       if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4222,9 +4207,9 @@
         
         ImGui.PushFont(ctx, DATA.font, UI.font_fxlist)  
         if cur_fx ==0  then 
-          ImGui.SetCursorPosY(ctx, ypos +  0.5*(yav  - UI.widget_name_H) )
+          ImGui.SetCursorPosY(ctx, ypos +  0.5*(yav  - UI.widget_name_H*EXT.theming_float_fontscaling) )
          else
-          ImGui.SetCursorPosY(ctx, ypos +  0.5*(yav  - UI.widget_name_H) - UI.widget_name_H)
+          ImGui.SetCursorPosY(ctx, ypos +  0.5*(yav  - UI.widget_name_H*EXT.theming_float_fontscaling) - UI.widget_name_H*EXT.theming_float_fontscaling)
         end
         
         for i = cur_fx,  cur_fx + 3 do
@@ -4235,7 +4220,7 @@
             if DATA.CurState.Track.FX.list[i].bypstate ~= true then txtcol = UI.widget_val_col_disabled end
             ImGui.PushStyleColor(ctx, ImGui.Col_Text,txtcol)
             ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,0x505050FF)
-            local ret = ImGui.Button(ctx, fx_name..'##but'..widget_ID..'fx'..i,-1, UI.widget_name_H)
+            local ret = ImGui.Button(ctx, fx_name..'##but'..widget_ID..'fx'..i,-1, UI.widget_name_H*EXT.theming_float_fontscaling)
             
             -- toggle bypass
             if ret then  
@@ -4280,7 +4265,7 @@
         local widget_name = 'Pan'
         if not DATA.CurState.Track then return end
         
-        local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+        local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
         local widgH = UI.widgetBuild_handleHstretch() 
         UI.widgetBuild_pushstyling() 
         if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4314,7 +4299,7 @@
     local widget_name = 'Volume'
     if not DATA.CurState.Track then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4338,7 +4323,7 @@
     local widget_ID = widget_t.widget_ID 
     if not DATA.CurState.Track then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4418,7 +4403,7 @@
     local widget_name = 'Pan'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4452,7 +4437,7 @@
     local widget_name = 'Playrate'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4479,7 +4464,7 @@
     local widget_name = 'Pitch'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4504,7 +4489,7 @@
     local widget_name = 'Volume'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4529,7 +4514,7 @@
     local widget_name = 'Fade out'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4554,7 +4539,7 @@
     local widget_name = 'Fade in'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4579,7 +4564,7 @@
     local widget_name = 'Offset'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4611,7 +4596,7 @@
     local widget_name = 'Length'
     if not (DATA.CurState.Item ) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4636,7 +4621,7 @@
     local widget_name = 'R edge'
     if not (DATA.CurState.Item ) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4660,7 +4645,7 @@
     local widget_name = 'L edge'
     if not (DATA.CurState.Item ) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4684,7 +4669,7 @@
     local widget_name = 'Snap'
     if not (DATA.CurState.Item ) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4708,7 +4693,7 @@
     local widget_name = 'Position'
     if not DATA.CurState.Item then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4732,7 +4717,7 @@
     local widget_name = 'TimeBase'
     if not DATA.CurState.Item then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4804,12 +4789,12 @@
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
     local widg_show_name = 'BWF'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1) then Main_OnCommandEx(40299,0,-1) end
       ImGui.PopFont(ctx) 
       
@@ -4825,12 +4810,12 @@
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
     local widg_show_name = 'Rev'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Item.Reverse&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_reverse = DATA.CurState.Item.Reverse~1}) end
@@ -4848,7 +4833,7 @@
     local widget_name = 'ChanMode'
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -4914,12 +4899,12 @@
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
     local widg_show_name = 'Mute'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Item.B_MUTE&1==1 then colstate = UI.widget_active_col_red end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_mute = DATA.CurState.Item.B_MUTE~1}) end
@@ -4937,12 +4922,12 @@
     if not DATA.CurState.Item then return end
     
     local widg_show_name = 'Loop'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Item.B_LOOPSRC&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_loop = DATA.CurState.Item.B_LOOPSRC~1}) end
@@ -4960,17 +4945,15 @@
     if not DATA.CurState.Item then return end
     
     local widg_show_name = 'Lock'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
-    if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
-      
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
-      local colstate
+    if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then  
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
+      local colstate 
       if DATA.CurState.Item.C_LOCK&1==1 then colstate = UI.widget_active_col_red end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_lock = DATA.CurState.Item.C_LOCK~1}) end
-      ImGui.PopFont(ctx) 
-      
+      ImGui.PopFont(ctx)  
       ImGui.EndChild( ctx )
     end
     UI.widgetBuild_popstyling()
@@ -4983,12 +4966,12 @@
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
     local widg_show_name = 'Pres\npitch'
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
       if DATA.CurState.Item.B_PPITCH&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_preservepitch = DATA.CurState.Item.B_PPITCH~1}) end
@@ -5005,7 +4988,7 @@
     local widget_ID = widget_t.widget_ID 
     if not (DATA.CurState.Item and DATA.CurState.Item.tk_ptr) then return end
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5082,10 +5065,10 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name 
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     if not DATA.CurState.Master then return widgW end
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
     
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
@@ -5093,11 +5076,11 @@
       
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY)  
       local str = DATA.CurState.Master.chancntformat
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colSwap,colMono
       if DATA.CurState.Master.Swap == true then colSwap = UI.widget_active_col end
       if DATA.CurState.Master.MONO == true then colMono = UI.widget_active_col end
-      if ImGui.Custom_InvisibleButton(ctx,'Swap LR##masterswapmono1'..widget_ID,-1,UI.widget_default_H*0.5-UI.spacingY*2, colSwap) then DATA:CollectData_Project_Master(true, {swap = true}) end
+      if ImGui.Custom_InvisibleButton(ctx,'Swap LR##masterswapmono1'..widget_ID,-1,UI.widget_default_H*EXT.theming_float_fontscaling*0.5-UI.spacingY*2, colSwap) then DATA:CollectData_Project_Master(true, {swap = true}) end
       ImGui.Dummy(ctx,0,1)
       if ImGui.Custom_InvisibleButton(ctx,'Mono##masterswapmono2'..widget_ID,-1,-1, colMono)  then DATA:CollectData_Project_Master(true, {togglemono = true}) end
       ImGui.PopFont(ctx) 
@@ -5114,17 +5097,17 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     if not DATA.CurState.Master then return widgW end
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
       
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY)  
       local str = DATA.CurState.Master.chancntformat
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgname) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgname*EXT.theming_float_fontscaling) 
       ImGui.Custom_InvisibleButton(ctx,str..'##mchanmeter'..widget_ID,-1,-1)
       if ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then reaper.ImGui_OpenPopup(ctx,'mchanmeterSettings_page',ImGui.PopupFlags_None) end
       UI.draw_settings_mchanmeter() 
@@ -5166,10 +5149,10 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     if not DATA.CurState.Master then return widgW end
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5177,7 +5160,7 @@
       local bpm = DATA.taptempo.output
       if EXT.CONF_widg_taptempo_quantize&1==1 then bpm = DATA.taptempo.output_q end
       local str = bpm or 'Tap'
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgname) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgname*EXT.theming_float_fontscaling) 
       if ImGui.Custom_InvisibleButton(ctx,str..'##taptempo'..widget_ID,-1,-1) then 
         DATA:Actions_Tap()
       end 
@@ -5198,10 +5181,10 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     if not DATA.CurState.Master then return widgW end
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5245,14 +5228,14 @@
     local widget_name = DATA.widget_def[widget_ID].name
     if not DATA.CurState.Master then return widgW end
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY)  
-      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.widget_col_txt)
-      local fontclock = UI.font_widgclock
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             EXT.theming_rgba_valtxt)
+      local fontclock = UI.font_widgclock*EXT.theming_float_fontscaling 
       ImGui.PushFont(ctx, DATA.font, fontclock) 
       ImGui.Custom_InvisibleButton(ctx,DATA.CurState.Master.loudness..'##masterloudness'..widget_ID,-1,-1)
       if reaper.ImGui_IsItemHovered(ctx) then 
@@ -5274,14 +5257,14 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY)  
-      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             UI.widget_col_txt)
-      local fontclock = UI.font_widgclock
+      ImGui.PushStyleColor(ctx, ImGui.Col_Text,             EXT.theming_rgba_valtxt)
+      local fontclock = UI.font_widgclock*EXT.theming_float_fontscaling
       local  h = -1
       if EXT.CONF_widg_clock_formatoverride2 ~= -2 then h = 0 fontclock = 15 end 
       ImGui.PushFont(ctx, DATA.font, fontclock) 
@@ -5307,16 +5290,16 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     if not DATA.CurState.Tempo then return widgW end
     
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY)  
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgname) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgname*EXT.theming_float_fontscaling) 
       -- bpm
         reaper.ImGui_SetNextItemWidth(ctx,-1)
         local retval, buf = ImGui.InputText( ctx, '##but'..widget_ID, DATA.CurState.Tempo.TempoMarker_bpm_format, ImGui.InputTextFlags_AutoSelectAll )
@@ -5342,10 +5325,10 @@
   function UI.widget_pwtransport(widget_t)
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID 
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     if not DATA.CurState.Transport then return widgW end
     
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5434,8 +5417,8 @@
     if not widget_t then return end 
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
-    ImGui.PushFont(ctx, DATA.font, UI.font_widgval)
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling)
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5485,7 +5468,7 @@
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5516,7 +5499,7 @@
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5547,7 +5530,7 @@
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then 
@@ -5578,7 +5561,7 @@
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5609,7 +5592,7 @@
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch() 
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5646,7 +5629,7 @@
     local widget_ID = widget_t.widget_ID
     local widget_name = DATA.widget_def[widget_ID].name
     
-    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
     local widgH = UI.widgetBuild_handleHstretch()  
     UI.widgetBuild_pushstyling() 
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
@@ -5668,22 +5651,22 @@
       }) 
       
       
-      ImGui.PushFont(ctx, DATA.font, UI.font_widgval) 
+      ImGui.PushFont(ctx, DATA.font, UI.font_widgval*EXT.theming_float_fontscaling) 
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX*2,UI.spacingY )
       -- triplet
       ImGui.SameLine(ctx) 
       local col = 0
       if DATA.CurState.Project.grid_istriplet == true and DATA.CurState.Project.grid_enabled==true then col=UI.widget_active_col end
-      local valcol = UI.widget_col_txt 
-      if DATA.CurState.Project.grid_enabled~=true then valcol = UI.widget_col_txt_unavailable end 
+      local valcol = EXT.theming_rgba_valtxt 
+      if DATA.CurState.Project.grid_enabled~=true then valcol = EXT.theming_rgba_valtxt_unavailable end 
       if ImGui.Custom_InvisibleButton(ctx, 'T##'..widget_ID..'tip',0,-1, col, valcol) then DATA:CollectData_Project_Grid(true, {toggeltriplet = true}) end
       
       -- rel
       ImGui.SameLine(ctx) 
       local col = 0
       if DATA.CurState.Project.grid_relative == true and DATA.CurState.Project.grid_enabled==true then col=UI.widget_active_col end
-      local valcol = UI.widget_col_txt 
-      if DATA.CurState.Project.grid_enabled~=true then valcol = UI.widget_col_txt_unavailable end 
+      local valcol = EXT.theming_rgba_valtxt 
+      if DATA.CurState.Project.grid_enabled~=true then valcol = EXT.theming_rgba_valtxt_unavailable end 
       if ImGui.Custom_InvisibleButton(ctx, 'R##'..widget_ID..'rel',0,-1, col, valcol) then DATA:CollectData_Project_Grid(true, {togglegridrel = true}) end
       ImGui.PopStyleVar(ctx)
       ImGui.PopFont(ctx)
