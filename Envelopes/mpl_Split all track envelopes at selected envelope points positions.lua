@@ -3,7 +3,7 @@
 -- @author MPL 
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # prevent splitting tempo envelope
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
