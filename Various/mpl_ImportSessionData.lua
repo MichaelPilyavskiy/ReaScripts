@@ -1,14 +1,11 @@
 -- @description ImportSessionData
--- @version 3.11
+-- @version 3.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Automatch: add receives folder definition by name, exact match
---    + Automatch: add option to disable automatching folders
---    + Match by name/place under matched track: inverrit folder depth and state is matched track is last in folder
---    + Allow to change Match/AutoMatch default submode
---    # fix auto select folders children
+--    + FX chain: clean envelopes
+--    + FX chain: if clean envelopes, latch value to first point or current
 
 
     
@@ -68,6 +65,9 @@
           CONF_tr_PAN = 1,
           CONF_tr_FX = 1, 
             -- &2 clear existed
+          CONF_tr_FXenv = 1,
+            -- &1 clear envelopes
+            -- &2 apply first point value to parameter
           CONF_tr_it = 1,  
             -- &2 clear existed 
             -- &4 edit cur offs 
@@ -1185,11 +1185,14 @@
       if ImGui.CollapsingHeader(ctx, 'FX chain', nil) then
         ImGui.Indent(ctx, indent)
           if ImGui.Checkbox( ctx, 'Add track FX chain##CONF_tr_FX',                    EXT.CONF_tr_FX&1 == 1 ) then EXT.CONF_tr_FX =EXT.CONF_tr_FX~1 EXT:save() end
-          --[[if EXT.CONF_tr_FX&1 == 1 then 
+          if EXT.CONF_tr_FX&1 == 1 then 
             ImGui.Indent(ctx, indent)
-            if ImGui.Checkbox( ctx, 'FX envelopes##CONF_tr_FX2',                          EXT.CONF_tr_FX&4 == 4 ) then EXT.CONF_tr_FX =EXT.CONF_tr_FX~4 EXT:save() end
+            if ImGui.Checkbox( ctx, 'Clean envelopes##CONF_tr_FXenv',                          EXT.CONF_tr_FXenv&1 ==1 ) then EXT.CONF_tr_FXenv =EXT.CONF_tr_FXenv~1 EXT:save() end
+            if EXT.CONF_tr_FXenv&1 == 1 then 
+              if ImGui.Checkbox( ctx, 'Latch value at first point, otherwise current##CONF_tr_FXenv2',                          EXT.CONF_tr_FXenv&2 ==2 ) then EXT.CONF_tr_FXenv =EXT.CONF_tr_FXenv~2 EXT:save() end
+            end
             ImGui.Unindent(ctx, indent)
-          end]]
+          end
           if ImGui.Checkbox( ctx, 'Clear existing FX##CONF_tr_FX1',     EXT.CONF_tr_FX&2 == 2 ) then EXT.CONF_tr_FX =EXT.CONF_tr_FX~2 EXT:save() end ImGui.SameLine(ctx) UI.HelpMarker('Valid when using matching tracks')
         ImGui.Unindent(ctx, indent)
       end
@@ -1401,8 +1404,8 @@
     local new_temporary_src = DATA:Import_CreateNewTrack(false, DATA.srcproj.TRACK[trid] ) 
     local dest_cnt = TrackFX_GetCount( sel_tr ) 
     for src_fx = 1, TrackFX_GetCount( new_temporary_src ) do 
+      DATA:Import_TransferTrackData_FXEnvelopes(new_temporary_src, src_fx-1)
       TrackFX_CopyToTrack( new_temporary_src, src_fx-1, sel_tr, dest_cnt + src_fx-1, false )  
-      --DATA:Import_TransferTrackData_FXchain_Envelopes(new_temporary_src, sel_tr,dest_cnt,src_fx)
     end
     DeleteTrack( new_temporary_src ) -- remove temporary 
   end
@@ -2508,9 +2511,9 @@
     end
     
     if EXT.CONF_tr_FX&1==1 then
-      for src_fx = 1, TrackFX_GetCount( src_tr ) do 
-        TrackFX_CopyToTrack( src_tr, src_fx-1, dest_tr, dest_cnt + src_fx-1, false )  
-        --if EXT.CONF_tr_FX&4==4 then DATA:Import_TransferTrackData_FXchain_Envelopes(src_tr, dest_tr,dest_cnt,src_fx) end  
+      for src_fx = 1, TrackFX_GetCount( src_tr ) do  
+        DATA:Import_TransferTrackData_FXEnvelopes(src_tr,  src_fx-1) 
+        TrackFX_CopyToTrack( src_tr, src_fx-1, dest_tr, dest_cnt + src_fx-1, false )   
       end
     end
     
@@ -2746,14 +2749,24 @@
   
   
   -------------------------------------------------------------------- 
-  function DATA:Import_TransferTrackData_FXchain_Envelopes(src_tr, dest_tr,dest_cnt,src_fx)
+  function DATA:Import_TransferTrackData_FXEnvelopes(src_tr, src_fx) 
+    if EXT.CONF_tr_FXenv&1~=1 then return end
     for envidx = 1, reaper.CountTrackEnvelopes( src_tr ) do
       local env = reaper.GetTrackEnvelope( src_tr, envidx-1 )
       local retval, fxindex, paramindex = reaper.Envelope_GetParentTrack( env )   
-      if fxindex == src_fx-1 then
-        local retval, chunk = reaper.GetEnvelopeStateChunk( env, '', false )
-        local dest_env = reaper.GetFXEnvelope( dest_tr, dest_cnt + src_fx-1, paramindex, true )
-        if dest_env then  reaper.SetEnvelopeStateChunk( dest_env, chunk, false ) end
+      if paramindex and fxindex == src_fx then
+        local dest_env = reaper.GetFXEnvelope( src_tr, fxindex, paramindex, true )
+        if dest_env then  
+          if EXT.CONF_tr_FXenv&2==2 then  
+            local retval, time, value, shape, tension, selected = reaper.GetEnvelopePointEx( dest_env, -1, 0 ) 
+            TrackFX_SetParam( src_tr, fxindex, paramindex, value )
+          end
+          --[[ 
+          for AIidx = 1, CountAutomationItems( dest_env )  do -- AIidx = 0 for -1 to clear undliyng envelope
+            DeleteEnvelopePointRangeEx( dest_env, AIidx-1, 0, math.huge )
+          end]]
+          SetEnvelopeStateChunk( dest_env, '/badchunk/', false ) -- this erase envelope
+        end
       end
     end
   end
