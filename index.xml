@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="43a94a97604f1567438bfb401130b624c232e042" name="MPL Scripts">
+<index version="1" commit="b538138f428d22777e63c291583dff4fe3d01ae8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13102,6 +13102,11 @@ various fixes]]></changelog>
 + Allow to change Match/AutoMatch default submode
 # fix auto select folders children]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/43a94a97604f1567438bfb401130b624c232e042/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.12" author="MPL" time="2025-12-15T18:08:51Z">
+        <changelog><![CDATA[+ FX chain: clean envelopes
++ FX chain: if clean envelopes, latch value to first point or current]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b538138f428d22777e63c291583dff4fe3d01ae8/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
