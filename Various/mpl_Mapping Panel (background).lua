@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.22
+-- @version 4.23
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -7,12 +7,12 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # fix error at formatted parameter
+--    # try validate by reduced name
 
 
 
 
-  local vrs = 4.22
+  local vrs = 4.23
 
   --[[ gmem map: 
   Master
@@ -226,7 +226,7 @@
   function DATA:SlaveJSFX_Validate(tr) 
     for fx = 1, TrackFX_GetCount(tr) do
       local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-      if fxname:match('mpl_MappingPanel_slave') then return fx-1 end
+      if fxname:match('MappingPanel_slave') then return fx-1 end
     end 
     -- add if not found
     reaper.PreventUIRefresh( 1 )
@@ -611,7 +611,7 @@
         if i==0 then tr = GetMasterTrack(DATA.ReaProj) end 
         for fx = 1,  TrackFX_GetCount( tr ) do
           local retval, fxname = reaper.TrackFX_GetNamedConfigParm( tr,  fx-1, 'original_name' )
-          if fxname:match('mpl_MappingPanel_master') then
+          if fxname:match('MappingPanel_master') then
             DATA.masterJSFX_trGUID = GetTrackGUID( tr )
             DATA.masterJSFX_tr = tr
             DATA.masterJSFX_FXid = fx-1 
