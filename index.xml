@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b538138f428d22777e63c291583dff4fe3d01ae8" name="MPL Scripts">
+<index version="1" commit="2a6b1a8bfaf419ea39043eaebc4ca30b5bd55702" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8255,6 +8255,10 @@
         <changelog><![CDATA[# fix spairs error]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20note%20under%20play%20cursor.lua</source>
       </version>
+      <version name="1.05" author="MPL" time="2025-12-16T18:42:41Z">
+        <changelog><![CDATA[# fix selection]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a6b1a8bfaf419ea39043eaebc4ca30b5bd55702/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20note%20under%20play%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select higher notes.lua" type="script" desc="Chord voicing - select higher notes">
       <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
@@ -8272,6 +8276,10 @@
       <version name="1.03" author="MPL" time="2025-10-14T04:44:57Z">
         <changelog><![CDATA[# fix spairs error]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20notes.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2025-12-16T18:42:41Z">
+        <changelog><![CDATA[# fix selection]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a6b1a8bfaf419ea39043eaebc4ca30b5bd55702/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select lower note under play cursor.lua" type="script" desc="Chord voicing - select lower note under play cursor">
@@ -8296,6 +8304,10 @@
         <changelog><![CDATA[# fix spairs error]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20note%20under%20play%20cursor.lua</source>
       </version>
+      <version name="1.05" author="MPL" time="2025-12-16T18:42:41Z">
+        <changelog><![CDATA[# fix selection]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a6b1a8bfaf419ea39043eaebc4ca30b5bd55702/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20note%20under%20play%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select lower notes.lua" type="script" desc="Chord voicing - select lower notes">
       <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
@@ -8313,6 +8325,10 @@
       <version name="1.03" author="MPL" time="2025-10-14T04:44:57Z">
         <changelog><![CDATA[# fix spairs error]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20notes.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2025-12-16T18:42:41Z">
+        <changelog><![CDATA[# fix selection]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a6b1a8bfaf419ea39043eaebc4ca30b5bd55702/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Convert CC64 sustain to note-off and remove.lua" type="script" desc="Convert CC64 sustain to note-off and remove">
