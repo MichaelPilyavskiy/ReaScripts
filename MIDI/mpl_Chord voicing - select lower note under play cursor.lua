@@ -1,22 +1,11 @@
 -- @description Chord voicing - select lower note under play cursor
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # fix spairs error
+--    # fix selection
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  ---------------------------------------------------
-  function VF_CheckReaperVrs(rvrs, showmsg) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
-      return
-     else
-      return true
-    end
-  end
   ---------------------------------------------------
   function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
     local keys = {}
@@ -41,32 +30,35 @@
   end
   ----------------------------------------------------------------------
   function modifychords(chords,take, playcurpos)
-    for ppq in spairs(chords) do
-      has_selectedflag= false
+    for chord_ppq in spairs(chords) do
       
-      local minpitch = 128
+      if #chords[chord_ppq] <=1 then goto skipchord end 
+      
       local chordnoteout
-      for chordnote = 1, #chords[ppq] do 
-        if  chords[ppq][chordnote].pitch < minpitch then
+      local minpitch = 128
+      for chordnote = 1, #chords[chord_ppq] do 
+        if  chords[chord_ppq][chordnote].pitch < minpitch then
           chordnoteout = chordnote
-          minpitch = chords[ppq][chordnote].pitch
+          minpitch = chords[chord_ppq][chordnote].pitch
         end 
       end
       
-      for chordnote = 1, #chords[ppq] do if chords[ppq][chordnote].flags&1==1 then has_selectedflag = true break end end
+      local has_overlap_playcursor
+      for chordnote = 1, #chords[chord_ppq] do  
+        local timest = MIDI_GetProjTimeFromPPQPos( take, chords[chord_ppq][chordnote].ppq_pos )
+        local timeen = MIDI_GetProjTimeFromPPQPos( take, chords[chord_ppq][chordnote].ppq_pos+(chords[chord_ppq][chordnote].ppq_len or 0) )
+        if (timest<=playcurpos and timeen >=playcurpos) and chordnoteout == chordnote then 
+          has_overlap_playcursor = true
+          break
+        end
+      end 
       
-      --if has_selectedflag then 
-        for chordnote = 1, #chords[ppq] do  
-          local timest = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos )
-          local timeen = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos+(chords[ppq][chordnote].ppq_len or 0) )
-          if chordnote == chordnoteout and (timest<=playcurpos and timeen >=playcurpos)
-            then chords[ppq][chordnote].flags = 1 
-            
-           else 
-            chords[ppq][chordnote].flags = 0 
-          end
-        end 
-      --end
+      if has_overlap_playcursor then 
+        local flags = chords[chord_ppq][chordnoteout].flags
+        if flags&1~=1 then chords[chord_ppq][chordnoteout].flags = flags~1 end 
+      end
+      
+      ::skipchord::
     end
   end
   ----------------------------------------------------------------------
@@ -150,33 +142,59 @@
   
   ----------------------------------------------------------------------
   function chords_get(take, evts, store_to_rpp) 
-    local ppq_filter =  reaper.MIDI_GetPPQPosFromProjQN( take, 0.25 ) 
-    local last_ppq_pos = 0
+     ppq_filter =  30--MIDI_GetPPQPosFromProjQN( take, 0.25-reaper.GetProjectTimeOffset( -1, false ) ) 
     -- extract chords
-      local chords = {}
+       chords = {}
       for i = 1, #evts do
         if evts[i].isnote then 
           local msg1 = evts[i].msg1
           local flags = evts[i].flags
           local ppq_pos = evts[i].ppq_pos 
           local ppq_len = evts[i].ppq_len 
-          if ppq_pos - last_ppq_pos < ppq_filter then ppq_pos = last_ppq_pos end
-          if not chords[ppq_pos] then  chords[ppq_pos] = {} end
-          local norm_pitch = msg1:byte(2)%12
-          chords[ppq_pos] [#chords[ppq_pos]+1]= {
-              pitch = msg1:byte(2),
-              vel = msg1:byte(3),
-              chan = msg1:byte(1)&0xF,
-              ppq_len = ppq_len,
-              ppq_pos = evts[i].ppq_pos ,
-              flags = flags
-            }
-          last_ppq_pos = ppq_pos
+          
+          local has_chord
+          for chPPQ in pairs(chords) do 
+            if math.abs(chPPQ - ppq_pos) <= ppq_filter then 
+              chords[chPPQ] [#chords[chPPQ]+1]= {
+                  pitch = msg1:byte(2),
+                  vel = msg1:byte(3),
+                  chan = msg1:byte(1)&0xF,
+                  ppq_len = ppq_len,
+                  ppq_pos = evts[i].ppq_pos ,
+                  flags = flags
+                }
+              has_chord = true
+              break
+            end
+          end
+          
+          if not has_chord then 
+            if not chords[ppq_pos] then  chords[ppq_pos] = {} end
+            local norm_pitch = msg1:byte(2)%12
+            chords[ppq_pos] [#chords[ppq_pos]+1]= {
+                pitch = msg1:byte(2),
+                vel = msg1:byte(3),
+                chan = msg1:byte(1)&0xF,
+                ppq_len = ppq_len,
+                ppq_pos = evts[i].ppq_pos ,
+                flags = flags
+              }
+          end
         end
       end
       
     return chords
-  end
+  end---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end 
   --------------------------------------------------------------------  
   if VF_CheckReaperVrs(5.32,true)  then 
     Undo_BeginBlock()

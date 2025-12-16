@@ -1,22 +1,12 @@
 -- @description Chord voicing - select higher notes
--- @version 1.03
+-- @version 1.05
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # fix spairs error
+--    # fix selection
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
-  function VF_CheckReaperVrs(rvrs, showmsg) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
-      return
-     else
-      return true
-    end
-  end---------------------------------------------------
   function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
     local keys = {}
     for k in pairs(t) do keys[#keys+1] = k end
@@ -26,40 +16,42 @@
               i = i + 1
               if keys[i] then return keys[i], t[keys[i]] end
            end
-  end
+  end 
   ----------------------------------------------------------------------  
   function main(take)
     if not take or not TakeIsMIDI(take) then return end  
-    
+    local playcurpos =  GetPlayPosition2()
+    if  GetPlayState()&1==0 then playcurpos = GetCursorPosition() end
     local evts = getevts(take)  
     chords = {}
     chords = chords_get(take, evts)
-    modifychords(chords) 
+    modifychords(chords,take, playcurpos) 
     setevtsback(take,evts,chords)
   end
   ----------------------------------------------------------------------
-  function modifychords(chords)
-    for ppq in spairs(chords) do
-      has_selectedflag= false
-      for chordnote = 1, #chords[ppq] do if chords[ppq][chordnote].flags&1==1 then has_selectedflag = true break end end
+  function modifychords(chords,take, playcurpos)
+    for chord_ppq in spairs(chords) do
       
-      if has_selectedflag then 
-        local maxpitch = -1
-        local chordnoteout
-        for chordnote = 1, #chords[ppq] do 
-          if  chords[ppq][chordnote].pitch > maxpitch then
-            chordnoteout = chordnote
-            maxpitch = chords[ppq][chordnote].pitch
-          end 
-        end
-        for chordnote = 1, #chords[ppq] do 
-          if chordnote == chordnoteout then chords[ppq][chordnote].flags = 1 else chords[ppq][chordnote].flags = 0 end
-        end
+      if #chords[chord_ppq] <=1 then goto skipchord end 
+      --msg(chord_ppq)
+      
+      local maxpitch = -1
+      local chordnoteout
+      for chordnote = 1, #chords[chord_ppq] do 
+        if  chords[chord_ppq][chordnote].pitch > maxpitch then
+          chordnoteout = chordnote
+          maxpitch = chords[chord_ppq][chordnote].pitch
+        end 
       end
+      
+        local flags = chords[chord_ppq][chordnoteout].flags
+        if flags&1~=1 then chords[chord_ppq][chordnoteout].flags = flags~1 end 
+      
+      ::skipchord::
     end
   end
   ----------------------------------------------------------------------
-  function setevtsback(take,evts,chords)
+  function setevtsback(take,evts,chords) 
     local str = ""
     local s_pack = string.pack
     local ppq_pos = 0
@@ -72,9 +64,11 @@
     
     for ppq in spairs(chords) do
       for chordnote = 1, #chords[ppq] do
-        str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_pos - ppq_pos, chords[ppq][chordnote].flags, 3, 0x90 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, chords[ppq][chordnote].vel)
-        str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_len, chords[ppq][chordnote].flags, 3, 0x80 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, 0)
-        ppq_pos = chords[ppq][chordnote].ppq_pos+chords[ppq][chordnote].ppq_len
+        if chords[ppq][chordnote].ppq_len then 
+          str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_pos - ppq_pos, chords[ppq][chordnote].flags, 3, 0x90 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, chords[ppq][chordnote].vel)
+          str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_len, chords[ppq][chordnote].flags, 3, 0x80 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, 0)
+          ppq_pos = chords[ppq][chordnote].ppq_pos+chords[ppq][chordnote].ppq_len
+        end
       end
     end
     
@@ -105,6 +99,7 @@
         local isNoteOn = msg1:byte(1)>>4 == 0x9 
         local isNoteOff = msg1:byte(1)>>4 == 0x8
         local pitch
+        if isNoteOn == true and msg1:byte(3) == 0 then isNoteOn = false isNoteOff = true end
         if isNoteOn or isNoteOff then
           pitch = msg1:byte(2)
         end
@@ -136,35 +131,61 @@
   
   ----------------------------------------------------------------------
   function chords_get(take, evts, store_to_rpp) 
-    local ppq_filter =  reaper.MIDI_GetPPQPosFromProjQN( take, 0.25 ) 
-    local last_ppq_pos = 0
+     ppq_filter =  30--MIDI_GetPPQPosFromProjQN( take, 0.25-reaper.GetProjectTimeOffset( -1, false ) ) 
     -- extract chords
-      local chords = {}
+       chords = {}
       for i = 1, #evts do
         if evts[i].isnote then 
           local msg1 = evts[i].msg1
           local flags = evts[i].flags
           local ppq_pos = evts[i].ppq_pos 
           local ppq_len = evts[i].ppq_len 
-          if ppq_pos - last_ppq_pos < ppq_filter then ppq_pos = last_ppq_pos end
-          if not chords[ppq_pos] then  chords[ppq_pos] = {} end
-          local norm_pitch = msg1:byte(2)%12
-          chords[ppq_pos] [#chords[ppq_pos]+1]= {
-              pitch = msg1:byte(2),
-              vel = msg1:byte(3),
-              chan = msg1:byte(1)&0xF,
-              ppq_len = ppq_len,
-              ppq_pos = evts[i].ppq_pos ,
-              flags = flags
-            }
-          last_ppq_pos = ppq_pos
+          
+          local has_chord
+          for chPPQ in pairs(chords) do 
+            if math.abs(chPPQ - ppq_pos) <= ppq_filter then 
+              chords[chPPQ] [#chords[chPPQ]+1]= {
+                  pitch = msg1:byte(2),
+                  vel = msg1:byte(3),
+                  chan = msg1:byte(1)&0xF,
+                  ppq_len = ppq_len,
+                  ppq_pos = evts[i].ppq_pos ,
+                  flags = flags
+                }
+              has_chord = true
+              break
+            end
+          end
+          
+          if not has_chord then 
+            if not chords[ppq_pos] then  chords[ppq_pos] = {} end
+            local norm_pitch = msg1:byte(2)%12
+            chords[ppq_pos] [#chords[ppq_pos]+1]= {
+                pitch = msg1:byte(2),
+                vel = msg1:byte(3),
+                chan = msg1:byte(1)&0xF,
+                ppq_len = ppq_len,
+                ppq_pos = evts[i].ppq_pos ,
+                flags = flags
+              }
+          end
         end
       end
       
     return chords
-  end
-  ----------------------------------------------------------------------
-  if VF_CheckReaperVrs(5.32,true) then 
+  end---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs, showmsg) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
+      return
+     else
+      return true
+    end
+  end 
+  --------------------------------------------------------------------  
+  if VF_CheckReaperVrs(5.32,true)  then 
     Undo_BeginBlock()
     local ME = reaper.MIDIEditor_GetActive()
     if ME then
@@ -181,5 +202,5 @@
         if take then main(take) end
       end
     end
-    Undo_EndBlock('Chord voicing - select higher notes', 0xFFFFFFFF)
+    Undo_EndBlock('Chord voicing - select lower note under play cursor', 0xFFFFFFFF)
   end 
