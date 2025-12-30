@@ -33,9 +33,11 @@
 
   ---------------------------------------------------------------------  
   function main() 
-    -- collect takes
+    -- collect takes and preserve selection
+      local selected_items = {}
       for i =1 , CountSelectedMediaItems(0)do
         local item = GetSelectedMediaItem(0,i-1)
+        selected_items[#selected_items+1] = item
         local take = GetActiveTake(item)
         local retval, tkname = GetSetMediaItemTakeInfo_String( take, 'P_NAME', '', false )
         local track = GetMediaItemTrack( item )
@@ -67,6 +69,12 @@
       
     -- export to midi file
      for i =1, #DATA2.takes do DATA2:ExportMIDIFiles(DATA2.takes[i]) end
+     
+    -- restore selection
+      for i = 1, #selected_items do
+        SetMediaItemSelected(selected_items[i], true)
+      end
+      UpdateArrange()
   end
   ---------------------------------------------------------------------  
   function DATA2:MIDIEditor_SetEvts(tk_t)
