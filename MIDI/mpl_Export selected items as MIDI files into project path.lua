@@ -44,9 +44,14 @@
         local retval, trname = GetTrackName( track )
         if DATA2.getitemname == true then
           name = tkname
+          if name == '' or not name then name = trname end
+          if name == '' or not name then name = 'untitled' end
          else
           name = trname
+          if name == '' or not name then name = 'untitled' end
         end
+        -- sanitize filename
+        name = name:gsub('[\\/:*?"<>|]', '_')
         if take and ValidatePtr2( 0, take, 'MediaItem_Take*' ) and TakeIsMIDI(take) then
           DATA2.takes[#DATA2.takes+1] = 
           {
@@ -99,7 +104,7 @@
     end
     
     -- cc envelopes
-    local CCt = tk_t.CCt
+    local CCt = tk_t.CCt or {}
     for lane in pairs(CCt) do 
       for i = 1, #CCt[lane] do
         local env_t = CCt[lane]
@@ -126,18 +131,24 @@
     end
     
     -- all note off - place at item end to respect item length including silence
-    local item_len = GetMediaItemInfo_Value(tk_t.item, 'D_LENGTH')
-    local item_pos = GetMediaItemInfo_Value(tk_t.item, 'D_POSITION')
-    local take_start_offset = GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
-    local qn_start = TimeMap2_timeToQN(nil, item_pos - take_start_offset)
-    local qn_end = TimeMap2_timeToQN(nil, item_pos + item_len - take_start_offset)
-    local ppq_start = MIDI_GetPPQPosFromProjQN(take, qn_start)
-    local ppq_end = MIDI_GetPPQPosFromProjQN(take, qn_end)
-    local item_len_ppq = ppq_end - ppq_start
-    
-    local ppq_cur = math.max(t[#t].ppq_pos, item_len_ppq)
-    local offset_to_end = ppq_cur - ppq_last
-    str = str..string.pack("i4Bs4", offset_to_end, t[#t].flags&0xF , t[#t].msg1)
+    if #t > 0 and tk_t.item and take then
+      local item_len = GetMediaItemInfo_Value(tk_t.item, 'D_LENGTH')
+      local item_pos = GetMediaItemInfo_Value(tk_t.item, 'D_POSITION')
+      local take_start_offset = GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+      if item_len and item_pos and take_start_offset then
+        local qn_start = TimeMap2_timeToQN(nil, item_pos - take_start_offset)
+        local qn_end = TimeMap2_timeToQN(nil, item_pos + item_len - take_start_offset)
+        local ppq_start = MIDI_GetPPQPosFromProjQN(take, qn_start)
+        local ppq_end = MIDI_GetPPQPosFromProjQN(take, qn_end)
+        local item_len_ppq = ppq_end - ppq_start
+        
+        local ppq_cur = math.max(t[#t].ppq_pos, item_len_ppq)
+        local offset_to_end = ppq_cur - ppq_last
+        str = str..string.pack("i4Bs4", offset_to_end, t[#t].flags&0xF , t[#t].msg1)
+      else
+        str = str..string.pack("i4Bs4", 0, t[#t].flags&0xF , t[#t].msg1)
+      end
+    end
     
     -- set / sort
     if tk_t.src_events then
