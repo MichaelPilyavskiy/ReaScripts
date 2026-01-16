@@ -1,10 +1,11 @@
 -- @description InteractiveToolbar
--- @version 3.02
+-- @version 3.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    # fix trackvol error on reading -inf
+--    # fix 1009 error
+--    # Envelope/Value: fix set value for gain envelopes
 
 
 
@@ -998,6 +999,7 @@
   function UI.widgetBuild_value_multi(widget_ID, params)
     local val_format = params.val_format 
     local val_format_t = params.val_format_t 
+    if not val_format_t then return end
     
     local width = -1
     if params.width then width = params.width end
@@ -2351,8 +2353,8 @@
          else
           value = params.set_val
         end
-        value = ScaleToEnvelopeMode( DATA.CurState.Envelope.scaling_mode,value) 
-        SetEnvelopePointEx( DATA.CurState.Envelope.env_ptr, DATA.CurState.Envelope.autoitem_idx, DATA.CurState.Envelope.selectedpoints[i], D_POSITION, lim(value), shape, tension, true, true)
+        value = ScaleToEnvelopeMode( DATA.CurState.Envelope.scaling_mode,lim(value)) 
+        SetEnvelopePointEx( DATA.CurState.Envelope.env_ptr, DATA.CurState.Envelope.autoitem_idx, DATA.CurState.Envelope.selectedpoints[i], D_POSITION,value , shape, tension, true, true)
       end
       if params.set_val_format then  
         local set_param = params.set_val_format
