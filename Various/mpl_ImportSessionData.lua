@@ -1,11 +1,10 @@
 -- @description ImportSessionData
--- @version 3.13
+-- @version 3.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Track/Mute: allow to port mute state
---    # FX chain/Clean envelopes: fixed error on multiple envelopes
+--    # fix pattern match
 
 
     
@@ -2449,9 +2448,9 @@
       if EXT.CONF_tr_match_casesens==1 then tr_name_prepared = tr_name:gsub('%s+','') end
       t = {tr_name_prepared}
      else
-      local pat_prepared = word:lower():gsub('%s+','')
-      if EXT.CONF_tr_match_casesens==1 then pat_prepared = word:gsub('%s+','') end
-      for word in tr_name:gmatch('[^%s]+') do t[#t+1] = literalize(pat_prepared) end  
+      for word in tr_name:gmatch('[^%s]+') do 
+        if EXT.CONF_tr_match_casesens==1 then t[#t+1] = literalize(word:gsub('%s+','')) else t[#t+1] = literalize(word:lower():gsub('%s+',''))  end 
+      end  
     end
     for trid = 1,  #DATA.destproj.TRACK do 
       local tr_name_CUR =  DATA.destproj.TRACK[trid].tr_name:lower()
