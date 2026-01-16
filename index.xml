@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="50e343f02a5d9e91f6fb6157d932450149b2bae6" name="MPL Scripts">
+<index version="1" commit="7c48f948fb5f09aa673130b4515fb5b1f34a0cb8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13128,6 +13128,10 @@ various fixes]]></changelog>
         <changelog><![CDATA[+ Track/Mute: allow to port mute state
 # FX chain/Clean envelopes: fixed error on multiple envelopes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/50e343f02a5d9e91f6fb6157d932450149b2bae6/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.14" author="MPL" time="2026-01-16T20:28:32Z">
+        <changelog><![CDATA[# fix pattern match]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c48f948fb5f09aa673130b4515fb5b1f34a0cb8/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
