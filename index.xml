@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="77e7e2680c64e776259b7afd7e07b770e0ae5f78" name="MPL Scripts">
+<index version="1" commit="5642fb5b2ec9fa2edd15704c00226825ae949f58" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14734,6 +14734,11 @@ various fixes]]></changelog>
       <version name="3.02" author="MPL" time="2025-12-14T12:01:39Z">
         <changelog><![CDATA[# fix trackvol error on reading -inf]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2a8cc4bfef52a2499ad7cc5e84aafaf48c57286/Various/mpl_InteractiveToolbar.lua</source>
+      </version>
+      <version name="3.03" author="MPL" time="2026-01-16T19:46:38Z">
+        <changelog><![CDATA[# fix 1009 error
+# Envelope/Value: fix set value for gain envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5642fb5b2ec9fa2edd15704c00226825ae949f58/Various/mpl_InteractiveToolbar.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
