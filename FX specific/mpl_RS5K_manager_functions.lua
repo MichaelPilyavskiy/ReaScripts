@@ -3680,7 +3680,7 @@ end
             local ppq_pos = MIDIdata[note][i].ppq_pos
             offset = ppq_pos - ppq_pos_last
             local out_msg1 = MIDIdata[note][i].msg1
-            if options.modify_note then 
+            if options and options.modify_note then 
               local out_pitch=  options.modify_note
               out_msg1 = string.char(out_msg1:byte(1), out_pitch ,out_msg1:byte(3) )
             end
