@@ -3200,11 +3200,13 @@ end
         content = f:read('a')
         f:close()
       end
-      local GUID = GetTrackGUID( new_tr )
-      content = content:gsub('TRACK ', 'TRACK '..GUID)
-      SetTrackStateChunk( new_tr, content, false )
-      TrackFX_Show( new_tr, 0, 0 ) -- hide chain
-      for fxid = 1,  TrackFX_GetCount( new_tr ) do TrackFX_Show( new_tr,fxid-1, 2 ) end-- hide chain
+      if content then 
+        local GUID = GetTrackGUID( new_tr )
+        content = content:gsub('TRACK ', 'TRACK '..GUID)
+        SetTrackStateChunk( new_tr, content, false )
+        TrackFX_Show( new_tr, 0, 0 ) -- hide chain
+        for fxid = 1,  TrackFX_GetCount( new_tr ) do TrackFX_Show( new_tr,fxid-1, 2 ) end-- hide chain
+      end
     end  
     
     -- set height

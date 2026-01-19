@@ -1,5 +1,5 @@
  -- @description RS5k manager
--- @version 4.81
+-- @version 4.82
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,10 +23,10 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    # fix Action_ExplodeTake error
+--    # fix error on wrong template file
 
 
-rs5kman_vrs = '4.81'
+rs5kman_vrs = '4.82'
 
 
 
