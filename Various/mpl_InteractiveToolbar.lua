@@ -1,11 +1,10 @@
 -- @description InteractiveToolbar
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    # fix 1009 error
---    # Envelope/Value: fix set value for gain envelopes
+--    # fix midi editor error
 
 
 
@@ -2091,7 +2090,7 @@
         DATA.CurState.MIDIEditor.sel_evt.D_POSITION_format_t = Utils_SplitValues(DATA.CurState.MIDIEditor.sel_evt.D_POSITION_format)
         
         -- note len
-        if DATA.CurState.MIDIEditor.sel_evt.int_type == 0x9 then
+        if DATA.CurState.MIDIEditor.sel_evt.int_type == 0x9 and DATA.CurState.MIDIEditor.evts[sel_evt_idx].ppq_pos and DATA.CurState.MIDIEditor.evts[sel_evt_idx].ppq_pos2 then
           local start_pos = MIDI_GetProjTimeFromPPQPos( take, DATA.CurState.MIDIEditor.evts[sel_evt_idx].ppq_pos)
           local end_pos = MIDI_GetProjTimeFromPPQPos( take, DATA.CurState.MIDIEditor.evts[sel_evt_idx].ppq_pos2 )
           DATA.CurState.MIDIEditor.sel_evt.start_pos = start_pos
