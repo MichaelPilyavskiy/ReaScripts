@@ -1,17 +1,17 @@
 -- @description Render-in-place
--- @version 1.29
+-- @version 1.30
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Based on Cubase "Render Selection" dialog port 
 -- @changelog
---    # fix restore plugins after Enable master FX turned off
+--    # fix obey source track name when render to new track
 
 
 
     
 --NOT reaper NOT gfx
 
-local vrs = 1.29
+local vrs = 1.30
 --------------------------------------------------------------------------------  init globals
   for key in pairs(reaper) do _G[key]=reaper[key] end 
   app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
@@ -2034,11 +2034,27 @@ function DATA:Render_AddTrack(t)
   InsertTrackInProject( 0, tracknum, 0 )
   local tr = GetTrack(0,tracknum)
   if not t.options_sendonly then
-    local trname = EXT.CONF_newtrackname:gsub('#trname',t.P_NAME or '')
-    GetSetMediaTrackInfo_String(tr,'P_NAME',trname,1)  
+    local P_NAME = '' 
+    if t.trGUID then 
+      local src_tr = VF_GetMediaTrackByGUID(-1, t.trGUID)
+      if src_tr then 
+        local retval, stringNeedBig = reaper.GetSetMediaTrackInfo_String( src_tr, 'P_NAME', '', false )
+        P_NAME = stringNeedBig
+      end
+    end
+    local trname = EXT.CONF_newtrackname:gsub('#trname',P_NAME  or '')
+    GetSetMediaTrackInfo_String(tr,'P_NAME',trname,1)
    else
-    local trname = EXT.CONF_newtrackname2:gsub('#trname',t.P_NAME or '')
-    GetSetMediaTrackInfo_String(tr,'P_NAME',trname,1)  
+    local P_NAME = '' 
+    if t.trGUID then 
+      local src_tr = VF_GetMediaTrackByGUID(-1, t.trGUID)
+      if src_tr then 
+        local retval, stringNeedBig = reaper.GetSetMediaTrackInfo_String( src_tr, 'P_NAME', '', false )
+        P_NAME = stringNeedBig
+      end
+    end
+    local trname = EXT.CONF_newtrackname2:gsub('#trname',P_NAME or '')
+    GetSetMediaTrackInfo_String(tr,'P_NAME',trname,1)
   end
   
   return tr--, trGUID
