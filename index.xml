@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="94b47d15f5ca59a4c30af3ba116e4bec784da97b" name="MPL Scripts">
+<index version="1" commit="25a9a4d77888742c6052d0ae705a2aa438f10428" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14800,6 +14800,10 @@ various fixes]]></changelog>
       <version name="3.04" author="MPL" time="2026-01-20T18:33:17Z">
         <changelog><![CDATA[# fix midi editor error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4a486261727f46f35589fc013c078f407baa5f1d/Various/mpl_InteractiveToolbar.lua</source>
+      </version>
+      <version name="3.05" author="MPL" time="2026-01-22T17:10:00Z">
+        <changelog><![CDATA[+ Persistent widgets: add pwrepeatstate for controlling repeat state]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25a9a4d77888742c6052d0ae705a2aa438f10428/Various/mpl_InteractiveToolbar.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
