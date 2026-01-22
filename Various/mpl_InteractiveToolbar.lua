@@ -1,10 +1,10 @@
 -- @description InteractiveToolbar
--- @version 3.04
+-- @version 3.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    # fix midi editor error
+--    + Persistent widgets: add pwrepeatstate for controlling repeat state
 
 
 
@@ -29,12 +29,12 @@
   -------------------------------------------------------------------------------- init external defaults 
   EXT = { 
           UI_Settings_widgetsorder_section = 1,
-          CONF_availablewidgets =     '#fxoversample #meevtchan #menotevel #meCCval #menotepitch #menotelen #meevtposition #metakename #envmarksame #envAIlooplen #envpointval #envpointpos #envfx #envname #trackrecin #trackmediaoffs #trackparentsend #trackpolarity #trackfreeze #trackdelay #trackfxlist #trackpan #trackvol #trackcolor #trackname #itempan #itemrate #itempitch #itemvol #itemcomlen #itemfadeout #itemfadein #itemsourceoffset #itemlength #itemrightedge #itemleftedge #itemsnap #itemposition #itemtimebase #itembwfsrc #itemreverse #itemchanmode #itemmute #itemloop #itempreservepitch #itemlock #itemcolor #itemname #pwswing #pwgrid #pwtimesellen #pwtimeselend #pwtimeselstart #pwtimeselLeftEdge #pwlasttouchfx #pwtransport #pwbpm #pwclock #pwmastermeter #pwmasterscope #pwtaptempo #pwmasterswapmono #pwmchanmeter',
+          CONF_availablewidgets =     '#pwrepeatstate #fxoversample #meevtchan #menotevel #meCCval #menotepitch #menotelen #meevtposition #metakename #envmarksame #envAIlooplen #envpointval #envpointpos #envfx #envname #trackrecin #trackmediaoffs #trackparentsend #trackpolarity #trackfreeze #trackdelay #trackfxlist #trackpan #trackvol #trackcolor #trackname #itempan #itemrate #itempitch #itemvol #itemcomlen #itemfadeout #itemfadein #itemsourceoffset #itemlength #itemrightedge #itemleftedge #itemsnap #itemposition #itemtimebase #itembwfsrc #itemreverse #itemchanmode #itemmute #itemloop #itempreservepitch #itemlock #itemcolor #itemname #pwswing #pwgrid #pwtimesellen #pwtimeselend #pwtimeselstart #pwtimeselLeftEdge #pwlasttouchfx #pwtransport #pwbpm #pwclock #pwmastermeter #pwmasterscope #pwtaptempo #pwmasterswapmono #pwmchanmeter',
           CONF_contextpriority =      '#MIDIEditor1 #SpecEdit1 #Item1 #FX1 #Envelope1 #Track1 ',
           
           
           -- default widgets
-          CONF_widgetsH_Persist =     '#pwswing #pwgrid #pwtimesellen #pwtimeselend #pwtimeselstart #pwtimeselLeftEdge #pwlasttouchfx #pwtransport #pwbpm #pwclock #pwmastermeter #pwmasterscope #pwtaptempo #pwmasterswapmono #pwmchanmeter',
+          CONF_widgetsH_Persist =     '#pwswing #pwgrid #pwtimesellen #pwtimeselend #pwtimeselstart #pwtimeselLeftEdge #pwlasttouchfx #pwtransport #pwrepeatstate #pwbpm #pwclock #pwmastermeter #pwmasterscope #pwtaptempo #pwmasterswapmono #pwmchanmeter',
           CONF_widgetsH_Item =        '#itemname #itemcolor #itemlock #itempreservepitch #itemloop #itemmute #itemchanmode #itemreverse #itembwfsrc #itemtimebase #itemposition #itemsnap #itemleftedge #itemrightedge #itemlength #itemsourceoffset #itemfadein #itemfadeout #itemvol #itempitch #itemrate #itempan',-- #itemcomlen  
           CONF_widgetsH_Track =       '#trackname #trackcolor #trackvol #trackpan #trackfxlist #trackdelay #trackfreeze #trackpolarity #trackparentsend #trackmediaoffs #trackrecin',
           CONF_widgetsH_Envelope =    '#envname #envfx #envpointpos #envpointval #envAIlooplen #envmarksame',
@@ -88,6 +88,7 @@
             ['pwtimeselLeftEdge'] = {desc = 'Time selection left edge, preserve length'},
             ['pwlasttouchfx'] = {desc = 'edit last touched FX parameter'},
             ['pwtransport'] = {desc = 'Show current play state, RightClick - options, LeftClick - transport play/stop, Cltr+Left - record'},
+            ['pwrepeatstate'] = {desc = 'Show repeat state'},
             ['pwbpm'] = {desc = 'Shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)'},
             ['pwclock'] = {desc = 'Shows play/edit cursor positions'},
             ['pwmastermeter'] = {desc = 'Show master RMS / peak / LUFS depending on master peak metering settings'},
@@ -213,7 +214,98 @@
         widget_col_peaksnormal = 0xFFFFFF8F,
         widget_col_peaksloud = 0xFF5050FF,
         
-        
+        image_repeat = ImGui.CreateImageFromMem(
+                 "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A\x00\x00\x00\x0D\x49\x48\x44\x52\z
+                   \x00\x00\x00\x40\x00\x00\x00\x40\x08\x06\x00\x00\x00\xAA\x69\x71\z
+                   \xDE\x00\x00\x00\x09\x70\x48\x59\x73\x00\x00\x0E\xC4\x00\x00\x0E\z
+                   \xC4\x01\x95\x2B\x0E\x1B\x00\x00\x05\x5D\x49\x44\x41\x54\x78\x9C\z
+                   \xED\x9B\x5F\x88\x54\x55\x1C\xC7\xBF\x67\x18\x96\x25\x96\x25\x24\z
+                   \x44\x24\x6A\x91\x4D\x6A\x1F\x44\x42\x24\x62\x2B\x8D\xA0\xD8\x72\z
+                   \x59\x16\x8D\xED\x25\xA4\x7A\x90\x08\x95\x9E\x2C\x7A\x89\x9E\xA4\z
+                   \x44\xC2\x2C\xC2\x87\x1E\x44\x42\x2C\x0C\x7A\x58\x44\x48\x4A\xD2\z
+                   \xCA\xCC\xB4\xB4\x14\x62\xB5\xC2\x56\x2C\x6D\xD1\xD6\xDC\x75\xFC\z
+                   \xF4\x70\x66\x72\xFE\xDC\xB9\xF7\x77\x66\xEE\xCC\x75\x65\x3F\xB0\z
+                   \xB0\x3B\x7B\xEE\xEF\x7C\x7F\xBF\x7B\xCF\xB9\xE7\x9C\xDF\x6F\xA4\z
+                   \x9B\x14\xE0\x31\xE0\x28\xB0\x13\x98\x9B\xB5\x9E\xB6\x02\x0C\x01\z
+                   \x57\xB8\xC1\x07\x59\x6B\x6A\x1B\xC0\x08\x30\x4D\x25\x87\xB2\xD6\z
+                   \xD5\x16\x80\xD5\x11\xCE\x03\xFC\x94\xB5\xB6\x96\x03\xBC\x00\x14\z
+                   \x22\x9C\x07\x38\x99\xB5\xBE\x96\x02\xAC\x89\x71\xFE\xD6\x0E\x00\z
+                   \xF0\x52\x82\xF3\x2D\x0D\x80\x6B\xE4\x22\x60\x8E\xA4\x45\x92\x7A\z
+                   \x25\xCD\x91\x74\x4D\xD2\xCF\x92\x3E\x73\xCE\xFD\x1B\x60\x67\xAD\z
+                   \xA4\xCD\x92\x72\x09\x4D\x2F\x48\x7A\xB7\xEA\xB3\xAB\x92\x2E\x17\z
+                   \xFF\xF7\xAB\xA4\x1F\x9D\x73\x7F\x5A\xFB\x0E\x06\x98\x0F\x6C\x00\z
+                   \x0E\xD7\x99\xA8\x00\xCE\x00\xFD\x46\x7B\xEB\x13\xEE\x7A\x28\x85\z
+                   \xA2\xB6\x0D\xC0\xFC\x34\x1D\xBF\x13\xD8\x06\x5C\x35\x0A\xB9\x04\z
+                   \x2C\x6A\xB3\xF3\xD5\x5C\x01\xDE\xA7\x99\x40\x00\x39\xFC\xE4\x34\z
+                   \xD1\x80\x80\x3D\x31\x76\x2D\x63\x3E\x2D\x26\x80\x17\x81\xA4\x21\z
+                   \x56\x23\xB2\x13\xF8\xB0\x89\x8E\xA7\x81\xDB\x23\xEC\xAE\xA4\x7D\z
+                   \xCE\x97\xB3\x13\xB8\x2D\xCA\xD7\x9A\xC8\x00\x5D\x92\x46\x25\x8D\z
+                   \x04\x45\xAD\x92\xBC\xA4\x9A\x00\x48\x7A\x26\xAA\xCF\x36\xF0\xB4\z
+                   \xA4\xD1\xA2\x6F\x15\x54\x88\x01\xF2\x92\x76\x49\x5A\xD6\x64\x87\z
+                   \x93\x92\xC6\x23\x3E\xDF\x26\x69\xAA\x49\xDB\x8D\xF2\xB0\xA4\xDD\z
+                   \x40\x47\xDD\x16\xC0\xC6\x94\x1E\xB9\xED\x31\x7D\x0C\x63\x9F\x50\z
+                   \x5B\xC1\xE6\x7A\xC2\xFA\x49\x67\x7C\x9E\x21\x61\xF6\x25\xDB\x20\z
+                   \x14\x80\x65\xD5\x82\x72\xF8\x77\x68\xB3\x86\x47\x81\xBB\xE2\x9C\z
+                   \x2F\xEB\x73\x90\xEC\x82\x70\x14\x3F\xDC\xFD\x4A\x10\x18\x96\xF4\z
+                   \xB1\x45\x78\x19\x67\x25\x7D\x22\xE9\xB8\xA4\xD3\x92\x8E\x39\xE7\z
+                   \x7E\x0F\x31\x00\x3C\x25\x3F\xE7\x74\x26\x34\x1D\x97\xB4\xAE\xF8\z
+                   \x7B\xAE\xF8\xD3\x21\xA9\x4B\xD2\x3D\x92\x86\x24\x99\x02\x5F\xC6\z
+                   \x2A\xE7\xDC\x47\x25\x21\xFB\x02\xA2\xF7\x0F\xB0\x96\xB8\xC9\x24\z
+                   \x00\xE0\x89\xA2\xCD\x38\x62\xF7\x02\x40\x07\x7E\x7D\x71\x29\xC0\z
+                   \x8F\xFD\xA5\x8B\x7B\xB0\x8F\xFD\x8B\xC0\xD2\x34\x1C\xAF\x72\xE0\z
+                   \xD1\x04\xF1\xA6\xCD\x10\xB0\xB4\xA8\xD1\x4A\x4F\x69\x65\x66\xA1\z
+                   \x00\x0C\xA4\xED\x7C\x99\xF8\x7E\xEA\xAF\x3A\xCD\xBB\x41\x60\x00\z
+                   \xFB\x0D\x5D\x23\x60\xBB\xB1\xF1\xEE\x56\x39\x5F\x26\x7E\x29\xF0\z
+                   \x57\x44\xDF\x41\x27\x42\xC0\x2E\xA3\x4F\x3B\x72\xB2\x4F\x1E\xEF\z
+                   \x85\xBB\x14\x86\x73\xEE\x1B\x49\xCB\x55\xBB\x88\xFA\x3B\xD0\xD4\z
+                   \x56\x63\xBB\x05\x39\x49\xDD\x86\x86\xD7\x25\x7D\x1B\x28\xA2\x21\z
+                   \x9C\x73\xC7\x24\x3D\x22\xFF\x66\x29\xF1\x45\xA0\x99\xEF\xE5\xCF\z
+                   \x28\x92\xE8\xCE\xCB\xBF\x4E\x92\xB8\x26\xBF\xBC\x6D\x0B\xCE\xB9\z
+                   \x53\xC0\x43\x92\x5E\x97\x34\x26\xE9\xAD\x40\x13\x93\xF2\x9A\xF3\z
+                   \x09\xED\x3A\xF2\x86\x46\x92\x7F\x02\x2C\x11\x4D\x8D\xE2\x9A\xE2\z
+                   \xF9\x06\xAF\x9D\x02\xAE\x1B\x9A\xE6\x4B\x8B\x8A\x24\xAE\x39\xE7\z
+                   \xDA\x1A\x80\x14\x30\x6D\xBA\xAC\x5B\xD3\x99\xE6\xBC\x64\xD4\x9C\z
+                   \x93\x7D\x08\xCC\x34\x4C\x9A\x67\x9F\x00\xA3\xB1\x99\xF8\x04\x98\z
+                   \x98\x0D\x40\xD6\x02\xB2\xC6\x1A\x80\x5B\x36\x50\xB3\x01\x30\xB6\z
+                   \xB3\xBC\x2A\x6F\x36\x4C\x9A\x73\xB2\xBD\x2E\x66\xE2\x13\x60\xD2\z
+                   \x3C\xFB\x04\x58\x8D\x11\x9A\x5F\xCB\x1E\xD3\x99\x65\xC8\x10\x08\z
+                   \x3A\x04\xC5\x1F\xB5\x8F\x00\xAF\x02\x96\x33\x87\xD4\xC0\x1F\x79\z
+                   \x9B\x36\x79\x02\x7E\x30\x1C\x1D\x15\x88\x48\x76\x26\x88\x78\xB9\z
+                   \xEC\xFA\x23\xC0\xBC\xC6\xDC\x09\x07\xE8\xA6\x7E\x0D\x43\x39\xC7\z
+                   \x73\xF2\x55\x16\x49\xE4\x24\xF5\x05\xEA\x58\x51\xF6\xFB\x62\x49\z
+                   \x9F\x63\x4C\x9A\xA4\xC0\xBD\xB2\xCD\x01\x93\x39\x55\x1E\x3D\xC5\z
+                   \x11\x7A\x38\x31\xA7\xEA\xEF\x85\xF2\x41\xE8\x0D\xB4\xD3\x08\x56\z
+                   \xAD\xA7\x73\x92\x0E\x1A\x1B\x3F\x0B\x3C\x10\x20\x22\x6A\xCE\xE8\z
+                   \x91\x0F\x42\xE8\xD3\x64\x06\x58\x22\x69\xB5\xB1\xF9\x41\x01\x0B\z
+                   \x0D\x63\xA5\xC4\x6F\xD6\x3B\x08\x9C\x8C\xB1\x73\x8E\x84\x32\x9A\z
+                   \x46\xC0\x27\x79\xC6\x02\xFC\xE9\x2B\x5D\x78\x28\xE0\xA2\x73\xF8\z
+                   \x9C\x5E\x33\x01\x00\x38\x8F\xBF\x5B\x69\x39\x3F\x00\xFC\x11\xE0\z
+                   \xC7\x11\xE9\xC6\x44\xB1\x55\x92\xB5\x20\x79\xAE\xA4\x4F\x81\x03\z
+                   \xF2\x89\xCD\x53\xF2\x13\xE9\x94\x2A\xB7\xCD\x49\x09\xCF\x3B\x24\z
+                   \xED\x05\x1E\x2F\xE6\x03\xCC\xE0\xF3\x92\x0B\xE4\x87\x54\x9F\xA4\z
+                   \x55\x92\x42\x86\xA7\x54\x9E\x3B\xC0\x27\x17\x7F\x09\x88\x5E\x9A\z
+                   \x5C\x04\x1E\x34\x3A\xDE\x0D\x6C\x21\x2C\xFF\x17\xC5\x18\xD0\x59\z
+                   \x6D\x7C\xA8\x49\xA3\xCD\x30\x41\x42\x7D\x21\xDE\xF9\x66\x6B\x18\z
+                   \x4A\x0C\xD6\xEB\xC4\x9A\x27\x6C\x05\x97\x88\x09\x02\xB0\x29\xA5\z
+                   \x7E\xEA\x96\xEF\x08\xE8\x22\xBD\x28\x37\xC2\x04\x11\xE9\x77\x20\z
+                   \x4F\x74\xD2\x34\x94\xC3\x54\x55\x8A\x55\xAC\x97\x9D\x73\x97\x25\z
+                   \x3D\x29\xE9\x44\xDC\xE3\xD8\x42\xBA\x25\xBD\x12\xF1\xF9\x3C\xD5\z
+                   \x2E\xAC\x42\x39\x21\x69\x45\xD1\xC7\xFF\xA9\xD9\x30\x38\xE7\xC6\z
+                   \xE5\x33\xB4\x07\x9A\xEC\xB0\x51\xF6\x45\x7C\x76\x59\xCD\x1D\xCC\z
+                   \x7E\x25\x69\xB9\x73\xEE\xAC\xF9\x0A\xFC\x9B\x61\x23\xB6\x4D\x45\z
+                   \x5A\x44\x97\xB0\x79\x3D\xFB\x1B\xB0\x37\x0D\xBC\x49\x33\xE5\x3C\z
+                   \xC0\xFD\xC0\x9E\x34\xBD\xAC\xC3\x16\x62\xCE\x1C\xF0\x15\x24\x21\z
+                   \x55\x65\x7B\x49\x71\xA1\x25\x60\x09\xBE\x02\xFB\x5C\xFA\xBE\xC7\z
+                   \x3B\x5F\xA6\x61\x98\xF8\xE2\xED\xF3\xF8\xCA\x76\x73\x1D\x53\xF0\z
+                   \x17\x26\xF0\x87\x0D\x8B\xE5\xBF\x30\x71\xB7\xFC\xE4\xD4\xA5\xDA\z
+                   \xED\xE7\xA0\x6C\xC5\x17\xEF\x48\x5A\xE7\x9C\x33\x8D\x71\xFC\x77\z
+                   \x08\x57\x4A\xBA\x4F\x7E\x0E\xBB\x20\x5F\x43\xF0\x9D\xFC\x97\x26\z
+                   \x6E\x8E\x34\x1E\xC9\x7B\x01\x80\xB7\x2D\x77\x7E\x46\x62\x08\xC0\z
+                   \xA6\xAC\x35\xB6\x94\x84\x00\x6C\xCC\x5A\x5F\xCB\xA1\xFE\x59\xE3\z
+                   \x1B\x59\x6B\x6B\x0B\xC0\xD7\x11\xCE\xBF\x96\xB5\xAE\xB6\x01\xEC\z
+                   \x28\x73\xBC\x00\xAC\xCF\x5A\x53\x5B\x01\x7A\x81\x2F\xF1\x7B\xEF\z
+                   \xE7\xB2\xD6\x53\x8F\xFF\x00\x32\x4E\xE2\xEE\xAF\x55\x2D\x5C\x00\z
+                   \x00\x00\x00\x49\x45\x4E\x44\xAE\x42\x60\x82"),
         }
     
   function msg(s)  if not s then return end  if type(s) == 'boolean' then if s then s = 'true' else  s = 'false' end end ShowConsoleMsg(s..'\n') end 
@@ -1621,12 +1713,13 @@
     DATA.CurState.Transport.play = playstate&1==1
     DATA.CurState.Transport.pause = playstate&2==2
     DATA.CurState.Transport.record = playstate&4==4
-    DATA.CurState.Transport.repeat_state = GetToggleCommandStateEx( 0, 1068 ) 
+    DATA.CurState.Transport.repeat_state = GetSetRepeatEx( -1, -1 )
     if set and params then 
       if params.setplay then OnPlayButtonEx(-1) end
       if params.setpause then OnPauseButtonEx(-1) end
       if params.setstop then OnStopButtonEx(-1) end
       if params.setrecord then CSurf_OnRecord() end
+      if params.repeat2 then GetSetRepeatEx( -1,2 ) end
       DATA:CollectData_Project_Transport() -- recursively run local update
     end
   end
@@ -3253,6 +3346,10 @@
       collectdata_func = 'CollectData_Project_Transport',
       widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
       }
+    DATA.widget_def['pwrepeatstate'] = {
+      collectdata_func = 'CollectData_Project_Transport',
+      widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
+      }  
     DATA.widget_def['pwbpm'] = {
       collectdata_func = 'CollectData_Project_Tempo',
       widget_W = UI.widget_default_W*EXT.theming_float_fontscaling,
@@ -5318,6 +5415,42 @@
     UI.widgetBuild_popstyling()
     return widgW
   end   
+  --------------------------------------------------------------------------------   
+  function UI.widget_pwrepeatstate(widget_t)
+    if not widget_t then return end 
+    local widget_ID = widget_t.widget_ID 
+    local widgW = DATA.widget_def[widget_ID].widget_W  or UI.widget_default_W*EXT.theming_float_fontscaling
+    if not DATA.CurState.Transport then return widgW end
+    
+    local widgH = UI.widgetBuild_handleHstretch() 
+    UI.widgetBuild_pushstyling() 
+    if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_AutoResizeX,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,UI.spacingX,UI.spacingY)  
+      local xav, yav = ImGui.GetContentRegionAvail(ctx)
+      local ctrl = ImGui.IsKeyDown(ctx, ImGui.Mod_Ctrl)
+      if ImGui.Button(ctx, '##transport_repeat',-1,-1) then
+        DATA:CollectData_Project_Transport(true,{repeat2 = true})
+      end
+      
+      local tint_col_rgbaIn = 0xA0A0A09F
+      if DATA.CurState and DATA.CurState.Transport and DATA.CurState.Transport.repeat_state and DATA.CurState.Transport.repeat_state == 1 then tint_col_rgbaIn =0x50BF50CF end
+      local img = UI.image_repeat
+      local p_min_x, p_min_y = reaper.ImGui_GetItemRectMin(ctx)
+      local p_max_x, p_max_y = reaper.ImGui_GetItemRectMax(ctx)
+      local wsz, hsz = reaper.ImGui_GetItemRectSize(ctx)
+      local w, h = reaper.ImGui_Image_GetSize(img )
+      local scale = 0.7*( math.min(wsz, hsz)-UI.spacingX) /  math.min(w,h) 
+      local xpos = p_min_x +0.5*( wsz-w*scale) 
+      local ypos = p_min_y +0.5*( hsz-h*scale) 
+      local uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn = nil,nil,nil,nil
+      ImGui.DrawList_AddImage( UI.draw_list, img, xpos, ypos,  xpos+w*scale,  ypos+h*scale, uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn, tint_col_rgbaIn )
+      
+      ImGui.PopStyleVar(ctx,1)
+      ImGui.EndChild( ctx )
+    end
+    UI.widgetBuild_popstyling()
+    return widgW
+  end 
   --------------------------------------------------------------------------------   
   function UI.widget_pwtransport(widget_t)
     if not widget_t then return end 
