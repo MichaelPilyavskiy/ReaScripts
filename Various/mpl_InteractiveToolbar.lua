@@ -1,10 +1,10 @@
 -- @description InteractiveToolbar
--- @version 3.05
+-- @version 3.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    + Persistent widgets: add pwrepeatstate for controlling repeat state
+--    # fix img misssing error
 
 
 
@@ -5435,16 +5435,17 @@
       local tint_col_rgbaIn = 0xA0A0A09F
       if DATA.CurState and DATA.CurState.Transport and DATA.CurState.Transport.repeat_state and DATA.CurState.Transport.repeat_state == 1 then tint_col_rgbaIn =0x50BF50CF end
       local img = UI.image_repeat
-      local p_min_x, p_min_y = reaper.ImGui_GetItemRectMin(ctx)
-      local p_max_x, p_max_y = reaper.ImGui_GetItemRectMax(ctx)
-      local wsz, hsz = reaper.ImGui_GetItemRectSize(ctx)
-      local w, h = reaper.ImGui_Image_GetSize(img )
-      local scale = 0.7*( math.min(wsz, hsz)-UI.spacingX) /  math.min(w,h) 
-      local xpos = p_min_x +0.5*( wsz-w*scale) 
-      local ypos = p_min_y +0.5*( hsz-h*scale) 
-      local uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn = nil,nil,nil,nil
-      ImGui.DrawList_AddImage( UI.draw_list, img, xpos, ypos,  xpos+w*scale,  ypos+h*scale, uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn, tint_col_rgbaIn )
-      
+      if img and reaper.ImGui_ValidatePtr(img, 'ImGui_Image*') then 
+        local p_min_x, p_min_y = reaper.ImGui_GetItemRectMin(ctx)
+        local p_max_x, p_max_y = reaper.ImGui_GetItemRectMax(ctx)
+        local wsz, hsz = reaper.ImGui_GetItemRectSize(ctx)
+        local w, h = reaper.ImGui_Image_GetSize(img )
+        local scale = 0.7*( math.min(wsz, hsz)-UI.spacingX) /  math.min(w,h) 
+        local xpos = p_min_x +0.5*( wsz-w*scale) 
+        local ypos = p_min_y +0.5*( hsz-h*scale) 
+        local uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn = nil,nil,nil,nil
+        ImGui.DrawList_AddImage( UI.draw_list, img, xpos, ypos,  xpos+w*scale,  ypos+h*scale, uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn, tint_col_rgbaIn )
+      end
       ImGui.PopStyleVar(ctx,1)
       ImGui.EndChild( ctx )
     end
