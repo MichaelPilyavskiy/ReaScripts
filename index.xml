@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c606718defa9b8d45a6c58873c86e84ff3e9f566" name="MPL Scripts">
+<index version="1" commit="376bd20d2f42ef5f7998a0925a99844a45a4bdbf" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -14815,6 +14815,13 @@ various fixes]]></changelog>
 + Persisten widgets/LTFX: tweaking parameter with ctrl modify envelope when transport is stopped
 + Persisten widgets/LTFX: ctrl+enter when entering value modify envelope when transport is stopped]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c606718defa9b8d45a6c58873c86e84ff3e9f566/Various/mpl_InteractiveToolbar.lua</source>
+      </version>
+      <version name="3.08" author="MPL" time="2026-02-11T19:15:11Z">
+        <changelog><![CDATA[# Space to play/paus (regression from 2.0+)
+# Persisten widgets/LTFX: rightclick on parameter create envelope (regression from 2.0+)
++ Persisten widgets/LTFX: tweaking parameter with ctrl modify envelope when transport is stopped
++ Persisten widgets/LTFX: ctrl+enter when entering value modify envelope when transport is stopped]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/376bd20d2f42ef5f7998a0925a99844a45a4bdbf/Various/mpl_InteractiveToolbar.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Keyboard Shortcuts Visualizer.lua" type="script" desc="Keyboard Shortcuts Visualizer">
