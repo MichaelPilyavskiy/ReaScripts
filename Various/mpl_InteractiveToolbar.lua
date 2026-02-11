@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 3.07
+-- @version 3.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
@@ -58,6 +58,7 @@
           CONF_widg_envpointval_apprelative = 1,
           CONF_widg_envpointval_usebrutforce = 1,
           CONF_enablepersistwidg = 1,
+          CONF_swapdoubleclickrightclick = 0,
           
           theming_rgba_windowBg = 0x303030FF,
           theming_rgba_widgetBg = 0x404040FF,
@@ -526,6 +527,7 @@
       ImGui.EndListBox( ctx)
     end
     if ImGui.Checkbox(ctx, 'Enable persistent widgets', EXT.CONF_enablepersistwidg&1==1) then EXT.CONF_enablepersistwidg = EXT.CONF_enablepersistwidg~1 EXT:save() end
+    if ImGui.Checkbox(ctx, 'Doubleclick for enter value, rightclick for reset', EXT.CONF_swapdoubleclickrightclick&1==1) then EXT.CONF_swapdoubleclickrightclick = EXT.CONF_swapdoubleclickrightclick~1 EXT:save() end
     
   end
   --------------------------------------------------------------------------------  
@@ -1006,7 +1008,9 @@
       end 
 
     -- doubleclick
-      if ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked( ctx, ImGui.MouseButton_Left ) then
+      local reset_trig = (EXT.CONF_swapdoubleclickrightclick&1==0 and  ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked( ctx, ImGui.MouseButton_Left ) )
+        or (EXT.CONF_swapdoubleclickrightclick&1==1 and  ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) )
+      if reset_trig == true then
         local allow_reset = 
           --widget_ID == 'itemsnap'
           --or widget_ID == 'itemsourceoffset'
@@ -1056,7 +1060,10 @@
       end
  
     -- onrightclick
-      if ImGui.IsItemClicked(ctx, ImGui.MouseButton_Right)  then 
+      local input_trig = (EXT.CONF_swapdoubleclickrightclick&1==1 and  ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked( ctx, ImGui.MouseButton_Left ) )
+        or (EXT.CONF_swapdoubleclickrightclick&1==0 and  ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) )
+        
+      if input_trig ==true  then 
         if not DATA.temp_inputmode[widget_ID] then  
           DATA.temp_inputmode[widget_ID] = widget_ID 
           DATA.temp_inputmode_focus[widget_ID] = i 
