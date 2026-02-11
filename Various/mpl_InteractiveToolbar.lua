@@ -1,10 +1,13 @@
 -- @description InteractiveToolbar
--- @version 3.06
+-- @version 3.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    # fix img misssing error
+--    # Space to play/paus (regression from 2.0+)
+--    # Persisten widgets/LTFX: rightclick on parameter create envelope (regression from 2.0+)
+--    + Persisten widgets/LTFX: tweaking parameter with ctrl modify envelope when transport is stopped
+--    + Persisten widgets/LTFX: ctrl+enter when entering value modify envelope when transport is stopped
 
 
 
@@ -445,6 +448,8 @@
       if UI.anypopupopen == true then 
         if ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false ) then DATA.trig_closepopup = true end 
        else 
+        
+        if ImGui.IsKeyPressed( ctx, ImGui.Key_Space,false ) then Main_OnCommandEx(40073,0,-1) end
         if ImGui.IsKeyPressed( ctx, ImGui.Key_Escape,false ) then return end
       end
   
@@ -1686,13 +1691,36 @@
     end
     
     if set and params then 
+      local outparamval =  params.set_fxparam
       if params.set_fxparam then
         reaper.TrackFX_SetParamNormalized( DATA.CurState.LTFX_trptr, DATA.CurState.LTFX_fxID, DATA.CurState.LTFX_parID, params.set_fxparam )
       end
       if params.set_fxparam_formatted then
-        Utils_BFpluginparam(params.set_fxparam_formatted, DATA.CurState.LTFX_trptr, DATA.CurState.LTFX_fxID, DATA.CurState.LTFX_parID) 
+        outparamval =  Utils_BFpluginparam(params.set_fxparam_formatted, DATA.CurState.LTFX_trptr, DATA.CurState.LTFX_fxID, DATA.CurState.LTFX_parID) 
       end
       
+      -- app envelope
+      if outparamval and reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Mod_Ctrl()) then
+        if GetPlayStateEx(-1)&1==1 and GetPlayStateEx(-1)&2~=2 then  -- playing/not paused
+          local env = GetFXEnvelope( DATA.CurState.LTFX_trptr, DATA.CurState.LTFX_fxID, DATA.CurState.LTFX_parID, true )
+          local time = GetPlayPosition2Ex( -1 )
+          --InsertEnvelopePoint( env, time, outparamval, 0, 0, 0, false )
+          --reaper.UpdateTimeline()
+         else
+          local env = GetFXEnvelope( DATA.CurState.LTFX_trptr, DATA.CurState.LTFX_fxID, DATA.CurState.LTFX_parID, true )
+          if env then 
+            local time = GetCursorPositionEx( -1 )
+            local pt = GetEnvelopePointByTime( env, time )
+            local retval, timecloserpt, value, shape, tension, selected = reaper.GetEnvelopePoint( env, pt )
+            if math.abs(time - timecloserpt) > 0.04 then 
+              pt = InsertEnvelopePoint( env, time, outparamval, 0, 0, 0, false )
+             else
+              SetEnvelopePoint( env, pt, time, outparamval, 0, 0, 0, false )
+            end
+            reaper.UpdateTimeline()
+          end
+        end
+      end
       
       DATA:CollectData_Project_LTFX()-- recursively run local update
     end
@@ -5556,15 +5584,20 @@
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding,0,UI.spacingY*2) 
       if DATA.CurState.LTFX and DATA.CurState.LTFX.exist==true then widget_name = DATA.CurState.LTFX_fxname end
       UI.widgetBuild_name(widget_ID,widget_name) 
+      if  reaper.ImGui_IsItemClicked(ctx, reaper.ImGui_MouseButton_Right()) then  reaper.Main_OnCommandEx(41142,0,-1)   end
+      
       if DATA.temp_inputmode[widget_ID] ~= true then 
         if DATA.CurState.LTFX_istoggle ~= true then
           -- slider
           if DATA.CurState.LTFX_val_format then 
             ImGui.SetNextItemWidth(ctx,-1) 
-            local retval, v = ImGui.SliderDouble( ctx, '##slider'..widget_ID, DATA.CurState.LTFX_val, 0, 1, DATA.CurState.LTFX_parname..': '..DATA.CurState.LTFX_val_format, reaper.ImGui_SliderFlags_None() ) 
-            if retval then
-              DATA:CollectData_Project_LTFX(true,{set_fxparam=v})
-            end 
+            local retval, v = ImGui.SliderDouble( ctx, '##slider'..widget_ID, DATA.CurState.LTFX_val, 0, 1, DATA.CurState.LTFX_parname..': '..DATA.CurState.LTFX_val_format, reaper.ImGui_SliderFlags_None()|reaper.ImGui_SliderFlags_NoInput() ) 
+            local doubleclicked = reaper.ImGui_IsItemHovered(ctx) and reaper.ImGui_IsMouseDoubleClicked(ctx, reaper.ImGui_MouseButton_Left())
+            -- set value
+            if retval then DATA:CollectData_Project_LTFX(true,{set_fxparam=v}) end 
+            -- right click to input
+            if reaper.ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then DATA.temp_inputmode[widget_ID] = true end
+            
           end
          else
           local state = DATA.CurState.LTFX_val ==1
@@ -5575,7 +5608,6 @@
         end
       end
       
-      if reaper.ImGui_IsItemClicked(ctx, ImGui.MouseButton_Right) then  DATA.temp_inputmode[widget_ID] = true end
       if DATA.temp_inputmode[widget_ID] == true  then
         ImGui.SetNextItemWidth(ctx, -1)
         local retval, buf = ImGui.InputText( ctx, '##slidertxtin'..widget_ID, DATA.CurState.LTFX_val_format, ImGui.InputFlags_None)
