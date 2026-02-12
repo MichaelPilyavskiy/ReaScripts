@@ -1619,7 +1619,11 @@ end
     
     local src = PCM_Source_CreateFromFileEx(filename, true )
     if not src then return end  
-    local src_len =  GetMediaSourceLength( src ) 
+    local src_len =  GetMediaSourceLength( src )
+    if not src_len or src_len <= 0 then
+      PCM_Source_Destroy( src )
+      return
+    end
     local stoffs_sec = 0
     local slice_len = src_len
     if ignoreboundary~= true then
@@ -3520,7 +3524,11 @@ end
     -- store external data
       local src = PCM_Source_CreateFromFileEx( filename, true )
       if src then
-        local src_len =  GetMediaSourceLength( src )  
+        local src_len =  GetMediaSourceLength( src )
+        if not src_len or src_len <= 0 then
+          PCM_Source_Destroy( src )
+          return
+        end
         
         -- auto normalization
         if EXT.CONF_onadd_autoLUFSnorm_toggle == 1 then 
@@ -4231,8 +4239,9 @@ end
   function DATA:Actions_TemporaryGetAudio(filename) 
     
     local PCM_Source = PCM_Source_CreateFromFile( filename )
+    if not PCM_Source then return end
     local srclen, lengthIsQN = reaper.GetMediaSourceLength( PCM_Source )
-    if srclen > EXT.CONF_crop_maxlen then
+    if not srclen or srclen <= 0 or srclen > EXT.CONF_crop_maxlen then
       --if PCM_Source then  PCM_Source_Destroy( PCM_Source )  end
       return
     end
@@ -4605,8 +4614,9 @@ end
     
     -- build PCM
     local PCM_Source = PCM_Source_CreateFromFile( filename )
+    if not PCM_Source then return end
     local srclen, lengthIsQN = GetMediaSourceLength( PCM_Source )
-    if lengthIsQN ==true or (srclen < EXT.CONF_loopcheck_minlen or srclen > EXT.CONF_loopcheck_maxlen) then 
+    if not srclen or srclen <= 0 or lengthIsQN ==true or (srclen < EXT.CONF_loopcheck_minlen or srclen > EXT.CONF_loopcheck_maxlen) then 
       --PCM_Source_Destroy( PCM_Source )
       return
     end
