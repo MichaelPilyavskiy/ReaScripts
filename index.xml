@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="376bd20d2f42ef5f7998a0925a99844a45a4bdbf" name="MPL Scripts">
+<index version="1" commit="607f34ffe9a3fef41296b8a40936a09b297fcc12" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13180,6 +13180,10 @@ various fixes]]></changelog>
       <version name="3.14" author="MPL" time="2026-01-16T20:28:32Z">
         <changelog><![CDATA[# fix pattern match]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c48f948fb5f09aa673130b4515fb5b1f34a0cb8/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.15" author="MPL" time="2026-02-17T18:57:34Z">
+        <changelog><![CDATA[+ Settings/Import/FX chain: add option to offline FX at import (can be more safe in some cases)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/607f34ffe9a3fef41296b8a40936a09b297fcc12/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
