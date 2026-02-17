@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 3.14
+-- @version 3.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix pattern match
+--    + Settings/Import/FX chain: add option to offline FX at import (can be more safe in some cases)
 
 
     
@@ -64,6 +64,7 @@
           CONF_tr_PAN = 1,
           CONF_tr_FX = 1, 
             -- &2 clear existed
+            -- &4 offline all imported FX
           CONF_tr_FXenv = 1,
             -- &1 clear envelopes
             -- &2 apply first point value to parameter
@@ -1188,6 +1189,7 @@
           if ImGui.Checkbox( ctx, 'Add track FX chain##CONF_tr_FX',                    EXT.CONF_tr_FX&1 == 1 ) then EXT.CONF_tr_FX =EXT.CONF_tr_FX~1 EXT:save() end
           if EXT.CONF_tr_FX&1 == 1 then 
             ImGui.Indent(ctx, indent)
+            if ImGui.Checkbox( ctx, 'Offline FX at import##CONF_tr_FX',                    EXT.CONF_tr_FX&2 == 2 ) then EXT.CONF_tr_FX =EXT.CONF_tr_FX~2 EXT:save() end
             if ImGui.Checkbox( ctx, 'Clean envelopes##CONF_tr_FXenv',                          EXT.CONF_tr_FXenv&1 ==1 ) then EXT.CONF_tr_FXenv =EXT.CONF_tr_FXenv~1 EXT:save() end
             if EXT.CONF_tr_FXenv&1 == 1 then 
               if ImGui.Checkbox( ctx, 'Latch value at first point, otherwise current##CONF_tr_FXenv2',                          EXT.CONF_tr_FXenv&2 ==2 ) then EXT.CONF_tr_FXenv =EXT.CONF_tr_FXenv~2 EXT:save() end
@@ -2623,6 +2625,12 @@
     local gGUID = genGuid('' ) 
     new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
     new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
+    
+    if EXT.CONF_tr_FX&2 == 2 then 
+      new_chunk = new_chunk:gsub('BYPASS 0 0', 'BYPASS 0 1')
+      new_chunk = new_chunk:gsub('BYPASS 1 0', 'BYPASS 1 1')
+    end
+    
     SetTrackStateChunk( new_tr, new_chunk, false )
     
     return new_tr,gGUID
