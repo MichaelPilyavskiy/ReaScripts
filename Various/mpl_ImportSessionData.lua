@@ -1,15 +1,10 @@
 -- @description ImportSessionData
--- @version 3.20
+-- @version 3.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # internal cleanup
---    # rename Match by ID to Match by index [p=2923645]
---    # Make header tab scrollable if not fit
---    # fix FX import flags [p=2931116]
---    + Support changing behaviour of Import button [p=2923645]
---    # use current project instead first one
+--    # another fix FX import flags [p=2931116]
 
     
 --------------------------------------------------------------------------------  init globals
@@ -1580,8 +1575,7 @@
       local gGUID = genGuid('' ) 
       new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
       new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
-      
-      if EXT.CONF_tr_FX&2 == 2 then 
+      if EXT.CONF_tr_FX&4 == 4 then 
         new_chunk = new_chunk:gsub('BYPASS 0 0', 'BYPASS 0 1')
         new_chunk = new_chunk:gsub('BYPASS 1 0', 'BYPASS 1 1')
       end
@@ -1637,7 +1631,7 @@
       if not dest_tr then return end
       local dest_cnt = TrackFX_GetCount( dest_tr )
       
-      if EXT.CONF_tr_FX&2==2 then -- clear existed
+      if EXT.CONF_tr_FX&1==1 and EXT.CONF_tr_FX&2==2 then -- clear existed
         for dest_fx = dest_cnt, 1, -1 do   TrackFX_Delete( dest_tr, dest_fx-1 )  end 
         dest_cnt = 0
       end
