@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="607f34ffe9a3fef41296b8a40936a09b297fcc12" name="MPL Scripts">
+<index version="1" commit="e113037e5176d336aef7e23533b892045afdb6f7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13184,6 +13184,15 @@ various fixes]]></changelog>
       <version name="3.15" author="MPL" time="2026-02-17T18:57:34Z">
         <changelog><![CDATA[+ Settings/Import/FX chain: add option to offline FX at import (can be more safe in some cases)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/607f34ffe9a3fef41296b8a40936a09b297fcc12/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.20" author="MPL" time="2026-03-29T12:35:55Z">
+        <changelog><![CDATA[# internal cleanup
+# rename Match by ID to Match by index [p=2923645]
+# Make header tab scrollable if not fit
+# fix FX import flags [p=2931116]
++ Support changing behaviour of Import button [p=2923645]
+# use current project instead first one]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e113037e5176d336aef7e23533b892045afdb6f7/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
