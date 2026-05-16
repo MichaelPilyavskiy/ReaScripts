@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d6b499a779cee3ee753653b19a419f3da79afdd7" name="MPL Scripts">
+<index version="1" commit="8a210dbaa326e051ae15ce59239c1ca612a4d6e7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3103,18 +3103,6 @@
         <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle bypass selected track FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6440cd14415cb16e12f7572e850bac9538417758/FX/mpl_Toggle%20bypass%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Toggle float instrument on track under mouse cursor (alt).lua" type="script" desc="Toggle float instrument on track under mouse cursor (alt)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.05" author="MPL" time="2026-05-16T07:32:49Z">
-        <changelog><![CDATA[# cleanup
-# SWS independent
-+ Close FX if already opened
-+ Open multiple FX]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6b499a779cee3ee753653b19a419f3da79afdd7/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor%20(alt).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
