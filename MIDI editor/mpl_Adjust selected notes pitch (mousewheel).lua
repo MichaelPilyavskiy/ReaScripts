@@ -111,7 +111,7 @@
     if not take then return end
     
     local filename = ({reaper.get_action_context()})[2]
-    local script_title = GetShortSmplName(filename):gsub('%.lua','')
+    local script_title = VF_GetShortSmplName(filename):gsub('%.lua','')
     local oct_shift = script_title:match('octave')~= nil
     local inverted = script_title:match('inverted')~= nil
     local keysnap = script_title:match('keysnap')~= nil
