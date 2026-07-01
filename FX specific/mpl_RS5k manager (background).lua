@@ -1,5 +1,5 @@
  -- @description RS5k manager
--- @version 4.82
+-- @version 4.83
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,20 +23,23 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    # fix error on wrong template file
+--    # fix: RS5K mgr handle invalid media source lengths and prevent crashes (https://github.com/MichaelPilyavskiy/ReaScripts/pull/63 by bjarkihall)
 
 
-rs5kman_vrs = '4.82'
+rs5kman_vrs = '4.83'
 
 
 
 -- TODO
 --[[  
+      structure
+        use single track with containers
       
       seq
         if pattern has same GUId than oth er BUT not pooled or pool is diffent https://forum.cockos.com/showthread.php?p=2866575
         groups
         launchpad interaction
+        merge to main window back
         
       sampler/sample
         hot record from master bus 
@@ -71,6 +74,8 @@ rs5kman_vrs = '4.82'
         
       autolufs
         use as a compensation
+        
+        
 ]]
 
     
