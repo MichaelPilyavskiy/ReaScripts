@@ -1,5 +1,5 @@
 -- @description Adjust selected notes pitch (mousewheel)
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -11,7 +11,7 @@
 --    [main=midi_editor] . > mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # VF independent
+--    # rename GetShortSmplName function call (by BlackspireAudio https://github.com/MichaelPilyavskiy/ReaScripts/pull/64)
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -111,7 +111,7 @@
     if not take then return end
     
     local filename = ({reaper.get_action_context()})[2]
-    local script_title = GetShortSmplName(filename):gsub('%.lua','')
+    local script_title = VF_GetShortSmplName(filename):gsub('%.lua','')
     local oct_shift = script_title:match('octave')~= nil
     local inverted = script_title:match('inverted')~= nil
     local keysnap = script_title:match('keysnap')~= nil
