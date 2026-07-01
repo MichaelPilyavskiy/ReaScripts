@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="443fa935a433007b28ea208521dbe5971f3fe07e" name="MPL Scripts">
+<index version="1" commit="9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -8941,6 +8941,15 @@
         <source main="midi_editor" file="mpl_Adjust selected notes pitch (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
         <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
         <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+      </version>
+      <version name="2.05" author="MPL" time="2026-07-01T19:56:37Z">
+        <changelog><![CDATA[# rename GetShortSmplName function call (by BlackspireAudio https://github.com/MichaelPilyavskiy/ReaScripts/pull/64)]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9eec91f0c2ffeed086c74bd7d09fec2c2aa2b499/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Convert noteOn with velocity 0 to noteOff.lua" type="script" desc="Convert noteOn with velocity 0 to noteOff">
