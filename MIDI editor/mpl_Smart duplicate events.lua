@@ -1,9 +1,9 @@
 -- @description Smart duplicate events
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # fix calculation (thanks to BlackspireAudio at https://github.com/MichaelPilyavskiy/ReaScripts/issues/65)
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -80,7 +80,7 @@
     end
     if not max_ppq or not min_ppq then return end
     local ppq_dif = max_ppq - min_ppq    
-    local time_dif = MIDI_GetProjTimeFromPPQPos(take, ppq_dif) - item_pos
+    local time_dif = MIDI_GetProjTimeFromPPQPos(take, ppq_dif) - item_pos - 10^-10
     local retval, measures, cml = TimeMap2_timeToBeats(0, time_dif)
     local time_of_measure = TimeMap2_beatsToTime(0, 0, 1)
     local measure_ppq = MIDI_GetPPQPosFromProjTime(take, time_of_measure+ item_pos)
@@ -116,7 +116,7 @@
     if data[#data].ppq_pos < last_ppq then return true, noteoffoffs + last_ppq  end
   end
   --------------------------------------------------------------------
-  if VF_CheckReaperVrs(6,true)then
+  if VF_CheckReaperVrs(6,true) then
     Undo_BeginBlock2( 0 )
     SmartDuplicateNotes()
     Undo_EndBlock2( 0, 'Smart duplicate notes', 0xFFFFFFFF )
