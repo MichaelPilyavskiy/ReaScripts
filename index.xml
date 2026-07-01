@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8a210dbaa326e051ae15ce59239c1ca612a4d6e7" name="MPL Scripts">
+<index version="1" commit="443fa935a433007b28ea208521dbe5971f3fe07e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9199,6 +9199,10 @@
       <version name="1.03" author="MPL" time="2024-08-31T21:39:47Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5083e03c2d8bd82f9cb075d446e057a33431de79/MIDI%20editor/mpl_Smart%20duplicate%20events.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2026-07-01T19:50:21Z">
+        <changelog><![CDATA[# fix calculation (thanks to BlackspireAudio at https://github.com/MichaelPilyavskiy/ReaScripts/issues/65)]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/443fa935a433007b28ea208521dbe5971f3fe07e/MIDI%20editor/mpl_Smart%20duplicate%20events.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap selected notes to scale.lua" type="script" desc="Snap selected notes to scale">
