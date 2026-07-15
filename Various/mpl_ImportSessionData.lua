@@ -1,14 +1,44 @@
 -- @description ImportSessionData
--- @version 3.21
+-- @version 3.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # another fix FX import flags [p=2931116]
+--    + Add support for recent list of source projects
+--    + Add support for favourites list of source projects
+--    + Dest RPP: click on destination match tracks as well (otherwise this can lead to unpredictable results)
+--    + Source RPP: show tooltip if file path doesn`t fit
+--    + Options/Auto set distination project at tab change: match tracks as well for consistency, disabled by default
+--    # fix cropped options at resized window
+--    # move options to the right
+--    # Stef Hambrook: Mac colour byte-order fix — Track peak colours were displaying wrong on macOS because ColorFromNative returns bytes in a different order on Mac
+--    # Stef Hambrook: Tempo map crash fix — ImGui.TextColored would crash when a tempo point had no time-signature numerator/denominator
+--    # Stef Hambrook: "AutoMatch tracks on setting source" checkmark bug
+--    # Stef Hambrook: Master FX duplication fix — Import/Replace Master FX was adding to existing FX rather than replacing them
+--    # Stef Hambrook: Show/hide hidden tracks — New UI_showhiddentracks setting plus a checkbox under settings ("Show hidden tracks in track list"). VisibleCondition was updated to take a trid argument and filter out tracks flagged CUST_hidden unless the option is on.
+--    # Stef Hambrook: Custom accent colour picker — New UI_col_custom_hex external setting with an "Appearance" section in settings containing an ImGui.ColorEdit3 picker (hue-wheel) and a "Reset to default" button. 
+--    # Stef Hambrook: Clear-filter "x" button / MPL: modified a bit to fit sizing policy
+--    # Stef Hambrook: Dynamic / auto-resize window height — Window height is calculated from the track count (and visible sends if shown), capped at 90% of screen work-area height with a 710 px minimum that shows all import properties and stuff on the right, applied each frame via SetNextWindowSize. MPL: moved to options, default is OFF.
+--    # Stef Hambrook: add close button
+--    # Stef Hambrook: Default window background darkened — windowBg changed from 0x303030 to 0x232323.
+--    # Stef Hambrook: Default initial window height reduced — wind_H 480 → 400.
+--    # Stef Hambrook: Window border drawn — StyleVar_WindowBorderSize 0 → 1, border colour changed from semi-transparent green 0x509050 @ 0.5 alpha to solid black.
+--    # Stef Hambrook: No docking — Added WindowFlags_NoDocking so the window stops auto-docking when dragged.
+--    # Stef Hambrook: New title-bar colours — Col_TitleBg set to 0x242628 and Col_TitleBgActive set to 0x323335 (replacing the old grey based on col_main).
+--    # Stef Hambrook: Tab colours reskinned — Col_Tab, Col_TabSelected, Col_TabHovered now all use col_custom (accent colour) at varying alphas instead of grey/green.
+--    # Stef Hambrook: Resize grip hover/active colour — Uses the new accent colour; also adds Col_ResizeGripActive.
+--    # Stef Hambrook: Checkmarks themed — Col_CheckMark pushed using the accent colour.
+--    # Stef Hambrook: Button-hovered colour — col_buthovered changed from grey 0x878787 to the accent green 0x46a629.
+--    # Stef Hambrook: All red "Import" action buttons recoloured — Every col_red reference (main Import, Import tempo map, Import/Replace Master FX, Import markers/regions, Import group names) now uses col_custom. The main Import button uses a higher alpha (0.85) for stronger emphasis.
+--    # Stef Hambrook: Missing-destination text colour softened — Tracks with a missing destination changed from reddish 0xF040406F to grey 0x80808080.
+--    # Stef Hambrook: Import items / FX chain / Routing collapsing headers default to open — Added TreeNodeFlags_DefaultOpen so users see those sections without needing to click. MPL: merged it as option, disabled by default, see Options/Appearance
+
+
 
     
 --------------------------------------------------------------------------------  init globals
     for key in pairs(reaper) do _G[key]=reaper[key] end
+    
     vrsmin = 7.0
     app_vrs = tonumber(GetAppVersion():match('[%d%.]+'))
     if app_vrs < vrsmin then return reaper.MB('This script require REAPER '..vrsmin..'+','',0) end
@@ -28,7 +58,7 @@
         preset_name = 'untitled', -- for inputtext
         presets_factory = {
           --['test'] = 'bnZzdGVwcz0wCkNPTkZfZXhjbHdpdGlmNmbGFnPTEKQ09ORl9zcmNfc3RybWFya2Vycz0w',
-          },
+          }, 
         presets = {
           factory= {},
           user= {}, 
@@ -57,6 +87,7 @@
             get = {},
           },
           preset = {},
+          recfav = {},
         },
         draw = {
           tabs = {
@@ -87,19 +118,26 @@
             col_main = 0x7F7F7F, -- grey
             col_text = 0xFFFFFF, -- white
             col_maintheme = 0x00B300 ,-- green,
-            col_red = 0xB31F0F  ,
+            col_custom = 0x46a629  ,
             col_text_a_enabled = 1,
             col_text_a_disabled = 0.5,
-            col_buthovered = 0x878787,
-            windowBg = 0x303030,
+            col_buthovered = 0x46a629,
+            --windowBg = 0x303030, -- stef commented out
+            windowBg = 0x232323,-- stef added
             
             wind_W = 800,
-            wind_H = 480, 
+            wind_H = 400, 
             default_none_dest = '[none]' ,
             default_newtrackatend_dest = 'New track at end' ,
             default_newtrackatend1_dest = 'New track at the end, obey structure' , 
             indent_menu = 10,
-            }
+            
+            
+            
+            },
+        is_mac = reaper.GetOS():match('^OSX') or reaper.GetOS():match('^macOS'), -- stef: detect platform for color byte-order workaround
+        recfav = {},
+        images = {},
         } 
   -------------------------------------------------------------------------------- init external defaults 
   EXT = {
@@ -118,7 +156,14 @@
           UI_ignoretracklistselection = 1,
           UI_autoselectchildren = 0,
           UI_forcefoldobeystruct = 0,
-          UI_showsendsintracklist = 0,
+          UI_showsendsintracklist = 0, 
+          UI_showhiddentracks = 0,--- stef added for option checkmark 
+          UI_col_custom_hex = 0x46a629,  -- stef: custom accent colour (default matches old col_red)
+          UI_dynAutoResize = 0,  -- stef: Dynamic / auto-resize window height — Window height is now calculated from the track count (and visible sends if shown), capped at 90% of screen work-area height with a 710 px minimum that shows all import properties and stuff on the right, applied each frame via SetNextWindowSize.
+          UI_headerdefopen = 1,  -- Import items / FX chain / Routing collapsing headers default to open — Added TreeNodeFlags_DefaultOpen so users see those sections without needing to click. MPL: merged it as option, enable by default, see Options/Appearance
+          UI_autosettabasdestination = 0, 
+          UI_recentsources = "", 
+          UI_favsources = "", 
           
           -- import button behaviour
           CONF_import_mode = 0, -- 0 tracks 1 regions 2 groupnames 4 master fx 8 tempo
@@ -202,15 +247,42 @@
       ImGui.Button(ctx,txt,w,h)
       ImGui.PopStyleColor(ctx, 3)
     end 
+    ---------------------------- 
+    self.ImGui.Custom_ImageButton = 
+    function(ctx, str_id, size_wIn, size_hIn, imagekey, tint_col_rgbaIn)
+      local ret = ImGui_Button(ctx, str_id, size_wIn, size_hIn)
+      if imagekey and DATA.images and DATA.images[imagekey] and ImGui_ValidatePtr( DATA.images[imagekey], 'ImGui_Image*' ) then
+        local p_min_x, p_min_y = reaper.ImGui_GetItemRectMin(ctx)
+        local p_max_x, p_max_y = reaper.ImGui_GetItemRectMax(ctx)
+        local wsz, hsz = reaper.ImGui_GetItemRectSize(ctx)
+        local w, h = reaper.ImGui_Image_GetSize( DATA.images[imagekey] )
+        local scale = ( math.min(wsz, hsz)-self.UIvars.spacingX) /  math.min(w,h) 
+        local xpos = p_min_x +0.5*( wsz-w*scale) 
+        local ypos = p_min_y +0.5*( hsz-h*scale) 
+        local uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn = nil,nil,nil,nil
+        ImGui.DrawList_AddImage( self.UIvars.draw_list, DATA.images[imagekey], xpos, ypos,  xpos+w*scale,  ypos+h*scale, uv_min_xIn, uv_min_yIn, uv_max_xIn, uv_max_yIn, tint_col_rgbaIn )
+      end
+      return ret
+    end
   end
    
   -------------------------------------------------------------------------------- 
   function _main_loop() 
     DATA.clock = os.clock() 
     DATA.process.handleProjUpdates()
+    
+    if EXT.UI_autosettabasdestination == 1 and DATA.upd_atprojchange == true then 
+      DATA.process.destproject.refresh()
+      DATA.process.srcproject.parse.AutomatchReceives()
+      DATA.process.actionsUI.SetDestination(-1, 0, nil, EXT.CONF_automatch_defaultsubmode)  
+      DATA.process.match_tracks.all(nil, EXT.CONF_automatch_defaultsubmode)
+      DATA.upd_atprojchange = nil
+    end
+    
     DATA.flicker = math.abs(-1+(math.cos(math.pi*(DATA.clock%2)) + 1))
     DATA.upd = false   
     if not reaper.ImGui_ValidatePtr( ctx, 'ImGui_Context*') then self.draw.definecontext() end
+    
     DATA.UIvars.open = DATA.draw.all()
     if DATA.UIvars.open then defer(_main_loop) end
   end
@@ -268,6 +340,8 @@
     self.draw.all =
     function()
       self.UIvars.anypopupopen = ImGui.IsPopupOpen( ctx, 'mainRCmenu', ImGui.PopupFlags_AnyPopup|ImGui.PopupFlags_AnyPopupLevel )
+      
+      self.UIvars.col_custom = EXT.UI_col_custom_hex -- stef added for colour picker
        
     -- window_flags
       local window_flags = ImGui.WindowFlags_None
@@ -275,17 +349,18 @@
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
       window_flags = window_flags | ImGui.WindowFlags_NoNav
       window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse 
+      window_flags = window_flags | ImGui.WindowFlags_NoDocking --- stef added to avoid auto docking when dragging window
     
     -- rounding
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding,5)   
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_GrabRounding,3)  
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding,5)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding,5)  --- was 5, stef put 15
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding,5)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding,5)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_ScrollbarRounding,5)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_TabRounding,4)   
     -- Borders
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize,0)  
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowBorderSize,1)  
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameBorderSize,0) 
     -- spacing
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,self.UIvars.spacingX,self.UIvars.spacingY)  
@@ -304,13 +379,16 @@
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_SelectableTextAlign,0,0.5) 
     -- alpha
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_Alpha,1)
-      ImGui.PushStyleColor(ctx, ImGui.Col_Border,           self.utils.RGB2RGBA(0x509050, 0.5))
+     -- ImGui.PushStyleColor(ctx, ImGui.Col_Border,           self.utils.RGB2RGBA(0x509050, 0.5))-- stef commented out
+      ImGui.PushStyleColor(ctx, ImGui.Col_Border,           self.utils.RGB2RGBA(0x000000, 1))
+      --ImGui.PushStyleColor(ctx, ImGui.Col_BorderHovered,           self.utils.RGB2RGBA(self.UIvars.col_custom, 1) ) -- stef added (doesn't replace anything)
+    
     -- colors
       ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_main, 0.2))
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_main, 1) )
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_buthovered, 0.8))
       ImGui.PushStyleColor(ctx, ImGui.Col_DragDropTarget,   self.utils.RGB2RGBA(0xFF1F5F, 0.6))
-      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          self.utils.RGB2RGBA(0x1F1F1F, 0.7))
+      ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,          self.utils.RGB2RGBA(0x2F2F2F, 1))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,    self.utils.RGB2RGBA(self.UIvars.col_main, .6))
       ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,   self.utils.RGB2RGBA(self.UIvars.col_main, 0.7))
       ImGui.PushStyleColor(ctx, ImGui.Col_Header,           self.utils.RGB2RGBA(self.UIvars.col_main, 0.5) )
@@ -318,20 +396,54 @@
       ImGui.PushStyleColor(ctx, ImGui.Col_HeaderHovered,    self.utils.RGB2RGBA(self.UIvars.col_main, 0.98) )
       ImGui.PushStyleColor(ctx, ImGui.Col_PopupBg,          self.utils.RGB2RGBA(0x303030, 1) )
       ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,       self.utils.RGB2RGBA(self.UIvars.col_main, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,self.utils.RGB2RGBA(self.UIvars.col_main, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,self.utils.RGB2RGBA(self.UIvars.col_custom, 1) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripActive,self.utils.RGB2RGBA(self.UIvars.col_custom, 1) ) -- stef added )(doesn't replace anything)
       ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,       self.utils.RGB2RGBA(self.UIvars.col_maintheme, 0.6) )
       ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, self.utils.RGB2RGBA(self.UIvars.col_maintheme, 1) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              self.utils.RGB2RGBA(self.UIvars.col_main, 0.37) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,       self.utils.RGB2RGBA(self.UIvars.col_maintheme, 0.5) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       self.utils.RGB2RGBA(self.UIvars.col_maintheme, 0.8) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_Tab,              self.utils.RGB2RGBA(self.UIvars.col_custom, 0.6) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabSelected,       self.utils.RGB2RGBA(self.UIvars.col_custom, 0.9) )
+      ImGui.PushStyleColor(ctx, ImGui.Col_TabHovered,       self.utils.RGB2RGBA(self.UIvars.col_custom, .9) )
       ImGui.PushStyleColor(ctx, ImGui.Col_Text,             self.utils.RGB2RGBA(self.UIvars.col_text, self.UIvars.col_text_a_enabled) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          self.utils.RGB2RGBA(self.UIvars.col_main, 0.7) )
-      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    self.utils.RGB2RGBA(self.UIvars.col_main, 0.95) )
+      --ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,          self.utils.RGB2RGBA(self.UIvars.col_main, 0.7) ) -- stef commented out
+      --ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,    self.utils.RGB2RGBA(self.UIvars.col_main, 0.95) )-- stef commented out
+      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBg,       self.utils.RGB2RGBA(0x242628, 0.95) ) -- stef added
+      ImGui.PushStyleColor(ctx, ImGui.Col_TitleBgActive,  self.utils.RGB2RGBA(0x323335, 1) )  -- stef added  
+
       ImGui.PushStyleColor(ctx, ImGui.Col_WindowBg,         self.utils.RGB2RGBA(self.UIvars.windowBg, 1))
+   
+      ImGui.PushStyleColor(ctx, ImGui.Col_CheckMark, self.utils.RGB2RGBA(self.UIvars.col_custom, 1)) -- stef added
+      
+      
+
+    
+      
+      
+      if open == nil then open = true end --- Added by stef to add close button
       
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
+      
+      -- stef: dynamic window height — fit all tracks (plus visible sends), capped at 90% of screen
+      if EXT.UI_dynAutoResize == 1 then 
+        local _, work_h = ImGui.Viewport_GetWorkSize(main_viewport)
+        local max_h = math.floor(work_h * 0.9)
+        local row_count = 0
+        if DATA.srcproj and DATA.srcproj.TRACK then
+          for trid = 1, #DATA.srcproj.TRACK do
+            row_count = row_count + 1
+            if EXT.UI_showsendsintracklist == 1 and DATA.srcproj.TRACK[trid].SENDS then
+              row_count = row_count + #DATA.srcproj.TRACK[trid].SENDS
+            end
+          end
+        end
+        local chrome_h = 180  -- approx pixels for header bars, tabs, control row, padding
+        local row_h = self.UIvars.calc_itemH or 22
+        local desired_h = chrome_h + row_count * row_h
+        local dynamic_h = math.min(desired_h, max_h)
+        dynamic_h = math.max(dynamic_h, 710)  -- never smaller than 400px
+        ImGui.SetNextWindowSize(ctx, self.UIvars.wind_W, dynamic_h, ImGui.Cond_Always)
+      end
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font,14) 
@@ -375,7 +487,8 @@
      
     -- pop
       ImGui.PopStyleVar(ctx, 22) 
-      ImGui.PopStyleColor(ctx, 23) 
+     -- ImGui.PopStyleColor(ctx, 23) -- stef commented out
+      ImGui.PopStyleColor(ctx, 25) -- stef replaced the above with
       ImGui.PopFont( ctx ) 
     
     -- shortcuts
@@ -405,52 +518,79 @@
     function ()
       local indent = self.UIvars.indent_menu
       if ImGui.BeginTabItem(ctx, 'Options') then  -- reaper.ImGui_TabItemFlags_SetSelected()
-        
-        ImGui.SeparatorText(ctx, 'Track matching') 
-        ImGui.Indent(ctx, indent)
-          local t = {[1] = 'Exact match', [2] = 'At least one word match'}
-          local preview_value = t[EXT.CONF_tr_matchmode]
-          reaper.ImGui_SetNextItemWidth(ctx, 150)
-          if reaper.ImGui_BeginCombo( ctx, 'Match algorithm', preview_value, reaper.ImGui_ComboFlags_HeightLargest() ) then
-            for key in pairs(t) do
-              if ImGui.Selectable(ctx, t[key]..'##CONF_tr_matchmode'..key) then EXT.CONF_tr_matchmode = key EXT:save() end 
+        if ImGui.BeginChild( ctx, 'Header_child', -1, -1) then 
+          ImGui.SeparatorText(ctx, 'Track matching') 
+          ImGui.Indent(ctx, indent)
+            local t = {[1] = 'Exact match', [2] = 'At least one word match'}
+            local preview_value = t[EXT.CONF_tr_matchmode]
+            reaper.ImGui_SetNextItemWidth(ctx, 150)
+            if reaper.ImGui_BeginCombo( ctx, 'Match algorithm', preview_value, reaper.ImGui_ComboFlags_HeightLargest() ) then
+              for key in pairs(t) do
+                if ImGui.Selectable(ctx, t[key]..'##CONF_tr_matchmode'..key) then EXT.CONF_tr_matchmode = key EXT:save() end 
+              end
+              reaper.ImGui_EndCombo( ctx )
+            end  
+            if ImGui.Checkbox( ctx, 'Case sensitive##CONF_tr_match_casesens', EXT.CONF_tr_match_casesens&1 == 1 ) then EXT.CONF_tr_match_casesens =EXT.CONF_tr_match_casesens~1 EXT:save() end
+            
+            local map = {
+              [0] = 'Replace',
+              [1] = 'Place under matched track',
+              [2] = 'Place under matched track as child',
+              [3] = 'Mark only for porting send parameters',
+            }
+            preview_value = map[EXT.CONF_automatch_defaultsubmode]
+            reaper.ImGui_SetNextItemWidth(ctx, 250)
+            if ImGui.BeginCombo( ctx, 'Defaul track match/automatch submode##CONF_automatch_defaultsubmode', preview_value, reaper.ImGui_ComboFlags_HeightLargest() )  then
+              for key in pairs(map) do
+                if ImGui.Selectable(ctx, map[key]..'##dest_defcombo'..key, EXT.CONF_automatch_defaultsubmode==key) then EXT.CONF_automatch_defaultsubmode = key EXT:save() end 
+              end
+              ImGui.EndCombo( ctx)
+            end 
+            
+            
+          ImGui.Unindent(ctx, indent)
+          
+          
+          ImGui.SeparatorText(ctx, 'Various')
+          ImGui.Indent(ctx, indent)
+            if ImGui.Checkbox( ctx, 'Ignore tracklist selection at import##UI_ignoretracklistselection', EXT.UI_ignoretracklistselection&1 == 1 ) then EXT.UI_ignoretracklistselection =EXT.UI_ignoretracklistselection~1 EXT:save() end
+            ImGui.SameLine(ctx) self.draw.HelpMarker('Always import all tracks marked for import')
+            if ImGui.Checkbox( ctx, 'Parse source project at initialization##UI_appatinit', EXT.UI_appatinit&1 == 1 ) then EXT.UI_appatinit =EXT.UI_appatinit~1 EXT:save() end
+            if ImGui.Checkbox( ctx, 'Autoselect children on selecting source folder track##UI_autoselectchildren', EXT.UI_autoselectchildren&1 == 1 ) then EXT.UI_autoselectchildren =EXT.UI_autoselectchildren~1 EXT:save() end
+            if ImGui.Checkbox( ctx, 'Always set folders to obey structure##UI_forcefoldobeystruct', EXT.UI_forcefoldobeystruct&1 == 1 ) then EXT.UI_forcefoldobeystruct =EXT.UI_forcefoldobeystruct~1 EXT:save() end
+            if ImGui.Checkbox( ctx, 'Show sends in track list##UI_showsendsintracklist', EXT.UI_showsendsintracklist&1 == 1 ) then EXT.UI_showsendsintracklist =EXT.UI_showsendsintracklist~1 EXT:save() end 
+            if ImGui.Checkbox( ctx, 'Show hidden tracks in track list##UI_showhiddentracks', EXT.UI_showhiddentracks&1 == 1 ) then EXT.UI_showhiddentracks =EXT.UI_showhiddentracks~1 EXT:save() end -- stef added for show hidden tracks option
+            if ImGui.Checkbox( ctx, 'Auto set destination at tab change + Match tracks##UI_autosettabasdestination', EXT.UI_autosettabasdestination&1 == 1 ) then EXT.UI_autosettabasdestination =EXT.UI_autosettabasdestination~1 EXT:save() end
+          ImGui.Unindent(ctx, indent)
+          
+          
+          
+          ImGui.SeparatorText(ctx, 'Appearance')
+          ImGui.Indent(ctx, indent)
+            -- stef: custom accent colour picker
+            local rv, new_col = ImGui.ColorEdit3(ctx, 'Custom accent colour##UI_col_custom_hex', 
+              EXT.UI_col_custom_hex,
+              ImGui.ColorEditFlags_NoInputs | ImGui.ColorEditFlags_PickerHueWheel)
+            if rv then
+              EXT.UI_col_custom_hex = new_col
+              EXT:save()
             end
-            reaper.ImGui_EndCombo( ctx )
-          end  
-          if ImGui.Checkbox( ctx, 'Case sensitive##CONF_tr_match_casesens', EXT.CONF_tr_match_casesens&1 == 1 ) then EXT.CONF_tr_match_casesens =EXT.CONF_tr_match_casesens~1 EXT:save() end
-          
-          local map = {
-            [0] = 'Replace',
-            [1] = 'Place under matched track',
-            [2] = 'Place under matched track as child',
-            [3] = 'Mark only for porting send parameters',
-          }
-          preview_value = map[EXT.CONF_automatch_defaultsubmode]
-          reaper.ImGui_SetNextItemWidth(ctx, 250)
-          if ImGui.BeginCombo( ctx, 'Defaul track match/automatch submode##CONF_automatch_defaultsubmode', preview_value, reaper.ImGui_ComboFlags_HeightLargest() )  then
-            for key in pairs(map) do
-              if ImGui.Selectable(ctx, map[key]..'##dest_defcombo'..key, EXT.CONF_automatch_defaultsubmode==key) then EXT.CONF_automatch_defaultsubmode = key EXT:save() end 
+            ImGui.SameLine(ctx)
+            if ImGui.Button(ctx, 'Reset to default##UI_col_custom_hex_reset') then
+              EXT.UI_col_custom_hex = 0x46a629
+              EXT:save()
             end
-            ImGui.EndCombo( ctx)
-          end 
+            ---------------------------------------------------------------------------------------
+            
+            if ImGui.Checkbox( ctx, 'Dynamic auto-resize##UI_dynAutoResize', EXT.UI_dynAutoResize&1 == 1 ) then EXT.UI_dynAutoResize =EXT.UI_dynAutoResize~1 EXT:save() end
+            if ImGui.Checkbox( ctx, 'Menu headers collapsed by default##UI_headerdefopen', EXT.UI_headerdefopen&1 == 1 ) then EXT.UI_headerdefopen =EXT.UI_headerdefopen~1 EXT:save() end
+            
+          ImGui.Unindent(ctx, indent)
           
           
-        ImGui.Unindent(ctx, indent)
-        
-        
-        ImGui.SeparatorText(ctx, 'Various')
-        ImGui.Indent(ctx, indent)
-          if ImGui.Checkbox( ctx, 'Ignore tracklist selection at import##UI_ignoretracklistselection', EXT.UI_ignoretracklistselection&1 == 1 ) then EXT.UI_ignoretracklistselection =EXT.UI_ignoretracklistselection~1 EXT:save() end
-          ImGui.SameLine(ctx) self.draw.HelpMarker('Always import all tracks marked for import')
-          if ImGui.Checkbox( ctx, 'Parse source project at initialization##UI_appatinit', EXT.UI_appatinit&1 == 1 ) then EXT.UI_appatinit =EXT.UI_appatinit~1 EXT:save() end
-          if ImGui.Checkbox( ctx, 'Autoselect children on selecting source folder track##UI_autoselectchildren', EXT.UI_autoselectchildren&1 == 1 ) then EXT.UI_autoselectchildren =EXT.UI_autoselectchildren~1 EXT:save() end
-          if ImGui.Checkbox( ctx, 'Always set folders to obey structure##UI_forcefoldobeystruct', EXT.UI_forcefoldobeystruct&1 == 1 ) then EXT.UI_forcefoldobeystruct =EXT.UI_forcefoldobeystruct~1 EXT:save() end
-          if ImGui.Checkbox( ctx, 'Show sends in track list##UI_showsendsintracklist', EXT.UI_showsendsintracklist&1 == 1 ) then EXT.UI_showsendsintracklist =EXT.UI_showsendsintracklist~1 EXT:save() end
-        ImGui.Unindent(ctx, indent)
-        
-        
-        
-        
+          
+          ImGui.EndChild(ctx)
+        end
         ImGui.EndTabItem(ctx)
       end
     end
@@ -461,9 +601,9 @@
         ImGui.PushFont(ctx, DATA.font,13)
         self.draw.tabs.tracks.all()
         self.draw.tabs.header.all()
-        self.draw.settings()
         self.draw.tabs.automatch()
-        self.draw.tabs.sendimportlogic.all()
+        self.draw.tabs.sendimportlogic.all() 
+        self.draw.settings()
         ImGui.PopFont(ctx)
         ImGui.EndTabBar(ctx) 
       end 
@@ -477,8 +617,11 @@
       local select_hsz = 18
       
       local preview = EXT.CONF_name 
-      reaper.ImGui_SetNextItemWidth(ctx,-60)
-      if ImGui.BeginCombo(ctx, 'Preset##Preset', preview, ImGui.ComboFlags_HeightLargest) then 
+      DATA.ImGui.Custom_InvisibleButton(ctx, 'Preset:') 
+      ImGui.SameLine(ctx)
+      reaper.ImGui_SetNextItemWidth(ctx,-1)
+      
+      if ImGui.BeginCombo(ctx, '##Preset', preview, ImGui.ComboFlags_HeightLargest) then 
         if ImGui.Button(ctx, 'Restore defaults') then self.process.preset.RestoreDefaults() end
         local retval, buf = reaper.ImGui_InputText( ctx, '##presname', DATA.preset_name )
         if retval then DATA.preset_name = buf end
@@ -524,25 +667,76 @@
     self.draw.topbuttons =
     function () 
       -- dest
-        local destprojname = DATA.destproj.fp
-        DATA.ImGui.Custom_InvisibleButton(ctx, 'Dest RPP:') 
-        ImGui.SameLine(ctx)
-        reaper.ImGui_SetCursorPosX(ctx, 100)
-        ImGui.PushFont(ctx, DATA.font, 13)
-        if ImGui.Button(ctx, destprojname..'##getdestrpp',300) then DATA.process.destproject.get.all() end
-        ImGui.PopFont(ctx)
+        if DATA.destproj and DATA.destproj.fp then 
+          local destprojname = DATA.destproj.fp
+          self.ImGui.Custom_InvisibleButton(ctx, 'Dest RPP:') 
+          ImGui.SameLine(ctx)
+          reaper.ImGui_SetCursorPosX(ctx, 100)
+          ImGui.PushFont(ctx, DATA.font, 13)
+          if ImGui.Button(ctx, destprojname..'##getdestrpp',450) then 
+            DATA.process.destproject.refresh()
+            DATA.process.srcproject.parse.AutomatchReceives()
+            DATA.process.actionsUI.SetDestination(-1, 0, nil, EXT.CONF_automatch_defaultsubmode)  
+            DATA.process.match_tracks.all(nil, EXT.CONF_automatch_defaultsubmode)
+          end
+          ImGui.PopFont(ctx)
+        end
       -- preset
         ImGui.SameLine(ctx)
         self.draw.preset() 
       -- source
         local srcprojfp = '[not defined]' 
         if DATA.srcproj and DATA.srcproj.fp then srcprojfp = DATA.srcproj.fp end  
-        DATA.ImGui.Custom_InvisibleButton(ctx, 'Source RPP:')
+        self.ImGui.Custom_InvisibleButton(ctx, 'Source RPP:')
         ImGui.SameLine(ctx)
         ImGui.PushFont(ctx, DATA.font, 13)
         reaper.ImGui_SetCursorPosX(ctx, 100)
-        if ImGui.Button(ctx, srcprojfp..'##getsrcrpp',-1) then self.process.actionsUI.SetSourceRPP() end
+        local but_w = 450
+        if ImGui.Button(ctx, srcprojfp..'##getsrcrpp',but_w) then self.process.actionsUI.SetSourceRPP() end
+        local txtw, h = reaper.ImGui_CalcTextSize( ctx, srcprojfp) 
+        if txtw > but_w-10 then reaper.ImGui_SetItemTooltip( ctx, srcprojfp ) end
         ImGui.PopFont(ctx)
+      -- recent / fav
+        ImGui.SameLine(ctx)
+        self.draw.recent_fav() 
+    end
+    ----------------------------------------- 
+    self.draw.recent_fav  = function ()
+      
+      local is_fav
+      local colfill = 0x90909070
+      for i= 1, #self.recfav.favourites_table do
+        if self.recfav.favourites_table[i] == self.srcproj.fp then is_fav = true end
+      end
+      if is_fav then colfill = 0xF0F0F0BF end
+      
+      if self.ImGui.Custom_ImageButton( ctx, '##fav_img',62, nil, "favourite", colfill  ) then
+        if is_fav then 
+          self.process.recfav.rem_fav(self.srcproj.fp)
+         else
+          self.process.recfav.add_fav(self.srcproj.fp)
+        end 
+        self.process.recfav.recent_storeEXT()
+      end
+      ImGui.SameLine(ctx)
+      reaper.ImGui_SetNextItemWidth(ctx,-1)
+      if ImGui.BeginCombo(ctx, '##recent_fav', 'Recent / Favourites', ImGui.ComboFlags_HeightLargest) then 
+        
+        ImGui.SeparatorText(ctx, 'Favourites RPPs')
+        if self.recfav.favourites_table then
+          for i= 1, #self.recfav.favourites_table do
+            if ImGui.Selectable(ctx, self.recfav.favourites_table[i]..'##favourites_table'..i) then self.process.actionsUI.SetSourceRPP(self.recfav.favourites_table[i]) end
+          end
+        end
+        
+        ImGui.SeparatorText(ctx, 'Recent RPPs')
+        if self.recfav.recent_table then
+          for i= 1, #self.recfav.recent_table do
+            if ImGui.Selectable(ctx, self.recfav.recent_table[i]..'##recent_table'..i) then self.process.actionsUI.SetSourceRPP(self.recfav.recent_table[i]) end
+          end
+        end
+        ImGui.EndCombo(ctx) 
+      end
     end
     ----------------------------------------- 
     self.draw.tabs.automatch=
@@ -553,7 +747,9 @@
         ImGui.SeparatorText(ctx, 'Conditions')
         ImGui.Indent(ctx, indent)
           if ImGui.Checkbox( ctx, 'AutoMatch source project tracks at initialization##UI_appatinit1', EXT.UI_appatinit&2 == 2 ) then EXT.UI_appatinit =EXT.UI_appatinit~2 EXT:save() end
-          if ImGui.Checkbox( ctx, 'AutoMatch tracks on setting source##UI_matchatsettingsrc', EXT.UI_matchatsettingsrc&2 == 2 ) then EXT.UI_matchatsettingsrc =EXT.UI_matchatsettingsrc~1 EXT:save() end
+          --if ImGui.Checkbox( ctx, 'AutoMatch tracks on setting source##UI_matchatsettingsrc', EXT.UI_matchatsettingsrc&2 == 2 ) then EXT.UI_matchatsettingsrc =EXT.UI_matchatsettingsrc~1 EXT:save() end
+        
+        if ImGui.Checkbox( ctx, 'AutoMatch tracks on setting source##UI_matchatsettingsrc', EXT.UI_matchatsettingsrc&1 == 1 ) then EXT.UI_matchatsettingsrc =EXT.UI_matchatsettingsrc~1 EXT:save() end --- stef added to correct the line above to fix tick bug on this option
         ImGui.Unindent(ctx, indent)
         
         ImGui.SeparatorText(ctx, 'Receive managing')
@@ -802,9 +998,9 @@
         -- import 
           DATA.ImGui.Custom_InvisibleButton(ctx, 'Render configuration')
           ImGui.SameLine(ctx)
-          ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_red, 0.4))
-          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_red, 1))
-          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_red, 0.6))
+          ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_custom, 0.4))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_custom, 0.6))
           if ImGui.Button(ctx, 'Import') then 
             Undo_BeginBlock2( 0 )
             reaper.PreventUIRefresh( -1 )
@@ -829,9 +1025,9 @@
         
         
         -- import 
-          ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_red, 0.4))
-          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_red, 1))
-          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_red, 0.6))
+          ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_custom, 0.4))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_custom, 0.6))
           if ImGui.Button(ctx, 'Import tempo map') then 
             Undo_BeginBlock2( 0 )
             reaper.PreventUIRefresh( -1 )
@@ -865,7 +1061,12 @@
                   ImGui.SameLine(ctx)
                   ImGui.Text(ctx, DATA.srcproj.TEMPOMAP[i].bpm )
                   ImGui.SameLine(ctx)
-                  ImGui.TextColored(ctx, 0x50F050FF, DATA.srcproj.TEMPOMAP[i].timesig_num..'/'..DATA.srcproj.TEMPOMAP[i].timesig_denom)
+                  
+                  --- stef added to stop crash:
+                  local timesig_str = (DATA.srcproj.TEMPOMAP[i].timesig_num and DATA.srcproj.TEMPOMAP[i].timesig_denom) and DATA.srcproj.TEMPOMAP[i].timesig_num..'/'..DATA.srcproj.TEMPOMAP[i].timesig_denom or '-'
+                  ImGui.TextColored(ctx, 0x50F050FF, timesig_str)-- Stef added to stop crash
+                  
+                  --ImGui.TextColored(ctx, 0x50F050FF, DATA.srcproj.TEMPOMAP[i].timesig_num..'/'..DATA.srcproj.TEMPOMAP[i].timesig_denom)-- stef commented out
                 end
                 ImGui.EndChild(ctx)
               end
@@ -885,9 +1086,9 @@
       if ImGui.CollapsingHeader(ctx, 'Master FX', nil) then 
         ImGui.Indent(ctx, self.UIvars.indent_menu) 
           -- import master
-            ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_red, 0.4))
-            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_red, 1))
-            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_red, 0.6))
+            ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_custom, 0.4))
+            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
+            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_custom, 0.6))
             if ImGui.Button(ctx, 'Import/Replace Master FX') then 
               Undo_BeginBlock2( 0 )
               reaper.PreventUIRefresh( -1 )
@@ -924,9 +1125,9 @@
         ImGui.Indent(ctx, self.UIvars.indent_menu) 
           
           -- import master
-            ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_red, 0.4))
-            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_red, 1))
-            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_red, 0.6))
+            ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_custom, 0.4))
+            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
+            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_custom, 0.6))
             if ImGui.Button(ctx, 'Import markers/regions') then 
               Undo_BeginBlock2( 0 )
               reaper.PreventUIRefresh( -1 )
@@ -1012,9 +1213,9 @@
         
         
         -- import 
-          ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_red, 0.4))
-          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_red, 1))
-          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_red, 0.6))
+          ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_custom, 0.4))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_custom, 0.6))
           if ImGui.Button(ctx, 'Import group names') then 
             Undo_BeginBlock2( 0 )
             reaper.PreventUIRefresh( -1 )
@@ -1067,7 +1268,9 @@
       local preview = dest
       
       local missing_dest = DATA.srcproj.TRACK[trid].destmode == 2 and not DATA.srcproj.TRACK[trid].dest_track_GUID
-      if missing_dest == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xF040406F) end
+     -- if missing_dest == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xF040406F) end -- stef commented out
+      
+      if missing_dest == true then ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x80808080) end-- stef added
       
       if ImGui.BeginCombo( ctx, dest..(addsrcid or ''), preview, ImGui.ComboFlags_HeightLargest|ImGui.ComboFlags_NoArrowButton ) then
         ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFFFFFF)
@@ -1155,9 +1358,8 @@
       ImGui.SameLine(ctx)
       local indent = self.UIvars.indent_menu
       if ImGui.BeginChild(ctx, 'tracklist_settings', -1,-1) then--, reaper.ImGui_ChildFlags_Borders()) then
-         
-         
-        if ImGui.CollapsingHeader(ctx, 'Import properties', nil, reaper.ImGui_TreeNodeFlags_DefaultOpen()) then 
+        local flag = ImGui.TreeNodeFlags_DefaultOpen if EXT.UI_headerdefopen == 1 then flag = ImGui.TreeNodeFlags_None end 
+        if ImGui.CollapsingHeader(ctx, 'Import properties', nil, flag) then 
           ImGui.Indent(ctx, indent)
             if ImGui.Checkbox( ctx, 'Name##CONF_tr_name',                                 EXT.CONF_tr_name&1 == 1 ) then EXT.CONF_tr_name =EXT.CONF_tr_name~1 EXT:save() end
             if EXT.CONF_tr_name&1 == 1 then 
@@ -1184,7 +1386,8 @@
         end
         
         
-        if ImGui.CollapsingHeader(ctx, 'Import items') then
+        local flag = ImGui.TreeNodeFlags_DefaultOpen if EXT.UI_headerdefopen == 1 then flag = ImGui.TreeNodeFlags_None end 
+        if ImGui.CollapsingHeader(ctx, 'Import items', nil,flag) then -- added to replace above by stef
           ImGui.Indent(ctx, indent)
             if ImGui.Checkbox( ctx, 'Add items##CONF_tr_it',                           EXT.CONF_tr_it&1 == 1 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~1 EXT:save() end
             if EXT.CONF_tr_it&1 == 1 then 
@@ -1210,8 +1413,8 @@
           ImGui.Unindent(ctx, indent)
         end
         
-        
-        if ImGui.CollapsingHeader(ctx, 'FX chain', nil) then
+        local flag = ImGui.TreeNodeFlags_DefaultOpen if EXT.UI_headerdefopen == 1 then flag = ImGui.TreeNodeFlags_None end 
+        if ImGui.CollapsingHeader(ctx, 'FX chain', nil,flag) then-- stef added to replace line above
           ImGui.Indent(ctx, indent)
             if ImGui.Checkbox( ctx, 'Add track FX chain##CONF_tr_FX',                    EXT.CONF_tr_FX&1 == 1 ) then EXT.CONF_tr_FX =EXT.CONF_tr_FX~1 EXT:save() end
             if EXT.CONF_tr_FX&1 == 1 then 
@@ -1227,7 +1430,8 @@
           ImGui.Unindent(ctx, indent)
         end
         
-        if ImGui.CollapsingHeader(ctx, 'Routing', nil) then
+        local flag = ImGui.TreeNodeFlags_DefaultOpen if EXT.UI_headerdefopen == 1 then flag = ImGui.TreeNodeFlags_None end 
+        if ImGui.CollapsingHeader(ctx, 'Routing', nil, flag) then-- stef added to replace above
           ImGui.Indent(ctx, indent)
             if ImGui.Checkbox( ctx, 'Import sends##CONF_sendlogic_flags2',                    EXT.CONF_sendlogic_flags2&1 == 1 ) then EXT.CONF_sendlogic_flags2 =EXT.CONF_sendlogic_flags2~1 EXT:save() end
             if EXT.CONF_sendlogic_flags2&1 == 1 then 
@@ -1260,7 +1464,8 @@
             local level = DATA.srcproj.TRACK[trid].CUST_foldlev or 0
           
           -- showcond
-            local showcond = self.utils.VisibleCondition(DATA.srcproj.TRACK[trid].NAME)
+            --local showcond = self.utils.VisibleCondition(DATA.srcproj.TRACK[trid].NAME)--- stef commented out
+            local showcond = self.utils.VisibleCondition(DATA.srcproj.TRACK[trid].NAME, trid) -- stef added
             if not showcond then goto skip_track end
            
           -- indent
@@ -1340,9 +1545,9 @@
       if EXT.CONF_import_mode>0 then butname = 'Import tracks + stuff' end
       -- import
       ImGui.SameLine(ctx)
-      ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_red, 0.4))
-      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_red, 1))
-      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_red, 0.6))
+      ImGui.PushStyleColor(ctx, ImGui.Col_Button,           self.utils.RGB2RGBA(self.UIvars.col_custom, .85))
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive,     self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
+      ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered,    self.utils.RGB2RGBA(self.UIvars.col_custom, 1))
       if ImGui.Button(ctx, butname,-30) then self.process.import.all() end
       reaper.ImGui_SetNextItemWidth(ctx,-1)
       ImGui.SameLine(ctx)
@@ -1362,8 +1567,14 @@
       
       -- buttons
       if ImGui.BeginChild(ctx, 'tracklist_actions', self.UIvars.calc_tracklist_W,25) then --reaper.ImGui_ChildFlags_Borders()
+      
+        local regavX = reaper.ImGui_GetContentRegionAvail(ctx)
+        local AutomatchW = 80
+        local NewTrackW = 110
+        local Reset = 70
         -- filter
-        reaper.ImGui_SetNextItemWidth(ctx, 120)
+        reaper.ImGui_SetNextItemWidth(ctx, regavX - (AutomatchW + NewTrackW + Reset+self.UIvars.spacingX*4))
+        ImGui.SetNextItemAllowOverlap(ctx)  -- stef added: allow overlay button to receive clicks
         local retval, buf = reaper.ImGui_InputText( ctx, '##tracks_inputbuf', DATA.temp_inputtrackfiltbuf, reaper.ImGui_InputTextFlags_None() )
         DATA.temp_inputtrackfiltbuf = buf
         if retval then EXT.UI_trfilter = buf EXT:save() end
@@ -1372,10 +1583,15 @@
           local p_max_x, p_max_y = reaper.ImGui_GetItemRectMax( ctx )
           ImGui.DrawList_AddText( self.UIvars.draw_list, p_min_x+self.UIvars.spacingX*3, p_min_y+self.UIvars.spacingY, self.utils.RGB2RGBA(self.UIvars.col_text, self.UIvars.col_text_a_disabled), 'track name filter' ) 
         end
+        local p_min_x, p_min_y = reaper.ImGui_GetItemRectMin( ctx )
+        local p_max_x, p_max_y = reaper.ImGui_GetItemRectMax( ctx )  
+        local cur_x, cur_y = ImGui.GetCursorScreenPos(ctx)
+        
+        
         
         -- match
         ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, 'Auto match',100) then 
+        if ImGui.Button(ctx, 'Auto match',AutomatchW) then 
           self.process.actionsUI.SetDestination(-1, 0, nil) 
           self.process.srcproject.parse.AutomatchReceives()
           self.process.match_tracks.all(nil,EXT.CONF_automatch_defaultsubmode) 
@@ -1383,7 +1599,7 @@
         
         -- new track
         ImGui.SameLine(ctx)
-        if ImGui.Button(ctx, 'Set to new track',120) then 
+        if ImGui.Button(ctx, 'Set to new track',NewTrackW) then 
           local cnt_selection = 0 for trid0 = 1, #DATA.srcproj.TRACK do if DATA.srcproj.TRACK[trid0].UI_selected == true then cnt_selection = cnt_selection + 1 end end
           for i = 1, #DATA.srcproj.TRACK do 
             if cnt_selection == 0 or (cnt_selection > 0 and DATA.srcproj.TRACK[i].UI_selected == true) then self.process.actionsUI.SetDestination(i, 1) end
@@ -1398,6 +1614,36 @@
             if cnt_selection == 0 or (cnt_selection > 0 and DATA.srcproj.TRACK[i].UI_selected == true) then self.process.actionsUI.SetDestination(i, 0) end
           end 
         end
+        
+        
+        -- clear button (stef added)----------------------------
+        if DATA.temp_inputtrackfiltbuf ~= '' then 
+          local btn_size = p_max_y - p_min_y - 4
+          local btn_x = p_max_x - btn_size + 4 - self.UIvars.spacingX
+          local btn_y = p_min_y + 2
+          
+          -- save cursor, jump to overlay position
+          ImGui.SetCursorScreenPos(ctx, btn_x, btn_y)
+          
+          -- transparent button styling
+          ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0)
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, self.utils.RGB2RGBA(0x808080, 0.3))
+          ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, self.utils.RGB2RGBA(0x808080, 0.5))
+          ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0, 0)
+          
+          if ImGui.Button(ctx, 'x##clearfilter', btn_size, btn_size) then
+            DATA.temp_inputtrackfiltbuf = ''
+            EXT.UI_trfilter = ''
+            EXT:save()
+          end
+          
+          ImGui.PopStyleVar(ctx, 1)
+          ImGui.PopStyleColor(ctx, 3)
+          
+          -- restore cursor so the next SameLine/buttons aren't offset
+          --ImGui.SetCursorScreenPos(ctx, cur_x-self.UIvars.spacingX, cur_y-self.UIvars.spacingY)
+        end
+        --------------------------------------------------------
         
         ImGui.EndChild(ctx)
       end
@@ -1575,10 +1821,12 @@
       local gGUID = genGuid('' ) 
       new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
       new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
-      if EXT.CONF_tr_FX&4 == 4 then 
-        new_chunk = new_chunk:gsub('BYPASS 0 0', 'BYPASS 0 1')
-        new_chunk = new_chunk:gsub('BYPASS 1 0', 'BYPASS 1 1')
-      end
+      
+      
+      if EXT.CONF_tr_FX&4 == 4 then  -- Offline FX at import --- stef added
+        new_chunk = new_chunk:gsub('BYPASS 0 0', 'BYPASS 0 1')  --- stef added
+        new_chunk = new_chunk:gsub('BYPASS 1 0', 'BYPASS 1 1')  --- stef added
+      end                                                       --- stef added
       
       SetTrackStateChunk( new_tr, new_chunk, false )
       
@@ -1631,7 +1879,7 @@
       if not dest_tr then return end
       local dest_cnt = TrackFX_GetCount( dest_tr )
       
-      if EXT.CONF_tr_FX&1==1 and EXT.CONF_tr_FX&2==2 then -- clear existed
+      if EXT.CONF_tr_FX&2==2 then -- clear existed
         for dest_fx = dest_cnt, 1, -1 do   TrackFX_Delete( dest_tr, dest_fx-1 )  end 
         dest_cnt = 0
       end
@@ -1917,7 +2165,7 @@
     function ()
       local SCC =  GetProjectStateChangeCount( 0 ) if (DATA.upd_lastSCC and DATA.upd_lastSCC~=SCC ) then DATA.upd = true end  DATA.upd_lastSCC = SCC
       local editcurpos =  GetCursorPosition()  if (DATA.upd_last_editcurpos and DATA.upd_last_editcurpos~=editcurpos ) then DATA.upd = true end DATA.upd_last_editcurpos=editcurpos 
-      local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true end DATA.upd_last_reaproj = reaproj
+      local reaproj = tostring(EnumProjects( -1 )) if (DATA.upd_last_reaproj and DATA.upd_last_reaproj ~= reaproj) then DATA.upd = true DATA.upd_atprojchange = true end DATA.upd_last_reaproj = reaproj
     end
     ----------------------------------------------------------------------
     self.process.match_tracks.all = 
@@ -2097,10 +2345,17 @@
     end      
     --------------------------------------  
     self.process.actionsUI.SetSourceRPP = 
-    function ()
-      local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
+    function (filename_In)
+      local retval, filenameNeed4096
+      if not filename_In then 
+        retval, filenameNeed4096 = reaper.GetUserFileNameForRead(EXT.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
+       else 
+        retval = true
+        filenameNeed4096 = filename_In
+      end
       if retval then  
-        EXT.UI_lastsrcproj=filenameNeed4096
+        EXT.UI_lastsrcproj=filenameNeed4096 -- store as last
+        if not filename_In then table.insert(self.recfav.recent_table,1, filenameNeed4096) self.process.recfav.recent_storeEXT() end -- store to recent list
         EXT:save()
         self.process.srcproject.parse.all(filenameNeed4096)
         if EXT.UI_matchatsettingsrc==1 then
@@ -2342,6 +2597,13 @@
     ---------------------------------------------------------------------
     self.process.import.masterfx.AddChunkToTrack = 
     function (tr, chunk) -- add empty fx chain chunk if not exists
+    
+      ---- stef added to remove current master fx:------------
+      for i = reaper.TrackFX_GetCount(tr), 1, -1 do
+        reaper.TrackFX_Delete(tr, i-1)
+      end
+      --------------------------------------------------------
+    
       local _, chunk_ch = reaper.GetTrackStateChunk(tr, '', false)
       if not chunk_ch:match('FXCHAIN') then chunk_ch = chunk_ch:sub(0,-3)..'<FXCHAIN\nSHOW 0\nLASTSEL 0\n DOCKED 0\n>\n>\n' end
       if chunk then chunk_ch = chunk_ch:gsub('DOCKED %d', chunk) end
@@ -2454,9 +2716,24 @@
           -- UI
           DATA.srcproj.TRACK[trid].dest_name_UI = self.UIvars.default_none_dest..'##dest'..trid
           DATA.srcproj.TRACK[trid].NAME_UI = '['..trid..'] '..DATA.srcproj.TRACK[trid].NAME
-          local PEAKCOL = DATA.srcproj.TRACK[trid].PEAKCOL 
-          if PEAKCOL and PEAKCOL ~= 16576 then r, g, b = reaper.ColorFromNative( PEAKCOL ) end
-          if r and g and b then 
+        --  local PEAKCOL = DATA.srcproj.TRACK[trid].PEAKCOL -- Stef commented out to do mac friendly colour
+        --  if PEAKCOL and PEAKCOL ~= 16576 then r, g, b = reaper.ColorFromNative( PEAKCOL ) end  -- Stef commented out to do mac friendly colour
+        
+        --stef added for mac friendly colour------------------------------------------
+        local PEAKCOL = DATA.srcproj.TRACK[trid].PEAKCOL 
+        if PEAKCOL and PEAKCOL ~= 16576 then 
+          if self.is_mac then 
+            -- stef: bypass ColorFromNative on Mac due to byte-order mismatch
+            r = PEAKCOL & 0xFF
+            g = (PEAKCOL >> 8) & 0xFF
+            b = (PEAKCOL >> 16) & 0xFF
+          else
+            r, g, b = reaper.ColorFromNative( PEAKCOL )
+          end
+        end
+        -------------------------------------------------------------------------------
+        
+         if r and g and b then 
             r = math.min(255,math.floor(255*math.sqrt(r/255)))
             g = math.min(255,math.floor(255*math.sqrt(g/255)))
             b = math.min(255,math.floor(255*math.sqrt(b/255)))
@@ -2466,9 +2743,14 @@
               (b <<8) |
               0xFF
             DATA.srcproj.TRACK[trid].CUST_UI_col_rgba = col_rgba 
-          end
+          end 
         end 
     end 
+    
+    
+    
+    
+    
     ----------------------------------------------------------------------
     self.process.srcproject.parse.GetValues = 
     function (str, ignorefirst)
@@ -2916,7 +3198,10 @@
     --------------------------------------   
     self.utils.GetSourcebyGUID= function (GUID)  for j = 1, #DATA.srcproj.TRACK do  if GUID == DATA.srcproj.TRACK[j].GUID then return j end  end  end
     self.utils.GetDestinationbyGUID= function (GUID) for j = 1, #DATA.destproj.TRACK do if GUID == DATA.destproj.TRACK[j].GUID then return j end end end
-    self.utils.VisibleCondition=  function (trname) return (EXT.UI_trfilter == '' or not trname or (trname and EXT.UI_trfilter ~= '' and tostring(trname):lower():match(EXT.UI_trfilter))) end
+    --self.utils.VisibleCondition=  function (trname) return (EXT.UI_trfilter == '' or not trname or (trname and EXT.UI_trfilter ~= '' and tostring(trname):lower():match(EXT.UI_trfilter))) end ---- commented out by stef
+    --self.utils.VisibleCondition=  function (trname, trid) return (EXT.UI_trfilter == '' or not trname or (trname and EXT.UI_trfilter ~= '' and tostring(trname):lower():match(EXT.UI_trfilter))) and not (trid and DATA.srcproj.TRACK[trid] and DATA.srcproj.TRACK[trid].CUST_hidden == true) end --- added by stef but commented out and replaced below
+    self.utils.VisibleCondition=  function (trname, trid) return (EXT.UI_trfilter == '' or not trname or (trname and EXT.UI_trfilter ~= '' and tostring(trname):lower():match(EXT.UI_trfilter))) and (EXT.UI_showhiddentracks&1 == 1 or not (trid and DATA.srcproj.TRACK[trid] and DATA.srcproj.TRACK[trid].CUST_hidden == true)) end --- stef updated to respect UI_showhiddentracks
+    
     ----------------------------------------  
     self.utils.CopyFile=
     function (old_path, new_path) 
@@ -3082,7 +3367,163 @@
     end
   end
   -----------------------------------------------------------------------------------------  
+  function DATA:func_definitions_process_recfav() 
+    self.process.recfav.parseEXT = function()
+      local pathsext = EXT.UI_recentsources
+      local separator = ";"
+      self.recfav.recent_table = {}
+      if pathsext ~= '' then
+        local paths = {}
+        for token in string.gmatch(pathsext, "([^" .. separator .. "]+)") do
+          token = token:match("^%s*(.-)%s*$") -- Trim whitespace 
+          token = token:gsub('^"(.*)"$', '%1') -- Remove quotes if present (both single and double)
+          token = token:gsub("^'(.*)'$", '%1') -- Only add non-empty paths
+          if token ~= "" then 
+            if not paths[token] then table.insert(self.recfav.recent_table, token)  end
+            paths[token] = true
+          end
+        end
+      end
+      
+      local pathsext = EXT.UI_favsources
+      local separator = ";"
+      self.recfav.favourites_table = {}
+      if pathsext ~= '' then
+        local paths = {}
+        for token in string.gmatch(pathsext, "([^" .. separator .. "]+)") do
+          token = token:match("^%s*(.-)%s*$") -- Trim whitespace 
+          token = token:gsub('^"(.*)"$', '%1') -- Remove quotes if present (both single and double)
+          token = token:gsub("^'(.*)'$", '%1') -- Only add non-empty paths
+          if token ~= "" then 
+            if not paths[token] then table.insert(self.recfav.favourites_table, token)  end
+            paths[token] = true
+          end
+        end
+      end
+      
+    end
+    ----------------------------------------- 
+    self.process.recfav.recent_storeEXT = function(existing_string, new_paths)
+      local result = {}
+      local max_rpp_num= 8
+      local separator = ";"
+      local paths = {}
+      for i, path in ipairs(self.recfav.recent_table) do 
+        local quoted_path = '"' .. path .. '"' -- Ensure path is quoted
+        if not paths[quoted_path] then table.insert(result, quoted_path) end
+        paths[quoted_path] = true
+      end 
+      EXT.UI_recentsources = table.concat(result, separator,1,math.min(#result,max_rpp_num))
+      EXT:save()
+      
+      local result = {}
+      local separator = ";"
+      local paths = {}
+      for i, path in ipairs(self.recfav.favourites_table) do 
+        local quoted_path = '"' .. path .. '"' -- Ensure path is quoted
+        if not paths[quoted_path] then table.insert(result, quoted_path) end
+        paths[quoted_path] = true
+      end 
+      EXT.UI_favsources = table.concat(result, separator)
+      EXT:save() 
+    end
+    ----------------------------------------- 
+    self.process.recfav.add_fav = function(path)
+      for i = 1, #self.recfav.favourites_table do 
+        if self.recfav.favourites_table[i] == path then return end
+      end
+      table.insert(self.recfav.favourites_table, 1, path)
+    end
+    ----------------------------------------- 
+    self.process.recfav.rem_fav = function(path)
+      for i = 1, #self.recfav.favourites_table do 
+        if self.recfav.favourites_table[i] == path then 
+          table.remove(self.recfav.favourites_table, i)
+          return 
+        end
+      end 
+    end
+    
+    
+  end
+  -----------------------------------------------------------------------------------------  
+  function DATA:func_def_images() 
+    self.images.favourite = ImGui.CreateImageFromMem("\x89\x50\x4E\x47\x0D\x0A\x1A\x0A\x00\x00\x00\x0D\x49\x48\x44\x52\z
+      \x00\x00\x00\x20\x00\x00\x00\x20\x08\x06\x00\x00\x00\x73\x7A\x7A\z
+      \xF4\x00\x00\x00\x09\x70\x48\x59\x73\x00\x00\x0E\xC4\x00\x00\x0E\z
+      \xC4\x01\x95\x2B\x0E\x1B\x00\x00\x04\x24\x49\x44\x41\x54\x58\x85\z
+      \xBD\x96\x7F\x4C\x5B\x55\x14\xC7\xBF\xE7\xBE\xB6\xD0\x57\xA4\x05\z
+      \x6B\x07\x9D\x61\xA5\x63\x6C\xD9\x88\x24\x0B\x71\x0C\xAB\x89\x92\z
+      \xB9\x4C\x8D\x0E\x5D\x88\xC9\x08\x21\x62\x9C\xD3\xC4\xDF\x42\x88\z
+      \x9B\x64\xD9\x1F\x86\xA1\xD1\xC5\x3F\xC0\x64\x73\x66\x89\x8B\xD1\z
+      \x85\x25\x26\xFE\xA1\x22\x64\xD9\x5C\xC8\xA2\x7F\xF8\x87\xC6\x0C\z
+      \xD6\x31\x54\x02\x1B\x16\x28\x29\x2D\x7D\x8F\x7B\xFC\xA3\x2D\x6B\z
+      \xE8\x7B\x91\x96\xC1\x49\x6E\x9A\x97\xF3\xE3\xFB\xE9\x7D\xE7\x9E\z
+      \x77\x81\x55\xD8\x0F\x9D\x3E\xEF\xC0\xB1\x72\xEF\x6A\x6A\x88\x5C\z
+      \x13\xCF\xBC\xBA\x31\x3F\xB0\xCD\x71\xA9\xB6\x52\xBD\xD4\xD7\x56\z
+      \x96\xBF\xEE\x00\x0D\xB5\xCE\x16\x02\xFB\x08\xEC\xDB\x53\x5D\xF0\z
+      \xC2\xBA\x02\xF4\x1E\x2A\xB5\x59\x05\xDA\x39\x91\x2F\x04\xF0\xEE\z
+      \x57\x6F\xDE\x9F\xD3\x2E\xE4\x04\xD0\x58\xE7\x6C\x21\xE2\x32\x30\z
+      \xC0\x0C\x10\x71\xD9\xBE\x9D\x05\xCD\xEB\x02\xD0\xF3\x52\x89\xCD\z
+      \xA6\xA0\x9D\x99\x05\xC0\x00\x18\xCC\x2C\x14\x42\xFB\xB9\xD7\x37\z
+      \xDA\xD6\x1C\xA0\x71\x77\x61\x13\xC0\x3E\x00\x60\x66\x30\x73\xD2\z
+      \xC3\xBE\x7D\x3B\x1D\x4D\x6B\x0A\xF0\x71\x8B\xC7\x66\x51\xD0\xC1\z
+      \xCC\x22\x25\x9E\xB6\x84\x42\xE8\x38\xFD\x4A\x49\x56\xBB\x90\x15\z
+      \xC0\xC1\x40\x61\x33\x81\xFD\x00\x96\x8B\x27\x23\xD8\xBF\xBF\x26\z
+      \xBB\x5E\xA0\x95\x06\x8E\xF5\xF8\x1F\x2B\x54\xC5\x05\x02\x0A\x89\z
+      \x8C\xD3\x98\x19\x0C\x84\xE7\x63\xB2\xC1\x7B\x28\x38\x90\x33\xC0\z
+      \xFB\x07\x8A\x45\x45\x89\xD5\x5D\xEE\xB1\x56\xFA\x3D\xB6\x0A\x7B\z
+      \x1E\xED\x15\x84\x03\x00\x2C\x66\xE2\xE9\x10\x00\x74\xC9\x38\xBF\z
+      \xA0\xF1\xF7\xC1\xC9\xF8\xC8\x8D\x5B\xDA\xB5\xEB\x93\xDA\x54\xE7\z
+      \xD7\x21\x99\x01\xF0\xE3\x11\xAF\x7F\x73\x89\xAD\xEE\x1E\xBB\xD8\z
+      \x42\x40\x05\x11\x2A\x90\xF8\x75\xA5\x49\x89\xFF\x13\x36\x01\x91\z
+      \x40\xF2\xAC\x30\x66\x00\x8C\x30\x63\x84\x81\x91\xC8\x02\x0F\x07\z
+      \x27\xE2\x57\x68\xFC\x33\xFF\xBF\xF9\x56\x76\x01\x04\xA2\xDC\x27\z
+      \x63\x76\x70\x90\x00\x23\xA6\xD1\x8C\xD2\x18\x28\x12\xAA\x0D\xF5\z
+      \x16\x01\xB1\xD4\x4B\x6B\x2B\x0E\x00\x14\xD3\xC1\xFF\x4C\xD3\x71\z
+      \xE5\x54\xFF\xF4\xE5\xE7\x76\x17\xC5\xD4\x3C\xAE\xB7\x08\xA2\xB5\z
+      \x84\x48\xD5\x8E\xEA\x2C\xC7\x42\xD4\x51\xDB\x71\xA3\x4B\x01\x80\z
+      \xCF\x07\x66\x7E\x6E\xD8\xE5\x0A\x3B\xF2\xF8\x71\x8B\xC0\x9A\x40\z
+      \x2C\x89\x6B\x2C\xC7\x42\xF4\xF6\x43\xEF\x8D\x7E\x04\x00\x4A\x2A\z
+      \xE0\xCC\xE0\xCC\xD0\xFE\x5D\xAE\x29\x35\x8F\xF7\x5A\xEF\xF2\xEB\z
+      \x48\xD5\x9A\xD7\x58\x1F\x0B\xD1\x6B\x0F\x1F\xB9\xF9\x69\xCA\x97\z
+      \xD1\xDA\x83\xC7\x36\xBD\xB8\xE9\x5E\xEE\x71\x58\x61\x01\x80\x2C\z
+      \x9B\xDF\x54\x3C\xA2\x41\xFF\x7B\x9A\x0E\x3F\x72\xF4\xE6\xA9\x74\z
+      \xBF\x61\xF9\x9F\x3A\xCB\x9A\xFD\x6E\x3E\x6D\xB7\xC2\x72\x37\x00\z
+      \xA2\x1A\xF4\xD1\x10\xB5\x3E\xDA\x39\x76\x76\xB9\x5F\x31\x4A\x3A\z
+      \x7B\x71\xF6\xB7\xE7\x03\x4E\x9B\xCB\x2E\x03\x9C\xC5\xB4\xCC\x10\z
+      \x4F\x10\xC8\xF1\x59\xFA\x20\x70\xF4\xAF\x4F\x8C\x62\x4C\xCF\xFD\z
+      \xC5\x3F\xE6\x4F\x6A\x8B\xAC\x23\xF3\xA3\xB3\xE2\x05\x66\x68\x8B\z
+      \xAC\xFF\x1A\x8C\x9D\x34\xD3\x31\x05\xB8\x3A\x1C\x0D\x31\x73\x30\z
+      \x31\xD1\x72\x5B\x49\x88\xE0\xD5\x6B\xD1\x90\x99\x8E\xC5\xCC\x51\z
+      \xEC\x20\x08\x62\x75\x35\xA7\x21\x79\x5B\x52\x8B\x0B\xCC\x63\x4C\z
+      \x01\xB6\x96\x2A\x2E\x30\x7B\x41\x77\x3A\x39\x47\x0C\xEF\xD6\x52\z
+      \xC5\x05\xC0\x70\x17\x4C\x5F\xC1\xE6\x0D\xCA\x76\x00\x46\x17\x8F\z
+      \x2C\xFB\x00\xA2\x22\x51\xCB\xD0\x4C\x01\x2A\x4B\x94\xED\x89\x22\z
+      \xC8\x58\x52\x1A\x2F\xA3\x58\x66\x46\x99\xDB\x1C\xC0\xF4\x15\xA8\z
+      \x36\xEC\xE0\x65\x7B\x9F\xFE\x38\x1F\x87\x8C\xE9\x89\x13\x9A\x6F\z
+      \x61\xA8\xB6\x3B\xD3\x33\x7D\x76\x30\x33\x14\xE2\x1D\x59\x03\x00\z
+      \xA8\x02\x58\xA4\xFE\x49\xCA\xA2\x1A\xE4\xED\x88\xF8\x65\x6A\x8E\z
+      \xBB\x86\x86\x63\x57\x58\x02\x0F\x6E\xC9\xAB\xDB\xE0\xA4\xF6\xFB\z
+      \x1C\xB2\xC6\x6E\x5D\x0E\xC2\x22\x51\x2B\x0B\x80\xC3\xF5\x76\xC1\z
+      \xCC\x55\x52\x12\x92\xE3\x04\x31\x1D\x72\x2A\x22\xFE\x0C\x45\xA8\z
+      \xF3\x99\xEE\xC9\xF3\xCB\x52\xFA\x00\xF4\x5D\x78\xC7\xF3\xAC\xBB\z
+      \x00\xC7\xDD\x0E\xB9\x2D\xDF\x92\xF6\x3D\x61\xAE\x6A\x7B\x52\x15\z
+      \x27\xBE\x9B\xCF\xB8\x11\x19\xF6\x80\xCF\x23\x3C\x00\xDC\x00\x10\z
+      \xD7\x21\xC7\xC3\x62\xF4\xFA\x94\xD2\xFA\xCD\x50\xB4\xDA\x40\x7C\z
+      \xC9\x1A\x3E\xBC\xD5\xF7\xE5\xE5\x68\xF5\xF0\x6D\xA5\x75\x3C\x2C\z
+      \x46\xE3\x3A\x52\x82\xEE\x72\x8F\xE2\x59\xF1\x0E\xE8\x8B\x8A\x2B\z
+      \x1C\x23\x19\xD5\xC4\xC4\x6C\x8C\xBA\x06\x7F\x8F\xF6\x9E\xF8\x36\z
+      \x1C\x37\x13\x4E\xB7\xDE\xFE\x39\xBD\xB7\x7F\xEE\x8B\x37\x9E\x28\z
+      \x3C\xB7\xE7\x01\xFB\xCB\x45\x76\x6E\xB7\x5B\xA5\x67\x61\x51\x71\z
+      \x01\x98\x58\x49\x0D\x00\x40\xF7\xC1\xA2\x9A\xB6\xA7\x9D\xEA\x8A\z
+      \x13\x4C\xEC\xAD\xA7\x9C\x6A\x77\x53\x51\x8D\x99\xFF\x3F\xAA\xFC\z
+      \x4F\x92\x00\x79\xD0\x45\x00\x00\x00\x00\x49\x45\x4E\x44\xAE\x42\z
+      \x60\x82")
+  end
+  -----------------------------------------------------------------------------------------  
   function DATA:func_definitions()
+    DATA:func_def_images() 
     DATA:func_definitions_utils()
     DATA:func_definitions_ImGui_overrides()
     DATA:func_definitions_process() 
@@ -3096,6 +3537,7 @@
     DATA:func_definitions_draw()
     DATA:func_definitions_draw_tab_tracks()
     DATA:func_definitions_draw_tab_header()
+    DATA:func_definitions_process_recfav() 
   end
   -----------------------------------------------------------------------------------------  
   function _main() 
@@ -3103,6 +3545,9 @@
     EXT_defaults = CopyTable(EXT)
     EXT:load()  
     DATA.process.preset.GetExtStatePresets() 
+    DATA.process.recfav.parseEXT()
+    
+    --DATA.process.destproject.get.all() 
     if EXT.UI_appatinit&1==1 then 
       DATA.process.srcproject.parse.all(EXT.UI_lastsrcproj)  
       if EXT.UI_appatinit&2==2 then
@@ -3111,7 +3556,7 @@
         DATA.process.match_tracks.all(nil, EXT.CONF_automatch_defaultsubmode)
       end 
     end
-    DATA.process.destproject.get.all() 
+    
     DATA.draw.definecontext()
   end   
        
