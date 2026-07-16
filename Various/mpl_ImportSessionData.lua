@@ -1,37 +1,10 @@
 -- @description ImportSessionData
--- @version 3.22
+-- @version 3.23
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Add support for recent list of source projects
---    + Add support for favourites list of source projects
---    + Dest RPP: click on destination match tracks as well (otherwise this can lead to unpredictable results)
---    + Source RPP: show tooltip if file path doesn`t fit
---    + Options/Auto set distination project at tab change: match tracks as well for consistency, disabled by default
---    # fix cropped options at resized window
---    # move options to the right
---    # Stef Hambrook: Mac colour byte-order fix — Track peak colours were displaying wrong on macOS because ColorFromNative returns bytes in a different order on Mac
---    # Stef Hambrook: Tempo map crash fix — ImGui.TextColored would crash when a tempo point had no time-signature numerator/denominator
---    # Stef Hambrook: "AutoMatch tracks on setting source" checkmark bug
---    # Stef Hambrook: Master FX duplication fix — Import/Replace Master FX was adding to existing FX rather than replacing them
---    # Stef Hambrook: Show/hide hidden tracks — New UI_showhiddentracks setting plus a checkbox under settings ("Show hidden tracks in track list"). VisibleCondition was updated to take a trid argument and filter out tracks flagged CUST_hidden unless the option is on.
---    # Stef Hambrook: Custom accent colour picker — New UI_col_custom_hex external setting with an "Appearance" section in settings containing an ImGui.ColorEdit3 picker (hue-wheel) and a "Reset to default" button. 
---    # Stef Hambrook: Clear-filter "x" button / MPL: modified a bit to fit sizing policy
---    # Stef Hambrook: Dynamic / auto-resize window height — Window height is calculated from the track count (and visible sends if shown), capped at 90% of screen work-area height with a 710 px minimum that shows all import properties and stuff on the right, applied each frame via SetNextWindowSize. MPL: moved to options, default is OFF.
---    # Stef Hambrook: add close button
---    # Stef Hambrook: Default window background darkened — windowBg changed from 0x303030 to 0x232323.
---    # Stef Hambrook: Default initial window height reduced — wind_H 480 → 400.
---    # Stef Hambrook: Window border drawn — StyleVar_WindowBorderSize 0 → 1, border colour changed from semi-transparent green 0x509050 @ 0.5 alpha to solid black.
---    # Stef Hambrook: No docking — Added WindowFlags_NoDocking so the window stops auto-docking when dragged.
---    # Stef Hambrook: New title-bar colours — Col_TitleBg set to 0x242628 and Col_TitleBgActive set to 0x323335 (replacing the old grey based on col_main).
---    # Stef Hambrook: Tab colours reskinned — Col_Tab, Col_TabSelected, Col_TabHovered now all use col_custom (accent colour) at varying alphas instead of grey/green.
---    # Stef Hambrook: Resize grip hover/active colour — Uses the new accent colour; also adds Col_ResizeGripActive.
---    # Stef Hambrook: Checkmarks themed — Col_CheckMark pushed using the accent colour.
---    # Stef Hambrook: Button-hovered colour — col_buthovered changed from grey 0x878787 to the accent green 0x46a629.
---    # Stef Hambrook: All red "Import" action buttons recoloured — Every col_red reference (main Import, Import tempo map, Import/Replace Master FX, Import markers/regions, Import group names) now uses col_custom. The main Import button uses a higher alpha (0.85) for stronger emphasis.
---    # Stef Hambrook: Missing-destination text colour softened — Tracks with a missing destination changed from reddish 0xF040406F to grey 0x80808080.
---    # Stef Hambrook: Import items / FX chain / Routing collapsing headers default to open — Added TreeNodeFlags_DefaultOpen so users see those sections without needing to click. MPL: merged it as option, disabled by default, see Options/Appearance
+--    # fix favourite crash when no session is active
 
 
 
@@ -712,9 +685,9 @@
       
       if self.ImGui.Custom_ImageButton( ctx, '##fav_img',62, nil, "favourite", colfill  ) then
         if is_fav then 
-          self.process.recfav.rem_fav(self.srcproj.fp)
+          if self.srcproj and self.srcproj.fp then self.process.recfav.rem_fav(self.srcproj.fp) end
          else
-          self.process.recfav.add_fav(self.srcproj.fp)
+          if self.srcproj and self.srcproj.fp then self.process.recfav.add_fav(self.srcproj.fp) end
         end 
         self.process.recfav.recent_storeEXT()
       end
