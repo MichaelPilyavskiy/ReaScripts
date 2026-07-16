@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="55147dea89be78ade4988fb9d458dd5b8e8e1be1" name="MPL Scripts">
+<index version="1" commit="7fde50c3ec48d1a41961b2f9ed755ca195f7d26c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13263,6 +13263,10 @@ various fixes]]></changelog>
 # Stef Hambrook: Missing-destination text colour softened — Tracks with a missing destination changed from reddish 0xF040406F to grey 0x80808080.
 # Stef Hambrook: Import items / FX chain / Routing collapsing headers default to open — Added TreeNodeFlags_DefaultOpen so users see those sections without needing to click. MPL: merged it as option, disabled by default, see Options/Appearance]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55147dea89be78ade4988fb9d458dd5b8e8e1be1/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.23" author="MPL" time="2026-07-16T18:03:18Z">
+        <changelog><![CDATA[# fix favourite crash when no session is active]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7fde50c3ec48d1a41961b2f9ed755ca195f7d26c/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
