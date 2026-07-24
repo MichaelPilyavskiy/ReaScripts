@@ -1,13 +1,10 @@
 -- @description InteractiveToolbar
--- @version 3.08
+-- @version 3.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=203393
 -- @about This script displaying information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @changelog
---    # Space to play/paus (regression from 2.0+)
---    # Persisten widgets/LTFX: rightclick on parameter create envelope (regression from 2.0+)
---    + Persisten widgets/LTFX: tweaking parameter with ctrl modify envelope when transport is stopped
---    + Persisten widgets/LTFX: ctrl+enter when entering value modify envelope when transport is stopped
+--    # fix reset Item context
 
 
 
@@ -858,6 +855,7 @@
   end
   --------------------------------------------------------------------------------   
   function UI.widgetBuild_name(widget_ID, name)
+    if not name then return end
     ImGui.PushFont(ctx, DATA.font, UI.font_widgname*EXT.theming_float_fontscaling) 
     ImGui.PushStyleColor(ctx, ImGui.Col_Text,UI.widget_name_col)
     local ret = ImGui.Custom_InvisibleButton(ctx, name..'##but'..widget_ID,-1, UI.widget_name_H*EXT.theming_float_fontscaling)
@@ -992,7 +990,7 @@
       
     -- wheel
       local vertical, horizontal = UI.vertical, UI.horizontal--reaper.ImGui_GetMouseWheel( ctx )
-      if reaper.ImGui_IsItemHovered(ctx) and vertical ~= 0 then
+      if reaper.ImGui_IsItemHovered(ctx) and vertical ~= 0 and val_format_t then
         local dy_py = (math.abs(vertical)/vertical)  * (params.Ctrl_drag_override or 1 )
         local val_format_t_new = CopyTable(val_format_t)
         local mult2 = 1 if val_format_t_new.is_negative == true then mult2= -mult2 end -- negative handling 
@@ -2804,11 +2802,12 @@
      DATA:CollectData_SpecEdit()  
   end
   ----------------------------------------------------  
-    function DATA:CollectData_Item()  
-      if not DATA.CurState.Item then DATA.CurState.Item = {} end
+  function DATA:CollectData_Item()  
+    local item = reaper.GetSelectedMediaItem(-1, 0)
     
-    local item = reaper.GetSelectedMediaItem(-1,0)
-    if not item then return end
+    if not item then DATA.CurState.Item = nil return end
+    if not DATA.CurState.Item then DATA.CurState.Item = {} end 
+    
     DATA.CurState.Item.it_ptr = item
     DATA.CurState.Item.tk_ptr = nli
     DATA.CurState.Item.tk_name = ''
@@ -5058,7 +5057,7 @@
       
       ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate
-      if DATA.CurState.Item.B_LOOPSRC&1==1 then colstate = UI.widget_active_col end
+      if DATA.CurState.Item and DATA.CurState.Item.B_LOOPSRC and DATA.CurState.Item.B_LOOPSRC&1==1 then colstate = UI.widget_active_col end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_loop = DATA.CurState.Item.B_LOOPSRC~1}) end
       ImGui.PopFont(ctx) 
       
@@ -5080,7 +5079,7 @@
     if  ImGui.BeginChild( ctx, widget_ID, widgW, widgH,  ImGui.ChildFlags_None|ImGui.ChildFlags_FrameStyle,  ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollWithMouse|ImGui.WindowFlags_NoScrollbar ) then  
       ImGui.PushFont(ctx, DATA.font, UI.font_widgbut*EXT.theming_float_fontscaling) 
       local colstate 
-      if DATA.CurState.Item.C_LOCK&1==1 then colstate = UI.widget_active_col_red end
+      if DATA.CurState.Item and DATA.CurState.Item.C_LOCK and DATA.CurState.Item.C_LOCK&1==1 then colstate = UI.widget_active_col_red end
       if ImGui.Custom_InvisibleButton(ctx,widg_show_name..'##items'..widget_ID,-1,-1, colstate) then DATA:WriteData_Item( {toggle_lock = DATA.CurState.Item.C_LOCK~1}) end
       ImGui.PopFont(ctx)  
       ImGui.EndChild( ctx )
