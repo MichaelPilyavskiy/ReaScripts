@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 3.23
+-- @version 3.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
@@ -678,8 +678,10 @@
       
       local is_fav
       local colfill = 0x90909070
-      for i= 1, #self.recfav.favourites_table do
-        if self.recfav.favourites_table[i] == self.srcproj.fp then is_fav = true end
+      if self.srcproj and self.srcproj.fp then 
+        for i= 1, #self.recfav.favourites_table do
+          if self.recfav.favourites_table[i] == self.srcproj.fp then is_fav = true end
+        end
       end
       if is_fav then colfill = 0xF0F0F0BF end
       
@@ -963,7 +965,7 @@
     ---------------------------------
     self.draw.tabs.header.various=
     function ()
-      if not (DATA.srcproj and DATA.srcproj.HEADER_renderconf) then return end
+      if not (self.srcproj and self.srcproj.HEADER_renderconf) then return end
       if ImGui.CollapsingHeader(ctx, 'Various') then --, nil, reaper.ImGui_TreeNodeFlags_DefaultOpen()
         ImGui.Indent(ctx, self.UIvars.indent_menu) 
         
