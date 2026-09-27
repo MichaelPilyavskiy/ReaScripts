@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="63fab396ef154fd03987840553e9b38ea783dc49" name="MPL Scripts">
+<index version="1" commit="64aaa314cc52f73fd6a918c7af253c4c5c8c5964" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -15321,6 +15321,12 @@ various fixes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/77e7e2680c64e776259b7afd7e07b770e0ae5f78/Various/mpl_Mapping%20Panel%20(background).lua</source>
         <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/77e7e2680c64e776259b7afd7e07b770e0ae5f78/Various/mpl_MappingPanel_master.jsfx</source>
         <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/77e7e2680c64e776259b7afd7e07b770e0ae5f78/Various/mpl_MappingPanel_slave.jsfx</source>
+      </version>
+      <version name="4.24" author="MPL" time="2026-09-27T19:34:56Z">
+        <changelog><![CDATA[# text-height-derived layout (DPI-agnostic on Linux/Mac)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64aaa314cc52f73fd6a918c7af253c4c5c8c5964/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source type="effect" file="mpl_MappingPanel_master.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64aaa314cc52f73fd6a918c7af253c4c5c8c5964/Various/mpl_MappingPanel_master.jsfx</source>
+        <source type="effect" file="mpl_MappingPanel_slave.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64aaa314cc52f73fd6a918c7af253c4c5c8c5964/Various/mpl_MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
