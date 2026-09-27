@@ -7,7 +7,7 @@
 --    [jsfx] mpl_MappingPanel_master.jsfx 
 --    [jsfx] mpl_MappingPanel_slave.jsfx
 -- @changelog
---    # try validate by reduced name
+--    # text-height-derived layout (DPI-agnostic on Linux/Mac)
 
 
 
@@ -86,11 +86,9 @@
                hoverdelay = 0.8,
                hoverdelayshort = 0.8,
                
-             -- size / offset
-               spacingX = 4,
-               spacingY = 3,
-               linkbutsz = 8 ,
-               linkH = 100,
+             -- size / offset (these are RATIOS of text height, resolved in MAIN_styledefinition)
+               linkbutsz_ratio = 0.50,
+               linkH_ratio     = 6.5,
                
              -- colors / alpha
                main_col = 0x7F7F7F, -- grey
@@ -99,11 +97,6 @@
                textcol_a_disabled = 0.5,
                but_hovered = 0x878787,
                windowBg = 0x303030,
-               
-             --[[ size
-               main_butw = 80,
-               main_buth = 50,
-               main_knobtxth = 36,]]
            }
       
       
@@ -889,6 +882,7 @@
     if not (ctx and key and value) then return end
     local iscol = key:match('Col_')~=nil
     local keyid = ImGui[key]
+    if keyid == nil then return end
     if not iscol then 
       ImGui.PushStyleVar(ctx, keyid, value, value2)
       if not UI.pushcnt_var then UI.pushcnt_var = 0 end
@@ -916,49 +910,74 @@
     UI.pushcnt_col = 0
   end 
   -------------------------------------------------------------------------------- 
+  function UI.RefreshScaledMetrics()
+    local u = UI.calc_itemH or 20
+    if u <= 0 then u = 20 end
+
+    UI.spacingX = math.max(2, math.floor(u * 0.20))
+    UI.spacingY = math.max(2, math.floor(u * 0.15))
+
+    UI.linkbutsz = math.max(6,  math.floor(u * UI.linkbutsz_ratio))
+    UI.linkH     = math.max(60, math.floor(u * UI.linkH_ratio))
+
+    -- Rounding / borders / padding / grab sizes
+    UI.round_frame   = math.max(2, math.floor(u * 0.25))
+    UI.round_grab    = math.max(1, math.floor(u * 0.15))
+    UI.round_window  = math.max(4, math.floor(u * 0.50))
+    UI.round_child   = math.max(2, math.floor(u * 0.25))
+    UI.round_scroll  = math.max(3, math.floor(u * 0.45))
+    UI.round_tab     = math.max(2, math.floor(u * 0.20))
+    UI.round_small   = math.max(1, math.floor(u * 0.10))
+
+    UI.pad_frame_x   = math.max(2, math.floor(u * 0.25))
+    UI.pad_frame_y   = math.max(1, math.floor(u * 0.10))
+    UI.pad_cell_x    = UI.spacingX
+    UI.pad_cell_y    = UI.spacingY
+    UI.pad_item_x    = UI.spacingX
+    UI.pad_item_y    = UI.spacingY
+    UI.pad_inner_x   = math.max(2, math.floor(u * 0.20))
+    UI.grab_min      = math.max(10, math.floor(u * 1.00))
+    UI.scrollbar_sz  = math.max(6,  math.floor(u * 0.50))
+    UI.indent_sp     = math.max(8,  math.floor(u * 1.00))
+    UI.window_min_w  = math.max(400, math.floor(u * 30))
+    UI.window_min_h  = math.max(150, math.floor(u * 10))
+
+    -- Small helper for extra sizes used sporadically
+    UI.S = function(px_ratio) return math.max(1, math.floor(u * px_ratio)) end
+  end
+  -------------------------------------------------------------------------------- 
   function UI.MAIN_styledefinition(open)  
     
     -- window_flags
       local window_flags = ImGui.WindowFlags_None
-      --window_flags = window_flags | ImGui.WindowFlags_NoTitleBar
       window_flags = window_flags | ImGui.WindowFlags_NoScrollbar
-      --window_flags = window_flags | ImGui.WindowFlags_MenuBar()
-      --window_flags = window_flags | ImGui.WindowFlags_NoMove()
-      --window_flags = window_flags | ImGui.WindowFlags_NoResize
       window_flags = window_flags | ImGui.WindowFlags_NoCollapse
-      --window_flags = window_flags | ImGui.WindowFlags_NoNav()
-      --window_flags = window_flags | ImGui.WindowFlags_NoBackground()
-      --window_flags = window_flags | ImGui.WindowFlags_NoDocking
       window_flags = window_flags | ImGui.WindowFlags_TopMost
       window_flags = window_flags | ImGui.WindowFlags_NoScrollWithMouse
-      --window_flags = window_flags | ImGui.WindowFlags_NoSavedSettings()
-      --window_flags = window_flags | ImGui.WindowFlags_UnsavedDocument()
-      --open = false -- disable the close button
     
     
       -- rounding
-        ImGui.PushStyle('StyleVar_FrameRounding',5)   
-        ImGui.PushStyle('StyleVar_GrabRounding',3)  
-        ImGui.PushStyle('StyleVar_WindowRounding',10)  
-        ImGui.PushStyle('StyleVar_ChildRounding',5)  
-        ImGui.PushStyle('StyleVar_PopupRounding',0)  
-        ImGui.PushStyle('StyleVar_ScrollbarRounding',9)  
-        ImGui.PushStyle('StyleVar_TabRounding',4)   
+        ImGui.PushStyle('StyleVar_FrameRounding',    UI.round_frame)
+        ImGui.PushStyle('StyleVar_GrabRounding',     UI.round_grab)
+        ImGui.PushStyle('StyleVar_WindowRounding',   UI.round_window)
+        ImGui.PushStyle('StyleVar_ChildRounding',    UI.round_child)
+        ImGui.PushStyle('StyleVar_PopupRounding',    0)
+        ImGui.PushStyle('StyleVar_ScrollbarRounding',UI.round_scroll)
+        ImGui.PushStyle('StyleVar_TabRounding',      UI.round_tab)
       -- Borders
-        ImGui.PushStyle('StyleVar_WindowBorderSize',0)  
-        ImGui.PushStyle('StyleVar_FrameBorderSize',0) 
+        ImGui.PushStyle('StyleVar_WindowBorderSize',0)
+        ImGui.PushStyle('StyleVar_FrameBorderSize', 0)
       -- spacing
-        ImGui.PushStyle('StyleVar_WindowPadding',UI.spacingX,UI.spacingY)  
-        ImGui.PushStyle('StyleVar_FramePadding',5,UI.spacingY) 
-        ImGui.PushStyle('StyleVar_CellPadding',UI.spacingX, UI.spacingY) 
-        ImGui.PushStyle('StyleVar_ItemSpacing',UI.spacingX, UI.spacingY)
-        ImGui.PushStyle('StyleVar_ItemInnerSpacing',4,0)
-        ImGui.PushStyle('StyleVar_IndentSpacing',20)
-        ImGui.PushStyle('StyleVar_ScrollbarSize',10)
+        ImGui.PushStyle('StyleVar_WindowPadding',   UI.pad_cell_x,  UI.pad_cell_y)
+        ImGui.PushStyle('StyleVar_FramePadding',    UI.pad_frame_x, UI.pad_frame_y)
+        ImGui.PushStyle('StyleVar_CellPadding',     UI.pad_cell_x,  UI.pad_cell_y)
+        ImGui.PushStyle('StyleVar_ItemSpacing',     UI.pad_item_x,  UI.pad_item_y)
+        ImGui.PushStyle('StyleVar_ItemInnerSpacing',UI.pad_inner_x, 0)
+        ImGui.PushStyle('StyleVar_IndentSpacing',   UI.indent_sp)
+        ImGui.PushStyle('StyleVar_ScrollbarSize',   UI.scrollbar_sz)
       -- size
-        ImGui.PushStyle('StyleVar_GrabMinSize',20)
-        --ImGui.PushStyle('StyleVar_WindowMinSize',UI.main_butw*9,(UI.main_buth*2 + UI.spacingY)*2 + UI.font1sz*2)
-        ImGui.PushStyle('StyleVar_WindowMinSize',600,200)
+        ImGui.PushStyle('StyleVar_GrabMinSize',     UI.grab_min)
+        ImGui.PushStyle('StyleVar_WindowMinSize',   UI.window_min_w, UI.window_min_h)
       -- align
         ImGui.PushStyle('StyleVar_WindowTitleAlign',0.5,0.5)
         ImGui.PushStyle('StyleVar_ButtonTextAlign',0.5,0.5)
@@ -966,7 +985,7 @@
         ImGui.PushStyle('StyleVar_Alpha',0.98)
         ImGui.PushStyle('Col_Border',UI.main_col, 0.3)
       -- colors
-        ImGui.PushStyle('Col_Button',UI.main_col, 0.2) --0.3
+        ImGui.PushStyle('Col_Button',UI.main_col, 0.2)
         ImGui.PushStyle('Col_ButtonActive',UI.main_col, 1) 
         ImGui.PushStyle('Col_ButtonHovered',UI.but_hovered, 0.8)
         ImGui.PushStyle('Col_DragDropTarget',0xFF1F5F, 0.6)
@@ -992,13 +1011,11 @@
     -- We specify a default position/size in case there's no data in the .ini file.
       local main_viewport = ImGui.GetMainViewport(ctx)
       local x, y, w, h =EXT.viewport_posX,EXT.viewport_posY, EXT.viewport_posW,EXT.viewport_posH
-      --ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing )
-      --ImGui.SetNextWindowSize(ctx, w, h, ImGui.Cond_Appearing)
       
       
     -- init UI 
       ImGui.PushFont(ctx, DATA.font1) 
-      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags) --..' '..vrs..'##'..DATA.UI_name
+      local rv,open = ImGui.Begin(ctx, DATA.UI_name, open, window_flags)
       if rv then
         local Viewport = ImGui.GetWindowViewport(ctx)
         DATA.display_x, DATA.display_y = ImGui.Viewport_GetPos(Viewport) 
@@ -1011,7 +1028,10 @@
         local framew,frameh = ImGui.GetStyleVar(ctx, ImGui.StyleVar_FramePadding)
         local calcitemw, calcitemh = ImGui.CalcTextSize(ctx, 'test')
         UI.calc_itemH = calcitemh + frameh * 2
-        
+
+        -- Refresh all text-height-derived constants BEFORE using them
+        UI.RefreshScaledMetrics()
+
         UI.main_butw = (DATA.display_w_region- UI.spacingX*10) / 9
         UI.main_buth = (DATA.display_h_region- UI.calc_itemH-UI.spacingY*5) / 4
         UI.main_knobtxth = UI.main_buth*0.6
@@ -1019,7 +1039,10 @@
         UI.calc_knobW = math.ceil((DATA.display_w_region - UI.main_butw - UI.spacingX*11)/8)
         UI.calc_knobH = UI.main_buth*2 + UI.spacingY
         UI.calc_knobcollapsedW = UI.calc_knobW*2 + UI.spacingX 
-        UI.calc_knobcollapsedH = math.floor((UI.calc_knobH - UI.spacingY*3)/4) 
+        UI.calc_knobcollapsedH = math.max(
+          math.floor((UI.calc_knobH - UI.spacingY*3)/4),
+          math.floor(UI.calc_itemH * 1.6)
+        )
         
       -- draw stuff
         UI.MAIN_drawstuff()
@@ -1188,7 +1211,7 @@
     DATA.upd = false
     
     -- refresh at losing context
-    if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end --ctx = ImGui.CreateContext(DATA.UI_name)  end
+    if not reaper.ImGui_ValidatePtr(ctx,'ImGui_Context*') then return end
     
     -- draw UI
     UI.open = UI.MAIN_styledefinition(true)  
@@ -1207,15 +1230,13 @@
     
     -- imgUI init
     ctx = ImGui.CreateContext(DATA.UI_name) 
-    -- fonts
+    -- fonts: ReaImGui scales font size internally by DPI,
+    -- so do NOT multiply by DPI here.
     DATA.font1 = ImGui.CreateFont(UI.font, UI.font1sz) ImGui.Attach(ctx, DATA.font1)
     DATA.font2 = ImGui.CreateFont(UI.font, UI.font2sz) ImGui.Attach(ctx, DATA.font2)
-    --DATA.font3 = ImGui.CreateFont(UI.font, UI.font3sz) ImGui.Attach(ctx, DATA.font3)  
     -- config
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayNormal, UI.hoverdelay)
     ImGui.SetConfigVar(ctx, ImGui.ConfigVar_HoverDelayShort, UI.hoverdelayshort)
-    
-    DATA.DPI = ImGui.GetWindowDpiScale( ctx )
     
     if EXT.CONF_mode == 0 then
       DATA:MasterJSFX_Validate()
@@ -1245,7 +1266,7 @@
           EXT[key] = tonumber(val) or val 
         end 
       end  
-    end 
+    end
     DATA.upd = true
   end
   -------------------------------------------------------------------------------- 
@@ -1305,7 +1326,6 @@
     if ImGui.BeginChild( ctx, '##ch'..sliderID, childW,  sliderH, ImGui.ChildFlags_None, ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar ) then 
       
       -- background
-      --local draw_list = ImGui.GetForegroundDrawList(ctx) 
       local draw_list = ImGui.GetWindowDrawList( ctx )
       
       local slcol
@@ -1318,14 +1338,14 @@
        else
         slcol  = 0xFFFFFF0F
       end
-      local round = 5
+      local round = math.max(2, math.floor(UI.calc_itemH*0.25))
       if iscollapsed == false then round = 0 end
       ImGui.DrawList_AddRectFilled(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+sliderH, slcol, round, ImGui.DrawFlags_None)
-      if not iscollapsed then ImGui.DrawList_AddRectFilled(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+UI.main_knobtxth, 0xFFFFFF2F, 5, ImGui.DrawFlags_RoundCornersTopRight) end
+      if not iscollapsed then ImGui.DrawList_AddRectFilled(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+UI.main_knobtxth, 0xFFFFFF2F, round, ImGui.DrawFlags_RoundCornersTopRight) end
       if selected then 
         local selcolframe = 0xFFFFFF4F
-        if not iscollapsed then ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW-1, posy_abs+UI.main_knobtxth, selcolframe, 5, ImGui.DrawFlags_RoundCornersTopRight) 
-          else                  ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+sliderH, selcolframe, 5)--, ImGui.DrawFlags_RoundCornersTop) 
+        if not iscollapsed then ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW-1, posy_abs+UI.main_knobtxth, selcolframe, round, ImGui.DrawFlags_RoundCornersTopRight) 
+          else                  ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+sliderW, posy_abs+sliderH, selcolframe, round) 
         end
       end
       
@@ -1398,7 +1418,9 @@
           if  ImGui.IsItemActive( ctx ) and temp[sliderID].latchstate then
             
             local x, y = ImGui.GetMouseDragDelta( ctx )
-            local outval = temp[sliderID].latchstate - y/500
+            -- 500 is the pixel-per-full-range constant; scale it with text height
+            local drag_px = math.max(200, math.floor(UI.calc_itemH * 25))
+            local outval = temp[sliderID].latchstate - y/drag_px
             outval = math.max(0,math.min(outval,1))
             local dx, dy = ImGui.GetMouseDelta( ctx )
             if dy~=0 and app_func_onmousedrag then 
@@ -1408,7 +1430,8 @@
           end
           if ImGui_IsItemDeactivated( ctx ) then
             local x, y = ImGui.GetMouseDragDelta( ctx )
-            local outval = temp[sliderID].latchstate - y/500
+            local drag_px = math.max(200, math.floor(UI.calc_itemH * 25))
+            local outval = temp[sliderID].latchstate - y/drag_px
             outval = math.max(0,math.min(outval,1))
             app_func_onmousedrag(sliderID, outval, true)
             
@@ -1427,13 +1450,14 @@
           -- draw stuff vars
             local knob_handle = 0xc8edfa 
             local col_rgba = 0xF0F0F0FF 
-            local thicknessIn = 3
+            -- thickness scaled to text
+            local thicknessIn = math.max(1, math.floor(UI.calc_itemH * 0.15))
             local roundingIn = 0
             local radius = math.floor(mindim/2)
             local radius_draw = math.floor(0.85 * radius) 
             local center_x = posx_abs + sliderW/2
-            local center_y = posy_abs + UI.main_knobtxth + vsliderh/2--((sliderH - UI.main_knobtxth)/2)
-            local handlethickness = 2
+            local center_y = posy_abs + UI.main_knobtxth + vsliderh/2
+            local handlethickness = math.max(1, math.floor(UI.calc_itemH * 0.10))
             if iscollapsed then 
               radius = math.floor(vsliderw / 2)
               radius_draw = math.floor(0.8 * radius) 
@@ -1704,7 +1728,7 @@
       local but_name = trname..fxname..'\n'..paramname..'\n'..paramformat
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 3,2)
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_ButtonTextAlign, 0,0.5)
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, UI.round_small)
       ImGui.Button(ctx, but_name, UI.calc_knobcollapsedW-UI.calc_knobcollapsedH, UI.linkH)
       ImGui.PopStyleVar(ctx,3)
       if ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) then
@@ -1726,15 +1750,12 @@
     
     -- mute
       ImGui.PushStyleVar(ctx, ImGui.StyleVar_FramePadding, 0,0)
-      --local mutestate = t.flags_mute == 1
       local mutestate = t.flags_mute_link == true
       if mutestate == true then 
         ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0xFA000070) 
         ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xFA000090) 
       end
       if ImGui.Button(ctx, 'M##linkmut'..t.slaveJSFXlinksID, UI.calc_knobcollapsedH, UI.linkH/2-UI.spacingY) then
-        --t.flags_mute = t.flags_mute~1
-        --t.flags_mute_link = not t.flags_mute_link
         DATA:Link_togglemute(t) 
         DATA:SlaveJSFX_Read() 
       end
@@ -1761,7 +1782,7 @@
   function UI.MAIN_drawstuff_links_sub_SlaveModeSliders(t, posx_abs, posy_abs0 )
     local posy_abs = posy_abs0 + UI.linkH  + UI.spacingY
     local sliderID  = DATA.sel_knob
-    local spaceX = 15
+    local spaceX = UI.S(0.75)
     -- slave per track sliders
     if EXT.CONF_mode == 1 then
       ImGui.SetCursorScreenPos( ctx,posx_abs,posy_abs )
@@ -1769,17 +1790,17 @@
       ImGui.SameLine(ctx)
       
       -- offs
-      ImGui.SetNextItemWidth( ctx, 50 ) 
+      ImGui.SetNextItemWidth( ctx, UI.S(2.5) ) 
       local retval, v = ImGui.SliderDouble( ctx, '##offs'..sliderID..t.slaveJSFXlinksID, t.plink_offset, -1, 1, '', ImGui.SliderFlags_None )
       if retval then t.set_offs = v DATA:SlaveJSFX_Write(t)DATA:SlaveJSFX_UpdateParameters()  end
       ImGui.SameLine(ctx) ImGui.Text(ctx,'Offset')
-      if ImGui.IsItemClicked( ctx, ImGui.HoveredFlags_None ) then t.set_offs = 0 DATA:SlaveJSFX_Write(t)DATA:SlaveJSFX_UpdateParameters()  end -- ImGui.IsItemHovered( ctx, ImGui.HoveredFlags_None ) and ImGui.IsMouseDoubleClicked( ctx, ImGui.MouseButton_Left )
+      if ImGui.IsItemClicked( ctx, ImGui.HoveredFlags_None ) then t.set_offs = 0 DATA:SlaveJSFX_Write(t)DATA:SlaveJSFX_UpdateParameters()  end
       
       -- scale
       ImGui.SameLine(ctx)
       ImGui.Dummy(ctx,spaceX,0)
       ImGui.SameLine(ctx)
-      ImGui.SetNextItemWidth( ctx, 50 ) 
+      ImGui.SetNextItemWidth( ctx, UI.S(2.5) ) 
       local retval, v = ImGui.SliderDouble( ctx, '##scale'..sliderID..t.slaveJSFXlinksID, t.plink_scale, -1, 1, '', ImGui.SliderFlags_None )
       if retval then t.set_scale = v DATA:SlaveJSFX_Write(t)DATA:SlaveJSFX_UpdateParameters()  end
       ImGui.SameLine(ctx) ImGui.Text(ctx,'Scale')
@@ -1789,7 +1810,7 @@
       ImGui.SameLine(ctx)
       ImGui.Dummy(ctx,spaceX,0)
       ImGui.SameLine(ctx)
-      ImGui.SetNextItemWidth( ctx, 50 ) 
+      ImGui.SetNextItemWidth( ctx, UI.S(2.5) ) 
       local retval, v = ImGui.SliderDouble( ctx, '##base'..sliderID..t.slaveJSFXlinksID, t.plink_baseline, 0, 1, '', ImGui.SliderFlags_None )
       if retval then t.set_base = v DATA:SlaveJSFX_Write(t)DATA:SlaveJSFX_UpdateParameters()  end
       ImGui.SameLine(ctx) ImGui.Text(ctx,'Baseline')
@@ -1818,7 +1839,7 @@
       local flags_tension = math.floor(t.flags_tension*15)
     
     -- boundary
-      local but_sz = UI.linkbutsz 
+      local but_sz = UI.linkbutsz
       local offbut = math.floor(but_sz/2)
       local rect_w = UI.calc_knobcollapsedW-UI.spacingX*3-but_sz
       local rect_h = UI.linkH
@@ -1826,8 +1847,6 @@
     
     --draw stuff
       local draw_list = ImGui.GetWindowDrawList( ctx )
-      -- frame
-      --ImGui.DrawList_AddRect(draw_list, posx_abs, posy_abs, posx_abs+rect_w, posy_abs+rect_h, framecol, 2, ImGui.DrawFlags_None) 
     
     -- curve 
       local posx_abs = posx_abs0+offbut
@@ -1853,7 +1872,7 @@
       ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0xFFFFFF9F)
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0xFFFFFFFF)
       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xFFFFFFBF)
-      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
+      ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, UI.round_small)
       
       ImGui.SetCursorScreenPos( ctx,curve_posx-offbut, curve_posy-offbut)
       if EXT.CONF_mode == 0 then 
@@ -1890,8 +1909,8 @@
       end
       
       if EXT.CONF_mode == 0 then
-        local but_tensionw = 8
-        local but_tensionh = 4
+        local but_tensionw = math.max(4, math.floor(UI.calc_itemH * 0.5))
+        local but_tensionh = math.max(2, math.floor(UI.calc_itemH * 0.25))
         ImGui.SetCursorScreenPos( ctx,curve_posx2-but_tensionw/2, curve_posy2-but_tensionh/2)
         ImGui.Button(ctx,'##p2'..sliderID..t.slaveJSFXlinksID,but_tensionw,but_tensionh )
         if ImGui.IsItemActive( ctx ) then
@@ -1905,52 +1924,6 @@
           end
         end
       end
-      
-      
-      --[[if EXT.CONF_mode == 1 then
-        local midx = posx_abs + rect_w/2
-        local but_ctrlw = 8
-        local but_ctrlh = 8
-        ImGui.SetCursorScreenPos( ctx,midx-but_ctrlw*1.5, curve_posy2-but_ctrlh/2)
-        ImGui.Button(ctx,'##p2offs'..sliderID..t.slaveJSFXlinksID,but_ctrlw-1,but_ctrlh )
-        if ImGui.IsItemActive( ctx ) then
-          local x, y = ImGui.GetMouseDelta( ctx )
-          if y ~= 0 then
-            absx, absy = ImGui.GetMousePos( ctx )
-            out_val2 = VF_lim((absy-posy_abs)/rect_h, -1, 1)
-            t.set_offs = -out_val2
-            DATA:SlaveJSFX_Write(t)
-            DATA:SlaveJSFX_UpdateParameters()  
-          end
-        end
-        
-        ImGui.SetCursorScreenPos( ctx,midx-but_ctrlw*0.5, curve_posy2-but_ctrlh/2)
-        ImGui.Button(ctx,'##p2scale'..sliderID..t.slaveJSFXlinksID,but_ctrlw-1,but_ctrlh )
-        if ImGui.IsItemActive( ctx ) then
-          local x, y = ImGui.GetMouseDelta( ctx )
-          if y ~= 0 then
-            absx, absy = ImGui.GetMousePos( ctx )
-            out_val2 = VF_lim(  (absy-posy_abs)/rect_h, -1, 1)
-            t.set_scale = -out_val2
-            DATA:SlaveJSFX_Write(t)
-            DATA:SlaveJSFX_UpdateParameters()  
-          end
-        end
-        
-        ImGui.SetCursorScreenPos( ctx,midx+but_ctrlw*0.5, curve_posy2-but_ctrlh/2)
-        ImGui.Button(ctx,'##p2base'..sliderID..t.slaveJSFXlinksID,but_ctrlw-1,but_ctrlh )
-        if ImGui.IsItemActive( ctx ) then
-          local x, y = ImGui.GetMouseDelta( ctx )
-          if y ~= 0 then
-            absx, absy = ImGui.GetMousePos( ctx )
-            out_val2 = VF_lim((absy-posy_abs)/rect_h,-1,1)
-            t.set_base = -out_val2
-            DATA:SlaveJSFX_Write(t)
-            DATA:SlaveJSFX_UpdateParameters()  
-          end
-        end
-        
-      end]]
       
       
       ImGui.PopStyleColor(ctx, 3)
@@ -2095,7 +2068,7 @@
   end 
   ---------------------------------------------------------------------  
   function DATA:Vari_Rec(varID)  
-    for i = 1, 16 do DATA.masterJSFX_variations_list[varID].macrolist[i] = DATA.masterJSFX_sliders[i].val end -- print current values to variation
+    for i = 1, 16 do DATA.masterJSFX_variations_list[varID].macrolist[i] = DATA.masterJSFX_sliders[i].val end
     DATA:MasterJSFX_WriteSliders()
   end
   ---------------------------------------------------------------------  
@@ -2117,14 +2090,13 @@
   
   -------------------------------------------------------------------------------- 
   function UI.GetUserInputMB_replica(mode, key, title, num_inputs, captions_csv, retvals_csv_returnfunc, retvals_csv_setfunc) 
-    local round = 4
+    local round = UI.round_small
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, round)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ChildRounding, round)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_PopupRounding, round)
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowRounding, round)
     
       -- draw content
-      -- (from reaimgui demo) Always center this window when appearing
       local center_x, center_y = ImGui.Viewport_GetCenter(ImGui.GetWindowViewport(ctx))
       ImGui.SetNextWindowPos(ctx, center_x, center_y, ImGui.Cond_Appearing, 0.5, 0.5)
       if ImGui.BeginPopupModal(ctx, key, nil, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border) then
@@ -2138,13 +2110,6 @@
             UI.popups[key].draw = false
             ImGui.CloseCurrentPopup(ctx) 
           end
-          
-          --[[ImGui.SetItemDefaultFocus(ctx)
-          ImGui.SameLine(ctx)
-          if ImGui.Button(ctx, 'Cancel', 120, 0) then 
-            UI.popups[key].draw = false
-            ImGui.CloseCurrentPopup(ctx) 
-          end]]
         end
         
         -- GetUserInput replika
@@ -2174,7 +2139,7 @@
     -- local sliderID = DATA,sel_knob  -- do not use because it doesn refresh knob immediately
     local sliderID = DATA:GetSelectedKnob() 
     if not sliderID then return end
-    local valid = DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true-- or (EXT.CONF_mode == 1 and DATA.masterJSFX_tr and ValidatePtr(DATA.masterJSFX_tr,'MediaTrack*'))
+    local valid = DATA.masterJSFX_isvalid and DATA.masterJSFX_isvalid  == true
     local flagdis = ImGui.SelectableFlags_Disabled
     if valid == true then flagdis = ImGui.SelectableFlags_None end
     
@@ -2225,7 +2190,7 @@
     end 
     
     local flags = ImGui.ColorEditFlags_None | ImGui.ColorEditFlags_NoOptions | ImGui.ColorEditFlags_NoSidePreview|ImGui.ColorEditFlags_NoLabel|ImGui.ColorEditFlags_NoInputs
-    ImGui.SetNextItemWidth( ctx, 150 )
+    ImGui.SetNextItemWidth( ctx, UI.S(7.5) )
     local retval, col_rgba = ImGui.ColorPicker4( ctx, '##Set macro color', (col_RRGGBB<<8)|0xFF, flags  )
     if retval then
       local sliderID = DATA:GetSelectedKnob() 
@@ -2261,7 +2226,7 @@
     end    
     
     if DATA.masterJSFX_sliders[sliderID].ext_snapback_use == 1 then
-      ImGui.SetNextItemWidth( ctx, 100 )
+      ImGui.SetNextItemWidth( ctx, UI.S(5) )
       local retval, v = ImGui.SliderDouble( ctx, 'Snapback value##snapbackval'..sliderID, DATA.masterJSFX_sliders[sliderID].ext_snapback_val, 0, 1, '%.3f', ImGui.SliderFlags_None )
       if retval then 
         DATA.masterJSFX_sliders[sliderID].ext_snapback_val = v
@@ -2271,7 +2236,7 @@
         DATA.masterJSFX_sliders[sliderID].ext_snapback_val = DATA.masterJSFX_sliders[sliderID].val
         DATA:MasterJSFX_WriteSliders(sliderID)
       end
-      ImGui.SetNextItemWidth( ctx, 100 )
+      ImGui.SetNextItemWidth( ctx, UI.S(5) )
       local retval, v = ImGui.SliderDouble( ctx, 'Snapback time##snapbacktime'..sliderID, DATA.masterJSFX_sliders[sliderID].ext_snapback_time, 0, 500, '%.0fms', ImGui.SliderFlags_None )
       if retval then 
         DATA.masterJSFX_sliders[sliderID].ext_snapback_time = v
@@ -2286,19 +2251,19 @@
       local track = DATA.masterJSFX_tr
       SetMixerScroll( track )
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-      VF_Action(41142)--FX: Show/hide track envelope for last touched FX parameter
+      VF_Action(41142)
     end
     
     if ImGui.Selectable(ctx, 'Arm track envelope',nil,flagdis)and valid == true then 
       local track = DATA.masterJSFX_tr
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-      VF_Action(41984) --FX: Arm track envelope for last touched FX parameter
+      VF_Action(41984)
     end
 
     if ImGui.Selectable(ctx, 'Toggle activate/bypass track envelope',nil,flagdis) and valid == true then 
       local track = DATA.masterJSFX_tr
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-      VF_Action(41983) --FX: Activate/bypass track envelope for last touched FX parameter
+      VF_Action(41983)
     end
     
     local control = '[no control touched]'
@@ -2306,7 +2271,6 @@
     if ImGui.Selectable(ctx, 'Set MIDI learn to: '..control,nil,flagdis) and valid == true then 
       local track = DATA.masterJSFX_tr
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-      --VF_Action(41144) --FX: Set MIDI learn for last touched FX parameter]]
       DATA.Action_SetMIDILearn()
     end
     
@@ -2322,7 +2286,6 @@
       if ImGui.Selectable(ctx, control,nil,flagdis) and valid == true then 
         local track = DATA.masterJSFX_tr
         TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-        --VF_Action(41144) --FX: Set MIDI learn for last touched FX parameter]]
         DATA.Action_SetMIDILearn(true)
       end
     end
@@ -2330,7 +2293,7 @@
     if ImGui.Selectable(ctx, 'Show parameter modulation/link',nil,flagdis) and valid == true then 
       local track = DATA.masterJSFX_tr  
       TrackFX_EndParamEdit( track, DATA.masterJSFX_FXid, sliderID-1 )
-      VF_Action(41143) --FX: Show parameter modulation/link for last touched FX parameter
+      VF_Action(41143)
     end
     
     if ImGui.Selectable(ctx, 'Remove all links from this macro',nil,flagdis) then 
@@ -2373,7 +2336,6 @@
       if DATA.knobscollapsed == 1 then
         col = math.floor((sliderID-1)/8)
         row = ((sliderID-1)%8)
-        --curposX = local_pos_x + UI.main_butw*5  + UI.calc_knobcollapsedW *col+UI.spacingX*col
         curposX = local_pos_x + UI.main_butw + UI.spacingX*2 + UI.calc_knobcollapsedW*2 + UI.spacingX + UI.calc_knobcollapsedW *col+UI.spacingX*col
         curposY = local_pos_y  + UI.calc_knobcollapsedH * row + UI.spacingY * row
       end
@@ -2403,7 +2365,7 @@
   --------------------------------------------------------------------------------  
   function UI.draw_flow_COMBO(t)
     local preview_value = t.values[EXT[t.extstr]]
-    ImGui.SetNextItemWidth( ctx, 200 )
+    ImGui.SetNextItemWidth( ctx, UI.S(10) )
     if ImGui.BeginCombo( ctx, t.key, preview_value ) then
       for id in spairs(t.values) do
         if ImGui.Selectable( ctx, t.values[id], id==EXT[t.extstr]) then
@@ -2493,7 +2455,7 @@
   end
   --------------------------------------------------------------------------------  
   function UI.draw_flow_SLIDER(t) 
-      ImGui.SetNextItemWidth( ctx, 100 )
+      ImGui.SetNextItemWidth( ctx, UI.S(5) )
       local retval, v
       if t.int then
         local format = t.format
@@ -2519,7 +2481,7 @@
   end
   --------------------------------------------------------------------------------  
   function UI.MAIN_drawstuff_menu(local_pos_x, local_pos_y) 
-    local indent = 30
+    local indent = UI.S(1.5)
     ImGui.SetCursorPos( ctx, local_pos_x + UI.main_butw + UI.spacingX , local_pos_y)
     if ImGui.BeginChild( ctx, '##settings', 0, 0, ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then
       
