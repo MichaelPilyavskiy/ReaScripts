@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 4.23
+-- @version 4.24
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -12,7 +12,7 @@
 
 
 
-  local vrs = 4.23
+  local vrs = 4.24
 
   --[[ gmem map: 
   Master
