@@ -1,9 +1,9 @@
 ﻿-- @description SendFader
--- @version 3.20
+-- @version 3.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix some minor cases for same named sends
+--    # fix taking 'v' by vca shotcut call
 
 
 
@@ -985,7 +985,7 @@
   function UI.draw()  
     UI.draw_menu() 
     UI.draw_sends()   
-    if ImGui_IsKeyPressed(  ctx, ImGui.Key_V,false )        then ImGui.OpenPopup(ctx, 'vcapopup', ImGui.PopupFlags_None) end
+    if ImGui_IsKeyPressed(  ctx, ImGui.Key_V,false ) and not reaper.ImGui_IsAnyItemActive( ctx )       then ImGui.OpenPopup(ctx, 'vcapopup', ImGui.PopupFlags_None) end
     UI.draw_VCAfader() 
     UI.draw_popups() 
   end 
