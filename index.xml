@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bdf2b8fc934ebda6ffa62db0c3d0007bf6939d3d" name="MPL Scripts">
+<index version="1" commit="fbb6c3cc3329acbb0f5cdbfdfeed9904fb095a9c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2378,22 +2378,6 @@
         <changelog><![CDATA[+ Use delete for toggle selected mod active
 + Improve docking]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c74083e3db48aaade22fa6f5d96fc638d82f3e31/FX/mpl_ModulationEditor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Multi-mono container.lua" type="script" desc="Multi-mono container">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Convert any plugin into multi-mono container and managing it\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=207971</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2025-07-30T00:45:30Z">
-        <changelog><![CDATA[+ initial release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a55c99a7d378fd612a483671a233870f2a89c68/FX/mpl_Multi-mono%20container.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
@@ -15962,6 +15946,13 @@ various fixes]]></changelog>
       <version name="3.21" author="MPL" time="2026-09-27T16:36:53Z">
         <changelog><![CDATA[# fix taking 'v' by vca shotcut call]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bdf2b8fc934ebda6ffa62db0c3d0007bf6939d3d/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="3.22" author="MPL" time="2026-09-27T17:44:56Z">
+        <changelog><![CDATA[+ Show sends and receives simultaneously instead of toggling, suppress CONF_allowreceivefader_mode flag
++ VCA support both receives and sends
+# fix renaming at receive mode
+# block VCA checkbox for receives]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fbb6c3cc3329acbb0f5cdbfdfeed9904fb095a9c/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
