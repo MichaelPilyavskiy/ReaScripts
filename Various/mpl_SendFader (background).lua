@@ -1,9 +1,12 @@
 ﻿-- @description SendFader
--- @version 3.21
+-- @version 3.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix taking 'v' by vca shotcut call
+--    + Show sends and receives simultaneously instead of toggling, suppress CONF_allowreceivefader_mode flag
+--    + VCA support both receives and sends
+--    # fix renaming at receive mode
+--    # block VCA checkbox for receives
 
 
 
@@ -35,7 +38,7 @@
           
           CONF_showpeaks = 1,
           --CONF_autoadjustwidth = 0,
-          CONF_allowreceivefader_mode = 1,  -- &2 = allow show send list in receive mode
+          --CONF_allowreceivefader_mode = 1,  -- &2 = allow show send list in receive mode
           CONF_allowsametrackmultsends = 0,
           CONF_showparentsend = 0,
         }
@@ -59,7 +62,8 @@
             '0',
             '+12',
             } ,
-          VCA_faderval = 1,
+          VCA_faderval_sends = 1,
+          VCA_faderval_receives = 1,
           
           }
           
@@ -243,14 +247,12 @@
         ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGrip,   UI.Tools_RGBA(UI.main_col, 1) )
         ImGui.PushStyleColor(ctx, ImGui.Col_ResizeGripHovered,UI.Tools_RGBA(UI.main_col, 1) )
         
+        -- NOTE: the slider grab is intentionally left as the default (blue = send) here.
+        -- Per-item coloring (blue for outgoing sends, green for incoming receives) is
+        -- now applied locally inside UI.draw_sends_sub_slider(), so sends and receives
+        -- can be displayed side by side at the same time instead of one replacing the other.
         ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,   UI.Tools_RGBA(0x3D85E0 , 0.6)  )
         ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,UI.Tools_RGBA(0x3D85E0 , 1) ) 
-        local rec_cnt = 0
-        if DATA.selected_track_is_receive == true then  
-          ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, UI.Tools_RGBA(0x00B300 , 0.6))
-          ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,UI.Tools_RGBA(0x00B300 , 1))
-          rec_cnt = 2
-        end
         
         
         ImGui.PushStyleColor(ctx, ImGui.Col_Tab,          UI.Tools_RGBA(UI.main_col, 0.37) )
@@ -317,7 +319,7 @@
       end 
       ImGui.PopFont( ctx ) 
       ImGui.PopStyleVar(ctx,22)
-      ImGui.PopStyleColor(ctx,22+rec_cnt)
+      ImGui.PopStyleColor(ctx,22)
       
       -- cnt popups 
       local ppupcnt = 0 
@@ -336,9 +338,7 @@
     DATA:CollectData_ReadProject_ReadTracks()  
     DATA:CollectData_ReadProject_ReadTracks_Sends()
     DATA:CollectData_ReadProject_ReadReceives()  
-    if DATA.selected_track_is_receive == true then 
-      DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle()
-    end
+    DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle()
   end
   ---------------------------------------------------------------------  
   function DATA:CollectData_ReadProject_ReadTracks_ReceiveSingle_FindSendIdx(srcPtr,destPtr)
@@ -351,7 +351,7 @@
     local tr = DATA.srctr.ptr
     DATA.srctr.receives = {}
     
-    
+    if not tr then return end
     
     for sendidx = 1, GetTrackNumSends( tr, -1 ) do 
       local id = #DATA.srctr.receives+1
@@ -400,6 +400,7 @@
       local retval, VCALOCK =GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
       
       DATA.srctr.receives[id] = {
+            is_incoming_receive = true, -- marks this item as an actual incoming receive (green fader)
             sendidx=sendidx_from_src,
             
             vol=vol, 
@@ -654,6 +655,12 @@
       for sendID = 1, #DATA.srctr.sends do 
         DATA:CollectData_Always_getpeaks_sub(DATA.srctr.sends[sendID].peaks, DATA.srctr.sends[sendID].destPtr)
       end
+      -- also meter incoming receives now that they're shown alongside sends
+      if DATA.srctr.receives then
+        for recID = 1, #DATA.srctr.receives do 
+          DATA:CollectData_Always_getpeaks_sub(DATA.srctr.receives[recID].peaks, DATA.srctr.receives[recID].destPtr)
+        end
+      end
     end 
   end
   -------------------------------------------------------------------------------- 
@@ -884,14 +891,14 @@
       -- engine
         ImGui.SeparatorText(ctx, 'Engine') 
         --if ImGui.MenuItem( ctx, 'Auto adjust width', '', EXT.CONF_autoadjustwidth==1, true ) then EXT.CONF_autoadjustwidth=EXT.CONF_autoadjustwidth~1 EXT:save() DATA.upd = true end
-        if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&1==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
+        --if ImGui.MenuItem( ctx, 'Allow ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&1==1, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Allow multiple sends to the same track', '', EXT.CONF_allowsametrackmultsends&1==1, true ) then EXT.CONF_allowsametrackmultsends=EXT.CONF_allowsametrackmultsends~1 EXT:save() DATA.upd = true end
       
       
       
       -- UI
         ImGui.SeparatorText(ctx, 'UI')
-        if ImGui.MenuItem( ctx, 'Allow show sends in ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&2==2, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~2 EXT:save() DATA.upd = true end
+        --if ImGui.MenuItem( ctx, 'Allow show sends in ReceiveFader mode', '', EXT.CONF_allowreceivefader_mode&2==2, true ) then EXT.CONF_allowreceivefader_mode=EXT.CONF_allowreceivefader_mode~2 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show track levels', '', EXT.CONF_showpeaks==1, true ) then EXT.CONF_showpeaks=EXT.CONF_showpeaks~1 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show available sends in left combo', '', EXT.CONF_alwaysshowreceives==2, true ) then EXT.CONF_alwaysshowreceives=EXT.CONF_alwaysshowreceives~2 EXT:save() DATA.upd = true end
         if ImGui.MenuItem( ctx, 'Show parent send', '', EXT.CONF_showparentsend==1, true ) then EXT.CONF_showparentsend=EXT.CONF_showparentsend~1 EXT:save() DATA.upd = true end
@@ -990,64 +997,89 @@
     UI.draw_popups() 
   end 
   --------------------------------------------------------------------------------  
-  function UI.draw_VCAfader_handlemouse(v) 
-    if DATA.selected_track_is_receive then 
-    
-      if ImGui.IsItemActivated(ctx) then 
-        DATA.temp_vca = CopyTable(DATA.srctr.receives)
-       elseif ImGui.IsItemActive(ctx) and DATA.temp_vca then 
-        for i = 1, #DATA.temp_vca do
-          local srcPtr = DATA.temp_vca[i].srcPtr
-          local sendidx = DATA.temp_vca[i].sendidx
-          local src_vol = DATA.temp_vca[i].vol
-          local newvalue = src_vol * v^2
-          local ret, VCALOCK = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
-          if VCALOCK == 0 then 
-            SetTrackSendInfo_Value( srcPtr,0, sendidx, 'D_VOL', VF_lim(newvalue,0,2) ) 
-            DATA.srctr.receives[i].vol = newvalue
-          end
-          
+  function UI.draw_VCAfader_handlemouse_sends(v) 
+    -- sends: srcPtr is always the currently selected track itself
+    if ImGui.IsItemActivated(ctx) then 
+      DATA.temp_vca_sends = CopyTable(DATA.srctr.sends)
+     elseif ImGui.IsItemActive(ctx) and DATA.temp_vca_sends then 
+      for i = 1, #DATA.temp_vca_sends do
+        local srcPtr = DATA.srctr.ptr
+        local sendidx = DATA.temp_vca_sends[i].sendidx
+        local src_vol = DATA.temp_vca_sends[i].vol
+        local newvalue = src_vol * v^2
+        local ret, VCALOCK = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
+        if VCALOCK == 0 then 
+          SetTrackSendInfo_Value( srcPtr, 0, sendidx, 'D_VOL', VF_lim(newvalue,0,2) ) 
+          DATA.srctr.sends[i].vol = newvalue
         end
       end
-      
-     else
-      
-      if ImGui.IsItemActivated(ctx) then 
-        DATA.temp_vca = CopyTable(DATA.srctr.sends)
-       elseif ImGui.IsItemActive(ctx) and DATA.temp_vca then 
-        for i = 1, #DATA.temp_vca do
-          local srcPtr = DATA.srctr.ptr
-          local sendidx = DATA.temp_vca[i].sendidx
-          local src_vol = DATA.temp_vca[i].vol
-          local newvalue = src_vol * v^2
-          local ret, VCALOCK = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
-          if VCALOCK == 0 then 
-            SetTrackSendInfo_Value( srcPtr, 0, sendidx, 'D_VOL', VF_lim(newvalue,0,2) ) 
-            DATA.srctr.sends[i].vol = newvalue
-          end
-          
+    end
+    if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA.VCA_faderval_sends = 1 end
+  end
+  --------------------------------------------------------------------------------  
+  function UI.draw_VCAfader_handlemouse_receives(v) 
+    -- receives: srcPtr differs per item (it's the track sending INTO the selected track)
+    if ImGui.IsItemActivated(ctx) then 
+      DATA.temp_vca_receives = CopyTable(DATA.srctr.receives)
+     elseif ImGui.IsItemActive(ctx) and DATA.temp_vca_receives then 
+      for i = 1, #DATA.temp_vca_receives do
+        local srcPtr = DATA.temp_vca_receives[i].srcPtr
+        local sendidx = DATA.temp_vca_receives[i].sendidx
+        local src_vol = DATA.temp_vca_receives[i].vol
+        local newvalue = src_vol * v^2
+        local ret, VCALOCK = GetSetMediaTrackInfo_String( srcPtr, 'P_EXT:VCALOCK', '', false ) VCALOCK = tonumber(VCALOCK) or 0
+        if VCALOCK == 0 then 
+          SetTrackSendInfo_Value( srcPtr, 0, sendidx, 'D_VOL', VF_lim(newvalue,0,2) ) 
+          DATA.srctr.receives[i].vol = newvalue
         end
       end
-      
-    end  
-    
-    if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA.VCA_faderval = 1 end
-    
+    end
+    if ImGui.IsItemDeactivatedAfterEdit(ctx) then DATA.VCA_faderval_receives = 1 end
   end
   --------------------------------------------------------------------------------  
   function UI.draw_VCAfader() 
-    local vca_w = UI.faderW+UI.spacingX*2
+    -- only offer to gang-control a group if it actually has 2+ members
+    local sends_cnt =    (DATA.srctr and DATA.srctr.sends)    and #DATA.srctr.sends    or 0
+    local receives_cnt = (DATA.srctr and DATA.srctr.receives) and #DATA.srctr.receives or 0
+    local show_sends    = sends_cnt    > 1
+    local show_receives = receives_cnt > 1
+    local n_faders = (show_sends and 1 or 0) + (show_receives and 1 or 0)
+    
+    local single_w = UI.faderW+UI.spacingX*2
+    local vca_w = single_w * math.max(n_faders,1)
     local vca_h = 205
     ImGui_SetNextWindowPos(ctx, DATA.display_x+(DATA.display_w-vca_w)/2,DATA.display_y+(DATA.display_h-vca_h)/2, ImGui.Cond_Appearing)
     ImGui_SetNextWindowSize(ctx, vca_w,vca_h, ImGui.Cond_Always)
     if ImGui.BeginPopup(ctx, 'vcapopup', ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then
       ImGui.SeparatorText(ctx,'VCA') 
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,0x7D0F0FBF)  
-      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,0xBD0F0FBF)  
-      x, y = reaper.ImGui_GetContentRegionAvail( ctx )
-      local retval, v = ImGui.VSliderDouble( ctx, '##mainVCA', UI.faderW, y, DATA.VCA_faderval, 0, 2, '', ImGui.SliderFlags_None)
-      UI.draw_VCAfader_handlemouse(v) 
-      ImGui.PopStyleColor(ctx,2)
+      
+      if n_faders == 0 then
+        ImGui.Text(ctx, 'Need 2+ sends or')
+        ImGui.Text(ctx, 'receives to gang.')
+      end
+      
+      -- sends (blue)
+      if show_sends then
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,UI.Tools_RGBA(0x3D85E0, 0.75))  
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,UI.Tools_RGBA(0x3D85E0, 1))  
+        local x, y = reaper.ImGui_GetContentRegionAvail( ctx )
+        local w = show_receives and UI.faderW or x
+        local retval, v = ImGui.VSliderDouble( ctx, '##sendVCA', w, y, DATA.VCA_faderval_sends, 0, 2, 'Send', ImGui.SliderFlags_None)
+        UI.draw_VCAfader_handlemouse_sends(v) 
+        ImGui.PopStyleColor(ctx,2)
+        if show_receives then ImGui.SameLine(ctx) end
+      end
+      
+      -- receives (green)
+      if show_receives then
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab,UI.Tools_RGBA(0x00B300, 0.75))  
+        ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive,UI.Tools_RGBA(0x00B300, 1))  
+        local x, y = reaper.ImGui_GetContentRegionAvail( ctx )
+        local retval, v = ImGui.VSliderDouble( ctx, '##recvVCA', x, y, DATA.VCA_faderval_receives, 0, 2, 'Recv', ImGui.SliderFlags_None)
+        UI.draw_VCAfader_handlemouse_receives(v) 
+        ImGui.PopStyleColor(ctx,2)
+      end
+      
       ImGui.EndPopup(ctx)
     end
   end
@@ -1087,20 +1119,26 @@
     local hovered 
     -- slider
     local faderval = DATA:Convert_Val2Fader(t.vol)
+    
+    -- per-item grab color: green for actual incoming receives, blue (default, from
+    -- MAIN_styledefinition) for outgoing sends -- lets both be shown at once.
+    local push_receive_col = t.is_incoming_receive == true
+    if push_receive_col then
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrab, UI.Tools_RGBA(0x00B300, 0.6))
+      ImGui.PushStyleColor(ctx, ImGui.Col_SliderGrabActive, UI.Tools_RGBA(0x00B300, 1))
+    end
+    
     ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg,UI.Tools_RGBA(UI.sliderBG, 0.8))
     ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered,UI.Tools_RGBA(UI.sliderBG, 0.9))
     ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgActive,UI.Tools_RGBA(UI.sliderBG, 1))
     local retval, v = ImGui.VSliderDouble( ctx, '##vol'..str_id, UI.faderW, UI.calc_faderH, faderval, 0, 1, '', ImGui.SliderFlags_None)
     ImGui.PopStyleColor(ctx,3)
     
+    if push_receive_col then ImGui.PopStyleColor(ctx,2) end
+    
     -- on left click
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Left ) then  
       DATA.temp_vca = CopyTable(DATA.srctr.sends) 
-      if DATA.selected_track_is_receive == true then 
-        DATA.temp_vca = CopyTable(DATA.srctr.receives) 
-       else
-        DATA.temp_vca = CopyTable(DATA.srctr.sends) 
-      end
     end 
     
     -- on slider drag
@@ -1118,11 +1156,7 @@
       DATA.upd = true
       hovered = true
       if t.ext_vcasel == 1 then
-        if DATA.selected_track_is_receive == true then 
-          UI.draw_sends_sub_slider_handlevca(t, t.sendidx_vcacheck) 
-         else
-          UI.draw_sends_sub_slider_handlevca(t, t.sendidx) 
-        end
+        UI.draw_sends_sub_slider_handlevca(t, t.sendidx) 
       end
     end
     
@@ -1329,7 +1363,13 @@
   function UI.draw_sends_sub_destname(t)
     local str_id = t.str_id
     if not str_id then return end
-    if ImGui.Button(ctx, t.destName..'##destname'..str_id,-1) then DATA:GoTotrack(t.destPtr) end
+    -- for outgoing sends, the displayed name/track is the destination (t.destPtr).
+    -- for incoming receives, t.destPtr is intentionally the CURRENT track (needed by
+    -- the EQ read/write functions), but the name shown here is the SENDING track's
+    -- name (t.destName is populated from srcPtr in CollectData_ReadProject_ReadTracks_ReceiveSingle),
+    -- so navigation/rename must target t.srcPtr instead.
+    local nav_tr = t.is_incoming_receive and t.srcPtr or t.destPtr
+    if ImGui.Button(ctx, t.destName..'##destname'..str_id,-1) then DATA:GoTotrack(nav_tr) end
     if ImGui.IsItemClicked( ctx, ImGui.MouseButton_Right ) then 
       UI.popups['Set new name'] = {
         trig = true,
@@ -1340,7 +1380,7 @@
         
         func_setval = function(retval, retvals_csv)  
           if retval == true then
-            GetSetMediaTrackInfo_String( t.destPtr, 'P_NAME', retvals_csv, true )
+            GetSetMediaTrackInfo_String( nav_tr, 'P_NAME', retvals_csv, true )
             DATA.upd = true
           end
         end
@@ -1549,7 +1589,7 @@
     if not (DATA.tracks and DATA.srctr and DATA.srctr.sends) then return end 
     
     -- show list of available sends in list
-    if EXT.CONF_alwaysshowreceives == 2 and (DATA.selected_track_is_receive ~= true or (DATA.selected_track_is_receive == true and EXT.CONF_allowreceivefader_mode&2==2)) then
+    if EXT.CONF_alwaysshowreceives == 2 then
       for i = 1, #DATA.receives do 
         if (DATA.srctr.ptr~=DATA.receives[i].ptr ) then
           if ImGui.BeginChild(ctx,'##selector', UI.faderW, -UI.spacingY, ImGui.ChildFlags_Borders) then
@@ -1564,26 +1604,30 @@
       end 
     end
     
-    -- show existing sends
-    if DATA.selected_track_is_receive ~= true then
-      for sendID = 1, #DATA.srctr.sends do 
-        UI.draw_sends_sub(DATA.srctr.sends[sendID])  
-        ImGui.SameLine(ctx)
-      end
+    -- show existing outgoing sends (blue faders)
+    for sendID = 1, #DATA.srctr.sends do 
+      UI.draw_sends_sub(DATA.srctr.sends[sendID])  
+      ImGui.SameLine(ctx)
     end
     
-    -- show receives in list
-    if EXT.CONF_alwaysshowreceives == 1 and DATA.selected_track_is_receive ~= true then
+    -- show candidate destinations in list (tracks marked/matched as sendable, not yet sent to)
+    if EXT.CONF_alwaysshowreceives == 1 then
       for recID = 1, #DATA.receives do 
         UI.draw_sends_sub(DATA.receives[recID]) 
         ImGui.SameLine(ctx)
       end
     end
     
-    -- show receives
-    if DATA.selected_track_is_receive == true then
-      for sendID = 1, #DATA.srctr.receives do 
-        UI.draw_sends_sub(DATA.srctr.receives[sendID]) 
+    -- visual gap between the outgoing sends group and the incoming receives group
+    if DATA.srctr.receives and #DATA.srctr.receives > 0 and #DATA.srctr.sends > 0 then
+      ImGui.Dummy(ctx, UI.spacingX*2, 0)
+      ImGui.SameLine(ctx)
+    end
+    
+    -- show actual incoming receives (green faders), alongside the sends above
+    if DATA.srctr.receives then
+      for recID = 1, #DATA.srctr.receives do 
+        UI.draw_sends_sub(DATA.srctr.receives[recID]) 
         ImGui.SameLine(ctx)
       end
     end
@@ -1603,19 +1647,21 @@
       end
     end
     
+    if t.is_incoming_receive == true then reaper.ImGui_BeginDisabled(ctx, true) end
     
     ImGui.SameLine(ctx)
     reaper.ImGui_SetNextItemWidth(ctx,UI.calc_comboW)
     if ImGui.BeginCombo(ctx, '##vcalock'..str_id, '', reaper.ImGui_ComboFlags_NoPreview()) then 
       if ImGui.Selectable(ctx, 'Lock from VCA control##vcalocktoggle'..str_id, t.VCALOCK == 1, ImGui.SelectableFlags_None) then
         local tr = t.destPtr
-        if DATA.selected_track_is_receive == true then tr = t.srcPtr end
+        
         GetSetMediaTrackInfo_String( tr, 'P_EXT:VCALOCK', t.VCALOCK~1, true )
         DATA.upd = true
       end
       ImGui.EndCombo(ctx)
     end
     
+    if t.is_incoming_receive == true then reaper.ImGui_EndDisabled(ctx) end
     
   end
   --------------------------------------------------------------------------------  
@@ -1683,7 +1729,6 @@
   -----------------------------------------------------------------------------------------
   function DATA:CollectData_ReadProject_ReadReceives()
     local seltr = GetSelectedTrack(0,0)
-    DATA.selected_track_is_receive = false
     DATA.receives = {}
     local CONF_definebygroup = tostring(EXT.CONF_definebygroup)
     local CONF_definebyname = tostring(EXT.CONF_definebyname)
@@ -1731,7 +1776,6 @@
         local destCol  = GetTrackColor( tr ) 
         
         
-        if seltr and tr == seltr and EXT.CONF_allowreceivefader_mode&1 == 1 then DATA.selected_track_is_receive = true end
         
         DATA.receives[#DATA.receives+1] = {
             is_receive =true,
