@@ -1,5 +1,5 @@
  -- @description RS5k manager
--- @version 4.84
+-- @version 4.85
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -23,12 +23,10 @@
 --    mpl_RS5K_manager_functions.lua
 --    [main] mpl_RS5k_manager_ToggleShowChildren.lua
 -- @changelog
---    + Add toolbar states for states and sequencer 
---    # move to 0.10 ReaImgui
---    # cleanup header, add close button
+--    # fix ImGui_ChildFlags_Borders
 
 
-rs5kman_vrs = '4.84'
+rs5kman_vrs = '4.85'
 
 
 
@@ -1834,7 +1832,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     if not UI.tab_last or (UI.tab_last and UI.tab_last ~= UI.tab_current ) then EXT.UI_activeTab = UI.tab_current EXT:save() end
     
     UI.tab_last = UI.tab_current 
-    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then --|ImGui.ChildFlags_Border- --|ImGui.WindowFlags_NoScrollWithMouse
+    if ImGui.BeginChild( ctx, '##settingscontent',-1, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None ) then 
       
       
       UI.draw_tabs_settings_database()
@@ -1867,7 +1865,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0) 
     
     ImGui.SetCursorScreenPos(ctx,UI.calc_rackX,UI.calc_rackY)
-    if ImGui.BeginChild( ctx, 'rack', UI.calc_rackW, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None |ImGui.WindowFlags_NoScrollbar ) then--|ImGui.ChildFlags_Border --|ImGui.WindowFlags_MenuBar
+    if ImGui.BeginChild( ctx, 'rack', UI.calc_rackW, 0, ImGui.ChildFlags_None, ImGui.WindowFlags_None |ImGui.WindowFlags_NoScrollbar ) then
       UI.draw_Rack_Pads()  
       ImGui.EndChild( ctx)
     end
@@ -2213,7 +2211,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       
     
     ImGui.SetCursorScreenPos( ctx, x, y )  
-    if ImGui.BeginChild( ctx, '##rackpad'..note, w, h, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then--|ImGui.ChildFlags_Border
+    if ImGui.BeginChild( ctx, '##rackpad'..note, w, h, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then
       local note_format = VF_Format_Note(note,note_t)
       if note_format then
         if EXT.UI_drracklayout == 2 then note_format = note_format..' ('..note..')' end
@@ -2591,7 +2589,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     local tabW = -1
     local cur_w = DATA.display_w - ImGui.GetCursorPosX(ctx)
     if cur_w > UI.settingsfixedW then tabW = UI.settingsfixedW end
-    if ImGui.BeginChild( ctx, 'tabs', tabW, 0, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then --|ImGui.ChildFlags_Border
+    if ImGui.BeginChild( ctx, 'tabs', tabW, 0, ImGui.ChildFlags_None , ImGui.WindowFlags_None|ImGui.WindowFlags_NoScrollbar) then 
       if ImGui.BeginTabBar( ctx, 'tabsbar', ImGui.TabItemFlags_None ) then
         
         function __f_tabs() end
@@ -2744,7 +2742,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       
       
     -- link list
-    if ImGui.BeginChild( ctx, 'macrolinks', 0, 0, ImGui.ChildFlags_None|ImGui.ChildFlags_Border, ImGui.WindowFlags_None ) then--|ImGui.ChildFlags_Border --|ImGui.WindowFlags_MenuBar-- |ImGui.WindowFlags_NoScrollbar -- UI.calc_rackW
+    if ImGui.BeginChild( ctx, 'macrolinks', 0, 0, ImGui.ChildFlags_None|ImGui.ChildFlags_Borders, ImGui.WindowFlags_None ) then
     
       
       
@@ -3192,7 +3190,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_WindowPadding,0,0)  
     ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing,0,0)
     ImGui.SetCursorScreenPos(ctx,UI.calc_rackX,UI.calc_rackY)
-    if ImGui.BeginChild( ctx, 'FixingMetadata_modal', UI.calc_rackW, 0, ImGui.ChildFlags_Border, ImGui.WindowFlags_None |ImGui.WindowFlags_NoScrollbar ) then--|ImGui.ChildFlags_Border --|ImGui.WindowFlags_MenuBar
+    if ImGui.BeginChild( ctx, 'FixingMetadata_modal', UI.calc_rackW, 0, ImGui.ChildFlags_Borders, ImGui.WindowFlags_None |ImGui.WindowFlags_NoScrollbar ) then
       ImGui.TextWrapped(ctx,
           [[
           
@@ -3250,7 +3248,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
       local posy = mousey-UI.calc_itemH*4 -- add as single button
       ImGui.SetNextWindowPos( ctx,posx, posy, ImGui.Cond_Once )
       ImGui.SetNextWindowSize( ctx, out_w, 0, ImGui.Cond_Always )
-      if ImGui.BeginPopupModal( ctx, 'autoslice_confirmation', true, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Border ) then
+      if ImGui.BeginPopupModal( ctx, 'autoslice_confirmation', true, ImGui.WindowFlags_AlwaysAutoResize|ImGui.ChildFlags_Borders ) then
         local loop_t=  DATA.temp_loopslice_askforadd.loop_t
         local note=  DATA.temp_loopslice_askforadd.note
         local filename=  DATA.temp_loopslice_askforadd.filename
@@ -3846,7 +3844,7 @@ BUT if you use step sequencer you have to turn this MIDI Hardware output OFF. Ot
     
     
     ImGui.SetCursorScreenPos(ctx, curposx_abs + (UI.calc_knob_w_small + UI.spacingX)*2, curposy_abs)
-    if ImGui.BeginChild(ctx,'tabsbar_sampler_boundarychild', 0,0,reaper.ImGui_ChildFlags_Border()) then
+    if ImGui.BeginChild(ctx,'tabsbar_sampler_boundarychild', 0,0,reaper.ImGui_ChildFlags_Borders()) then 
       if ImGui.BeginTabBar( ctx, '##tabsbar_sampler_boundary', ImGui.TabItemFlags_None ) then 
         
         -- start offset
