@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d4b0d91405b10c4b4dbc2bbf02d3db5a36a296af" name="MPL Scripts">
+<index version="1" commit="9d0187547012f19d9d26b165c5734fd222a9a51d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -15492,115 +15492,6 @@ various fixes]]></changelog>
 + Revert back Gate/PF/Compressor mode
 + Compressor: implement attack/release quantized to window]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1496045cc6c4d077f30d76845b73e225c9c86a9e/Various/mpl_Peak%20follower%20tools.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for editing take pitch envelope\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=222825</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-07-08T20:25:33Z">
-        <changelog><![CDATA[+ Initial release
-+ YIN-based pitch detection
-+ Support editing audio takes pitch envelope by dragging blocks
-+ Vertical and horizontal scroll/zoom]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-07-09T04:27:52Z">
-        <changelog><![CDATA[# fix ReaPack header (add mpl_PitchEditor_analyzer to action list)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a920f8c93552c5790bb8f30548d5472bd2b8437/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a920f8c93552c5790bb8f30548d5472bd2b8437/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a920f8c93552c5790bb8f30548d5472bd2b8437/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a920f8c93552c5790bb8f30548d5472bd2b8437/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a920f8c93552c5790bb8f30548d5472bd2b8437/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a920f8c93552c5790bb8f30548d5472bd2b8437/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-07-09T05:57:54Z">
-        <changelog><![CDATA[+ Options: add options page
-# EEL analyzer: prevent reading non-1x playrate takes
-# EEL analyzer: prevent reading takes with stretch markers]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4791cc9ec6437fae38efc2c7b4c2e3a0d36679d/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4791cc9ec6437fae38efc2c7b4c2e3a0d36679d/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4791cc9ec6437fae38efc2c7b4c2e3a0d36679d/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4791cc9ec6437fae38efc2c7b4c2e3a0d36679d/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4791cc9ec6437fae38efc2c7b4c2e3a0d36679d/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4791cc9ec6437fae38efc2c7b4c2e3a0d36679d/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.03" author="MPL" time="2019-07-10T06:00:17Z">
-        <changelog><![CDATA[+ Mouse: middle drag support
-+ Mouse: Ctrl+drag snap to scale
-+ Mouse: Alt+drag for better precision
-+ GUI: store last scroll/zoom, reset on change take
-+ GUI: show normalized peaks
-+ GUI: show help notes on low vertical zoom levels
-+ GUI: shift grid lines -0.5semitone
-# Data: fix error when take pitch envelope doesn`t exist]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14cf2507601dd3ed07c377d68b67c56eac30c925/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14cf2507601dd3ed07c377d68b67c56eac30c925/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14cf2507601dd3ed07c377d68b67c56eac30c925/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14cf2507601dd3ed07c377d68b67c56eac30c925/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14cf2507601dd3ed07c377d68b67c56eac30c925/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14cf2507601dd3ed07c377d68b67c56eac30c925/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.10" author="MPL" time="2019-07-21T09:01:29Z">
-        <changelog><![CDATA[# Defaults: changed various default parameters of YIN detection
-# GUI: don`t show scale helper in options window
-# GUI: don`t hide note completely if part of note is out of script window
-+ GUI: add split notes editing mode
-+ GUI: add join notes editing mode
-+ Data: rebuild note blocks detection algorithm
-# Data: pass only raw pitch data from analyzer, postprocessing moved to main script, not backward compatible
-# Data: reduce points on applying changes
-+ Actions: reset pitch changes
-+ Actions: reset view
-+ Mouse: doubleclick to reset note pitch changes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855b8bf0fef362c97ed1257a203ae707ca63f07f/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855b8bf0fef362c97ed1257a203ae707ca63f07f/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855b8bf0fef362c97ed1257a203ae707ca63f07f/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855b8bf0fef362c97ed1257a203ae707ca63f07f/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855b8bf0fef362c97ed1257a203ae707ca63f07f/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855b8bf0fef362c97ed1257a203ae707ca63f07f/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.11" author="MPL" time="2019-07-23T17:45:09Z">
-        <changelog><![CDATA[+ Data: allow to edit modulation
-+ Mouse: Ctrl+click split note
-+ Mouse: Alt+click join note
-- GUI: remove mode selector]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f40c84a27194626e4cdad2e10a6577894183119/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f40c84a27194626e4cdad2e10a6577894183119/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f40c84a27194626e4cdad2e10a6577894183119/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f40c84a27194626e4cdad2e10a6577894183119/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f40c84a27194626e4cdad2e10a6577894183119/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f40c84a27194626e4cdad2e10a6577894183119/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.12" author="MPL" time="2020-03-04T21:27:30Z">
-        <changelog><![CDATA[# Data: fix data/line224 error]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c97d4ad9d306c77a44038862f8476a86ed866ba8/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c97d4ad9d306c77a44038862f8476a86ed866ba8/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c97d4ad9d306c77a44038862f8476a86ed866ba8/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c97d4ad9d306c77a44038862f8476a86ed866ba8/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c97d4ad9d306c77a44038862f8476a86ed866ba8/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c97d4ad9d306c77a44038862f8476a86ed866ba8/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
-      </version>
-      <version name="1.13" author="MPL" time="2020-05-16T05:57:54Z">
-        <changelog><![CDATA[# GUI: fix line#384 error]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6787ddb64fe4835b6490a9744076b2a75e9905d5/Various/mpl_PitchEditor.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6787ddb64fe4835b6490a9744076b2a75e9905d5/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6787ddb64fe4835b6490a9744076b2a75e9905d5/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6787ddb64fe4835b6490a9744076b2a75e9905d5/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
-        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6787ddb64fe4835b6490a9744076b2a75e9905d5/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
-        <source main="main" file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6787ddb64fe4835b6490a9744076b2a75e9905d5/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
       </version>
     </reapack>
     <reapack name="mpl_ProjectPlaylist (background).lua" type="script" desc="ProjectPlaylist">
