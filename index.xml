@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d0187547012f19d9d26b165c5734fd222a9a51d" name="MPL Scripts">
+<index version="1" commit="89561d6948354c423f89cccac8fee715646742a6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -13329,6 +13329,14 @@ various fixes]]></changelog>
       <version name="3.24" author="MPL" time="2026-07-24T17:47:59Z">
         <changelog><![CDATA[# fix favourite crash when no session is active]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6535e358e34ab6ca9d76113666e5ce50fa38ae61/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="3.25" author="MPL" time="2026-10-24T19:18:11Z">
+        <changelog><![CDATA[# Item/Copy file: improve logic around
+# Item/Copy file: make sure file actually copied before modifying file path
+# Item/Copy file: allow only letters and digits in input directory
++ Settings/Item/Auto-convert relative path to absolute: add check to settings (enabled by default)
++ Settings/Item/Auto-convert relative path to absolute: fix freezed items]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89561d6948354c423f89cccac8fee715646742a6/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
