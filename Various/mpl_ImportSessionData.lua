@@ -1,10 +1,14 @@
 -- @description ImportSessionData
--- @version 3.24
+-- @version 3.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix favourite crash when no session is active
+--    # Item/Copy file: improve logic around
+--    # Item/Copy file: make sure file actually copied before modifying file path
+--    # Item/Copy file: allow only letters and digits in input directory
+--    + Settings/Item/Auto-convert relative path to absolute: add check to settings (enabled by default)
+--    + Settings/Item/Auto-convert relative path to absolute: fix freezed items
 
 
 
@@ -155,9 +159,12 @@
             -- &2 clear existed 
             -- &4 edit cur offs 
             -- &32 copy files 
+          CONF_tr_it_src = 1,
+            -- &1 convert relative path to absolute
           CONF_tr_itfreezed = 1, 
           CONF_it_buildpeaks = 1,
           CONF_it_subpathname = 'Imported_samples',
+          
           
           CONF_tr_PHASE = 1,
           CONF_tr_RECINPUT = 1,
@@ -1367,24 +1374,28 @@
             if ImGui.Checkbox( ctx, 'Add items##CONF_tr_it',                           EXT.CONF_tr_it&1 == 1 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~1 EXT:save() end
             if EXT.CONF_tr_it&1 == 1 then 
               ImGui.Indent(ctx, indent)
-              if ImGui.Checkbox( ctx, 'Freezed items##CONF_tr_itfreezed',             EXT.CONF_tr_itfreezed&1 == 1 ) then EXT.CONF_tr_itfreezed =EXT.CONF_tr_itfreezed~1 EXT:save() end 
-              if ImGui.Checkbox( ctx, 'Copy files##CONF_tr_it5',             EXT.CONF_tr_it&32 == 32 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~32 EXT:save() end 
-              
-              if EXT.CONF_tr_it&32 == 32 then 
-                ImGui.SameLine(ctx)
-                reaper.ImGui_SetNextItemWidth(ctx, 200)
-                local retval, buf = reaper.ImGui_InputText( ctx, 'path', EXT.CONF_it_subpathname, reaper.ImGui_InputTextFlags_None() )
-                if retval then EXT.CONF_it_subpathname = buf end
-                if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then
-                  EXT:save()
-                end
-              end
-                
+              if ImGui.Checkbox( ctx, 'Freezed items##CONF_tr_itfreezed',             EXT.CONF_tr_itfreezed&1 == 1 ) then EXT.CONF_tr_itfreezed =EXT.CONF_tr_itfreezed~1 EXT:save() end  
               if ImGui.Checkbox( ctx, 'Offset at edit cursor##CONF_tr_it2',                 EXT.CONF_tr_it&4 == 4 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~4 EXT:save() end
               if ImGui.Checkbox( ctx, 'Build any missing peaks##CONF_it_buildpeaks',        EXT.CONF_it_buildpeaks&1 == 1 ) then EXT.CONF_tr_it =EXT.CONF_it_buildpeaks~1 EXT:save() end
+              if ImGui.Checkbox( ctx, 'Copy files##CONF_tr_it5',             EXT.CONF_tr_it&32 == 32 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~32 EXT:save() end ImGui.SameLine(ctx)  self.draw.HelpMarker('If source file exists, actually copy file to a destination project, modify reference links to just copied source file')
+                if EXT.CONF_tr_it&32 == 32 then 
+                  ImGui.SameLine(ctx)
+                  reaper.ImGui_SetNextItemWidth(ctx, 200)
+                  local retval, buf = reaper.ImGui_InputText( ctx, 'path', EXT.CONF_it_subpathname, reaper.ImGui_InputTextFlags_None() )
+                  if retval then EXT.CONF_it_subpathname = buf:gsub('[\\/:*?"<>|]','') end 
+                  if reaper.ImGui_IsItemDeactivatedAfterEdit(ctx) then
+                    EXT.CONF_it_subpathname = buf:gsub('[\\/:*?"<>|]','')
+                    EXT:save()
+                  end
+                end
+                function __b_src_settings() end
+             if ImGui.Checkbox( ctx, 'Auto-convert relative paths to absolute paths##CONF_tr_it_src',        EXT.CONF_tr_it_src&1 == 1 ) then EXT.CONF_tr_it_src =EXT.CONF_tr_it_src~1 EXT:save() end 
+               
+                
+                
               ImGui.Unindent(ctx, indent)
             end
-            if ImGui.Checkbox( ctx, 'Clear existing items##CONF_tr_it1',  EXT.CONF_tr_it&2 == 2 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~2 EXT:save() end ImGui.SameLine(ctx) self.draw.HelpMarker('Valid when using matching tracks')
+            if ImGui.Checkbox( ctx, 'Clear existing items##CONF_tr_it1',  EXT.CONF_tr_it&2 == 2 ) then EXT.CONF_tr_it =EXT.CONF_tr_it~2 EXT:save() end ImGui.SameLine(ctx) self.draw.HelpMarker('Valid when merge with existing track content')
           ImGui.Unindent(ctx, indent)
         end
         
@@ -1912,7 +1923,7 @@
           local item = GetTrackMediaItem( src_tr, itemidx-1 )
           local retval, chunk = reaper.GetItemStateChunk( item, '', false ) 
           local gGUID = genGuid('' ) 
-          chunk = chunk:gsub('GUID (%{.-%})\n', 'GUID '..gGUID..'\n')
+          chunk = chunk:gsub('GUID (%{.-%})\n', 'GUID '..gGUID..'\n') 
           chunk = self.process.import.tracks.transferdata.items.handlesources(chunk)   
           local new_it = AddMediaItemToTrack( dest_tr )
           SetItemStateChunk( new_it, chunk, false )  
@@ -1925,57 +1936,74 @@
     end 
     -------------------------------------
     self.process.import.tracks.transferdata.items.handlesources =
-    function (chunk)  
-      if not (EXT.CONF_tr_it&16 == 16 or EXT.CONF_tr_it&32 == 32) then return chunk end --[[ CONF_tr_it = 1,  -- &2 clear existed  -- &4 edit cur offs  -- CONF_tr_it&16 try fix relative path -- &32 copy files ]]
+    function (item_chunk) function __b_src_handler() end 
+      -- skip if not copy source or not fixing anything path related
+        if not (EXT.CONF_tr_it&32 == 32 or EXT.CONF_tr_it_src>0) then return end 
       -- cache chunk
-      local t = {}
-      for line in chunk:gmatch('[^\r\n]+') do t[#t+1]=line end
-      -- fix paths
-      for i = 1, #t do
-        local ret, output_modified_str = self.process.import.tracks.transferdata.items.sub(t[i])  
-        if ret then t[i] = output_modified_str end
-      end 
+        local t = {} for line in item_chunk:gmatch('[^\r\n]+') do t[#t+1]=line end
+        for i = 1, #t do
+          local ret, output_modified_str = self.process.import.tracks.transferdata.items.sub(t[i])  
+          if ret then t[i] = output_modified_str end
+        end 
       -- concat chunk
-      chunk = table.concat(t,'\n')
-      return chunk
+        item_chunk = table.concat(t,'\n')
+        return item_chunk
     end
     -------------------------------------
     self.process.import.tracks.transferdata.items.sub=
     function (line) 
-      if not line:match('FILE ') then return end
-      local fp_src = line:match('FILE (.*)')
-      if fp_src:match('"(.*)"') then fp = fp_src:match('"(.*)"') end
+      -- skip if not valid FILE reference
+        if not line:match('FILE ') then return end
+        local fp_src = line:match('FILE (.*)')
+        if fp_src:match('"(.*)"') then fp = fp_src:match('"(.*)"') end
+        
+      -- check
+        if not fp then return end
       
-      if not file_exists( fp ) then
-        local testfp = DATA.srcproj.path..'/'..fp
-        if file_exists( testfp ) then fp = testfp end
-      end
+      -- fix relative path 
+        if EXT.CONF_tr_it_src&1==1 and not file_exists( fp ) then
+          -- [source_project / filename]
+            local testfp = DATA.srcproj.path..'/'..fp 
+            if file_exists( testfp ) then 
+              fp = testfp 
+              goto skiprelativepathcheck
+            end
+          -- [source_project / extracted filename] -- issue with freezed items
+            local test_fp_extracted = fp:match("^.+[/\\]([^/\\]+)$")
+            if test_fp_extracted then 
+              local testfp = DATA.srcproj.path..'/'..test_fp_extracted 
+              if file_exists( testfp ) then 
+                fp = testfp 
+                goto skiprelativepathcheck
+              end
+            end
+          ::skiprelativepathcheck::
+        end
       
-      -- copyfile
-      local proj_path = self.utils.GetParentFolder(DATA.destproj.fp)
-      local fname = self.utils.GetShortSmplName(fp)
-      if EXT.CONF_tr_it&32 == 32 and proj_path and fname then
-        local srcfp = fp 
-        local sub_path_name = ''
-        if EXT.CONF_it_subpathname~='' then sub_path_name = EXT.CONF_it_subpathname..'/' end
-        
-        --RecursiveCreateDirectory(proj_path..'/'..sub_path_name, 0)
-        -- ds: Add error handling for directory creation
-        local dir_path = proj_path..'/'..sub_path_name
-        local ok = RecursiveCreateDirectory(dir_path, 0)
-        if not ok then return end --MB("Failed to create directory: "..dir_path, "Error", 0) return end
-        
-        
-        local destfp = proj_path..'/'..sub_path_name..fname 
-        if not file_exists( destfp ) then
-          if srcfp ~= destfp then -- replace
-            self.utils.CopyFile(srcfp,destfp)
+      -- copyfile 
+        local proj_path = self.utils.GetParentFolder(DATA.destproj.fp)
+        local fname = self.utils.GetShortSmplName(fp)
+        if EXT.CONF_tr_it&32 == 32 and proj_path and fname then
+          local srcfp = fp 
+          local sub_path_name = ''
+          if EXT.CONF_it_subpathname~='' then sub_path_name = EXT.CONF_it_subpathname..'/' end
+          
+          --RecursiveCreateDirectory(proj_path..'/'..sub_path_name, 0)
+          -- ds: Add error handling for directory creation
+          local dir_path = proj_path..'/'..sub_path_name
+          local ok = RecursiveCreateDirectory(dir_path, 0)
+          if not ok then return end --MB("Failed to create directory: "..dir_path, "Error", 0) return end
+           
+          local destfp = proj_path..'/'..sub_path_name..fname 
+          if not file_exists( destfp ) then
+            if srcfp ~= destfp then -- replace
+              local ret = self.utils.CopyFile(srcfp,destfp)
+              if ret == true then fp = destfp end
+            end
+           else
             fp = destfp
           end
-         else
-          fp = destfp
-        end
-      end 
+        end 
       
       if fp_src ~= fp then 
         local output_file = 'FILE "'..fp..'" 1'
@@ -3188,6 +3216,7 @@
       new_file:write(content) 
       old_file:close()
       new_file:close()
+      return true
     end 
     ---------------------------- 
     self.utils.base64.enc=
