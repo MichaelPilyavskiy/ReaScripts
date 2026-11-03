@@ -1,9 +1,9 @@
 -- @description Smart duplicate items, use measure shift
--- @version 1.34
+-- @version 1.35
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # VF independent
+--    # add new chunks for just created item/takes
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -85,6 +85,13 @@
       local new_pos = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].pos_conv.pos_conv_measure + measure_shift )
       local new_end = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].end_conv.end_conv_measure + measure_shift )
       SetMediaItemInfo_Value( new_it, 'D_POSITION', new_pos)
+      local new_it_GUID = genGuid()
+      GetSetMediaItemInfo_String( new_it, 'GUID', new_it_GUID, true )
+      for takeID =1, reaper.CountTakes(new_it) do
+        local tk = reaper.GetTake(new_it,takeID-1)
+        local new_tk_GUID = genGuid()
+        GetSetMediaItemTakeInfo_String( tk, 'GUID', new_tk_GUID, true )
+      end 
       --SetMediaItemInfo_Value( new_it, 'I_CUSTOMCOLOR', data[i].col )
     end
   end
