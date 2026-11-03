@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="89561d6948354c423f89cccac8fee715646742a6" name="MPL Scripts">
+<index version="1" commit="798fc8c81154a4a34bb7c69f8fba22ad143ab511" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7862,6 +7862,10 @@
       <version name="1.34" author="MPL" time="2024-08-31T20:39:28Z">
         <changelog><![CDATA[# VF independent]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c11ea9c23c2727473c5ca9f52377d921ac7c4cf9/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
+      </version>
+      <version name="1.35" author="MPL" time="2026-11-03T05:46:09Z">
+        <changelog><![CDATA[# add new chunks for just created item/takes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/798fc8c81154a4a34bb7c69f8fba22ad143ab511/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap selected items to each other.lua" type="script" desc="Snap selected items to each other">
